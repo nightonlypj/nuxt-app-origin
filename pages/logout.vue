@@ -16,11 +16,17 @@
 
 <script>
 export default {
-  middleware: 'auth', // TODO: ログインページでnotice表示「既にログアウト済みです。」
+  created () {
+    if (!this.$auth.loggedIn) {
+      this.$toasted.info('既にログアウトされています。')
+      this.$auth.redirect('login')
+    }
+  },
 
   methods: {
     async logout () {
-      await this.$auth.logout() // TODO: ログインページでnotice表示「ログアウトしました。」
+      await this.$auth.logout()
+      this.$toasted.info('ログアウトしました。')
       // Devise Token Auth
       if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
         localStorage.removeItem('token-type')

@@ -51,6 +51,8 @@ export default {
     '@nuxtjs/axios',
     // https://auth.nuxtjs.org/
     '@nuxtjs/auth',
+    // https://www.npmjs.com/package/@nuxtjs/toast
+    '@nuxtjs/toast',
     // https://go.nuxtjs.dev/pwa
     '@nuxtjs/pwa'
   ],
@@ -81,6 +83,11 @@ export default {
         }
       }
     }
+  },
+
+  toast: {
+    position: 'top-right',
+    duration: 3000
   },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
