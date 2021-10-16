@@ -1,6 +1,11 @@
 import colors from 'vuetify/es5/util/colors'
 
+const environment = process.env.NODE_ENV || 'development'
+const config = require(`./config/${environment}.js`)
+
 export default {
+  publicRuntimeConfig: config,
+
   server: {
     port: 5000
   },
@@ -77,9 +82,9 @@ export default {
           property: 'user'
         },
         endpoints: {
-          login: { url: 'http://localhost:3000/users/auth/sign_in.json', method: 'post' },
-          logout: { url: 'http://localhost:3000/users/auth/sign_out.json', method: 'delete' },
-          user: { url: 'http://localhost:3000/users/auth/validate_token.json', method: 'get' }
+          login: { url: config.authSignInURL, method: 'post' },
+          logout: { url: config.authSignOutURL, method: 'delete' },
+          user: { url: config.authUserURL, method: 'get' }
         }
       }
     }

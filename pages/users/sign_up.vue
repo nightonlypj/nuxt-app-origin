@@ -114,12 +114,12 @@ export default {
 
   methods: {
     async signUp () {
-      await this.$axios.post('http://localhost:3000/users/auth/sign_up.json', {
+      await this.$axios.post(this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
         password: this.password,
         password_confirmation: this.password_confirmation,
-        confirm_success_url: 'http://localhost:5000/users/sign_in'
+        confirm_success_url: this.$config.singUpConfirmSuccessUrl
       })
         .then((response) => {
           return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })

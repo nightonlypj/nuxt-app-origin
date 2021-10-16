@@ -1,0 +1,7 @@
+module.exports = {
+  authSignInURL: 'https://example.com/users/auth/sign_in.json',
+  authSignOutURL: 'https://example.com/users/auth/sign_out.json',
+  authUserURL: 'https://example.com/users/auth/validate_token.json',
+  singUpUrl: 'https://example.com/users/auth/sign_up.json',
+  singUpConfirmSuccessUrl: 'https://front.example.com/users/sign_in'
+}
