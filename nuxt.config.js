@@ -62,10 +62,10 @@ export default {
 
   auth: {
     redirect: {
-      login: '/login',
-      logout: '/login',
+      login: '/users/sign_in', // ログインURL
+      logout: '/users/sign_in', // ログアウト後の遷移先URL
       callback: false,
-      home: '/'
+      home: '/' // ログイン後の遷移先URL
     },
     strategies: {
       local: {

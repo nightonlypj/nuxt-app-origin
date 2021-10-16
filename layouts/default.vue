@@ -90,6 +90,8 @@
 
 <script>
 export default {
+  name: 'LayoutsDefault',
+
   data () {
     return {
       clipped: false,
@@ -111,13 +113,19 @@ export default {
         {
           icon: 'mdi-login',
           title: 'ログイン',
-          to: '/login',
+          to: '/users/sign_in',
+          loggedIn: false
+        },
+        {
+          icon: 'mdi-account-plus',
+          title: 'アカウント登録',
+          to: '/users/sign_up',
           loggedIn: false
         },
         {
           icon: 'mdi-logout',
           title: 'ログアウト',
-          to: '/logout',
+          to: '/users/sign_out',
           loggedIn: true
         }
       ],
@@ -130,7 +138,7 @@ export default {
 
   computed: {
     displayItems () {
-      return this.items.filter(item => (item.loggedIn == null) || (item.loggedIn === this.$auth.loggedIn))
+      return this.items.filter(item => (item.loggedIn === null) || (item.loggedIn === this.$auth.loggedIn))
     }
   }
 }
