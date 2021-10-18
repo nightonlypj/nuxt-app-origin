@@ -33,7 +33,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed:password">
+          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
             <v-text-field
               v-model="password_confirmation"
               type="password"
@@ -62,28 +62,15 @@
 </template>
 
 <script>
+import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, confirmed } from 'vee-validate/dist/rules'
-import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate'
 import Message from '~/components/Message.vue'
 
-setInteractionMode('eager')
-
-extend('required', {
-  ...required,
-  message: '入力してください。'
-})
-extend('email', {
-  ...email,
-  message: '形式が正しくありません。'
-})
-extend('min', {
-  ...min,
-  message: '{length}文字以上で入力してください。'
-})
-extend('confirmed', {
-  ...confirmed,
-  message: 'パスワードと一致しません。'
-})
+extend('required', required)
+extend('email', email)
+extend('min', min)
+extend('confirmed_password', confirmed)
+configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
   name: 'UsersSignUp',
@@ -107,7 +94,7 @@ export default {
 
   created () {
     if (this.$auth.loggedIn) {
-      this.$toasted.info('既にログインしています。')
+      this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })
     }
   },
@@ -126,7 +113,7 @@ export default {
         },
         (error) => {
           if (error.response == null) {
-            this.$toasted.error('通信に失敗しました。しばらく時間をあけてから、やり直してください。')
+            this.$toasted.error(this.$t('network.failure'))
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice

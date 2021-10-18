@@ -52,19 +52,27 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    // https://go.nuxtjs.dev/axios
+    '@nuxtjs/i18n',
     '@nuxtjs/axios',
-    // https://auth.nuxtjs.org/
     '@nuxtjs/auth',
-    // https://www.npmjs.com/package/@nuxtjs/toast
     '@nuxtjs/toast',
-    // https://go.nuxtjs.dev/pwa
     '@nuxtjs/pwa'
   ],
+
+  // I18n module configuration: https://i18n.nuxtjs.org/
+  i18n: {
+    locales: [
+      { code: 'ja', iso: 'ja', file: 'ja.js' }
+    ],
+    defaultLocale: 'ja',
+    lazy: true,
+    langDir: 'locales/'
+  },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {},
 
+  // Auth module configuration: https://auth.nuxtjs.org/
   auth: {
     redirect: {
       login: '/users/sign_in', // ログインURL
@@ -90,6 +98,7 @@ export default {
     }
   },
 
+  // Toast module configuration: https://github.com/nuxt-community/community-modules/tree/master/packages/toast
   toast: {
     position: 'top-right',
     duration: 3000
