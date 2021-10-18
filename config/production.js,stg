@@ -1,9 +1,13 @@
 module.exports = {
-  authSignInURL: 'https://stg.example.com/users/auth/sign_in.json',
-  authSignOutURL: 'https://stg.example.com/users/auth/sign_out.json',
-  authUserURL: 'https://stg.example.com/users/auth/validate_token.json',
-  singUpUrl: 'https://stg.example.com/users/auth/sign_up.json',
-  unlockUrl: 'https://stg.example.com/users/auth/unlock.json',
-  singUpConfirmSuccessUrl: 'https://stg-front.example.com/users/sign_in',
-  unlockRedirectUrl: 'https://stg-front.example.com/users/sign_in'
+  apiBaseURL: 'https://stg.example.com',
+  authSignInURL: '/users/auth/sign_in.json',
+  authSignOutURL: '/users/auth/sign_out.json',
+  authUserURL: '/users/auth/validate_token.json',
+  singUpUrl: '/users/auth/sign_up.json',
+  confirmationUrl: '/users/auth/confirmation.json',
+  unlockUrl: '/users/auth/unlock.json',
+  frontBaseURL: 'https://stg-front.example.com',
+  singUpConfirmSuccessUrl: '/users/sign_in',
+  confirmationConfirmSuccessUrl: '/users/sign_in',
+  unlockRedirectUrl: '/users/sign_in'
 }

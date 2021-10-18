@@ -37,6 +37,11 @@
               </NuxtLink>
             </li>
             <li>
+              <NuxtLink to="/users/confirmation">
+                メールアドレス確認
+              </NuxtLink>
+            </li>
+            <li>
               <NuxtLink to="/users/unlock">
                 アカウントロック解除
               </NuxtLink>
@@ -104,7 +109,7 @@ export default {
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else {
+          } else if (error.response.data != null) {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
           }

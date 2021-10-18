@@ -55,6 +55,11 @@
               </NuxtLink>
             </li>
             <li>
+              <NuxtLink to="/users/confirmation">
+                メールアドレス確認
+              </NuxtLink>
+            </li>
+            <li>
               <NuxtLink to="/users/unlock">
                 アカウントロック解除
               </NuxtLink>
@@ -106,12 +111,12 @@ export default {
 
   methods: {
     async signUp () {
-      await this.$axios.post(this.$config.singUpUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
         password: this.password,
         password_confirmation: this.password_confirmation,
-        confirm_success_url: this.$config.singUpConfirmSuccessUrl
+        confirm_success_url: this.$config.frontBaseURL + this.$config.singUpConfirmSuccessUrl
       })
         .then((response) => {
           return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
@@ -119,10 +124,10 @@ export default {
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else {
+          } else if (error.response.data != null) {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            if (!error.response.data == null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
           return error
         })

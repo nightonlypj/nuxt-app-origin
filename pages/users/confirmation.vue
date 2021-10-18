@@ -4,7 +4,7 @@
     <v-card max-width="480px">
       <v-form>
         <v-card-title>
-          アカウントロック解除
+          メールアドレス確認
         </v-card-title>
         <v-card-text>
           <validation-provider v-slot="{ errors }" name="email" rules="required|email">
@@ -15,7 +15,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="unlock">
+          <v-btn color="primary" :disabled="invalid" @click="confirmation">
             送信
           </v-btn>
         </v-card-text>
@@ -32,8 +32,8 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/confirmation">
-                メールアドレス確認
+              <NuxtLink to="/users/unlock">
+                アカウントロック解除
               </NuxtLink>
             </li>
           </ul>
@@ -77,10 +77,10 @@ export default {
   },
 
   methods: {
-    async unlock () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockUrl, {
+    async confirmation () {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationUrl, {
         email: this.email,
-        redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
+        confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationConfirmSuccessUrl
       })
         .then((response) => {
           return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })

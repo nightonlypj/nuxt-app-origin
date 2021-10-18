@@ -90,9 +90,9 @@ export default {
           property: 'user'
         },
         endpoints: {
-          login: { url: config.authSignInURL, method: 'post' },
-          logout: { url: config.authSignOutURL, method: 'delete' },
-          user: { url: config.authUserURL, method: 'get' }
+          login: { url: config.apiBaseURL + config.authSignInURL, method: 'post' },
+          logout: { url: config.apiBaseURL + config.authSignOutURL, method: 'delete' },
+          user: { url: config.apiBaseURL + config.authUserURL, method: 'get' }
         }
       }
     }

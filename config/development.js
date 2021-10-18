@@ -1,9 +1,13 @@
 module.exports = {
-  authSignInURL: 'http://localhost:3000/users/auth/sign_in.json',
-  authSignOutURL: 'http://localhost:3000/users/auth/sign_out.json',
-  authUserURL: 'http://localhost:3000/users/auth/validate_token.json',
-  singUpUrl: 'http://localhost:3000/users/auth/sign_up.json',
-  unlockUrl: 'http://localhost:3000/users/auth/unlock.json',
-  singUpConfirmSuccessUrl: 'http://localhost:5000/users/sign_in',
-  unlockRedirectUrl: 'http://localhost:5000/users/sign_in'
+  apiBaseURL: 'http://localhost:3000',
+  authSignInURL: '/users/auth/sign_in.json',
+  authSignOutURL: '/users/auth/sign_out.json',
+  authUserURL: '/users/auth/validate_token.json',
+  singUpUrl: '/users/auth/sign_up.json',
+  confirmationUrl: '/users/auth/confirmation.json',
+  unlockUrl: '/users/auth/unlock.json',
+  frontBaseURL: 'http://localhost:5000',
+  singUpConfirmSuccessUrl: '/users/sign_in',
+  confirmationConfirmSuccessUrl: '/users/sign_in',
+  unlockRedirectUrl: '/users/sign_in'
 }
