@@ -1,10 +1,10 @@
 <template>
-  <validation-observer v-slot="{ invalid }">
+  <validation-observer v-slot="{ invalid }" ref="observer">
     <Message :alert="alert" :notice="notice" />
     <v-card max-width="480px">
       <v-form>
         <v-card-title>
-          ログイン
+          アカウントロック解除
         </v-card-title>
         <v-card-text>
           <validation-provider v-slot="{ errors }" name="email" rules="required|email">
@@ -15,30 +15,20 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="required">
-            <v-text-field
-              v-model="password"
-              type="password"
-              label="パスワード"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signIn">
-            ログイン
+          <v-btn color="primary" :disabled="invalid" @click="unlock">
+            送信
           </v-btn>
         </v-card-text>
         <v-card-actions>
           <ul>
             <li>
-              <NuxtLink to="/users/sign_up">
-                アカウント登録
+              <NuxtLink to="/users/sign_in">
+                ログイン
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/unlock">
-                アカウントロック解除
+              <NuxtLink to="/users/sign_up">
+                アカウント登録
               </NuxtLink>
             </li>
           </ul>
@@ -58,7 +48,7 @@ extend('email', email)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignIn',
+  name: 'UsersUnlock',
 
   components: {
     ValidationObserver,
@@ -70,8 +60,7 @@ export default {
     return {
       alert: null,
       notice: null,
-      email: '',
-      password: ''
+      email: ''
     }
   },
 
@@ -80,26 +69,16 @@ export default {
       this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })
     }
-
-    if (this.$route.query.alert !== null || this.$route.query.notice !== null) {
-      this.alert = this.$route.query.alert
-      this.notice = this.$route.query.notice
-      return this.$router.push({ path: '/users/sign_in' }) // Tips: URLパラメータを消す為
-    }
   },
 
   methods: {
-    async signIn () {
-      await this.$auth.loginWith('local', {
-        data: {
-          email: this.email,
-          password: this.password
-        }
+    async unlock () {
+      await this.$axios.post(this.$config.unlockUrl, {
+        email: this.email,
+        redirect_url: this.$config.unlockRedirectUrl
       })
         .then((response) => {
-          this.$toasted.error(response.data.alert)
-          this.$toasted.info(response.data.notice)
-          return response
+          return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
         },
         (error) => {
           if (error.response == null) {
@@ -107,6 +86,7 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
+            if (!error.response.data == null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
           return error
         })

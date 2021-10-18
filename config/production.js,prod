@@ -3,5 +3,7 @@ module.exports = {
   authSignOutURL: 'https://example.com/users/auth/sign_out.json',
   authUserURL: 'https://example.com/users/auth/validate_token.json',
   singUpUrl: 'https://example.com/users/auth/sign_up.json',
-  singUpConfirmSuccessUrl: 'https://front.example.com/users/sign_in'
+  unlockUrl: 'https://example.com/users/auth/unlock.json',
+  singUpConfirmSuccessUrl: 'https://front.example.com/users/sign_in',
+  unlockRedirectUrl: 'https://front.example.com/users/sign_in'
 }

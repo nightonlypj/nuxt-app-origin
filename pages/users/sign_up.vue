@@ -54,6 +54,11 @@
                 ログイン
               </NuxtLink>
             </li>
+            <li>
+              <NuxtLink to="/users/unlock">
+                アカウントロック解除
+              </NuxtLink>
+            </li>
           </ul>
         </v-card-actions>
       </v-form>
@@ -117,7 +122,7 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            this.$refs.observer.setErrors(error.response.data.errors)
+            if (!error.response.data == null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
           return error
         })
