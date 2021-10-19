@@ -4,47 +4,31 @@
     <v-card max-width="480px">
       <v-form>
         <v-card-title>
-          アカウント登録
+          パスワード再設定
         </v-card-title>
         <v-card-text>
-          <validation-provider v-slot="{ errors }" name="name" rules="required">
-            <v-text-field
-              v-model="name"
-              label="氏名"
-              prepend-icon="mdi-account"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-            <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              :error-messages="errors"
-            />
-          </validation-provider>
           <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
             <v-text-field
               v-model="password"
               type="password"
-              label="パスワード [8文字以上]"
+              label="新しいパスワード [8文字以上]"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
+          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
             <v-text-field
               v-model="password_confirmation"
               type="password"
-              label="パスワード(確認)"
+              label="新しいパスワード(確認)"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signUp">
-            登録
+          <v-btn color="primary" :disabled="invalid" @click="updatePassword">
+            変更
           </v-btn>
         </v-card-text>
         <v-card-actions>
@@ -55,8 +39,8 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/password/new">
-                パスワード再設定
+              <NuxtLink to="/users/sign_up">
+                アカウント登録
               </NuxtLink>
             </li>
             <li>
@@ -78,17 +62,16 @@
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import { required, min, confirmed } from 'vee-validate/dist/rules'
 import Message from '~/components/Message.vue'
 
 extend('required', required)
-extend('email', email)
 extend('min', min)
-extend('confirmed_password', confirmed)
+extend('confirmed_new_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignUp',
+  name: 'UsersPasswordIndex',
 
   components: {
     ValidationObserver,
@@ -100,8 +83,6 @@ export default {
     return {
       alert: null,
       notice: null,
-      name: '',
-      email: '',
       password: '',
       password_confirmation: ''
     }
@@ -112,19 +93,24 @@ export default {
       this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })
     }
+
+    if (!this.$route.query.reset_password_token) {
+      return this.$router.push({ path: '/users/password/new', query: { alert: this.$t(reset_password_token_blank) } })
+    }
   },
 
   methods: {
-    async signUp () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
-        name: this.name,
-        email: this.email,
+    async updatePassword () {
+      await this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
+        reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
-        password_confirmation: this.password_confirmation,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
+        password_confirmation: this.password_confirmation
       })
         .then((response) => {
-          return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
+          this.$auth.setUser(response.data.user)
+          this.$toasted.error(response.data.alert)
+          this.$toasted.info(response.data.notice)
+          return this.$router.push({ path: '/' })
         },
         (error) => {
           if (error.response == null) {

@@ -4,17 +4,9 @@
     <v-card max-width="480px">
       <v-form>
         <v-card-title>
-          アカウント登録
+          アカウントロック解除
         </v-card-title>
         <v-card-text>
-          <validation-provider v-slot="{ errors }" name="name" rules="required">
-            <v-text-field
-              v-model="name"
-              label="氏名"
-              prepend-icon="mdi-account"
-              :error-messages="errors"
-            />
-          </validation-provider>
           <validation-provider v-slot="{ errors }" name="email" rules="required|email">
             <v-text-field
               v-model="email"
@@ -23,28 +15,8 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
-            <v-text-field
-              v-model="password"
-              type="password"
-              label="パスワード [8文字以上]"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
-            <v-text-field
-              v-model="password_confirmation"
-              type="password"
-              label="パスワード(確認)"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signUp">
-            登録
+          <v-btn color="primary" :disabled="invalid" @click="unlockNew">
+            送信
           </v-btn>
         </v-card-text>
         <v-card-actions>
@@ -52,6 +24,11 @@
             <li>
               <NuxtLink to="/users/sign_in">
                 ログイン
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/users/sign_up">
+                アカウント登録
               </NuxtLink>
             </li>
             <li>
@@ -64,11 +41,6 @@
                 メールアドレス確認
               </NuxtLink>
             </li>
-            <li>
-              <NuxtLink to="/users/unlock/new">
-                アカウントロック解除
-              </NuxtLink>
-            </li>
           </ul>
         </v-card-actions>
       </v-form>
@@ -78,17 +50,15 @@
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import { required, email } from 'vee-validate/dist/rules'
 import Message from '~/components/Message.vue'
 
 extend('required', required)
 extend('email', email)
-extend('min', min)
-extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignUp',
+  name: 'UsersUnlockNew',
 
   components: {
     ValidationObserver,
@@ -100,10 +70,7 @@ export default {
     return {
       alert: null,
       notice: null,
-      name: '',
-      email: '',
-      password: '',
-      password_confirmation: ''
+      email: ''
     }
   },
 
@@ -112,16 +79,19 @@ export default {
       this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })
     }
+
+    if (this.$route.query.alert !== null || this.$route.query.notice !== null) {
+      this.alert = this.$route.query.alert
+      this.notice = this.$route.query.notice
+      return this.$router.push({ path: '/users/unlock/new' }) // Tips: URLパラメータを消す為
+    }
   },
 
   methods: {
-    async signUp () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
-        name: this.name,
+    async unlockNew () {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockNewUrl, {
         email: this.email,
-        password: this.password,
-        password_confirmation: this.password_confirmation,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
+        redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
       })
         .then((response) => {
           return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })

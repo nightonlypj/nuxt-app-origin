@@ -7,6 +7,7 @@ module.exports = {
     // between: '{min}から{max}の値を入力してください。', // "{_field_}は{min}から{max}の間でなければなりません",
     // confirmed: '致していません。', // "{_field_}が一致しません",
     confirmed_password: 'パスワードと一致していません。',
+    confirmed_new_password: '新しいパスワードと一致していません。',
     // digits: '{length}桁の数字を入力してください。', // "{_field_}は{length}桁の数字でなければなりません",
     // dimensions: '幅{width}px、高さ{height}px以内にしてください。', // "{_field_}は幅{width}px、高さ{height}px以内でなければなりません",
     email: '形式が正しくありません。', // "{_field_}は有効なメールアドレスではありません",

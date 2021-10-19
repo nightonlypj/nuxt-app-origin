@@ -15,11 +15,11 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="confirmation">
+          <v-btn color="primary" :disabled="invalid" @click="confirmationNew">
             送信
           </v-btn>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions v-if="!$auth.loggedIn">
           <ul>
             <li>
               <NuxtLink to="/users/sign_in">
@@ -32,7 +32,12 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/unlock">
+              <NuxtLink to="/users/password/new">
+                パスワード再設定
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/users/unlock/new">
                 アカウントロック解除
               </NuxtLink>
             </li>
@@ -53,7 +58,7 @@ extend('email', email)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersUnlock',
+  name: 'UsersConfirmationNew',
 
   components: {
     ValidationObserver,
@@ -70,17 +75,18 @@ export default {
   },
 
   created () {
-    if (this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.already_authenticated'))
-      return this.$router.push({ path: '/' })
+    if (this.$route.query.alert !== null || this.$route.query.notice !== null) {
+      this.alert = this.$route.query.alert
+      this.notice = this.$route.query.notice
+      return this.$router.push({ path: '/users/confirmation/new' }) // Tips: URLパラメータを消す為
     }
   },
 
   methods: {
-    async confirmation () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationUrl, {
+    async confirmationNew () {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationNewUrl, {
         email: this.email,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationConfirmSuccessUrl
+        confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
           return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })

@@ -37,12 +37,17 @@
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/confirmation">
+              <NuxtLink to="/users/password/new">
+                パスワード再設定
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/users/confirmation/new">
                 メールアドレス確認
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/users/unlock">
+              <NuxtLink to="/users/unlock/new">
                 アカウントロック解除
               </NuxtLink>
             </li>
@@ -81,6 +86,20 @@ export default {
   },
 
   created () {
+    if (this.$route.query.account_confirmation_success === 'false') {
+      return this.$router.push({ path: '/users/confirmation/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+    }
+
+    if (this.$route.query.unlock === 'false') {
+      if (this.$auth.loggedIn) {
+        this.$toasted.error(this.$route.query.alert)
+        this.$toasted.info(this.$route.query.notice)
+        return this.$router.push({ path: '/' })
+      } else {
+        return this.$router.push({ path: '/users/unlock/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+      }
+    }
+
     if (this.$auth.loggedIn) {
       this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })

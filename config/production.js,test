@@ -4,10 +4,13 @@ module.exports = {
   authSignOutURL: '/users/auth/sign_out.json',
   authUserURL: '/users/auth/validate_token.json',
   singUpUrl: '/users/auth/sign_up.json',
-  confirmationUrl: '/users/auth/confirmation.json',
-  unlockUrl: '/users/auth/unlock.json',
+  confirmationNewUrl: '/users/auth/confirmation.json',
+  unlockNewUrl: '/users/auth/unlock.json',
+  passwordNewUrl: '/users/auth/password.json',
+  passwordUpdateUrl: '/users/auth/password/update.json',
   frontBaseURL: 'https://test-front.example.com',
-  singUpConfirmSuccessUrl: '/users/sign_in',
-  confirmationConfirmSuccessUrl: '/users/sign_in',
-  unlockRedirectUrl: '/users/sign_in'
+  singUpSuccessUrl: '/users/sign_in',
+  confirmationSuccessUrl: '/users/sign_in',
+  unlockRedirectUrl: '/users/sign_in',
+  passwordRedirectUrl: '/users/sign_in'
 }
