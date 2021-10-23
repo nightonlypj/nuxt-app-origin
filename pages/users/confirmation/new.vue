@@ -2,7 +2,7 @@
   <validation-observer v-slot="{ invalid }" ref="observer">
     <Message :alert="alert" :notice="notice" />
     <v-card max-width="480px">
-      <v-form>
+      <v-form autocomplete="off">
         <v-card-title>
           メールアドレス確認
         </v-card-title>
@@ -12,6 +12,7 @@
               v-model="email"
               label="メールアドレス"
               prepend-icon="mdi-email"
+              autocomplete="off"
               :error-messages="errors"
             />
           </validation-provider>
@@ -89,7 +90,13 @@ export default {
         confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
+          if (this.$auth.loggedIn) {
+            this.$toasted.error(response.data.alert)
+            this.$toasted.info(response.data.notice)
+            return this.$router.push({ path: '/' })
+          } else {
+            return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
+          }
         },
         (error) => {
           if (error.response == null) {

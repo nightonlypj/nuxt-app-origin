@@ -2,7 +2,7 @@
   <validation-observer v-slot="{ invalid }" ref="observer">
     <Message :alert="alert" :notice="notice" />
     <v-card max-width="480px">
-      <v-form>
+      <v-form autocomplete="off">
         <v-card-title>
           パスワード再設定
         </v-card-title>
@@ -14,6 +14,7 @@
               label="新しいパスワード [8文字以上]"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
+              autocomplete="new-password"
               :error-messages="errors"
             />
           </validation-provider>
@@ -24,6 +25,7 @@
               label="新しいパスワード(確認)"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
+              autocomplete="new-password"
               :error-messages="errors"
             />
           </validation-provider>

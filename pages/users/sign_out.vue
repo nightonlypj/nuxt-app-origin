@@ -21,7 +21,6 @@ export default {
   created () {
     if (!this.$auth.loggedIn) {
       this.$toasted.info(this.$t('auth.already_signed_out'))
-      // return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
       return this.$router.push({ path: '/users/sign_in' }) // Tips: ログイン後、homeに戻す
     }
   },

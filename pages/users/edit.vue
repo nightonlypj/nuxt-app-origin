@@ -4,7 +4,7 @@
     <v-card max-width="480px">
       <v-form autocomplete="off">
         <v-card-title>
-          アカウント登録
+          登録情報変更
         </v-card-title>
         <v-card-text>
           <validation-provider v-slot="{ errors }" name="name" rules="required">
@@ -16,6 +16,10 @@
               :error-messages="errors"
             />
           </validation-provider>
+          <v-alert v-if="unconfirmed_email !== null" color="info">
+            確認待ち: {{ unconfirmed_email }}<br>
+            <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
+          </v-alert>
           <validation-provider v-slot="{ errors }" name="email" rules="required|email">
             <v-text-field
               v-model="email"
@@ -25,52 +29,48 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+          <validation-provider v-slot="{ errors }" name="password" rules="min:8">
             <v-text-field
               v-model="password"
               type="password"
-              label="パスワード [8文字以上]"
+              label="パスワード [8文字以上] (変更する場合のみ)"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
               autocomplete="new-password"
               :error-messages="errors"
             />
           </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
+          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
             <v-text-field
               v-model="password_confirmation"
               type="password"
-              label="パスワード(確認)"
+              label="パスワード(確認) (変更する場合のみ)"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
               autocomplete="new-password"
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signUp">
-            登録
+          <validation-provider v-slot="{ errors }" name="current_password" rules="required">
+            <v-text-field
+              v-model="current_password"
+              type="password"
+              label="現在のパスワード"
+              prepend-icon="mdi-lock"
+              append-icon="mdi-eye-off"
+              autocomplete="off"
+              :error-messages="errors"
+            />
+          </validation-provider>
+          <v-btn color="primary" :disabled="invalid" @click="userUpdate">
+            変更
           </v-btn>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions v-if="unconfirmed_email !== null">
           <ul>
-            <li>
-              <NuxtLink to="/users/sign_in">
-                ログイン
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/password/new">
-                パスワード再設定
-              </NuxtLink>
-            </li>
             <li>
               <NuxtLink to="/users/confirmation/new">
                 メールアドレス確認
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/unlock/new">
-                アカウントロック解除
               </NuxtLink>
             </li>
           </ul>
@@ -92,7 +92,7 @@ extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignUp',
+  name: 'UsersEdit',
 
   components: {
     ValidationObserver,
@@ -104,31 +104,71 @@ export default {
     return {
       alert: null,
       notice: null,
+      user: null,
       name: '',
       email: '',
       password: '',
-      password_confirmation: ''
+      password_confirmation: '',
+      current_password: ''
+    }
+  },
+
+  computed: {
+    unconfirmed_email () {
+      return (this.user !== null) ? this.user.unconfirmed_email : null
     }
   },
 
   created () {
-    if (this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.already_authenticated'))
-      return this.$router.push({ path: '/' })
+    if (!this.$auth.loggedIn) {
+      this.$toasted.info(this.$t('auth.unauthenticated'))
+      return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
     }
+
+    this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
+      .then((response) => {
+        this.user = response.data.user
+        this.name = response.data.user.name
+        this.email = response.data.user.email
+      },
+      (error) => {
+        if (error.response.status === 401) {
+          this.signOut()
+          return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+        }
+
+        this.$toasted.error(this.$t((error.response == null) ? 'network.failure' : 'network.error'))
+        return this.$router.push({ path: '/' })
+      })
   },
 
   methods: {
-    async signUp () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
+    async signOut () {
+      await this.$auth.logout()
+      this.$toasted.info(this.$t('auth.unauthenticated'))
+      // Devise Token Auth
+      if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
+        localStorage.removeItem('token-type')
+        localStorage.removeItem('uid')
+        localStorage.removeItem('client')
+        localStorage.removeItem('access-token')
+        localStorage.removeItem('expiry')
+      }
+    },
+    async userUpdate () {
+      await this.$axios.put(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
         password: this.password,
         password_confirmation: this.password_confirmation,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
+        current_password: this.current_password
       })
         .then((response) => {
-          return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
+          this.$auth.setUser(response.data.user)
+
+          this.$toasted.error(response.data.alert)
+          this.$toasted.info(response.data.notice)
+          return this.$router.push({ path: '/' })
         },
         (error) => {
           if (error.response == null) {

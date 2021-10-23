@@ -2,7 +2,7 @@
   <validation-observer v-slot="{ invalid }">
     <Message :alert="alert" :notice="notice" />
     <v-card max-width="480px">
-      <v-form>
+      <v-form autocomplete="on">
         <v-card-title>
           ログイン
         </v-card-title>
@@ -12,6 +12,7 @@
               v-model="email"
               label="メールアドレス"
               prepend-icon="mdi-email"
+              autocomplete="email"
               :error-messages="errors"
             />
           </validation-provider>
@@ -22,6 +23,7 @@
               label="パスワード"
               prepend-icon="mdi-lock"
               append-icon="mdi-eye-off"
+              autocomplete="current-password"
               :error-messages="errors"
             />
           </validation-provider>
@@ -86,18 +88,26 @@ export default {
   },
 
   created () {
-    if (this.$route.query.account_confirmation_success === 'false') {
-      return this.$router.push({ path: '/users/confirmation/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+    switch (this.$route.query.account_confirmation_success) {
+      case 'true':
+        if (this.$auth.loggedIn) {
+          this.$toasted.error(this.$route.query.alert)
+          this.$toasted.info(this.$route.query.notice)
+          return this.$router.push({ path: '/' })
+        }
+        break
+      case 'false':
+        return this.$router.push({ path: '/users/confirmation/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
 
-    if (this.$route.query.unlock === 'false') {
-      if (this.$auth.loggedIn) {
-        this.$toasted.error(this.$route.query.alert)
-        this.$toasted.info(this.$route.query.notice)
-        return this.$router.push({ path: '/' })
-      } else {
-        return this.$router.push({ path: '/users/unlock/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
-      }
+    switch (this.$route.query.unlock) {
+      case 'true':
+      case 'false':
+        if (this.$auth.loggedIn) {
+          this.$toasted.error(this.$route.query.alert)
+          this.$toasted.info(this.$route.query.notice)
+          return this.$router.push({ path: '/' })
+        }
     }
 
     if (this.$auth.loggedIn) {

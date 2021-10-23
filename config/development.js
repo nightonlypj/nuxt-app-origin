@@ -8,6 +8,8 @@ module.exports = {
   unlockNewUrl: '/users/auth/unlock.json',
   passwordNewUrl: '/users/auth/password.json',
   passwordUpdateUrl: '/users/auth/password/update.json',
+  userShowUrl: '/users/auth/show.json',
+  userUpdateUrl: '/users/auth/update.json',
   frontBaseURL: 'http://localhost:5000',
   singUpSuccessUrl: '/users/sign_in',
   confirmationSuccessUrl: '/users/sign_in',

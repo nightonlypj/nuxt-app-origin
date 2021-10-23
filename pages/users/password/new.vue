@@ -2,7 +2,7 @@
   <validation-observer v-slot="{ invalid }" ref="observer">
     <Message :alert="alert" :notice="notice" />
     <v-card max-width="480px">
-      <v-form>
+      <v-form autocomplete="off">
         <v-card-title>
           パスワード再設定
         </v-card-title>
@@ -12,6 +12,7 @@
               v-model="email"
               label="メールアドレス"
               prepend-icon="mdi-email"
+              autocomplete="off"
               :error-messages="errors"
             />
           </validation-provider>

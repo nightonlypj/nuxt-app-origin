@@ -123,6 +123,12 @@ export default {
           loggedIn: false
         },
         {
+          icon: 'mdi-account-edit',
+          title: '登録情報変更',
+          to: '/users/edit',
+          loggedIn: true
+        },
+        {
           icon: 'mdi-logout',
           title: 'ログアウト',
           to: '/users/sign_out',
