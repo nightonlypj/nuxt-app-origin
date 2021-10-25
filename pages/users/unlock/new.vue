@@ -16,7 +16,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="unlockNew">
+          <v-btn color="primary" :disabled="invalid || processing" @click="unlockNew">
             送信
           </v-btn>
         </v-card-text>
@@ -69,6 +69,7 @@ export default {
 
   data () {
     return {
+      processing: true,
       alert: null,
       notice: null,
       email: ''
@@ -81,15 +82,15 @@ export default {
       return this.$router.push({ path: '/' })
     }
 
-    if (this.$route.query.alert !== null || this.$route.query.notice !== null) {
-      this.alert = this.$route.query.alert
-      this.notice = this.$route.query.notice
-      return this.$router.push({ path: '/users/unlock/new' }) // Tips: URLパラメータを消す為
-    }
+    this.alert = this.$route.query.alert
+    this.notice = this.$route.query.notice
+    this.processing = false
+    return this.$router.push({ path: '/users/unlock/new' }) // Tips: URLパラメータを消す為
   },
 
   methods: {
     async unlockNew () {
+      this.processing = true
       await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockNewUrl, {
         email: this.email,
         redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
@@ -105,6 +106,7 @@ export default {
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
+          this.processing = false
           return error
         })
     }

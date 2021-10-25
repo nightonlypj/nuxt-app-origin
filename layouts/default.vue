@@ -50,6 +50,32 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+      <v-btn v-if="!$auth.loggedIn" to="/users/sign_in" text rounded nuxt>
+        ログイン
+      </v-btn>
+      <v-btn v-if="!$auth.loggedIn" to="/users/sign_up" text rounded nuxt>
+        アカウント登録
+      </v-btn>
+      <v-btn
+        v-if="$auth.loggedIn"
+        to="/users/edit"
+        class="d-inline-block"
+        max-width="400px"
+        style="text-transform: none"
+        text
+        rounded
+        nuxt
+      >
+        <v-avatar size="32px" style="margin-top: 2px; margin-right: 2px">
+          <v-img :src="$auth.user.image_url.small" />
+        </v-avatar>
+        <div class="text-truncate hidden-sm-and-down">
+          {{ $auth.user.name }}
+        </div>
+      </v-btn>
+      <v-btn v-if="$auth.loggedIn" to="/users/sign_out" icon nuxt>
+        <v-icon>mdi-logout</v-icon>
+      </v-btn>
       <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"

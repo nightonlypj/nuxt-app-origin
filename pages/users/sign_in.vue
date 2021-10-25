@@ -27,7 +27,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signIn">
+          <v-btn color="primary" :disabled="invalid || processing" @click="signIn">
             ログイン
           </v-btn>
         </v-card-text>
@@ -80,6 +80,7 @@ export default {
 
   data () {
     return {
+      processing: true,
       alert: null,
       notice: null,
       email: '',
@@ -115,15 +116,15 @@ export default {
       return this.$router.push({ path: '/' })
     }
 
-    if (this.$route.query.alert !== null || this.$route.query.notice !== null) {
-      this.alert = this.$route.query.alert
-      this.notice = this.$route.query.notice
-      return this.$router.push({ path: '/users/sign_in' }) // Tips: URLパラメータを消す為
-    }
+    this.alert = this.$route.query.alert
+    this.notice = this.$route.query.notice
+    this.processing = false
+    return this.$router.push({ path: '/users/sign_in' }) // Tips: URLパラメータを消す為
   },
 
   methods: {
     async signIn () {
+      this.processing = true
       await this.$auth.loginWith('local', {
         data: {
           email: this.email,
@@ -142,6 +143,7 @@ export default {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
           }
+          this.processing = false
           return error
         })
     }

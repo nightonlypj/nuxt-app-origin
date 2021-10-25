@@ -9,7 +9,7 @@ module.exports = {
     confirmed_password: 'パスワードと一致していません。',
     confirmed_new_password: '新しいパスワードと一致していません。',
     // digits: '{length}桁の数字を入力してください。', // "{_field_}は{length}桁の数字でなければなりません",
-    // dimensions: '幅{width}px、高さ{height}px以内にしてください。', // "{_field_}は幅{width}px、高さ{height}px以内でなければなりません",
+    // dimensions: '幅{width}px、高さ{height}px以下にしてください。', // "{_field_}は幅{width}px、高さ{height}px以内でなければなりません",
     email: '形式が正しくありません。', // "{_field_}は有効なメールアドレスではありません",
     // excluded: '値が正しくありません。', // "{_field_}は不正な値です",
     // ext: 'このファイルには対応していません。', // "{_field_}は有効なファイル形式ではありません",
@@ -26,9 +26,10 @@ module.exports = {
     // numeric: '数字のみで入力してください。', // "{_field_}は数字のみ使用できます",
     // oneOf: '有効な値を入力してください。', // "{_field_}は有効な値ではありません",
     // regex: '形式が正しくありません。', // "{_field_}のフォーマットが正しくありません",
-    required: '入力してください。' // "{_field_}は必須項目です",
+    required: '入力してください。', // "{_field_}は必須項目です",
     // required_if: '入力してください。', // "{_field_}は必須項目です",
-    // size: '{size}KB以内のファイルを選択してください。', // "{_field_}は{size}KB以内でなければなりません",
+    // size: '{size}KB以下のファイルを選択してください。', // "{_field_}は{size}KB以内でなければなりません",
+    size_20MB: '20MB以下のファイルを選択してください。'
     // double: '10進数を入力してください。' // "{_field_}フィールドは有効な10進数である必要があります"
   }
 }

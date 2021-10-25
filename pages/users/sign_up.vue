@@ -47,7 +47,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="signUp">
+          <v-btn color="primary" :disabled="invalid || processing" @click="signUp">
             登録
           </v-btn>
         </v-card-text>
@@ -102,6 +102,7 @@ export default {
 
   data () {
     return {
+      processing: true,
       alert: null,
       notice: null,
       name: '',
@@ -116,10 +117,13 @@ export default {
       this.$toasted.info(this.$t('auth.already_authenticated'))
       return this.$router.push({ path: '/' })
     }
+
+    this.processing = false
   },
 
   methods: {
     async signUp () {
+      this.processing = true
       await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
@@ -138,6 +142,7 @@ export default {
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
+          this.processing = false
           return error
         })
     }

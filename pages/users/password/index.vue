@@ -29,7 +29,7 @@
               :error-messages="errors"
             />
           </validation-provider>
-          <v-btn color="primary" :disabled="invalid" @click="updatePassword">
+          <v-btn color="primary" :disabled="invalid || processing" @click="updatePassword">
             変更
           </v-btn>
         </v-card-text>
@@ -83,6 +83,7 @@ export default {
 
   data () {
     return {
+      processing: true,
       alert: null,
       notice: null,
       password: '',
@@ -99,10 +100,13 @@ export default {
     if (!this.$route.query.reset_password_token) {
       return this.$router.push({ path: '/users/password/new', query: { alert: this.$t(reset_password_token_blank) } })
     }
+
+    this.processing = false
   },
 
   methods: {
     async updatePassword () {
+      this.processing = true
       await this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
@@ -122,6 +126,7 @@ export default {
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
+          this.processing = false
           return error
         })
     }

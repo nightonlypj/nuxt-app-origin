@@ -9,6 +9,8 @@ module.exports = {
   passwordNewUrl: '/users/auth/password.json',
   passwordUpdateUrl: '/users/auth/password/update.json',
   userShowUrl: '/users/auth/show.json',
+  userImageUpdateUrl: '/users/auth/image/update.json',
+  userImageDeleteUrl: '/users/auth/image/delete.json',
   userUpdateUrl: '/users/auth/update.json',
   frontBaseURL: 'https://front.example.com',
   singUpSuccessUrl: '/users/sign_in',
