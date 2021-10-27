@@ -1,70 +1,74 @@
 <template>
-  <validation-observer v-slot="{ invalid }" ref="observer">
-    <Message :alert="alert" :notice="notice" />
-    <v-card max-width="480px">
-      <v-form autocomplete="off">
-        <v-card-title>
-          パスワード再設定
-        </v-card-title>
-        <v-card-text>
-          <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
-            <v-text-field
-              v-model="password"
-              type="password"
-              label="新しいパスワード [8文字以上]"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              autocomplete="new-password"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
-            <v-text-field
-              v-model="password_confirmation"
-              type="password"
-              label="新しいパスワード(確認)"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              autocomplete="new-password"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <v-btn color="primary" :disabled="invalid || processing" @click="updatePassword">
-            変更
-          </v-btn>
-        </v-card-text>
-        <v-card-actions>
-          <ul>
-            <li>
-              <NuxtLink to="/users/sign_in">
-                ログイン
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/sign_up">
-                アカウント登録
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/confirmation/new">
-                メールアドレス確認
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/unlock/new">
-                アカウントロック解除
-              </NuxtLink>
-            </li>
-          </ul>
-        </v-card-actions>
-      </v-form>
+  <div>
+    <Loading :loading="loading" />
+    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <v-card v-if="!loading" max-width="480px">
+      <validation-observer v-slot="{ invalid }" ref="observer">
+        <v-form autocomplete="off">
+          <v-card-title>
+            パスワード再設定
+          </v-card-title>
+          <v-card-text>
+            <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+              <v-text-field
+                v-model="password"
+                type="password"
+                label="新しいパスワード [8文字以上]"
+                prepend-icon="mdi-lock"
+                append-icon="mdi-eye-off"
+                autocomplete="new-password"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
+              <v-text-field
+                v-model="password_confirmation"
+                type="password"
+                label="新しいパスワード(確認)"
+                prepend-icon="mdi-lock"
+                append-icon="mdi-eye-off"
+                autocomplete="new-password"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <v-btn color="primary" :disabled="invalid || processing" @click="updatePassword">
+              変更
+            </v-btn>
+          </v-card-text>
+          <v-card-actions>
+            <ul>
+              <li>
+                <NuxtLink to="/users/sign_in">
+                  ログイン
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/sign_up">
+                  アカウント登録
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/confirmation/new">
+                  メールアドレス確認
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/unlock/new">
+                  アカウントロック解除
+                </NuxtLink>
+              </li>
+            </ul>
+          </v-card-actions>
+        </v-form>
+      </validation-observer>
     </v-card>
-  </validation-observer>
+  </div>
 </template>
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, min, confirmed } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
 
 extend('required', required)
@@ -78,11 +82,13 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
     Message
   },
 
   data () {
     return {
+      loading: true,
       processing: true,
       alert: null,
       notice: null,
@@ -98,16 +104,17 @@ export default {
     }
 
     if (!this.$route.query.reset_password_token) {
-      return this.$router.push({ path: '/users/password/new', query: { alert: this.$t(reset_password_token_blank) } })
+      return this.$router.push({ path: '/users/password/new', query: { alert: this.$t('auth.reset_password_token_blank') } })
     }
 
     this.processing = false
+    this.loading = false
   },
 
   methods: {
-    async updatePassword () {
+    updatePassword () {
       this.processing = true
-      await this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
+      this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
         password_confirmation: this.password_confirmation

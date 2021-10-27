@@ -1,7 +1,8 @@
 <template>
   <div>
-    <Message :alert="alert" :notice="notice" />
-    <v-card max-width="850px">
+    <Loading :loading="loading" />
+    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <v-card v-if="!loading" max-width="850px">
       <v-card-title>
         登録情報変更
       </v-card-title>
@@ -11,7 +12,7 @@
             <v-form>
               <v-card-text>
                 <v-avatar size="256px">
-                  <v-img :src="imageUrl" />
+                  <v-img :src="user.image_url.xlarge" />
                 </v-avatar>
                 <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
                   <v-file-input
@@ -28,7 +29,7 @@
                 </v-btn>
                 <v-dialog transition="dialog-top-transition" max-width="600px">
                   <template #activator="{ on, attrs }">
-                    <v-btn color="secondary" :disabled="!uploadImage || processing" v-bind="attrs" v-on="on">
+                    <v-btn color="secondary" :disabled="!user.upload_image || processing" v-bind="attrs" v-on="on">
                       画像削除
                     </v-btn>
                   </template>
@@ -70,8 +71,8 @@
                     :error-messages="errors"
                   />
                 </validation-provider>
-                <v-alert v-if="unconfirmedEmail !== null" color="info">
-                  確認待ち: {{ unconfirmedEmail }}<br>
+                <v-alert v-if="user.unconfirmed_email !== null" color="info">
+                  確認待ち: {{ user.unconfirmed_email }}<br>
                   <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
                 </v-alert>
                 <validation-provider v-slot="{ errors }" name="email" rules="required|email">
@@ -124,11 +125,16 @@
           </validation-observer>
         </v-col>
       </v-row>
-      <v-card-actions v-if="unconfirmedEmail !== null">
+      <v-card-actions>
         <ul>
-          <li>
+          <li v-if="user.unconfirmed_email !== null">
             <NuxtLink to="/users/confirmation/new">
               メールアドレス確認
+            </NuxtLink>
+          </li>
+          <li>
+            <NuxtLink to="/users/delete">
+              アカウント削除
             </NuxtLink>
           </li>
         </ul>
@@ -140,6 +146,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { size, required, email, min, confirmed } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
 
 extend('size_20MB', size)
@@ -155,11 +162,13 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
     Message
   },
 
   data () {
     return {
+      loading: true,
       processing: true,
       alert: null,
       notice: null,
@@ -173,25 +182,19 @@ export default {
     }
   },
 
-  computed: {
-    imageUrl () {
-      return (this.user !== null) ? this.user.image_url.xlarge : null
-    },
-    uploadImage () {
-      return (this.user !== null) ? this.user.upload_image : false
-    },
-    unconfirmedEmail () {
-      return (this.user !== null) ? this.user.unconfirmed_email : null
-    }
-  },
+  async created () {
+    await this.$auth.fetchUser()
 
-  created () {
     if (!this.$auth.loggedIn) {
       this.$toasted.info(this.$t('auth.unauthenticated'))
       return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
     }
+    if (this.$auth.user.destroy_schedule_at !== null) {
+      this.$toasted.error(this.$t('auth.destroy_reserved'))
+      return this.$router.push({ path: '/' })
+    }
 
-    this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
+    await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
       .then((response) => {
         this.user = response.data.user
         this.name = response.data.user.name
@@ -203,8 +206,7 @@ export default {
           return this.$router.push({ path: '/' })
         }
         if (error.response.status === 401) {
-          this.signOut()
-          return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+          return this.signOut()
         }
 
         this.$toasted.error(this.$t('network.error'))
@@ -212,12 +214,12 @@ export default {
       })
 
     this.processing = false
+    this.loading = false
   },
 
   methods: {
     async signOut () {
       await this.$auth.logout()
-      this.$toasted.info(this.$t('auth.unauthenticated'))
       // Devise Token Auth
       if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
         localStorage.removeItem('token-type')
@@ -226,12 +228,14 @@ export default {
         localStorage.removeItem('access-token')
         localStorage.removeItem('expiry')
       }
+
+      this.$toasted.info(this.$t('auth.unauthenticated'))
     },
-    async userImageUpdate () {
+    userImageUpdate () {
       this.processing = true
       const params = new FormData()
       params.append('image', this.image)
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
+      this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
         .then((response) => {
           this.$auth.setUser(response.data.user)
           this.$toasted.error(response.data.alert)
@@ -250,8 +254,7 @@ export default {
             return error
           }
           if (error.response.status === 401) {
-            this.signOut()
-            return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+            return this.signOut()
           }
 
           if (error.response.data != null) {
@@ -265,9 +268,9 @@ export default {
           return error
         })
     },
-    async userImageDelete () {
+    userImageDelete () {
       this.processing = true
-      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
+      this.$axios.delete(this.$config.apiBaseURL + this.$config.userImageDestroyUrl)
         .then((response) => {
           this.$auth.setUser(response.data.user)
           this.$toasted.error(response.data.alert)
@@ -285,8 +288,7 @@ export default {
             return error
           }
           if (error.response.status === 401) {
-            this.signOut()
-            return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+            return this.signOut()
           }
 
           if (error.response.data != null) {
@@ -300,9 +302,9 @@ export default {
           return error
         })
     },
-    async userUpdate () {
+    userUpdate () {
       this.processing = true
-      await this.$axios.put(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
+      this.$axios.put(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
         password: this.password,
@@ -318,10 +320,19 @@ export default {
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data != null) {
+            this.processing = false
+            return error
+          }
+          if (error.response.status === 401) {
+            return this.signOut()
+          }
+
+          if (error.response.data != null) {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+          } else {
+            this.$toasted.error(this.$t('network.error'))
           }
           this.processing = false
           return error

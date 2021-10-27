@@ -8,6 +8,8 @@ module.exports = {
     already_authenticated: '既にログインしています。',
     already_signed_out: '既にログアウトされています。',
     unauthenticated: 'ログインしてください。',
-    reset_password_token_blank: 'URLが正しくありません。最初からやり直してください。'
+    reset_password_token_blank: 'URLが正しくありません。最初からやり直してください。',
+    destroy_reserved: 'アカウント削除予定の為、この操作はできません。',
+    not_destroy_reserved: '既に取り消し済みか、アカウント削除していません。'
   }
 }

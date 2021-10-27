@@ -1,68 +1,72 @@
 <template>
-  <validation-observer v-slot="{ invalid }">
-    <Message :alert="alert" :notice="notice" />
-    <v-card max-width="480px">
-      <v-form autocomplete="on">
-        <v-card-title>
-          ログイン
-        </v-card-title>
-        <v-card-text>
-          <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-            <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              autocomplete="email"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="required">
-            <v-text-field
-              v-model="password"
-              type="password"
-              label="パスワード"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              autocomplete="current-password"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <v-btn color="primary" :disabled="invalid || processing" @click="signIn">
+  <div>
+    <Loading :loading="loading" />
+    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <v-card v-if="!loading" max-width="480px">
+      <validation-observer v-slot="{ invalid }">
+        <v-form autocomplete="on">
+          <v-card-title>
             ログイン
-          </v-btn>
-        </v-card-text>
-        <v-card-actions>
-          <ul>
-            <li>
-              <NuxtLink to="/users/sign_up">
-                アカウント登録
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/password/new">
-                パスワード再設定
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/confirmation/new">
-                メールアドレス確認
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/unlock/new">
-                アカウントロック解除
-              </NuxtLink>
-            </li>
-          </ul>
-        </v-card-actions>
-      </v-form>
+          </v-card-title>
+          <v-card-text>
+            <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+              <v-text-field
+                v-model="email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="email"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <validation-provider v-slot="{ errors }" name="password" rules="required">
+              <v-text-field
+                v-model="password"
+                type="password"
+                label="パスワード"
+                prepend-icon="mdi-lock"
+                append-icon="mdi-eye-off"
+                autocomplete="current-password"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <v-btn color="primary" :disabled="invalid || processing" @click="signIn">
+              ログイン
+            </v-btn>
+          </v-card-text>
+          <v-card-actions>
+            <ul>
+              <li>
+                <NuxtLink to="/users/sign_up">
+                  アカウント登録
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/password/new">
+                  パスワード再設定
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/confirmation/new">
+                  メールアドレス確認
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/unlock/new">
+                  アカウントロック解除
+                </NuxtLink>
+              </li>
+            </ul>
+          </v-card-actions>
+        </v-form>
+      </validation-observer>
     </v-card>
-  </validation-observer>
+  </div>
 </template>
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
 
 extend('required', required)
@@ -75,11 +79,13 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
     Message
   },
 
   data () {
     return {
+      loading: true,
       processing: true,
       alert: null,
       notice: null,
@@ -119,13 +125,14 @@ export default {
     this.alert = this.$route.query.alert
     this.notice = this.$route.query.notice
     this.processing = false
-    return this.$router.push({ path: '/users/sign_in' }) // Tips: URLパラメータを消す為
+    this.loading = false
+    return this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
   },
 
   methods: {
-    async signIn () {
+    signIn () {
       this.processing = true
-      await this.$auth.loginWith('local', {
+      this.$auth.loginWith('local', {
         data: {
           email: this.email,
           password: this.password

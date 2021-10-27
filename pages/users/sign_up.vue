@@ -1,88 +1,92 @@
 <template>
-  <validation-observer v-slot="{ invalid }" ref="observer">
-    <Message :alert="alert" :notice="notice" />
-    <v-card max-width="480px">
-      <v-form autocomplete="off">
-        <v-card-title>
-          アカウント登録
-        </v-card-title>
-        <v-card-text>
-          <validation-provider v-slot="{ errors }" name="name" rules="required">
-            <v-text-field
-              v-model="name"
-              label="氏名"
-              prepend-icon="mdi-account"
-              autocomplete="off"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-            <v-text-field
-              v-model="email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              autocomplete="off"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
-            <v-text-field
-              v-model="password"
-              type="password"
-              label="パスワード [8文字以上]"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              autocomplete="new-password"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
-            <v-text-field
-              v-model="password_confirmation"
-              type="password"
-              label="パスワード(確認)"
-              prepend-icon="mdi-lock"
-              append-icon="mdi-eye-off"
-              autocomplete="new-password"
-              :error-messages="errors"
-            />
-          </validation-provider>
-          <v-btn color="primary" :disabled="invalid || processing" @click="signUp">
-            登録
-          </v-btn>
-        </v-card-text>
-        <v-card-actions>
-          <ul>
-            <li>
-              <NuxtLink to="/users/sign_in">
-                ログイン
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/password/new">
-                パスワード再設定
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/confirmation/new">
-                メールアドレス確認
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/users/unlock/new">
-                アカウントロック解除
-              </NuxtLink>
-            </li>
-          </ul>
-        </v-card-actions>
-      </v-form>
+  <div>
+    <Loading :loading="loading" />
+    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <v-card v-if="!loading" max-width="480px">
+      <validation-observer v-slot="{ invalid }" ref="observer">
+        <v-form autocomplete="off">
+          <v-card-title>
+            アカウント登録
+          </v-card-title>
+          <v-card-text>
+            <validation-provider v-slot="{ errors }" name="name" rules="required">
+              <v-text-field
+                v-model="name"
+                label="氏名"
+                prepend-icon="mdi-account"
+                autocomplete="off"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+              <v-text-field
+                v-model="email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="off"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+              <v-text-field
+                v-model="password"
+                type="password"
+                label="パスワード [8文字以上]"
+                prepend-icon="mdi-lock"
+                append-icon="mdi-eye-off"
+                autocomplete="new-password"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
+              <v-text-field
+                v-model="password_confirmation"
+                type="password"
+                label="パスワード(確認)"
+                prepend-icon="mdi-lock"
+                append-icon="mdi-eye-off"
+                autocomplete="new-password"
+                :error-messages="errors"
+              />
+            </validation-provider>
+            <v-btn color="primary" :disabled="invalid || processing" @click="signUp">
+              登録
+            </v-btn>
+          </v-card-text>
+          <v-card-actions>
+            <ul>
+              <li>
+                <NuxtLink to="/users/sign_in">
+                  ログイン
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/password/new">
+                  パスワード再設定
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/confirmation/new">
+                  メールアドレス確認
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink to="/users/unlock/new">
+                  アカウントロック解除
+                </NuxtLink>
+              </li>
+            </ul>
+          </v-card-actions>
+        </v-form>
+      </validation-observer>
     </v-card>
-  </validation-observer>
+  </div>
 </template>
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
 
 extend('required', required)
@@ -97,11 +101,13 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
     Message
   },
 
   data () {
     return {
+      loading: true,
       processing: true,
       alert: null,
       notice: null,
@@ -119,12 +125,13 @@ export default {
     }
 
     this.processing = false
+    this.loading = false
   },
 
   methods: {
-    async signUp () {
+    signUp () {
       this.processing = true
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
+      this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
         password: this.password,

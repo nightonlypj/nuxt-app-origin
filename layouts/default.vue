@@ -85,6 +85,12 @@
     </v-app-bar>
     <v-main>
       <v-container>
+        <v-alert v-if="$auth.loggedIn && $auth.user.destroy_schedule_at != null && $route.path !== '/users/undo_delete'" type="warning">
+          このアカウントは{{ dateFormat($auth.user.destroy_schedule_at) }}以降に削除されます。
+          <NuxtLink to="/users/undo_delete">
+            取り消しはこちら
+          </NuxtLink>
+        </v-alert>
         <nuxt />
       </v-container>
     </v-main>
@@ -171,6 +177,12 @@ export default {
   computed: {
     displayItems () {
       return this.items.filter(item => (item.loggedIn === null) || (item.loggedIn === this.$auth.loggedIn))
+    },
+    dateFormat () {
+      return function (date) {
+        const dtf = new Intl.DateTimeFormat('ja', { year: 'numeric', month: '2-digit', day: '2-digit' })
+        return dtf.format(new Date(date))
+      }
     }
   }
 }
