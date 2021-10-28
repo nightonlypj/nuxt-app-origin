@@ -6,10 +6,11 @@
         アカウント削除取り消し
       </v-card-title>
       <v-card-text>
-        このアカウントは{{ dateFormat($auth.user.destroy_schedule_at) }}以降に削除されます。それまでは取り消し可能です。<br>
+        このアカウントは{{ dateFormat($auth.user.destroy_schedule_at) }}以降に削除されます。それまでは取り消し可能です。
         <div v-if="$auth.user.destroy_requested_at != null">
-          ※{{ timeFormat($auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています。<br>
-        </div><br>
+          ※{{ timeFormat($auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています。
+        </div>
+        <br>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
             <v-btn color="secondary" :disabled="processing" v-bind="attrs" v-on="on">

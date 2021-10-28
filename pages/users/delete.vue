@@ -7,7 +7,8 @@
       </v-card-title>
       <v-card-text>
         アカウントは{{ $auth.user.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
-        削除されるまではログインできますが、一部機能が制限されます。<br><br>
+        削除されるまではログインできますが、一部機能が制限されます。<br>
+        <br>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
             <v-btn color="error" :disabled="processing" v-bind="attrs" v-on="on">

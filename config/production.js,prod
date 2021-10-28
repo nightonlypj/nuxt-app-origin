@@ -11,7 +11,7 @@ module.exports = {
   userShowUrl: '/users/auth/show.json',
   userImageUpdateUrl: '/users/auth/image/update.json',
   userImageDestroyUrl: '/users/auth/image/destroy.json',
-  userUpdateUrl: '/users/auth/update.json',
+  userInfoUpdateUrl: '/users/auth/update.json',
   userDeleteUrl: '/users/auth/delete.json',
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
   frontBaseURL: 'https://front.example.com',
