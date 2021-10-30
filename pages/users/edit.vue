@@ -8,10 +8,10 @@
       </v-card-title>
       <v-row>
         <v-col cols="auto" md="4">
-          <ImageUpdate @alert="alert = $event" @notice="notice = $event" />
+          <ImageEdit @alert="alert = $event" @notice="notice = $event" />
         </v-col>
         <v-col cols="12" md="8">
-          <InfoUpdate :user="user" @alert="alert = $event" @notice="notice = $event" />
+          <InfoEdit :user="user" @alert="alert = $event" @notice="notice = $event" />
         </v-col>
       </v-row>
       <v-card-actions>
@@ -33,26 +33,20 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
-import ImageUpdate from '~/components/users/edit/ImageUpdate.vue'
-import InfoUpdate from '~/components/users/edit/InfoUpdate.vue'
+import Application from '~/plugins/application.js'
+import ImageEdit from '~/components/users/edit/ImageEdit.vue'
+import InfoEdit from '~/components/users/edit/InfoEdit.vue'
 
 export default {
   name: 'UsersEdit',
-
   components: {
-    Loading,
-    Message,
-    ImageUpdate,
-    InfoUpdate
+    ImageEdit,
+    InfoEdit
   },
+  mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      alert: null,
-      notice: null,
       user: null
     }
   },
@@ -61,12 +55,10 @@ export default {
     await this.$auth.fetchUser()
 
     if (!this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.unauthenticated'))
-      return this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+      return this.appRedirectAuth()
     }
     if (this.$auth.user.destroy_schedule_at !== null) {
-      this.$toasted.error(this.$t('auth.destroy_reserved'))
-      return this.$router.push({ path: '/' })
+      return this.appRedirectDestroyReserved()
     }
 
     await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
@@ -76,33 +68,15 @@ export default {
       (error) => {
         if (error.response == null) {
           this.$toasted.error(this.$t('network.failure'))
-          return this.$router.push({ path: '/' })
+        } else if (error.response.status === 401) {
+          return this.appSignOut()
+        } else {
+          this.$toasted.error(this.$t('network.error'))
         }
-        if (error.response.status === 401) {
-          return this.signOut()
-        }
-
-        this.$toasted.error(this.$t('network.error'))
         return this.$router.push({ path: '/' })
       })
 
     this.loading = false
-  },
-
-  methods: {
-    async signOut () {
-      await this.$auth.logout()
-      // Devise Token Auth
-      if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
-        localStorage.removeItem('token-type')
-        localStorage.removeItem('uid')
-        localStorage.removeItem('client')
-        localStorage.removeItem('access-token')
-        localStorage.removeItem('expiry')
-      }
-
-      this.$toasted.info(this.$t('auth.unauthenticated'))
-    }
   }
 }
 </script>

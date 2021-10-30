@@ -57,7 +57,7 @@
             :error-messages="errors"
           />
         </validation-provider>
-        <v-btn color="primary" :disabled="invalid || processing" @click="userInfoUpdate">
+        <v-btn color="primary" :disabled="invalid || processing" @click="onUserUpdate()">
           変更
         </v-btn>
       </v-card-text>
@@ -68,6 +68,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
@@ -76,10 +77,12 @@ extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
+  name: 'InfoEdit',
   components: {
     ValidationObserver,
     ValidationProvider
   },
+  mixins: [Application],
 
   props: {
     user: {
@@ -90,7 +93,6 @@ export default {
 
   data () {
     return {
-      processing: true,
       name: '',
       email: '',
       password: '',
@@ -106,22 +108,10 @@ export default {
   },
 
   methods: {
-    async signOut () {
-      await this.$auth.logout()
-      // Devise Token Auth
-      if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
-        localStorage.removeItem('token-type')
-        localStorage.removeItem('uid')
-        localStorage.removeItem('client')
-        localStorage.removeItem('access-token')
-        localStorage.removeItem('expiry')
-      }
-
-      this.$toasted.info(this.$t('auth.unauthenticated'))
-    },
-    userInfoUpdate () {
+    async onUserUpdate () {
       this.processing = true
-      this.$axios.put(this.$config.apiBaseURL + this.$config.userInfoUpdateUrl, {
+
+      await this.$axios.put(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
         password: this.password,
@@ -130,30 +120,23 @@ export default {
       })
         .then((response) => {
           this.$auth.setUser(response.data.user)
-          this.$toasted.error(response.data.alert)
-          this.$toasted.info(response.data.notice)
-          return this.$router.push({ path: '/' })
+          return this.appRedirectSuccess(response.data.alert, response.data.notice)
         },
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-            this.processing = false
-            return error
-          }
-          if (error.response.status === 401) {
+          } else if (error.response.status === 401) {
             return this.signOut()
-          }
-
-          if (error.response.data != null) {
+          } else if (error.response.data == null) {
+            this.$toasted.error(this.$t('network.error'))
+          } else {
             this.$emit('alert', error.response.data.alert)
             this.$emit('notice', error.response.data.notice)
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
-          } else {
-            this.$toasted.error(this.$t('network.error'))
           }
-          this.processing = false
-          return error
         })
+
+      this.processing = false
     }
   }
 }

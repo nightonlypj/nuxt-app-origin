@@ -18,7 +18,7 @@
                 :error-messages="errors"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="confirmationNew">
+            <v-btn color="primary" :disabled="invalid || processing" @click="onConfirmationNew()">
               送信
             </v-btn>
           </v-card-text>
@@ -55,8 +55,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
-import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
+import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
@@ -64,59 +63,52 @@ configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js'))
 
 export default {
   name: 'UsersConfirmationNew',
-
   components: {
     ValidationObserver,
-    ValidationProvider,
-    Loading,
-    Message
+    ValidationProvider
   },
+  mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      processing: true,
-      alert: null,
-      notice: null,
       email: ''
     }
   },
 
   created () {
-    this.alert = this.$route.query.alert
-    this.notice = this.$route.query.notice
+    this.appSetQueryMessage()
     this.processing = false
     this.loading = false
-    return this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
   },
 
   methods: {
-    confirmationNew () {
+    async onConfirmationNew () {
       this.processing = true
-      this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationNewUrl, {
+
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationNewUrl, {
         email: this.email,
         confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
           if (this.$auth.loggedIn) {
-            this.$toasted.error(response.data.alert)
-            this.$toasted.info(response.data.notice)
-            return this.$router.push({ path: '/' })
+            return this.appRedirectSuccess(response.data.alert, response.data.notice)
           } else {
-            return this.$router.push({ path: '/users/sign_in', query: { alert: response.data.alert, notice: response.data.notice } })
+            return this.appRedirectSignIn(response.data.alert, response.data.notice)
           }
         },
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data != null) {
+          } else if (error.response.data == null) {
+            this.$toasted.error(this.$t('network.error'))
+          } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
-          this.processing = false
-          return error
         })
+
+      this.processing = false
     }
   }
 }

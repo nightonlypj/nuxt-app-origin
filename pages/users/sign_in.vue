@@ -29,7 +29,7 @@
                 :error-messages="errors"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="signIn">
+            <v-btn color="primary" :disabled="invalid || processing" @click="onSignIn()">
               ログイン
             </v-btn>
           </v-card-text>
@@ -66,8 +66,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
-import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
+import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
@@ -75,20 +74,14 @@ configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js'))
 
 export default {
   name: 'UsersSignIn',
-
   components: {
     ValidationObserver,
-    ValidationProvider,
-    Loading,
-    Message
+    ValidationProvider
   },
+  mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      processing: true,
-      alert: null,
-      notice: null,
       email: '',
       password: ''
     }
@@ -98,41 +91,33 @@ export default {
     switch (this.$route.query.account_confirmation_success) {
       case 'true':
         if (this.$auth.loggedIn) {
-          this.$toasted.error(this.$route.query.alert)
-          this.$toasted.info(this.$route.query.notice)
-          return this.$router.push({ path: '/' })
+          return this.appRedirectSuccess(this.$route.query.alert, this.$route.query.notice)
         }
         break
       case 'false':
         return this.$router.push({ path: '/users/confirmation/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
-
     switch (this.$route.query.unlock) {
       case 'true':
       case 'false':
         if (this.$auth.loggedIn) {
-          this.$toasted.error(this.$route.query.alert)
-          this.$toasted.info(this.$route.query.notice)
-          return this.$router.push({ path: '/' })
+          return this.appRedirectSuccess(this.$route.query.alert, this.$route.query.notice)
         }
     }
-
     if (this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.already_authenticated'))
-      return this.$router.push({ path: '/' })
+      return this.appRedirectAlreadyAuth()
     }
 
-    this.alert = this.$route.query.alert
-    this.notice = this.$route.query.notice
+    this.appSetQueryMessage()
     this.processing = false
     this.loading = false
-    return this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
   },
 
   methods: {
-    signIn () {
+    async onSignIn () {
       this.processing = true
-      this.$auth.loginWith('local', {
+
+      await this.$auth.loginWith('local', {
         data: {
           email: this.email,
           password: this.password
@@ -141,18 +126,19 @@ export default {
         .then((response) => {
           this.$toasted.error(response.data.alert)
           this.$toasted.info(response.data.notice)
-          return response
         },
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data != null) {
+          } else if (error.response.data == null) {
+            this.$toasted.error(this.$t('network.error'))
+          } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
           }
-          this.processing = false
-          return error
         })
+
+      this.processing = false
     }
   }
 }

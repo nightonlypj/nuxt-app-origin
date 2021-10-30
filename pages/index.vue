@@ -84,10 +84,6 @@ export default {
   components: {
     Logo,
     VuetifyLogo
-  },
-
-  created () {
-    return this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
   }
 }
 </script>

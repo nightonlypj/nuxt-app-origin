@@ -31,7 +31,7 @@
                 :error-messages="errors"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="updatePassword">
+            <v-btn color="primary" :disabled="invalid || processing" @click="onPasswordUpdate()">
               変更
             </v-btn>
           </v-card-text>
@@ -68,8 +68,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, min, confirmed } from 'vee-validate/dist/rules'
-import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
+import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('min', min)
@@ -78,20 +77,14 @@ configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js'))
 
 export default {
   name: 'UsersPasswordIndex',
-
   components: {
     ValidationObserver,
-    ValidationProvider,
-    Loading,
-    Message
+    ValidationProvider
   },
+  mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      processing: true,
-      alert: null,
-      notice: null,
       password: '',
       password_confirmation: ''
     }
@@ -99,10 +92,8 @@ export default {
 
   created () {
     if (this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.already_authenticated'))
-      return this.$router.push({ path: '/' })
+      return this.appRedirectAlreadyAuth()
     }
-
     if (!this.$route.query.reset_password_token) {
       return this.$router.push({ path: '/users/password/new', query: { alert: this.$t('auth.reset_password_token_blank') } })
     }
@@ -112,30 +103,35 @@ export default {
   },
 
   methods: {
-    updatePassword () {
+    async onPasswordUpdate () {
       this.processing = true
-      this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
+
+      await this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
         password_confirmation: this.password_confirmation
       })
         .then((response) => {
           this.$auth.setUser(response.data.user)
-          this.$toasted.error(response.data.alert)
-          this.$toasted.info(response.data.notice)
-          return this.$router.push({ path: '/' })
+          if (this.$auth.loggedIn) {
+            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          } else {
+            return this.appRedirectSignIn(response.data.alert, response.data.notice)
+          }
         },
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data != null) {
+          } else if (error.response.data == null) {
+            this.$toasted.error(this.$t('network.error'))
+          } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
             if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
-          this.processing = false
-          return error
         })
+
+      this.processing = false
     }
   }
 }

@@ -9,7 +9,7 @@
         <v-btn to="/" nuxt>
           トップページ
         </v-btn>
-        <v-btn color="primary" :disabled="processing" @click="signOut">
+        <v-btn color="primary" :disabled="processing" @click="onSignOut()">
           ログアウト
         </v-btn>
       </v-card-text>
@@ -18,21 +18,11 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
+import Application from '~/plugins/application.js'
 
 export default {
   name: 'UsersSignOut',
-
-  components: {
-    Loading
-  },
-
-  data () {
-    return {
-      loading: true,
-      processing: true
-    }
-  },
+  mixins: [Application],
 
   created () {
     if (!this.$auth.loggedIn) {
@@ -45,20 +35,9 @@ export default {
   },
 
   methods: {
-    async signOut () {
+    onSignOut () {
       this.processing = true
-
-      await this.$auth.logout()
-      // Devise Token Auth
-      if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
-        localStorage.removeItem('token-type')
-        localStorage.removeItem('uid')
-        localStorage.removeItem('client')
-        localStorage.removeItem('access-token')
-        localStorage.removeItem('expiry')
-      }
-
-      this.$toasted.info(this.$t('auth.signed_out'))
+      this.appSignOut('auth.signed_out')
     }
   }
 }
