@@ -9,6 +9,8 @@
 
 ### Bug
 
+- メールアドレス確認APIで送信されるメールの確認URLにリダイレクトURLが入らない
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/426/
 - ログイン中にアカウントやセッションを消した後に登録情報変更に遷移するとエラーになる
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/420/
 

@@ -87,7 +87,7 @@ export default {
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationNewUrl, {
         email: this.email,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
+        redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
           if (this.$auth.loggedIn) {
