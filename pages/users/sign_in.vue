@@ -16,6 +16,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required">
@@ -27,9 +28,10 @@
                 append-icon="mdi-eye-off"
                 autocomplete="current-password"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="onSignIn()">
+            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onSignIn()">
               ログイン
             </v-btn>
           </v-card-text>
@@ -82,6 +84,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       email: '',
       password: ''
     }
@@ -135,6 +138,7 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
+            this.waiting = true
           }
         })
 
