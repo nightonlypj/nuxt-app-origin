@@ -2,6 +2,8 @@
 
 ## 1.0.0 (Sprint 2)
 
+- パスワード再設定で期限切れのURLの場合のメッセージに有効期限切れの文言が入っていない
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/433/
 - アカウント削除APIで送信されるメールの取り消しURLにフロントURLを入れたい
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/432/
 - メールアドレス確認完了とアカウントロック解除完了で未ログインの場合はメッセージに「ログインしてください。」を追加したい

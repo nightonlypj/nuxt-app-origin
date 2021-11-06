@@ -18,6 +18,7 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
@@ -29,9 +30,10 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="onPasswordUpdate()">
+            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">
               変更
             </v-btn>
           </v-card-text>
@@ -85,6 +87,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       password: '',
       password_confirmation: ''
     }
@@ -93,6 +96,9 @@ export default {
   created () {
     if (this.$auth.loggedIn) {
       return this.appRedirectAlreadyAuth()
+    }
+    if (this.$route.query.reset_password === 'false') {
+      return this.$router.push({ path: '/users/password/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
     if (!this.$route.query.reset_password_token) {
       return this.$router.push({ path: '/users/password/new', query: { alert: this.$t('auth.reset_password_token_blank') } })
@@ -124,10 +130,13 @@ export default {
             this.$toasted.error(this.$t('network.failure'))
           } else if (error.response.data == null) {
             this.$toasted.error(this.$t('network.error'))
+          } else if (error.response.data.errors == null) {
+            return this.$router.push({ path: '/users/password/new', query: { alert: error.response.data.alert, notice: error.response.data.notice } })
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
 
