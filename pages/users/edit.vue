@@ -52,7 +52,18 @@ export default {
   },
 
   async created () {
-    await this.$auth.fetchUser()
+    try {
+      await this.$auth.fetchUser()
+    } catch (error) {
+      if (error.response == null) {
+        this.$toasted.error(this.$t('network.failure'))
+      } else if (error.response.status === 401) {
+        return this.appSignOut()
+      } else {
+        this.$toasted.error(this.$t('network.error'))
+      }
+      return this.$router.push({ path: '/' })
+    }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
