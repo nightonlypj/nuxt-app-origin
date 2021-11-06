@@ -111,6 +111,9 @@ export default {
       return this.appRedirectAlreadyAuth()
     }
 
+    if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
+      this.$route.query.notice += this.$t('auth.unauthenticated')
+    }
     this.appSetQueryMessage()
     this.processing = false
     this.loading = false

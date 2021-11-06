@@ -2,6 +2,8 @@
 
 ## 1.0.0 (Sprint 2)
 
+- メールアドレス確認完了とアカウントロック解除完了で未ログインの場合はメッセージに「ログインしてください。」を追加したい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/427/
 - 容易にアカウントロックされないように、入力を間違えたらボタンを押せないようにしたい
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/424/
 - ユーザー登録と認証できるようにしたい
