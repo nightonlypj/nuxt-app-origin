@@ -86,7 +86,9 @@ export default {
     async onUserDelete () {
       this.processing = true
 
-      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userDeleteUrl)
+      const params = new URLSearchParams()
+      params.append('undo_delete_url', this.$config.frontBaseURL + '/users/undo_delete')
+      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userDeleteUrl, { data: params })
         .then((response) => {
           return this.appSignOut(null, '/users/sign_in', response.data.alert, response.data.notice)
         },

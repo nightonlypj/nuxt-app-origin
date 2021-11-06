@@ -2,6 +2,8 @@
 
 ## 1.0.0 (Sprint 2)
 
+- アカウント削除APIで送信されるメールの取り消しURLにフロントURLを入れたい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/432/
 - メールアドレス確認完了とアカウントロック解除完了で未ログインの場合はメッセージに「ログインしてください。」を追加したい
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/427/
 - 容易にアカウントロックされないように、入力を間違えたらボタンを押せないようにしたい
