@@ -116,7 +116,8 @@ export default {
         email: this.email,
         password: this.password,
         password_confirmation: this.password_confirmation,
-        current_password: this.current_password
+        current_password: this.current_password,
+        redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
           this.$auth.setUser(response.data.user)
