@@ -126,7 +126,8 @@ export default {
       await this.$auth.loginWith('local', {
         data: {
           email: this.email,
-          password: this.password
+          password: this.password,
+          unlock_redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
         }
       })
         .then((response) => {
