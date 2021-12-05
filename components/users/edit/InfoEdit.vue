@@ -1,5 +1,6 @@
 <template>
   <validation-observer v-slot="{ invalid }" ref="observer">
+    <Processing :processing="processing" />
     <v-form autocomplete="off">
       <v-card-text>
         <validation-provider v-slot="{ errors }" name="name" rules="required">
@@ -57,9 +58,7 @@
             :error-messages="errors"
           />
         </validation-provider>
-        <v-btn color="primary" :disabled="invalid || processing" @click="onUserUpdate()">
-          変更
-        </v-btn>
+        <v-btn color="primary" :disabled="invalid || processing" @click="onUserUpdate()">変更</v-btn>
       </v-card-text>
     </v-form>
   </validation-observer>
@@ -120,8 +119,12 @@ export default {
         confirm_redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          this.$auth.setUser(response.data.user)
-          return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          if (response.data == null) {
+            this.$toasted.error(this.$t('system.error'))
+          } else {
+            this.$auth.setUser(response.data.user)
+            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          }
         },
         (error) => {
           if (error.response == null) {

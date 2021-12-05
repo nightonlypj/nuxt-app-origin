@@ -1,10 +1,12 @@
 import colors from 'vuetify/es5/util/colors'
 
 const environment = process.env.NODE_ENV || 'development'
-const config = require(`./config/${environment}.js`)
+const envConfig = require(`./config/${environment}.js`)
+// eslint-disable-next-line nuxt/no-cjs-in-config
+const commonConfig = require('./config/common.js')
 
 export default {
-  publicRuntimeConfig: config,
+  publicRuntimeConfig: Object.assign(envConfig, commonConfig),
 
   server: {
     port: 5000
@@ -76,10 +78,10 @@ export default {
   // Auth module configuration: https://auth.nuxtjs.org/
   auth: {
     redirect: {
-      login: '/users/sign_in', // ログインURL
-      logout: '/users/sign_in', // ログアウト後の遷移先URL
+      login: commonConfig.authRedirectSignInURL, // ログインURL
+      logout: commonConfig.authRedirectLogOutURL, // ログアウト後の遷移先URL
       callback: false,
-      home: '/' // ログイン後の遷移先URL
+      home: commonConfig.authRedirectHomeURL // ログイン後の遷移先URL
     },
     strategies: {
       local: {
@@ -91,9 +93,9 @@ export default {
           property: 'user'
         },
         endpoints: {
-          login: { url: config.apiBaseURL + config.authSignInURL, method: 'post' },
-          logout: { url: config.apiBaseURL + config.authSignOutURL, method: 'delete' },
-          user: { url: config.apiBaseURL + config.authUserURL, method: 'get' }
+          login: { url: envConfig.apiBaseURL + commonConfig.authSignInURL, method: 'post' },
+          logout: { url: envConfig.apiBaseURL + commonConfig.authSignOutURL, method: 'delete' },
+          user: { url: envConfig.apiBaseURL + commonConfig.authUserURL, method: 'get' }
         }
       }
     }
@@ -101,7 +103,7 @@ export default {
 
   // Toast module configuration: https://github.com/nuxt-community/community-modules/tree/master/packages/toast
   toast: {
-    position: 'top-right',
+    position: 'bottom-right',
     duration: 3000
   },
 

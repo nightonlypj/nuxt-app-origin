@@ -3,11 +3,10 @@
     <Loading :loading="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
     <v-card v-if="!loading" max-width="480px">
+      <Processing :processing="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
-          <v-card-title>
-            メールアドレス確認
-          </v-card-title>
+          <v-card-title>メールアドレス確認</v-card-title>
           <v-card-text>
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -18,33 +17,11 @@
                 :error-messages="errors"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="onConfirmationNew()">
-              送信
-            </v-btn>
+            <v-btn color="primary" :disabled="invalid || processing" @click="onConfirmationNew()">送信</v-btn>
           </v-card-text>
+          <v-divider v-if="!$auth.loggedIn" />
           <v-card-actions v-if="!$auth.loggedIn">
-            <ul>
-              <li>
-                <NuxtLink to="/users/sign_in">
-                  ログイン
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/sign_up">
-                  アカウント登録
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/password/new">
-                  パスワード再設定
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/unlock/new">
-                  アカウントロック解除
-                </NuxtLink>
-              </li>
-            </ul>
+            <ActionLink action="confirmation" />
           </v-card-actions>
         </v-form>
       </validation-observer>
@@ -55,6 +32,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
+import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
@@ -65,7 +43,8 @@ export default {
   name: 'UsersConfirmationNew',
   components: {
     ValidationObserver,
-    ValidationProvider
+    ValidationProvider,
+    ActionLink
   },
   mixins: [Application],
 
@@ -90,7 +69,9 @@ export default {
         redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          if (this.$auth.loggedIn) {
+          if (response.data == null) {
+            this.$toasted.error(this.$t('system.error'))
+          } else if (this.$auth.loggedIn) {
             return this.appRedirectSuccess(response.data.alert, response.data.notice)
           } else {
             return this.appRedirectSignIn(response.data.alert, response.data.notice)

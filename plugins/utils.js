@@ -12,7 +12,21 @@ const timeFormat = (time, locales) => {
   return dtf.format(new Date(time))
 }
 
+const pageFirstNumber = (info) => {
+  if (info == null || info.limit_value == null || info.current_page == null) { return }
+
+  return info.limit_value * (info.current_page - 1) + 1
+}
+
+const pageLastNumber = (info) => {
+  if (info == null || info.limit_value == null || info.current_page == null || info.total_pages == null || info.total_count == null) { return }
+
+  return (info.current_page < info.total_pages) ? info.limit_value * info.current_page : info.total_count
+}
+
 export default (_context, inject) => {
   inject('dateFormat', dateFormat)
   inject('timeFormat', timeFormat)
+  inject('pageFirstNumber', pageFirstNumber)
+  inject('pageLastNumber', pageLastNumber)
 }

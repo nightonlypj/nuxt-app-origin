@@ -2,6 +2,10 @@
 
 ## 1.0.0 (Sprint 2)
 
+- 下にスクロールしたら、上に戻るボタンを表示したい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/437/
+- お知らせを表示したい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/407/
 - パスワード再設定で期限切れのURLの場合のメッセージに有効期限切れの文言が入っていない
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/433/
 - アカウント削除APIで送信されるメールの取り消しURLにフロントURLを入れたい

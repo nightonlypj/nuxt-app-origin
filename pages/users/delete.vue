@@ -2,48 +2,35 @@
   <div>
     <Loading :loading="loading" />
     <v-card v-if="!loading" max-width="640px">
-      <v-card-title>
-        アカウント削除
-      </v-card-title>
+      <Processing :processing="processing" />
+      <v-card-title>アカウント削除</v-card-title>
       <v-card-text>
-        アカウントは{{ $auth.user.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
-        削除されるまではログインできますが、一部機能が制限されます。<br>
-        <br>
+        <p>
+          アカウントは{{ $auth.user.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
+          削除されるまではログインできますが、一部機能が制限されます。
+        </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn color="error" :disabled="processing" v-bind="attrs" v-on="on">
-              削除
-            </v-btn>
+            <v-btn color="error" :disabled="processing" v-bind="attrs" v-on="on">削除</v-btn>
           </template>
           <template #default="dialog">
             <v-card>
-              <v-toolbar color="error" dark>
-                アカウント削除
-              </v-toolbar>
+              <v-toolbar color="error" dark>アカウント削除</v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-6">
-                  本当に削除しますか？
-                </div>
+                <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn color="secondary" @click="dialog.value = false">
-                  いいえ
-                </v-btn>
-                <v-btn color="error" @click="dialog.value = false; onUserDelete()">
-                  はい
-                </v-btn>
+                <v-btn color="secondary" @click="dialog.value = false">いいえ</v-btn>
+                <v-btn color="error" @click="dialog.value = false; onUserDelete()">はい</v-btn>
               </v-card-actions>
             </v-card>
           </template>
         </v-dialog>
       </v-card-text>
+      <v-divider />
       <v-card-actions>
-        <ul>
-          <li>
-            <NuxtLink to="/users/edit">
-              登録情報変更
-            </NuxtLink>
-          </li>
+        <ul class="my-2">
+          <li><NuxtLink to="/users/edit">登録情報変更</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>
@@ -90,7 +77,11 @@ export default {
       params.append('undo_delete_url', this.$config.frontBaseURL + '/users/undo_delete')
       await this.$axios.delete(this.$config.apiBaseURL + this.$config.userDeleteUrl, { data: params })
         .then((response) => {
-          return this.appSignOut(null, '/users/sign_in', response.data.alert, response.data.notice)
+          if (response.data == null) {
+            this.$toasted.error(this.$t('system.error'))
+          } else {
+            return this.appSignOut(null, '/users/sign_in', response.data.alert, response.data.notice)
+          }
         },
         (error) => {
           if (error.response == null) {

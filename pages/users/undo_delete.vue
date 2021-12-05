@@ -2,9 +2,8 @@
   <div>
     <Loading :loading="loading" />
     <v-card v-if="!loading" max-width="640px">
-      <v-card-title>
-        アカウント削除取り消し
-      </v-card-title>
+      <Processing :processing="processing" />
+      <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
         このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') }}以降に削除されます。それまでは取り消し可能です。
         <div v-if="$auth.user.destroy_requested_at != null">
@@ -13,27 +12,17 @@
         <br>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn color="secondary" :disabled="processing" v-bind="attrs" v-on="on">
-              取り消し
-            </v-btn>
+            <v-btn color="secondary" :disabled="processing" v-bind="attrs" v-on="on">取り消し</v-btn>
           </template>
           <template #default="dialog">
             <v-card>
-              <v-toolbar color="secondary" dark>
-                アカウント削除取り消し
-              </v-toolbar>
+              <v-toolbar color="secondary" dark>アカウント削除取り消し</v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-6">
-                  本当に取り消しますか？
-                </div>
+                <div class="text-h6 pa-6">本当に取り消しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn color="secondary" @click="dialog.value = false">
-                  いいえ
-                </v-btn>
-                <v-btn color="primary" @click="dialog.value = false; onUserUndoDelete()">
-                  はい
-                </v-btn>
+                <v-btn color="secondary" @click="dialog.value = false">いいえ</v-btn>
+                <v-btn color="primary" @click="dialog.value = false; onUserUndoDelete()">はい</v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -82,8 +71,12 @@ export default {
 
       await this.$axios.delete(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
         .then((response) => {
-          this.$auth.setUser(response.data.user)
-          return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          if (response.data == null) {
+            this.$toasted.error(this.$t('system.error'))
+          } else {
+            this.$auth.setUser(response.data.user)
+            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          }
         },
         (error) => {
           if (error.response == null) {

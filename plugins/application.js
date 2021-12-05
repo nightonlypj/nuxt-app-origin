@@ -1,9 +1,11 @@
 import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 
 export default {
   components: {
     Loading,
+    Processing,
     Message
   },
 

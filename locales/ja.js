@@ -1,7 +1,13 @@
 module.exports = {
+  app_name: 'NuxtAppOrigin',
+  my_name: 'My name',
+  my_url: 'https://example.com',
   network: {
     failure: '通信に失敗しました。しばらく時間をあけてから、やり直してください。',
     error: '通信エラーが発生しました。しばらく時間をあけてから、やり直してください。'
+  },
+  system: {
+    error: 'エラーが発生しました。しばらく時間をあけてから、やり直してください。'
   },
   auth: {
     signed_out: 'ログアウトしました。',

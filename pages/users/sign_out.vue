@@ -2,16 +2,11 @@
   <div>
     <Loading :loading="loading" />
     <v-card v-if="!loading" max-width="480px">
-      <v-card-title>
-        ログアウトします。よろしいですか？
-      </v-card-title>
+      <Processing :processing="processing" />
+      <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
-        <v-btn to="/" nuxt>
-          トップページ
-        </v-btn>
-        <v-btn color="primary" :disabled="processing" @click="onSignOut()">
-          ログアウト
-        </v-btn>
+        <v-btn to="/" nuxt>トップページ</v-btn>
+        <v-btn class="ml-1" color="primary" :disabled="processing" @click="onSignOut()">はい（ログアウト）</v-btn>
       </v-card-text>
     </v-card>
   </div>
@@ -27,7 +22,7 @@ export default {
   created () {
     if (!this.$auth.loggedIn) {
       this.$toasted.info(this.$t('auth.already_signed_out'))
-      return this.$router.push({ path: '/users/sign_in' }) // Tips: ログイン後、homeに戻す
+      return this.$router.push({ path: '/' })
     }
 
     this.processing = false

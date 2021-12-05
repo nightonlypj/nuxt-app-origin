@@ -3,11 +3,10 @@
     <Loading :loading="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
     <v-card v-if="!loading" max-width="480px">
+      <Processing :processing="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
-          <v-card-title>
-            パスワード再設定
-          </v-card-title>
+          <v-card-title>パスワード再設定</v-card-title>
           <v-card-text>
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
@@ -33,33 +32,11 @@
                 @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">
-              変更
-            </v-btn>
+            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">変更</v-btn>
           </v-card-text>
+          <v-divider />
           <v-card-actions>
-            <ul>
-              <li>
-                <NuxtLink to="/users/sign_in">
-                  ログイン
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/sign_up">
-                  アカウント登録
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/confirmation/new">
-                  メールアドレス確認
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/users/unlock/new">
-                  アカウントロック解除
-                </NuxtLink>
-              </li>
-            </ul>
+            <ActionLink action="password" />
           </v-card-actions>
         </v-form>
       </validation-observer>
@@ -70,6 +47,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, min, confirmed } from 'vee-validate/dist/rules'
+import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
@@ -81,7 +59,8 @@ export default {
   name: 'UsersPasswordIndex',
   components: {
     ValidationObserver,
-    ValidationProvider
+    ValidationProvider,
+    ActionLink
   },
   mixins: [Application],
 
@@ -118,11 +97,15 @@ export default {
         password_confirmation: this.password_confirmation
       })
         .then((response) => {
-          this.$auth.setUser(response.data.user)
-          if (this.$auth.loggedIn) {
-            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+          if (response.data == null) {
+            this.$toasted.error(this.$t('system.error'))
           } else {
-            return this.appRedirectSignIn(response.data.alert, response.data.notice)
+            this.$auth.setUser(response.data.user)
+            if (this.$auth.loggedIn) {
+              return this.appRedirectSuccess(response.data.alert, response.data.notice)
+            } else {
+              return this.appRedirectSignIn(response.data.alert, response.data.notice)
+            }
           }
         },
         (error) => {
