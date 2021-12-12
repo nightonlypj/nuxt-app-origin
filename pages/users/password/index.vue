@@ -91,7 +91,7 @@ export default {
     async onPasswordUpdate () {
       this.processing = true
 
-      await this.$axios.put(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
         password_confirmation: this.password_confirmation

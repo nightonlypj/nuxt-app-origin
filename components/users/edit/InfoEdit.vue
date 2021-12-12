@@ -110,7 +110,7 @@ export default {
     async onUserUpdate () {
       this.processing = true
 
-      await this.$axios.put(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
         password: this.password,

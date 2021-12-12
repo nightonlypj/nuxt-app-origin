@@ -73,9 +73,9 @@ export default {
     async onUserDelete () {
       this.processing = true
 
-      const params = new URLSearchParams()
-      params.append('undo_delete_url', this.$config.frontBaseURL + '/users/undo_delete')
-      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userDeleteUrl, { data: params })
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.userDeleteUrl, {
+        undo_delete_url: this.$config.frontBaseURL + '/users/undo_delete'
+      })
         .then((response) => {
           if (response.data == null) {
             this.$toasted.error(this.$t('system.error'))

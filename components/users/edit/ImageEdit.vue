@@ -101,7 +101,7 @@ export default {
     async onUserImageDelete () {
       this.processing = true
 
-      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
         .then((response) => {
           if (response.data == null) {
             this.$toasted.error(this.$t('system.error'))

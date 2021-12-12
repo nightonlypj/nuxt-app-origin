@@ -69,7 +69,7 @@ export default {
     async onUserUndoDelete () {
       this.processing = true
 
-      await this.$axios.delete(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
         .then((response) => {
           if (response.data == null) {
             this.$toasted.error(this.$t('system.error'))

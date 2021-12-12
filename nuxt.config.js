@@ -94,7 +94,7 @@ export default {
         },
         endpoints: {
           login: { url: envConfig.apiBaseURL + commonConfig.authSignInURL, method: 'post' },
-          logout: { url: envConfig.apiBaseURL + commonConfig.authSignOutURL, method: 'delete' },
+          logout: { url: envConfig.apiBaseURL + commonConfig.authSignOutURL, method: 'post' },
           user: { url: envConfig.apiBaseURL + commonConfig.authUserURL, method: 'get' }
         }
       }

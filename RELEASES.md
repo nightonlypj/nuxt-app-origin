@@ -2,6 +2,8 @@
 
 ## 1.0.0 (Sprint 2)
 
+- GETとPOSTに統一（PUT/PATCH/DELETEをPOSTに変更）したい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/442/
 - 下にスクロールしたら、上に戻るボタンを表示したい
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/437/
 - お知らせを表示したい
