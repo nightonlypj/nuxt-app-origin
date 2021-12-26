@@ -30,3 +30,12 @@ export default (_context, inject) => {
   inject('pageFirstNumber', pageFirstNumber)
   inject('pageLastNumber', pageLastNumber)
 }
+
+export const TestPlugin = {
+  install (Vue) {
+    Vue.prototype.$_dateFormat = dateFormat
+    Vue.prototype.$_timeFormat = timeFormat
+    Vue.prototype.$_pageFirstNumber = pageFirstNumber
+    Vue.prototype.$_pageLastNumber = pageLastNumber
+  }
+}
