@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <v-card v-if="!loading">
-      <Processing :processing="processing" />
+      <Processing v-if="processing" />
       <v-card-title>お知らせ</v-card-title>
       <v-card-text>
         <v-row v-if="info != null && info.total_count > info.limit_value">
@@ -10,7 +10,7 @@
             {{ info.total_count.toLocaleString() }}件中 {{ $pageFirstNumber(info).toLocaleString() }}-{{ $pageLastNumber(info).toLocaleString() }}件を表示
           </v-col>
           <v-col cols="auto" md="7" class="d-flex justify-end">
-            <v-pagination v-model="page" :length="info.total_pages" @input="onPagination()" />
+            <v-pagination id="pagination" v-model="page" :length="info.total_pages" @input="onPagination()" />
           </v-col>
         </v-row>
 
@@ -40,7 +40,7 @@
         </article>
 
         <div v-if="info != null && info.total_pages > 1">
-          <v-pagination v-model="page" :length="info.total_pages" @input="onPagination()" />
+          <v-pagination id="pagination2" v-model="page" :length="info.total_pages" @input="onPagination()" />
         </div>
       </v-card-text>
     </v-card>
@@ -66,8 +66,9 @@ export default {
     }
   },
 
-  created () {
-    this.onPagination(this.page)
+  async created () {
+    await this.onPagination(this.page)
+    this.loading = false
   },
 
   methods: {
@@ -78,20 +79,22 @@ export default {
         .then((response) => {
           if (response.data == null || response.data.infomation == null) {
             this.$toasted.error(this.$t('system.error'))
-            if (this.info != null) { this.page = this.info.current_page }
+            if (this.info == null) {
+              return this.$router.push({ path: '/' })
+            }
+            this.page = this.info.current_page
           } else {
             this.info = response.data.infomation
             this.lists = response.data.infomations
             if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) { this.$auth.fetchUser() } // Tips: お知らせ未読数をリセット
           }
+          this.processing = false
         },
         (error) => {
           this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
           if (this.info != null) { this.page = this.info.current_page }
+          this.processing = false
         })
-
-      this.processing = false
-      this.loading = false
     }
   }
 }

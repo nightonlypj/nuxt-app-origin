@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
     <v-card v-if="!loading" max-width="850px">
       <v-card-title>登録情報変更</v-card-title>
@@ -15,7 +15,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li v-if="user.unconfirmed_email !== null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
+          <li v-if="user != null && user.unconfirmed_email !== null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
           <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
         </ul>
       </v-card-actions>

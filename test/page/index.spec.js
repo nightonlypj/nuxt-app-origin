@@ -1,5 +1,7 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
+import SignUp from '~/components/index/SignUp.vue'
+import Infomations from '~/components/index/Infomations.vue'
 import Page from '~/pages/index.vue'
 
 describe('index.vue', () => {
@@ -10,22 +12,35 @@ describe('index.vue', () => {
     vuetify = new Vuetify()
   })
 
-  const mountFunction = (options) => {
-    return shallowMount(Page, {
+  const mountFunction = (loggedIn) => {
+    return mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        SignUp: true,
+        Infomations: true
+      },
       mocks: {
         $auth: {
-          loggedIn: false
+          loggedIn
         }
-      },
-      ...options
+      }
     })
   }
 
-  it('成功', () => {
-    const wrapper = mountFunction()
-    // console.log(wrapper.html())
+  const commonViewTest = (loggedIn) => {
+    const wrapper = mountFunction(loggedIn)
     expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(SignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
+    expect(wrapper.findComponent(Infomations).exists()).toBe(true) // 大切なお知らせ
+  }
+
+  it('[未ログイン]表示される', () => {
+    commonViewTest(false)
+  })
+  it('[ログイン中]表示される', () => {
+    commonViewTest(true)
   })
 })

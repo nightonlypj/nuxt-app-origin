@@ -1,14 +1,24 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import { config, RouterLinkStub } from '@vue/test-utils'
+import { TestPluginUtils } from '~/plugins/utils.js'
 import locales from '~/locales/ja.js'
 
-// Use Vuetify
 Vue.use(Vuetify)
+Vue.use(TestPluginUtils)
 
 // Mock i18n
 config.mocks = {
-  $t: key => locales[key]
+  $t: (key) => {
+    let locale = locales
+    const parts = key.split('.')
+    for (const part of parts) {
+      locale = locale[part]
+    }
+    // eslint-disable-next-line no-throw-literal
+    if (locale == null) { throw 'Not found: i18n(' + key + ')' }
+    return locale
+  }
 }
 
 // Stub NuxtLink

@@ -1,42 +1,97 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
+import locales from '~/locales/ja.js'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/undo_delete.vue'
+
+import { Helper } from '~/test/helper.js'
+const helper = new Helper()
 
 describe('undo_delete.vue', () => {
   const localVue = createLocalVue()
-  let vuetify
+  let vuetify, authFetchUserMock, authRedirectMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     vuetify = new Vuetify()
+    authFetchUserMock = jest.fn()
+    authRedirectMock = jest.fn()
+    toastedErrorMock = jest.fn()
+    toastedInfoMock = jest.fn()
+    routerPushMock = jest.fn()
   })
 
-  const now = new Date()
-  const authFetchUserMock = jest.fn()
-
-  const mountFunction = (options) => {
-    return shallowMount(Page, {
+  const mountFunction = (loggedIn, user) => {
+    return mount(Page, {
       localVue,
       vuetify,
       mocks: {
         $auth: {
-          loggedIn: true,
-          user: {
-            destroy_requested_at: now,
-            destroy_schedule_at: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7)
-          },
-          fetchUser: authFetchUserMock
+          loggedIn,
+          user,
+          fetchUser: authFetchUserMock,
+          redirect: authRedirectMock
         },
-        $dateFormat: jest.fn(),
-        $timeFormat: jest.fn()
-      },
-      ...options
+        $toasted: {
+          error: toastedErrorMock,
+          info: toastedInfoMock
+        },
+        $router: {
+          push: routerPushMock
+        }
+      }
     })
   }
 
-  it('成功', () => {
-    const wrapper = mountFunction()
-    // console.log(wrapper.html())
+  const commonLoadingTest = (wrapper) => {
     expect(wrapper.vm).toBeTruthy()
-    expect(authFetchUserMock).toHaveBeenCalled()
+
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(true)
+  }
+  const commonRedirectTest = (alert, notice, mock, url) => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
+    if (alert !== null) {
+      expect(toastedErrorMock).toBeCalledWith(alert)
+    }
+    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
+    if (notice !== null) {
+      expect(toastedInfoMock).toBeCalledWith(notice)
+    }
+    expect(mock).toBeCalledTimes(1)
+    expect(mock).toBeCalledWith(url)
+  }
+
+  it('[未ログイン]ログインにリダイレクトされる', async () => {
+    commonLoadingTest(mountFunction(false, {}))
+
+    await helper.sleep(1)
+    commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
   })
+  it('[ログイン中]トップページにリダイレクトされる', async () => {
+    const user = { destroy_schedule_at: null }
+    commonLoadingTest(mountFunction(true, user))
+
+    await helper.sleep(1)
+    commonRedirectTest(locales.auth.not_destroy_reserved, null, routerPushMock, { path: '/' })
+  })
+  it('[ログイン中（削除予約済み）]表示される', async () => {
+    const user = { destroy_requested_at: '2021-01-01T09:00:00+09:00', destroy_schedule_at: '2021-01-08T09:00:00+09:00' }
+    const wrapper = mountFunction(true, user)
+    commonLoadingTest(wrapper)
+
+    await helper.sleep(1)
+    expect(authFetchUserMock).toBeCalledTimes(1)
+
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(false)
+    expect(wrapper.findComponent(Processing).exists()).toBe(false)
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch('2021/01/01 09:00') // 削除依頼日時
+    expect(wrapper.text()).toMatch('2021/01/08') // 削除予定日時
+  })
+
+  // TODO: onUserUndoDelete, fetchUserエラー
 })

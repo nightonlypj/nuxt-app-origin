@@ -1,5 +1,5 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/Message.vue'
 
 describe('Message.vue', () => {
@@ -10,21 +10,49 @@ describe('Message.vue', () => {
     vuetify = new Vuetify()
   })
 
-  const mountFunction = (options) => {
-    return shallowMount(Component, {
+  const mountFunction = (alert, notice) => {
+    return mount(Component, {
       localVue,
       vuetify,
       propsData: {
-        alert: null,
-        notice: null
-      },
-      ...options
+        alert,
+        notice
+      }
     })
   }
 
-  it('成功', () => {
-    const wrapper = mountFunction()
-    // console.log(wrapper.html())
+  const alert = 'alertメッセージ'
+  const notice = 'noticeメッセージ'
+
+  it('[alertなし/noticeなし]表示されない', () => {
+    const wrapper = mountFunction(null, null)
     expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.html())
+    expect(wrapper.html()).toBe('')
+  })
+  it('[alertなし/noticeあり]表示される', () => {
+    const wrapper = mountFunction(null, notice)
+    expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).not.toMatch(alert)
+    expect(wrapper.text()).toMatch(notice)
+  })
+  it('[alertあり/noticeなし]表示される', () => {
+    const wrapper = mountFunction(alert, null)
+    expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch(alert)
+    expect(wrapper.text()).not.toMatch(notice)
+  })
+  it('[alertあり/noticeあり]表示される', () => {
+    const wrapper = mountFunction(alert, notice)
+    expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch(alert)
+    expect(wrapper.text()).toMatch(notice)
   })
 })

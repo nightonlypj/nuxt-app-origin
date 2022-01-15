@@ -1,11 +1,11 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <v-card v-if="!loading" max-width="640px">
-      <Processing :processing="processing" />
+      <Processing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
-        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') }}以降に削除されます。それまでは取り消し可能です。
+        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') || 'N/A' }}以降に削除されます。それまでは取り消し可能です。
         <div v-if="$auth.user.destroy_requested_at != null">
           ※{{ $timeFormat($auth.user.destroy_requested_at, 'ja') }}にアカウント削除依頼を受け付けています。
         </div>

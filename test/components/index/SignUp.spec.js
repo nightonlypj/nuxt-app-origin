@@ -1,6 +1,9 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/index/SignUp.vue'
+
+import { Helper } from '~/test/helper.js'
+const helper = new Helper()
 
 describe('SignUp.vue', () => {
   const localVue = createLocalVue()
@@ -10,17 +13,21 @@ describe('SignUp.vue', () => {
     vuetify = new Vuetify()
   })
 
-  const mountFunction = (options) => {
-    return shallowMount(Component, {
+  const mountFunction = () => {
+    return mount(Component, {
       localVue,
-      vuetify,
-      ...options
+      vuetify
     })
   }
 
-  it('成功', () => {
+  it('表示される', () => {
     const wrapper = mountFunction()
-    // console.log(wrapper.html())
     expect(wrapper.vm).toBeTruthy()
+
+    const links = helper.getLinks(wrapper)
+
+    // console.log(links)
+    expect(links.includes('/users/sign_up')).toBe(true) // アカウント登録
+    expect(links.includes('/users/sign_in')).toBe(true) // ログイン
   })
 })

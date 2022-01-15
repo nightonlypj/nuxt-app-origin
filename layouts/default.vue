@@ -89,7 +89,7 @@
           <template #activator="{ on, attrs }">
             <v-btn class="d-inline-block" max-width="400px" style="text-transform: none" text v-bind="attrs" v-on="on">
               <v-avatar size="32px">
-                <v-img :src="$auth.user.image_url.small" />
+                <v-img id="user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
               <div class="text-truncate hidden-sm-and-down">{{ $auth.user.name }}</div>
             </v-btn>
@@ -123,10 +123,7 @@
 
     <v-main>
       <v-container>
-        <v-alert v-if="$auth.loggedIn && $auth.user.destroy_schedule_at != null && $route.path !== '/users/undo_delete'" type="warning">
-          このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') }}以降に削除されます。
-          <NuxtLink to="/users/undo_delete">取り消しはこちら</NuxtLink>
-        </v-alert>
+        <DestroyInfo />
         <nuxt />
       </v-container>
     </v-main>
@@ -143,11 +140,13 @@
 
 <script>
 import GoTop from '@inotom/vue-go-top'
+import DestroyInfo from '~/components/DestroyInfo.vue'
 
 export default {
   name: 'LayoutsDefault',
   components: {
-    GoTop
+    GoTop,
+    DestroyInfo
   },
 
   data () {

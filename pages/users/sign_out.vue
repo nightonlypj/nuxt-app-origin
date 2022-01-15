@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <v-card v-if="!loading" max-width="480px">
-      <Processing :processing="processing" />
+      <Processing v-if="processing" />
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
         <v-btn to="/" nuxt>トップページ</v-btn>

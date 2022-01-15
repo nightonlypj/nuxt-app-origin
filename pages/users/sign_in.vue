@@ -1,9 +1,9 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
     <v-card v-if="!loading" max-width="480px">
-      <Processing :processing="processing" />
+      <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }">
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>

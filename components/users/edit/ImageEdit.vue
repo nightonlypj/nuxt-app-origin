@@ -1,6 +1,6 @@
 <template>
   <validation-observer v-slot="{ invalid }" ref="observer">
-    <Processing :processing="processing" />
+    <Processing v-if="processing" />
     <v-form>
       <v-card-text>
         <v-avatar size="256px">
@@ -19,7 +19,7 @@
         <v-btn color="primary" :disabled="invalid || image === null || processing" @click="onUserImageUpdate()">アップロード</v-btn>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn color="secondary" :disabled="!$auth.user.upload_image || processing" v-bind="attrs" v-on="on">画像削除</v-btn>
+            <v-btn id="image_delete" color="secondary" :disabled="!$auth.user.upload_image || processing" v-bind="attrs" v-on="on">画像削除</v-btn>
           </template>
           <template #default="dialog">
             <v-card>

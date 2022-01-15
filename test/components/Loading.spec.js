@@ -1,5 +1,5 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/Loading.vue'
 
 describe('Loading.vue', () => {
@@ -10,20 +10,18 @@ describe('Loading.vue', () => {
     vuetify = new Vuetify()
   })
 
-  const mountFunction = (options) => {
-    return shallowMount(Component, {
+  const mountFunction = () => {
+    return mount(Component, {
       localVue,
-      vuetify,
-      propsData: {
-        loading: true
-      },
-      ...options
+      vuetify
     })
   }
 
-  it('成功', () => {
-    const wrapper = mountFunction()
-    // console.log(wrapper.html())
+  it('表示される', () => {
+    const wrapper = mountFunction(true)
     expect(wrapper.vm).toBeTruthy()
+
+    // console.log(wrapper.html())
+    expect(wrapper.html()).not.toBe('')
   })
 })

@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <Loading :loading="loading" />
+  <div v-if="loading || (!loading && lists != null && lists.length > 0)">
+    <Loading v-if="loading" />
     <v-card v-if="!loading && lists != null && lists.length > 0">
       <v-card-title>大切なお知らせ</v-card-title>
       <v-card-text>

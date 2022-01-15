@@ -1,6 +1,6 @@
 <template>
   <validation-observer v-slot="{ invalid }" ref="observer">
-    <Processing :processing="processing" />
+    <Processing v-if="processing" />
     <v-form autocomplete="off">
       <v-card-text>
         <validation-provider v-slot="{ errors }" name="name" rules="required">

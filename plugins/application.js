@@ -33,7 +33,7 @@ export default {
       this.$router.push({ path: '/' })
     },
     appRedirectDestroyReserved () {
-      this.$toasted.info(this.$t('auth.destroy_reserved'))
+      this.$toasted.error(this.$t('auth.destroy_reserved'))
       this.$router.push({ path: '/' })
     },
     appRedirectSuccess (alert, notice) {

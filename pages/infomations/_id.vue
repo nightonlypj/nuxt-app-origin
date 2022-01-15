@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading :loading="loading" />
+    <Loading v-if="loading" />
     <v-card v-if="!loading">
-      <v-card-title>
+      <v-card-title v-if="list">
         <Label :list="list" />
         <span class="ml-1 font-weight-bold">
           {{ list.title }}
@@ -11,7 +11,7 @@
           ({{ $dateFormat(list.started_at, 'ja') }})
         </span>
       </v-card-title>
-      <v-card-text>
+      <v-card-text v-if="list">
         <!-- eslint-disable-next-line vue/no-v-html -->
         <div v-if="list.body" class="mx-2 my-2" v-html="list.body" />
         <!-- eslint-disable-next-line vue/no-v-html -->
@@ -49,10 +49,9 @@ export default {
       .then((response) => {
         if (response.data == null) {
           this.$toasted.error(this.$t('system.error'))
-          this.list = null
-        } else {
-          this.list = response.data.infomation
+          return this.$router.push({ path: '/' })
         }
+        this.list = response.data.infomation
       },
       (error) => {
         if (error.response == null) {

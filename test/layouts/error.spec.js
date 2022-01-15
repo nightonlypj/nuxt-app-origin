@@ -1,6 +1,9 @@
 import Vuetify from 'vuetify'
-import { createLocalVue, shallowMount } from '@vue/test-utils'
+import { createLocalVue, mount } from '@vue/test-utils'
 import Layout from '~/layouts/error.vue'
+
+import { Helper } from '~/test/helper.js'
+const helper = new Helper()
 
 describe('error.vue', () => {
   const localVue = createLocalVue()
@@ -10,22 +13,32 @@ describe('error.vue', () => {
     vuetify = new Vuetify()
   })
 
-  const mountFunction = (options) => {
-    return shallowMount(Layout, {
+  const mountFunction = (statusCode) => {
+    return mount(Layout, {
       localVue,
       vuetify,
       propsData: {
         error: {
-          statusCode: 404
+          statusCode
         }
-      },
-      ...options
+      }
     })
   }
 
-  it('成功', () => {
-    const wrapper = mountFunction()
-    // console.log(wrapper.html())
+  const commonViewTest = (statusCode) => {
+    const wrapper = mountFunction(statusCode)
     expect(wrapper.vm).toBeTruthy()
+
+    const links = helper.getLinks(wrapper)
+
+    // console.log(links)
+    expect(links.includes('/')).toBe(true) // トップページ
+  }
+
+  it('[404]表示される', () => {
+    commonViewTest(404)
+  })
+  it('[500]表示される', () => {
+    commonViewTest(500)
   })
 })
