@@ -6,27 +6,21 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('ActionLink.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (action) => {
-    return mount(Component, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify,
       propsData: {
         action
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (action) => {
-    const wrapper = mountFunction(action)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, action) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
@@ -38,18 +32,23 @@ describe('ActionLink.vue', () => {
   }
 
   it('[ログイン]表示される', () => {
-    commonViewTest('sign_in')
+    const wrapper = mountFunction('sign_in')
+    commonViewTest(wrapper, 'sign_in')
   })
   it('[アカウント登録]表示される', () => {
-    commonViewTest('sign_up')
+    const wrapper = mountFunction('sign_up')
+    commonViewTest(wrapper, 'sign_up')
   })
   it('[パスワード再設定]表示される', () => {
-    commonViewTest('password')
+    const wrapper = mountFunction('password')
+    commonViewTest(wrapper, 'password')
   })
   it('[メールアドレス確認]表示される', () => {
-    commonViewTest('confirmation')
+    const wrapper = mountFunction('confirmation')
+    commonViewTest(wrapper, 'confirmation')
   })
   it('[アカウントロック解除]表示される', () => {
-    commonViewTest('unlock')
+    const wrapper = mountFunction('unlock')
+    commonViewTest(wrapper, 'unlock')
   })
 })

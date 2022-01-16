@@ -8,18 +8,18 @@ import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/password/new.vue'
 
 describe('new.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, toastedErrorMock, toastedInfoMock, routerPushMock
+  let toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, query) => {
-    return mount(Page, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       mocks: {
@@ -39,31 +39,40 @@ describe('new.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  it('[未ログイン]表示される', () => {
-    const query = { alert: 'alertメッセージ', notice: 'noticeメッセージ' }
-    const wrapper = mountFunction(false, query)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, alert, notice) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(query.alert)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(query.notice)
+    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(alert)
+    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(notice)
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
+  }
+  const commonRedirectTest = (alert, notice, url) => {
+    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
+    if (alert !== null) {
+      expect(toastedErrorMock).toBeCalledWith(alert)
+    }
+    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
+    if (notice !== null) {
+      expect(toastedInfoMock).toBeCalledWith(notice)
+    }
+    expect(routerPushMock).toBeCalledTimes(1)
+    expect(routerPushMock).toBeCalledWith(url)
+  }
+
+  it('[未ログイン]表示される', () => {
+    const wrapper = mountFunction(false, { alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    commonViewTest(wrapper, 'alertメッセージ', 'noticeメッセージ')
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
-    const wrapper = mountFunction(true, {})
-    expect(wrapper.vm).toBeTruthy()
-
-    expect(toastedErrorMock).toBeCalledTimes(0)
-    expect(toastedInfoMock).toBeCalledTimes(1)
-    expect(toastedInfoMock).toBeCalledWith(locales.auth.already_authenticated)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith({ path: '/' })
+    mountFunction(true, {})
+    commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
   })
 
   // TODO: onPasswordNew

@@ -6,28 +6,27 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('SignUp.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = () => {
-    return mount(Component, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  it('表示される', () => {
-    const wrapper = mountFunction()
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
     expect(links.includes('/users/sign_up')).toBe(true) // アカウント登録
     expect(links.includes('/users/sign_in')).toBe(true) // ログイン
+  }
+
+  it('表示される', () => {
+    const wrapper = mountFunction()
+    commonViewTest(wrapper)
   })
 })

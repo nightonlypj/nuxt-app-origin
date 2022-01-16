@@ -5,15 +5,10 @@ import Processing from '~/components/Processing.vue'
 import Component from '~/components/users/edit/ImageEdit.vue'
 
 describe('ImageEdit.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (uploadImage) => {
-    return mount(Component, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify,
       mocks: {
@@ -27,12 +22,11 @@ describe('ImageEdit.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (uploadImage) => {
-    const wrapper = mountFunction(uploadImage)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, uploadImage) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.image).toBe(null)
@@ -43,10 +37,12 @@ describe('ImageEdit.vue', () => {
   }
 
   it('[デフォルト画像]表示される', () => {
-    commonViewTest(false)
+    const wrapper = mountFunction(false)
+    commonViewTest(wrapper, false)
   })
   it('[アップロード画像]表示される', () => {
-    commonViewTest(true)
+    const wrapper = mountFunction(true)
+    commonViewTest(wrapper, true)
   })
 
   // TODO: onUserImageUpdate, onUserImageDelete

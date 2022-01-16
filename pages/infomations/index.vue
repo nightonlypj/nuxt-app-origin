@@ -92,7 +92,10 @@ export default {
         },
         (error) => {
           this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
-          if (this.info != null) { this.page = this.info.current_page }
+          if (this.info == null) {
+            return this.$router.push({ path: '/' })
+          }
+          this.page = this.info.current_page
           this.processing = false
         })
     }

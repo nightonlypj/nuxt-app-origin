@@ -11,20 +11,22 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('edit.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, authFetchUserMock, authRedirectMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, axiosGetMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     authFetchUserMock = jest.fn()
     authRedirectMock = jest.fn()
+    authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
+    axiosGetMock = jest.fn()
   })
 
-  const mountFunction = (loggedIn, user, axiosGetMock) => {
-    return mount(Page, {
+  const mountFunction = (loggedIn, user) => {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       stubs: {
@@ -40,7 +42,8 @@ describe('edit.vue', () => {
           loggedIn,
           user,
           fetchUser: authFetchUserMock,
-          redirect: authRedirectMock
+          redirect: authRedirectMock,
+          logout: authLogoutMock
         },
         $toasted: {
           error: toastedErrorMock,
@@ -54,15 +57,15 @@ describe('edit.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
   const commonLoadingTest = (wrapper) => {
-    expect(wrapper.vm).toBeTruthy()
-
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
   }
-  const commonViewTest = (wrapper, axiosGetMock, axiosGetData, unconfirmed) => {
+  const commonViewTest = (wrapper, user, unconfirmed) => {
     expect(authFetchUserMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/users/auth/show.json')
@@ -74,7 +77,7 @@ describe('edit.vue', () => {
     expect(wrapper.findComponent(Message).vm.$props.notice).toBe(null)
     expect(wrapper.findComponent(ImageEdit).exists()).toBe(true)
     expect(wrapper.findComponent(InfoEdit).exists()).toBe(true)
-    expect(wrapper.findComponent(InfoEdit).vm.$props.user).toBe(axiosGetData.user)
+    expect(wrapper.findComponent(InfoEdit).vm.$props.user).toBe(user)
 
     const links = helper.getLinks(wrapper)
 
@@ -95,51 +98,106 @@ describe('edit.vue', () => {
     expect(mock).toBeCalledTimes(1)
     expect(mock).toBeCalledWith(url)
   }
+  const commonLogoutTest = () => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+    expect(authLogoutMock).toBeCalledTimes(1)
+    expect(toastedErrorMock).toBeCalledTimes(0)
+    expect(toastedInfoMock).toBeCalledTimes(1)
+    expect(toastedInfoMock).toBeCalledWith(locales.auth.unauthenticated)
+  }
 
-  describe('データあり', () => {
-    it('[未ログイン]ログインにリダイレクトされる', async () => {
-      commonLoadingTest(mountFunction(false, {}, null))
+  it('[未ログイン]ログインにリダイレクトされる', async () => {
+    const wrapper = mountFunction(false, {})
+    commonLoadingTest(wrapper)
 
-      await helper.sleep(1)
-      commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
-    })
-    it('[ログイン中]表示される', async () => {
-      const axiosGetData = { user: { email: 'user1@example.com', unconfirmed_email: null } }
-      const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null }, axiosGetMock)
+    await helper.sleep(1)
+    commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
+  })
+  it('[ログイン中]表示される', async () => {
+    const user = { email: 'user1@example.com', unconfirmed_email: null }
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
+    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+    commonLoadingTest(wrapper)
+
+    await helper.sleep(1)
+    commonViewTest(wrapper, user, false)
+  })
+  it('[ログイン中（メールアドレス変更中）]表示される', async () => {
+    const user = { email: 'user1@example.com', unconfirmed_email: 'new@example.com' }
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
+    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+    commonLoadingTest(wrapper)
+
+    await helper.sleep(1)
+    commonViewTest(wrapper, user, true)
+  })
+  it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
+    const wrapper = mountFunction(true, { destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
+    commonLoadingTest(wrapper)
+
+    await helper.sleep(1)
+    commonRedirectTest(locales.auth.destroy_reserved, null, routerPushMock, { path: '/' })
+  })
+
+  describe('トークン検証API', () => {
+    it('[接続エラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonViewTest(wrapper, axiosGetMock, axiosGetData, false)
+      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
     })
-    it('[ログイン中（メールアドレス変更中）]表示される', async () => {
-      const axiosGetData = { user: { email: 'user1@example.com', unconfirmed_email: 'new@example.com' } }
-      const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null }, axiosGetMock)
+    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonViewTest(wrapper, axiosGetMock, axiosGetData, true)
+      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
     })
-    it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-      const wrapper = mountFunction(true, { destroy_schedule_at: '2021-01-08T09:00:00+09:00' }, null)
+    it('[認証エラー]ログアウトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.auth.destroy_reserved, null, routerPushMock, { path: '/' })
+      commonLogoutTest()
     })
   })
 
-  describe('データなし', () => {
-    it('[ログイン中]トップページにリダイレクトされる', async () => {
-      const axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null }, axiosGetMock)
+  describe('登録情報詳細API', () => {
+    it('[接続エラー]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+    })
+    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
+    })
+    it('[認証エラー]ログアウトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonLogoutTest()
+    })
+    it('[データなし]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
       commonRedirectTest(locales.system.error, null, routerPushMock, { path: '/' })
     })
   })
-
-  // TODO: fetchUser/getエラー
 })

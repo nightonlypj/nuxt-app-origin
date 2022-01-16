@@ -10,19 +10,19 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('index.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, authFetchUserMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosGetMock, authFetchUserMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     authFetchUserMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
-  const mountFunction = (params, axiosGetMock, loggedIn, user) => {
-    return mount(Page, {
+  const mountFunction = (params, loggedIn, user) => {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       stubs: {
@@ -51,17 +51,15 @@ describe('index.vue', () => {
         }
       }
     })
-  }
-
-  const commonLoadingTest = (page, axiosGetMock, loggedIn, user) => {
-    const wrapper = mountFunction({ id: page }, axiosGetMock, loggedIn, user)
     expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(true)
     return wrapper
   }
-  const commonViewTest = (wrapper, page, axiosGetMock, axiosGetData, fetchUserCalled, countView, startViews) => {
+
+  const commonLoadingTest = (wrapper) => {
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(true)
+  }
+  const commonViewTest = (wrapper, page, infomation, infomations, fetchUserCalled, countView, startViews) => {
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/infomations.json', { params: { page } })
     expect(authFetchUserMock).toBeCalledTimes(fetchUserCalled)
@@ -69,24 +67,24 @@ describe('index.vue', () => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.vm.$data.info).toBe(axiosGetData.infomation)
-    expect(wrapper.vm.$data.lists).toBe(axiosGetData.infomations)
+    expect(wrapper.vm.$data.info).toEqual(infomation)
+    expect(wrapper.vm.$data.lists).toEqual(infomations)
 
     // console.log(wrapper.text())
-    if (axiosGetData.infomations.length === 0) {
+    if (infomations.length === 0) {
       expect(wrapper.text()).toMatch('お知らせはありません。')
     } else {
       expect(wrapper.text()).toMatch(countView) // [2頁以上]件数、開始・終了
-      expect(wrapper.find('#pagination').exists()).toBe(axiosGetData.infomation.total_pages >= 2) // [2頁以上]ページネーション
-      expect(wrapper.find('#pagination2').exists()).toBe(axiosGetData.infomation.total_pages >= 2)
+      expect(wrapper.find('#pagination').exists()).toBe(infomation.total_pages >= 2) // [2頁以上]ページネーション
+      expect(wrapper.find('#pagination2').exists()).toBe(infomation.total_pages >= 2)
 
       const labels = wrapper.findAllComponents(Label)
       const links = helper.getLinks(wrapper)
 
       // console.log(links)
-      for (const [index, list] of axiosGetData.infomations.entries()) {
+      for (const [index, list] of infomations.entries()) {
         expect(labels.at(index).exists()).toBe(true) // ラベル
-        expect(labels.at(index).vm.$props.list).toBe(list)
+        expect(labels.at(index).vm.$props.list).toEqual(list)
         expect(links.includes('/infomations/' + list.id)).toBe(list.body_present) // [本文あり]お知らせ詳細
         expect(wrapper.text()).toMatch(list.title) // タイトル
         expect(wrapper.text()).toMatch(list.summary) // 概要
@@ -107,31 +105,29 @@ describe('index.vue', () => {
     expect(routerPushMock).toBeCalledWith(url)
   }
 
-  it('[0件]表示される', async () => {
-    const axiosGetData = {
-      infomation: {
+  describe('お知らせ一覧API', () => {
+    it('[0件]表示される', async () => {
+      const infomation = {
         total_count: 0,
         current_page: 1,
         total_pages: 0,
         limit_value: 2
-      },
-      infomations: []
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(1, axiosGetMock, true, { infomation_unread_count: 0 }) // ログイン中、未読なし
+      }
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations: [] } }))
+      const wrapper = mountFunction({ id: 1 }, true, { infomation_unread_count: 0 }) // ログイン中、未読なし
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, 1, axiosGetMock, axiosGetData, 0, '', null)
-  })
-  it('[1件（本文あり）]表示される', async () => {
-    const axiosGetData = {
-      infomation: {
+      await helper.sleep(1)
+      commonViewTest(wrapper, 1, infomation, [], 0, '', null)
+    })
+    it('[1件（本文あり）]表示される', async () => {
+      const infomation = {
         total_count: 1,
         current_page: 1,
         total_pages: 1,
         limit_value: 2
-      },
-      infomations: [
+      }
+      const infomations = [
         {
           id: 1,
           title: 'タイトル1',
@@ -140,22 +136,21 @@ describe('index.vue', () => {
           started_at: '2021-01-01T09:00:00+09:00'
         }
       ]
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(1, axiosGetMock, true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      const wrapper = mountFunction({ id: 1 }, true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, 1, axiosGetMock, axiosGetData, 1, '', ['2021/01/01'])
-  })
-  it('[1件（本文なし）]表示される', async () => {
-    const axiosGetData = {
-      infomation: {
+      await helper.sleep(1)
+      commonViewTest(wrapper, 1, infomation, infomations, 1, '', ['2021/01/01'])
+    })
+    it('[1件（本文なし）]表示される', async () => {
+      const infomation = {
         total_count: 1,
         current_page: 1,
         total_pages: 1,
         limit_value: 2
-      },
-      infomations: [
+      }
+      const infomations = [
         {
           id: 2,
           title: 'タイトル2',
@@ -164,22 +159,21 @@ describe('index.vue', () => {
           started_at: '2021-01-02T09:00:00+09:00'
         }
       ]
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(1, axiosGetMock, false, null) // 未ログイン
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      const wrapper = mountFunction({ id: 1 }, false, null) // 未ログイン
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, 1, axiosGetMock, axiosGetData, 0, '', ['2021/01/02'])
-  })
-  it('[2頁中1頁]表示される', async () => {
-    const axiosGetData = {
-      infomation: {
+      await helper.sleep(1)
+      commonViewTest(wrapper, 1, infomation, infomations, 0, '', ['2021/01/02'])
+    })
+    it('[2頁中1頁]表示される', async () => {
+      const infomation = {
         total_count: 3,
         current_page: 1,
         total_pages: 2,
         limit_value: 2
-      },
-      infomations: [
+      }
+      const infomations = [
         {
           id: 1,
           title: 'タイトル1',
@@ -195,27 +189,47 @@ describe('index.vue', () => {
           started_at: '2021-01-02T09:00:00+09:00'
         }
       ]
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(1, axiosGetMock, true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      const wrapper = mountFunction({ id: 1 }, true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, 1, axiosGetMock, axiosGetData, 1, '3件中 1-2件を表示', ['2021/01/01', '2021/01/02'])
+      await helper.sleep(1)
+      commonViewTest(wrapper, 1, infomation, infomations, 1, '3件中 1-2件を表示', ['2021/01/01', '2021/01/02'])
+    })
+
+    it('[接続エラー]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction({ id: 1 }, false, null) // 未ログイン
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.failure, null, { path: '/' })
+    })
+    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction({ id: 1 }, false, null) // 未ログイン
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.error, null, { path: '/' })
+    })
+    it('[データなし]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      const wrapper = mountFunction({ id: 1 }, true, { infomation_unread_count: 0 }) // ログイン中、未読なし
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.system.error, null, { path: '/' })
+    })
+    it('[ページ情報なし]トップページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
+      const wrapper = mountFunction({ id: 1 }, false, null) // 未ログイン
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.system.error, null, { path: '/' })
+    })
   })
-  it('[データなし]トップページにリダイレクトされる', async () => {
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-    commonLoadingTest(1, axiosGetMock, true, { infomation_unread_count: 0 }) // ログイン中、未読なし
 
-    await helper.sleep(1)
-    commonRedirectTest(locales.system.error, null, { path: '/' })
-  })
-  it('[ページ情報なし]トップページにリダイレクトされる', async () => {
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
-    commonLoadingTest(1, axiosGetMock, false, null) // 未ログイン
-
-    await helper.sleep(1)
-    commonRedirectTest(locales.system.error, null, { path: '/' })
-  })
-
-  // TODO: getエラー、onPagination
+  // TODO: onPagination
 })

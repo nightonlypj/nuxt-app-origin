@@ -6,18 +6,18 @@ import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/sign_out.vue'
 
 describe('sign_out.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, toastedErrorMock, toastedInfoMock, routerPushMock
+  let toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const mountFunction = (loggedIn) => {
-    return mount(Page, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       mocks: {
@@ -33,25 +33,35 @@ describe('sign_out.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  it('[未ログイン]トップページにリダイレクトされる', () => {
-    const wrapper = mountFunction(false)
-    expect(wrapper.vm).toBeTruthy()
-
-    expect(toastedErrorMock).toBeCalledTimes(0)
-    expect(toastedInfoMock).toBeCalledTimes(1)
-    expect(toastedInfoMock).toBeCalledWith(locales.auth.already_signed_out)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith({ path: '/' })
-  })
-  it('[ログイン中]表示される', () => {
-    const wrapper = mountFunction(true)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
+  }
+  const commonRedirectTest = (alert, notice, url) => {
+    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
+    if (alert !== null) {
+      expect(toastedErrorMock).toBeCalledWith(alert)
+    }
+    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
+    if (notice !== null) {
+      expect(toastedInfoMock).toBeCalledWith(notice)
+    }
+    expect(routerPushMock).toBeCalledTimes(1)
+    expect(routerPushMock).toBeCalledWith(url)
+  }
+
+  it('[未ログイン]トップページにリダイレクトされる', () => {
+    mountFunction(false)
+    commonRedirectTest(null, locales.auth.already_signed_out, { path: '/' })
+  })
+  it('[ログイン中]表示される', () => {
+    const wrapper = mountFunction(true)
+    commonViewTest(wrapper)
   })
 
   // TODO: onSignOut

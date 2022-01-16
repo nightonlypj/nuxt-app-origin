@@ -9,17 +9,17 @@ import Page from '~/pages/users/confirmation/new.vue'
 
 describe('new.vue', () => {
   const localVue = createLocalVue()
-  let vuetify, toastedErrorMock, toastedInfoMock, routerPushMock
+  let toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, query) => {
-    return mount(Page, {
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       mocks: {
@@ -39,19 +39,17 @@ describe('new.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (loggedIn) => {
-    const query = { alert: 'alertメッセージ', notice: 'noticeメッセージ' }
-    const wrapper = mountFunction(loggedIn, query)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, loggedIn, alert, notice) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(query.alert)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(query.notice)
+    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(alert)
+    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(notice)
     expect(wrapper.findComponent(ActionLink).exists()).toBe(!loggedIn)
     if (!loggedIn) {
       expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('confirmation')
@@ -61,10 +59,12 @@ describe('new.vue', () => {
   }
 
   it('[未ログイン]表示される', () => {
-    commonViewTest(false)
+    const wrapper = mountFunction(false, { alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    commonViewTest(wrapper, false, 'alertメッセージ', 'noticeメッセージ')
   })
   it('[ログイン中]表示される', () => {
-    commonViewTest(true)
+    const wrapper = mountFunction(true, { alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    commonViewTest(wrapper, true, 'alertメッセージ', 'noticeメッセージ')
   })
 
   // TODO: onConfirmationNew

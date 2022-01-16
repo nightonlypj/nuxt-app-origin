@@ -9,20 +9,21 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('delete.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, authFetchUserMock, authRedirectMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     authFetchUserMock = jest.fn()
     authRedirectMock = jest.fn()
+    authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, user) => {
-    return mount(Page, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       mocks: {
@@ -30,7 +31,8 @@ describe('delete.vue', () => {
           loggedIn,
           user,
           fetchUser: authFetchUserMock,
-          redirect: authRedirectMock
+          redirect: authRedirectMock,
+          logout: authLogoutMock
         },
         $toasted: {
           error: toastedErrorMock,
@@ -41,13 +43,23 @@ describe('delete.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
   const commonLoadingTest = (wrapper) => {
-    expect(wrapper.vm).toBeTruthy()
-
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
+  }
+  const commonViewTest = (wrapper, user) => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(false)
+    expect(wrapper.findComponent(Processing).exists()).toBe(false)
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch(String(user.destroy_schedule_days)) // アカウント削除の猶予期間
   }
   const commonRedirectTest = (alert, notice, mock, url) => {
     expect(authFetchUserMock).toBeCalledTimes(1)
@@ -62,9 +74,17 @@ describe('delete.vue', () => {
     expect(mock).toBeCalledTimes(1)
     expect(mock).toBeCalledWith(url)
   }
+  const commonLogoutTest = () => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+    expect(authLogoutMock).toBeCalledTimes(1)
+    expect(toastedErrorMock).toBeCalledTimes(0)
+    expect(toastedInfoMock).toBeCalledTimes(1)
+    expect(toastedInfoMock).toBeCalledWith(locales.auth.unauthenticated)
+  }
 
   it('[未ログイン]ログインにリダイレクトされる', async () => {
-    commonLoadingTest(mountFunction(false, {}))
+    const wrapper = mountFunction(false, {})
+    commonLoadingTest(wrapper)
 
     await helper.sleep(1)
     commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
@@ -75,22 +95,42 @@ describe('delete.vue', () => {
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
-    expect(authFetchUserMock).toBeCalledTimes(1)
-
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-
-    // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(String(user.destroy_schedule_days)) // アカウント削除の猶予期間
+    commonViewTest(wrapper, user)
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-    const user = { destroy_schedule_at: '2021-01-08T09:00:00+09:00' }
-    commonLoadingTest(mountFunction(true, user))
+    const wrapper = mountFunction(true, { destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
+    commonLoadingTest(wrapper)
 
     await helper.sleep(1)
     commonRedirectTest(locales.auth.destroy_reserved, null, routerPushMock, { path: '/' })
   })
 
-  // TODO: onUserDelete, fetchUserエラー
+  describe('トークン検証API', () => {
+    it('[接続エラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+    })
+    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
+    })
+    it('[認証エラー]ログアウトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonLogoutTest()
+    })
+  })
+
+  // TODO: onUserDelete
 })

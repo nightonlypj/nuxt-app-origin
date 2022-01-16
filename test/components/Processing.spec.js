@@ -3,25 +3,24 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/Processing.vue'
 
 describe('Processing.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = () => {
-    return mount(Component, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
+  }
+
+  const commonViewTest = (wrapper) => {
+    // console.log(wrapper.html())
+    expect(wrapper.html()).not.toBe('')
   }
 
   it('表示される', () => {
     const wrapper = mountFunction()
-    expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.html())
-    expect(wrapper.html()).not.toBe('')
+    commonViewTest(wrapper)
   })
 })

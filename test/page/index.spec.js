@@ -5,15 +5,10 @@ import Infomations from '~/components/index/Infomations.vue'
 import Page from '~/pages/index.vue'
 
 describe('index.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (loggedIn) => {
-    return mount(Page, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       stubs: {
@@ -26,21 +21,22 @@ describe('index.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (loggedIn) => {
-    const wrapper = mountFunction(loggedIn)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, loggedIn) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(SignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
     expect(wrapper.findComponent(Infomations).exists()).toBe(true) // 大切なお知らせ
   }
 
   it('[未ログイン]表示される', () => {
-    commonViewTest(false)
+    const wrapper = mountFunction(false)
+    commonViewTest(wrapper, false)
   })
   it('[ログイン中]表示される', () => {
-    commonViewTest(true)
+    const wrapper = mountFunction(true)
+    commonViewTest(wrapper, true)
   })
 })

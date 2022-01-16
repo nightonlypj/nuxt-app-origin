@@ -9,20 +9,21 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('undo_delete.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify, authFetchUserMock, authRedirectMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     authFetchUserMock = jest.fn()
     authRedirectMock = jest.fn()
+    authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, user) => {
-    return mount(Page, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       mocks: {
@@ -30,7 +31,8 @@ describe('undo_delete.vue', () => {
           loggedIn,
           user,
           fetchUser: authFetchUserMock,
-          redirect: authRedirectMock
+          redirect: authRedirectMock,
+          logout: authLogoutMock
         },
         $toasted: {
           error: toastedErrorMock,
@@ -41,13 +43,24 @@ describe('undo_delete.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
   const commonLoadingTest = (wrapper) => {
-    expect(wrapper.vm).toBeTruthy()
-
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
+  }
+  const commonViewTest = (wrapper, destroyRequestedTime, destroyScheduleDate) => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(false)
+    expect(wrapper.findComponent(Processing).exists()).toBe(false)
+
+    // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch(destroyRequestedTime) // 削除依頼日時
+    expect(wrapper.text()).toMatch(destroyScheduleDate) // 削除予定日
   }
   const commonRedirectTest = (alert, notice, mock, url) => {
     expect(authFetchUserMock).toBeCalledTimes(1)
@@ -62,36 +75,62 @@ describe('undo_delete.vue', () => {
     expect(mock).toBeCalledTimes(1)
     expect(mock).toBeCalledWith(url)
   }
+  const commonLogoutTest = () => {
+    expect(authFetchUserMock).toBeCalledTimes(1)
+    expect(authLogoutMock).toBeCalledTimes(1)
+    expect(toastedErrorMock).toBeCalledTimes(0)
+    expect(toastedInfoMock).toBeCalledTimes(1)
+    expect(toastedInfoMock).toBeCalledWith(locales.auth.unauthenticated)
+  }
 
   it('[未ログイン]ログインにリダイレクトされる', async () => {
-    commonLoadingTest(mountFunction(false, {}))
+    const wrapper = mountFunction(false, {})
+    commonLoadingTest(wrapper)
 
     await helper.sleep(1)
     commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
   })
   it('[ログイン中]トップページにリダイレクトされる', async () => {
-    const user = { destroy_schedule_at: null }
-    commonLoadingTest(mountFunction(true, user))
+    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+    commonLoadingTest(wrapper)
 
     await helper.sleep(1)
     commonRedirectTest(locales.auth.not_destroy_reserved, null, routerPushMock, { path: '/' })
   })
   it('[ログイン中（削除予約済み）]表示される', async () => {
-    const user = { destroy_requested_at: '2021-01-01T09:00:00+09:00', destroy_schedule_at: '2021-01-08T09:00:00+09:00' }
-    const wrapper = mountFunction(true, user)
+    const wrapper = mountFunction(true, { destroy_requested_at: '2021-01-01T09:00:00+09:00', destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
-    expect(authFetchUserMock).toBeCalledTimes(1)
-
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-
-    // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch('2021/01/01 09:00') // 削除依頼日時
-    expect(wrapper.text()).toMatch('2021/01/08') // 削除予定日時
+    commonViewTest(wrapper, '2021/01/01 09:00', '2021/01/08')
   })
 
-  // TODO: onUserUndoDelete, fetchUserエラー
+  describe('トークン検証API', () => {
+    it('[接続エラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+    })
+    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
+    })
+    it('[認証エラー]ログアウトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonLogoutTest()
+    })
+  })
+
+  // TODO: onUserUndoDelete
 })

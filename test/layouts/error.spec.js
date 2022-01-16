@@ -6,15 +6,10 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('error.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (statusCode) => {
-    return mount(Layout, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Layout, {
       localVue,
       vuetify,
       propsData: {
@@ -23,12 +18,11 @@ describe('error.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (statusCode) => {
-    const wrapper = mountFunction(statusCode)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
@@ -36,9 +30,11 @@ describe('error.vue', () => {
   }
 
   it('[404]表示される', () => {
-    commonViewTest(404)
+    const wrapper = mountFunction(404)
+    commonViewTest(wrapper)
   })
   it('[500]表示される', () => {
-    commonViewTest(500)
+    const wrapper = mountFunction(500)
+    commonViewTest(wrapper)
   })
 })

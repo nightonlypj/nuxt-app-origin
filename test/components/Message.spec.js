@@ -3,15 +3,10 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/Message.vue'
 
 describe('Message.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (alert, notice) => {
-    return mount(Component, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify,
       propsData: {
@@ -19,40 +14,38 @@ describe('Message.vue', () => {
         notice
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const alert = 'alertメッセージ'
-  const notice = 'noticeメッセージ'
+  const commonNotTest = (wrapper) => {
+    // console.log(wrapper.html())
+    expect(wrapper.html()).toBe('')
+  }
+  const commonViewTest = (wrapper, alert, notice) => {
+    // console.log(wrapper.text())
+    if (alert !== null) {
+      expect(wrapper.text()).toMatch(alert)
+    }
+    if (notice !== null) {
+      expect(wrapper.text()).toMatch(notice)
+    }
+  }
 
   it('[alertなし/noticeなし]表示されない', () => {
     const wrapper = mountFunction(null, null)
-    expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.html())
-    expect(wrapper.html()).toBe('')
+    commonNotTest(wrapper)
   })
   it('[alertなし/noticeあり]表示される', () => {
-    const wrapper = mountFunction(null, notice)
-    expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.text())
-    expect(wrapper.text()).not.toMatch(alert)
-    expect(wrapper.text()).toMatch(notice)
+    const wrapper = mountFunction(null, 'noticeメッセージ')
+    commonViewTest(wrapper, null, 'noticeメッセージ')
   })
   it('[alertあり/noticeなし]表示される', () => {
-    const wrapper = mountFunction(alert, null)
-    expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(alert)
-    expect(wrapper.text()).not.toMatch(notice)
+    const wrapper = mountFunction('alertメッセージ', null)
+    commonViewTest(wrapper, 'alertメッセージ', null)
   })
   it('[alertあり/noticeあり]表示される', () => {
-    const wrapper = mountFunction(alert, notice)
-    expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(alert)
-    expect(wrapper.text()).toMatch(notice)
+    const wrapper = mountFunction('alertメッセージ', 'noticeメッセージ')
+    commonViewTest(wrapper, 'alertメッセージ', 'noticeメッセージ')
   })
 })

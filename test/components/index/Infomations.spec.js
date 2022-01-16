@@ -10,16 +10,16 @@ const helper = new Helper()
 
 describe('Infomations.vue', () => {
   const localVue = createLocalVue()
-  let vuetify, toastedErrorMock, toastedInfoMock
+  let axiosGetMock, toastedErrorMock, toastedInfoMock
 
   beforeEach(() => {
-    vuetify = new Vuetify()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
   })
 
-  const mountFunction = (axiosGetMock) => {
-    return mount(Component, {
+  const mountFunction = () => {
+    const vuetify = new Vuetify()
+    const wrapper = mount(Component, {
       localVue,
       vuetify,
       stubs: {
@@ -39,78 +39,100 @@ describe('Infomations.vue', () => {
         }
       }
     })
-  }
-
-  const commonLoadingTest = (axiosGetMock) => {
-    const wrapper = mountFunction(axiosGetMock)
     expect(wrapper.vm).toBeTruthy()
-
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(true)
     return wrapper
   }
-  const commonViewTest = (wrapper, axiosGetMock, axiosGetData, startViews) => {
+
+  const commonLoadingTest = (wrapper) => {
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(true)
+  }
+  const commonNotTest = (wrapper, alert, notice) => {
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/important.json')
 
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.vm.$data.lists).toBe(axiosGetData == null ? null : axiosGetData.infomations)
 
-    if (axiosGetData == null || axiosGetData.infomations.length === 0) {
-      expect(wrapper.html()).toBe('')
-    } else {
-      const labels = wrapper.findAllComponents(Label)
-      const links = helper.getLinks(wrapper)
+    expect(wrapper.html()).toBe('')
+    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
+    if (alert !== null) {
+      expect(toastedErrorMock).toBeCalledWith(alert)
+    }
+    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
+    if (notice !== null) {
+      expect(toastedInfoMock).toBeCalledWith(notice)
+    }
+  }
+  const commonViewTest = (wrapper, infomations, startViews) => {
+    expect(axiosGetMock).toBeCalledTimes(1)
+    expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/important.json')
 
-      // console.log(links)
-      // console.log(wrapper.text())
-      for (const [index, list] of axiosGetData.infomations.entries()) {
-        expect(labels.at(index).exists()).toBe(true) // ラベル
-        expect(labels.at(index).vm.$props.list).toBe(list)
-        expect(links.includes('/infomations/' + list.id)).toBe(list.body_present || list.summary !== null) // [本文or概要あり]お知らせ詳細
-        expect(wrapper.text()).toMatch(list.title) // タイトル
-        expect(wrapper.text()).toMatch(startViews[index]) // 開始日時
-      }
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Loading).exists()).toBe(false)
+    expect(wrapper.vm.$data.lists).toEqual(infomations)
+
+    const labels = wrapper.findAllComponents(Label)
+    const links = helper.getLinks(wrapper)
+
+    // console.log(links)
+    // console.log(wrapper.text())
+    for (const [index, list] of infomations.entries()) {
+      expect(labels.at(index).exists()).toBe(true) // ラベル
+      expect(labels.at(index).vm.$props.list).toEqual(list)
+      expect(links.includes('/infomations/' + list.id)).toBe(list.body_present || list.summary !== null) // [本文or概要あり]お知らせ詳細
+      expect(wrapper.text()).toMatch(list.title) // タイトル
+      expect(wrapper.text()).toMatch(startViews[index]) // 開始日時
     }
   }
 
-  it('[0件]表示されない', async () => {
-    const axiosGetData = {
-      infomations: []
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(axiosGetMock)
+  describe('大切なお知らせAPI', () => {
+    it('[0件]表示されない', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations: [] } }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, axiosGetMock, axiosGetData, null)
-  })
-  it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
-    const axiosGetData = {
-      infomations: [
+      await helper.sleep(1)
+      commonNotTest(wrapper, null, null)
+    })
+    it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
+      const infomations = [
         { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2021-01-01T09:00:00+09:00' },
         { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2021-01-02T09:00:00+09:00' },
         { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2021-01-03T09:00:00+09:00' },
         { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2021-01-04T09:00:00+09:00' }
       ]
-    }
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: axiosGetData }))
-    const wrapper = commonLoadingTest(axiosGetMock)
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations } }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
 
-    await helper.sleep(1)
-    commonViewTest(wrapper, axiosGetMock, axiosGetData, ['2021/01/01', '2021/01/02', '2021/01/03', '2021/01/04'])
+      await helper.sleep(1)
+      commonViewTest(wrapper, infomations, ['2021/01/01', '2021/01/02', '2021/01/03', '2021/01/04'])
+    })
+
+    it('[接続エラー]表示されない', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonNotTest(wrapper, locales.network.failure, null)
+    })
+    it('[レスポンスエラー]表示されない', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonNotTest(wrapper, locales.network.error, null)
+    })
+    it('[データなし]表示されない', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonNotTest(wrapper, locales.system.error, null)
+    })
   })
-  it('[データなし]表示されない', async () => {
-    const axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-    const wrapper = commonLoadingTest(axiosGetMock)
-
-    await helper.sleep(1)
-    commonViewTest(wrapper, axiosGetMock, null, null)
-
-    expect(toastedErrorMock).toBeCalledTimes(1)
-    expect(toastedErrorMock).toBeCalledWith(locales.system.error)
-    expect(toastedInfoMock).toBeCalledTimes(0)
-  })
-
-  // TODO: getエラー
 })

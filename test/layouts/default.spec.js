@@ -8,15 +8,10 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('default.vue', () => {
-  const localVue = createLocalVue()
-  let vuetify
-
-  beforeEach(() => {
-    vuetify = new Vuetify()
-  })
-
   const mountFunction = (loggedIn) => {
-    return mount(Layout, {
+    const localVue = createLocalVue()
+    const vuetify = new Vuetify()
+    const wrapper = mount(Layout, {
       localVue,
       vuetify,
       stubs: {
@@ -39,12 +34,11 @@ describe('default.vue', () => {
         }
       }
     })
+    expect(wrapper.vm).toBeTruthy()
+    return wrapper
   }
 
-  const commonViewTest = (loggedIn) => {
-    const wrapper = mountFunction(loggedIn)
-    expect(wrapper.vm).toBeTruthy()
-
+  const commonViewTest = (wrapper, loggedIn) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(GoTop).exists()).toBe(true) // 上に戻る
     expect(wrapper.findComponent(DestroyInfo).exists()).toBe(true) // アカウント削除予約
@@ -72,9 +66,11 @@ describe('default.vue', () => {
   }
 
   it('[未ログイン]表示される', () => {
-    commonViewTest(false)
+    const wrapper = mountFunction(false)
+    commonViewTest(wrapper, false)
   })
   it('[ログイン中]表示される', () => {
-    commonViewTest(true)
+    const wrapper = mountFunction(true)
+    commonViewTest(wrapper, true)
   })
 })
