@@ -1,0 +1,23 @@
+<template>
+  <div v-if="alert || notice">
+    <v-alert v-if="alert" type="error">{{ alert }}</v-alert>
+    <v-alert v-if="notice" type="info">{{ notice }}</v-alert>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Message',
+
+  props: {
+    alert: {
+      type: String,
+      default: null
+    },
+    notice: {
+      type: String,
+      default: null
+    }
+  }
+}
+</script>

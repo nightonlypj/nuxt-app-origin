@@ -11,5 +11,9 @@ module.exports = {
   plugins: [
   ],
   // add your custom rules here
-  rules: {}
+  rules: {
+    'vue/max-attributes-per-line': 'off',
+    'vue/singleline-html-element-content-newline': 'off',
+    'prefer-promise-reject-errors': 'off'
+  }
 }

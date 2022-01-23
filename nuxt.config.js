@@ -1,6 +1,17 @@
 import colors from 'vuetify/es5/util/colors'
 
+const environment = process.env.NODE_ENV || 'development'
+const envConfig = require(`./config/${environment}.js`)
+// eslint-disable-next-line nuxt/no-cjs-in-config
+const commonConfig = require('./config/common.js')
+
 export default {
+  publicRuntimeConfig: Object.assign(envConfig, commonConfig),
+
+  server: {
+    port: 5000
+  },
+
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
 
@@ -27,6 +38,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    { src: '~/plugins/axios.js' },
+    { src: '~/plugins/utils.js' }
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -42,14 +55,57 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
-    // https://go.nuxtjs.dev/axios
+    '@nuxtjs/i18n',
     '@nuxtjs/axios',
-    // https://go.nuxtjs.dev/pwa
+    '@nuxtjs/auth',
+    '@nuxtjs/toast',
     '@nuxtjs/pwa'
   ],
 
+  // I18n module configuration: https://i18n.nuxtjs.org/
+  i18n: {
+    locales: [
+      { code: 'ja', iso: 'ja', file: 'ja.js' }
+    ],
+    defaultLocale: 'ja',
+    lazy: true,
+    langDir: 'locales/'
+  },
+
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {},
+
+  // Auth module configuration: https://auth.nuxtjs.org/
+  auth: {
+    redirect: {
+      login: commonConfig.authRedirectSignInURL, // ログインURL
+      logout: commonConfig.authRedirectLogOutURL, // ログアウト後の遷移先URL
+      callback: false,
+      home: commonConfig.authRedirectHomeURL // ログイン後の遷移先URL
+    },
+    strategies: {
+      local: {
+        token: {
+          property: 'token',
+          global: true
+        },
+        user: {
+          property: 'user'
+        },
+        endpoints: {
+          login: { url: envConfig.apiBaseURL + commonConfig.authSignInURL, method: 'post' },
+          logout: { url: envConfig.apiBaseURL + commonConfig.authSignOutURL, method: 'post' },
+          user: { url: envConfig.apiBaseURL + commonConfig.authUserURL, method: 'get' }
+        }
+      }
+    }
+  },
+
+  // Toast module configuration: https://github.com/nuxt-community/community-modules/tree/master/packages/toast
+  toast: {
+    position: 'bottom-right',
+    duration: 3000
+  },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
