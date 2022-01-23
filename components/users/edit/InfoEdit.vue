@@ -10,6 +10,7 @@
             prepend-icon="mdi-account"
             autocomplete="off"
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
         <v-alert v-if="user.unconfirmed_email !== null" color="info">
@@ -23,6 +24,7 @@
             prepend-icon="mdi-email"
             autocomplete="off"
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password" rules="min:8">
@@ -34,6 +36,7 @@
             append-icon="mdi-eye-off"
             autocomplete="new-password"
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
@@ -45,6 +48,7 @@
             append-icon="mdi-eye-off"
             autocomplete="new-password"
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="current_password" rules="required">
@@ -56,9 +60,10 @@
             append-icon="mdi-eye-off"
             autocomplete="off"
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
-        <v-btn color="primary" :disabled="invalid || processing" @click="onUserUpdate()">変更</v-btn>
+        <v-btn id="user_update_btn" color="primary" :disabled="invalid || processing || waiting" @click="onUserUpdate()">変更</v-btn>
       </v-card-text>
     </v-form>
   </validation-observer>
@@ -92,6 +97,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       name: '',
       email: '',
       password: '',
@@ -101,8 +107,8 @@ export default {
   },
 
   created () {
-    this.name = this.user.name
-    this.email = this.user.email
+    this.name = this.name || this.user.name
+    this.email = this.email || this.user.email
     this.processing = false
   },
 
@@ -123,20 +129,27 @@ export default {
             this.$toasted.error(this.$t('system.error'))
           } else {
             this.$auth.setUser(response.data.user)
-            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+            if (this.$auth.loggedIn) {
+              return this.appRedirectSuccess(response.data.alert, response.data.notice)
+            } else {
+              return this.appRedirectSignIn(response.data.alert, response.data.notice)
+            }
           }
         },
         (error) => {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
           } else if (error.response.status === 401) {
-            return this.signOut()
+            return this.appSignOut()
           } else if (error.response.data == null) {
             this.$toasted.error(this.$t('network.error'))
           } else {
             this.$emit('alert', error.response.data.alert)
             this.$emit('notice', error.response.data.notice)
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            if (error.response.data.errors != null) {
+              this.$refs.observer.setErrors(error.response.data.errors)
+              this.waiting = true
+            }
           }
         })
 

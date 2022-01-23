@@ -15,6 +15,7 @@
                 prepend-icon="mdi-account"
                 autocomplete="off"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
@@ -24,6 +25,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
@@ -35,6 +37,7 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
@@ -46,9 +49,10 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="onSignUp()">登録</v-btn>
+            <v-btn id="sign_up_btn" color="primary" :disabled="invalid || processing || waiting" @click="onSignUp()">登録</v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>
@@ -83,6 +87,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       name: '',
       email: '',
       password: '',
@@ -125,7 +130,10 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            if (error.response.data.errors != null) {
+              this.$refs.observer.setErrors(error.response.data.errors)
+              this.waiting = true
+            }
           }
         })
 

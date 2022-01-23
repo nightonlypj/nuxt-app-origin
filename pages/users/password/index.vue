@@ -32,7 +32,7 @@
                 @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">変更</v-btn>
+            <v-btn id="password_update_btn" color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">変更</v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>
@@ -118,8 +118,10 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            this.$refs.observer.setErrors(error.response.data.errors)
-            this.waiting = true
+            if (error.response.data.errors != null) {
+              this.$refs.observer.setErrors(error.response.data.errors)
+              this.waiting = true
+            }
           }
         })
 

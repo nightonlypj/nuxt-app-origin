@@ -15,9 +15,10 @@
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
+                @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing" @click="onConfirmationNew()">送信</v-btn>
+            <v-btn id="confirmation_new_btn" color="primary" :disabled="invalid || processing || waiting" @click="onConfirmationNew()">送信</v-btn>
           </v-card-text>
           <v-divider v-if="!$auth.loggedIn" />
           <v-card-actions v-if="!$auth.loggedIn">
@@ -50,6 +51,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       email: ''
     }
   },
@@ -85,7 +87,10 @@ export default {
           } else {
             this.alert = error.response.data.alert
             this.notice = error.response.data.notice
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            if (error.response.data.errors != null) {
+              this.$refs.observer.setErrors(error.response.data.errors)
+              this.waiting = true
+            }
           }
         })
 

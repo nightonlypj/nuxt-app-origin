@@ -33,7 +33,9 @@ describe('_id.vue', () => {
           infomationDetailUrl: '/infomations/_id.json'
         },
         $route: {
-          params: { id: 1 }
+          params: {
+            id: 1
+          }
         },
         $axios: {
           get: axiosGetMock
@@ -58,10 +60,11 @@ describe('_id.vue', () => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
   }
-  const commonViewTest = (wrapper, infomation, startedAt) => {
+  const commonApiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/1.json')
-
+  }
+  const commonViewTest = (wrapper, infomation, startedAt) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.list).toEqual(infomation)
@@ -84,7 +87,7 @@ describe('_id.vue', () => {
     // console.log(links)
     expect(links.includes('/infomations')).toBe(true) // お知らせ一覧
   }
-  const commonRedirectTest = (alert, notice, mock, url) => {
+  const commonRedirectTest = (alert, notice, url, mock = routerPushMock) => {
     expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
     if (alert !== null) {
       expect(toastedErrorMock).toBeCalledWith(alert)
@@ -99,32 +102,43 @@ describe('_id.vue', () => {
 
   describe('お知らせ詳細API', () => {
     it('[本文あり]表示される', async () => {
-      const infomation = {
+      const infomation = Object.freeze({
         title: 'タイトル1',
         summary: '概要1',
         body: '本文1',
         started_at: '2021-01-01T09:00:00+09:00'
-      }
+      })
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation } }))
       const wrapper = mountFunction()
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonViewTest(wrapper, infomation, '2021/01/01')
     })
     it('[本文なし]表示される', async () => {
-      const infomation = {
+      const infomation = Object.freeze({
         title: 'タイトル1',
         summary: '概要1',
         body: null,
         started_at: '2021-01-01T09:00:00+09:00'
-      }
+      })
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation } }))
       const wrapper = mountFunction()
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonViewTest(wrapper, infomation, '2021/01/01')
+    })
+    it('[404]エラーページが表示される', async () => {
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
+      const wrapper = mountFunction()
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonRedirectTest(data.alert, data.notice, { statusCode: 404 }, nuxtErrorMock)
     })
 
     it('[接続エラー]トップページにリダイレクトされる', async () => {
@@ -133,15 +147,15 @@ describe('_id.vue', () => {
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+      commonRedirectTest(locales.network.failure, null, { path: '/' })
     })
     it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction()
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
+      commonRedirectTest(locales.network.error, null, { path: '/' })
     })
     it('[データなし]トップページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
@@ -149,15 +163,7 @@ describe('_id.vue', () => {
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.system.error, null, routerPushMock, { path: '/' })
-    })
-    it('[404レスポンス]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data: { alert: 'alertメッセージ', notice: 'noticeメッセージ' } } }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
-
-      await helper.sleep(1)
-      commonRedirectTest('alertメッセージ', 'noticeメッセージ', nuxtErrorMock, { statusCode: 404 })
+      commonRedirectTest(locales.system.error, null, { path: '/' })
     })
   })
 })

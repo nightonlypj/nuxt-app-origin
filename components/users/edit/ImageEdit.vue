@@ -14,22 +14,23 @@
             prepend-icon="mdi-camera"
             show-size
             :error-messages="errors"
+            @click="waiting = false"
           />
         </validation-provider>
-        <v-btn color="primary" :disabled="invalid || image === null || processing" @click="onUserImageUpdate()">アップロード</v-btn>
+        <v-btn id="user_image_update_btn" color="primary" :disabled="invalid || image === null || processing || waiting" @click="onUserImageUpdate()">アップロード</v-btn>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn id="image_delete" color="secondary" :disabled="!$auth.user.upload_image || processing" v-bind="attrs" v-on="on">画像削除</v-btn>
+            <v-btn id="user_image_delete_btn" color="secondary" :disabled="!$auth.user.upload_image || processing" v-bind="attrs" v-on="on">画像削除</v-btn>
           </template>
           <template #default="dialog">
-            <v-card>
+            <v-card id="user_image_delete_dialog">
               <v-toolbar color="secondary" dark>画像削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn color="primary" @click="dialog.value = false; onUserImageDelete()">はい</v-btn>
+                <v-btn id="user_image_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
+                <v-btn id="user_image_delete_yes_btn" color="primary" @click="dialog.value = false; onUserImageDelete()">はい</v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -57,6 +58,7 @@ export default {
 
   data () {
     return {
+      waiting: false,
       image: null
     }
   },
@@ -86,13 +88,16 @@ export default {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
           } else if (error.response.status === 401) {
-            return this.signOut()
+            return this.appSignOut()
           } else if (error.response.data == null) {
             this.$toasted.error(this.$t('network.error'))
           } else {
             this.$emit('alert', error.response.data.alert)
             this.$emit('notice', error.response.data.notice)
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
+            if (error.response.data.errors != null) {
+              this.$refs.observer.setErrors(error.response.data.errors)
+              this.waiting = true
+            }
           }
         })
 
@@ -116,13 +121,12 @@ export default {
           if (error.response == null) {
             this.$toasted.error(this.$t('network.failure'))
           } else if (error.response.status === 401) {
-            return this.signOut()
+            return this.appSignOut()
           } else if (error.response.data == null) {
             this.$toasted.error(this.$t('network.error'))
           } else {
             this.$emit('alert', error.response.data.alert)
             this.$emit('notice', error.response.data.notice)
-            if (error.response.data.errors != null) { this.$refs.observer.setErrors(error.response.data.errors) }
           }
         })
 

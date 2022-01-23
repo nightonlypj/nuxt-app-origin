@@ -48,34 +48,34 @@ describe('utils.js', () => {
       expect(wrapper.vm.pageLastNumber).toBe('')
     })
     it('[0件]1-0が返却される', () => {
-      const info = {
+      const info = Object.freeze({
         total_count: 0,
         current_page: 1,
         total_pages: 0,
         limit_value: 25
-      }
+      })
       const wrapper = mountFunction(info)
       expect(wrapper.vm.pageFirstNumber).toBe(1)
       expect(wrapper.vm.pageLastNumber).toBe(0)
     })
     it('[2頁中1頁]1-25が返却される', () => {
-      const info = {
+      const info = Object.freeze({
         total_count: 26,
         current_page: 1,
         total_pages: 2,
         limit_value: 25
-      }
+      })
       const wrapper = mountFunction(info)
       expect(wrapper.vm.pageFirstNumber).toBe(1)
       expect(wrapper.vm.pageLastNumber).toBe(25)
     })
     it('[2頁中2頁]26-26が返却される', () => {
-      const info = {
+      const info = Object.freeze({
         total_count: 26,
         current_page: 2,
         total_pages: 2,
         limit_value: 25
-      }
+      })
       const wrapper = mountFunction(info)
       expect(wrapper.vm.pageFirstNumber).toBe(26)
       expect(wrapper.vm.pageLastNumber).toBe(26)

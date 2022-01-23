@@ -10,7 +10,7 @@ describe('Label.vue', () => {
       localVue,
       vuetify,
       propsData: {
-        list
+        list: (list !== null) ? { ...list } : null
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -21,12 +21,12 @@ describe('Label.vue', () => {
     // console.log(wrapper.html())
     expect(wrapper.html()).toBe('')
   }
-  const commonViewTest = (wrapper, color, labelI18n) => {
+  const commonViewTest = (wrapper, color, list) => {
     // console.log(wrapper.html())
     expect(wrapper.html()).toMatch(color)
 
     // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(labelI18n)
+    expect(wrapper.text()).toMatch(list.label_i18n)
   }
 
   it('[null]表示されない', () => {
@@ -34,19 +34,23 @@ describe('Label.vue', () => {
     commonNotTest(wrapper)
   })
   it('[なし]表示されない', () => {
-    const wrapper = mountFunction({ label: 'Not', label_i18n: '' })
+    const list = Object.freeze({ label: 'Not', label_i18n: '' })
+    const wrapper = mountFunction(list)
     commonNotTest(wrapper)
   })
   it('[メンテナンス]表示される', () => {
-    const wrapper = mountFunction({ label: 'Maintenance', label_i18n: 'メンテナンス' })
-    commonViewTest(wrapper, 'error', 'メンテナンス')
+    const list = Object.freeze({ label: 'Maintenance', label_i18n: 'メンテナンス' })
+    const wrapper = mountFunction(list)
+    commonViewTest(wrapper, 'error', list)
   })
   it('[障害]表示される', () => {
-    const wrapper = mountFunction({ label: 'Hindrance', label_i18n: '障害' })
-    commonViewTest(wrapper, 'warning', '障害')
+    const list = Object.freeze({ label: 'Hindrance', label_i18n: '障害' })
+    const wrapper = mountFunction(list)
+    commonViewTest(wrapper, 'warning', list)
   })
   it('[その他]表示される', () => {
-    const wrapper = mountFunction({ label: 'Other', label_i18n: 'その他' })
-    commonViewTest(wrapper, 'info', 'その他')
+    const list = Object.freeze({ label: 'Other', label_i18n: 'その他' })
+    const wrapper = mountFunction(list)
+    commonViewTest(wrapper, 'info', list)
   })
 })

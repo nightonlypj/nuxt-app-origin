@@ -23,3 +23,8 @@ config.mocks = {
 
 // Stub NuxtLink
 config.stubs.NuxtLink = RouterLinkStub
+
+// Tips: v-dialogのwarn対応: [Vuetify] Unable to locate target [data-app]
+const app = document.createElement('div')
+app.setAttribute('data-app', true)
+document.body.append(app)

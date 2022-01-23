@@ -88,7 +88,6 @@ export default {
             this.lists = response.data.infomations
             if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) { this.$auth.fetchUser() } // Tips: お知らせ未読数をリセット
           }
-          this.processing = false
         },
         (error) => {
           this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
@@ -96,8 +95,9 @@ export default {
             return this.$router.push({ path: '/' })
           }
           this.page = this.info.current_page
-          this.processing = false
         })
+
+      this.processing = false
     }
   }
 }

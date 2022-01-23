@@ -31,6 +31,7 @@ module.exports = {
   userImageDeleteUrl: '/users/auth/image/delete.json',
   // アカウント削除API
   userDeleteUrl: '/users/auth/delete.json',
+  userSendUndoDeleteUrl: '/users/undo_delete',
   // アカウント削除取り消しAPI
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
   // 大切なお知らせAPI

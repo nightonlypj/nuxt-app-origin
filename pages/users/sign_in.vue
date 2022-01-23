@@ -30,7 +30,7 @@
                 @click="waiting = false"
               />
             </validation-provider>
-            <v-btn color="primary" :disabled="invalid || processing || waiting" @click="onSignIn()">ログイン</v-btn>
+            <v-btn id="sign_in_btn" color="primary" :disabled="invalid || processing || waiting" @click="onSignIn()">ログイン</v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>

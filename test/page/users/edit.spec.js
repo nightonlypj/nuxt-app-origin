@@ -11,16 +11,16 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('edit.vue', () => {
-  let authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, axiosGetMock
+  let axiosGetMock, authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
+    axiosGetMock = jest.fn()
     authFetchUserMock = jest.fn()
     authRedirectMock = jest.fn()
     authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
-    axiosGetMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, user) => {
@@ -38,9 +38,12 @@ describe('edit.vue', () => {
           apiBaseURL: 'https://example.com',
           userShowUrl: '/users/auth/show.json'
         },
+        $axios: {
+          get: axiosGetMock
+        },
         $auth: {
           loggedIn,
-          user,
+          user: { ...user },
           fetchUser: authFetchUserMock,
           redirect: authRedirectMock,
           logout: authLogoutMock
@@ -51,9 +54,6 @@ describe('edit.vue', () => {
         },
         $router: {
           push: routerPushMock
-        },
-        $axios: {
-          get: axiosGetMock
         }
       }
     })
@@ -65,11 +65,16 @@ describe('edit.vue', () => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
   }
-  const commonViewTest = (wrapper, user, unconfirmed) => {
+  const commonFetchUserCalledTest = (logoutCalled) => {
     expect(authFetchUserMock).toBeCalledTimes(1)
+    expect(authLogoutMock).toBeCalledTimes(logoutCalled)
+  }
+  const commonApiCalledTest = (logoutCalled) => {
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/users/auth/show.json')
-
+    expect(authLogoutMock).toBeCalledTimes(logoutCalled)
+  }
+  const commonViewTest = (wrapper, user, unconfirmed) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Message).exists()).toBe(true)
@@ -85,8 +90,7 @@ describe('edit.vue', () => {
     expect(links.includes('/users/confirmation/new')).toBe(unconfirmed) // [メールアドレス変更中]メールアドレス確認
     expect(links.includes('/users/delete')).toBe(true) // アカウント削除
   }
-  const commonRedirectTest = (alert, notice, mock, url) => {
-    expect(authFetchUserMock).toBeCalledTimes(1)
+  const commonToastedTest = (alert, notice) => {
     expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
     if (alert !== null) {
       expect(toastedErrorMock).toBeCalledWith(alert)
@@ -95,15 +99,11 @@ describe('edit.vue', () => {
     if (notice !== null) {
       expect(toastedInfoMock).toBeCalledWith(notice)
     }
+  }
+  const commonRedirectTest = (alert, notice, url, mock = routerPushMock) => {
+    commonToastedTest(alert, notice)
     expect(mock).toBeCalledTimes(1)
     expect(mock).toBeCalledWith(url)
-  }
-  const commonLogoutTest = () => {
-    expect(authFetchUserMock).toBeCalledTimes(1)
-    expect(authLogoutMock).toBeCalledTimes(1)
-    expect(toastedErrorMock).toBeCalledTimes(0)
-    expect(toastedInfoMock).toBeCalledTimes(1)
-    expect(toastedInfoMock).toBeCalledWith(locales.auth.unauthenticated)
   }
 
   it('[未ログイン]ログインにリダイレクトされる', async () => {
@@ -111,24 +111,29 @@ describe('edit.vue', () => {
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
-    commonRedirectTest(null, locales.auth.unauthenticated, authRedirectMock, 'login')
+    commonFetchUserCalledTest(0)
+    commonRedirectTest(null, locales.auth.unauthenticated, 'login', authRedirectMock)
   })
   it('[ログイン中]表示される', async () => {
-    const user = { email: 'user1@example.com', unconfirmed_email: null }
+    const user = Object.freeze({ email: 'user1@example.com', unconfirmed_email: null })
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: null })
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
+    commonFetchUserCalledTest(0)
+    commonApiCalledTest(0)
     commonViewTest(wrapper, user, false)
   })
   it('[ログイン中（メールアドレス変更中）]表示される', async () => {
-    const user = { email: 'user1@example.com', unconfirmed_email: 'new@example.com' }
+    const user = Object.freeze({ email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: null })
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
+    commonFetchUserCalledTest(0)
+    commonApiCalledTest(0)
     commonViewTest(wrapper, user, true)
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
@@ -136,68 +141,80 @@ describe('edit.vue', () => {
     commonLoadingTest(wrapper)
 
     await helper.sleep(1)
-    commonRedirectTest(locales.auth.destroy_reserved, null, routerPushMock, { path: '/' })
+    commonFetchUserCalledTest(0)
+    commonRedirectTest(locales.auth.destroy_reserved, null, { path: '/' })
   })
 
   describe('トークン検証API', () => {
+    const user = Object.freeze({ destroy_schedule_at: null })
     it('[接続エラー]トップページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      const wrapper = mountFunction(true, user)
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+      commonFetchUserCalledTest(0)
+      commonRedirectTest(locales.network.failure, null, { path: '/' })
+    })
+    it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, user)
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonFetchUserCalledTest(1)
+      commonToastedTest(null, locales.auth.unauthenticated)
+      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
-      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      const wrapper = mountFunction(true, user)
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
-    })
-    it('[認証エラー]ログアウトされる', async () => {
-      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
-      commonLoadingTest(wrapper)
-
-      await helper.sleep(1)
-      commonLogoutTest()
+      commonFetchUserCalledTest(0)
+      commonRedirectTest(locales.network.error, null, { path: '/' })
     })
   })
 
   describe('登録情報詳細API', () => {
+    const user = Object.freeze({ destroy_schedule_at: null })
     it('[接続エラー]トップページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      const wrapper = mountFunction(true, user)
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.failure, null, routerPushMock, { path: '/' })
+      commonApiCalledTest(0)
+      commonRedirectTest(locales.network.failure, null, { path: '/' })
+    })
+    it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, user)
+      commonLoadingTest(wrapper)
+
+      await helper.sleep(1)
+      commonApiCalledTest(1)
+      commonToastedTest(null, locales.auth.unauthenticated)
+      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      const wrapper = mountFunction(true, user)
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.network.error, null, routerPushMock, { path: '/' })
-    })
-    it('[認証エラー]ログアウトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
-      commonLoadingTest(wrapper)
-
-      await helper.sleep(1)
-      commonLogoutTest()
+      commonApiCalledTest(0)
+      commonRedirectTest(locales.network.error, null, { path: '/' })
     })
     it('[データなし]トップページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(true, { destroy_schedule_at: null })
+      const wrapper = mountFunction(true, user)
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.system.error, null, routerPushMock, { path: '/' })
+      commonApiCalledTest(0)
+      commonRedirectTest(locales.system.error, null, { path: '/' })
     })
   })
 })

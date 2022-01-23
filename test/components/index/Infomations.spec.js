@@ -47,10 +47,11 @@ describe('Infomations.vue', () => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
   }
-  const commonNotTest = (wrapper, alert, notice) => {
+  const commonApiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
     expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/important.json')
-
+  }
+  const commonNotTest = (wrapper, alert, notice) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
 
@@ -65,9 +66,6 @@ describe('Infomations.vue', () => {
     }
   }
   const commonViewTest = (wrapper, infomations, startViews) => {
-    expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/important.json')
-
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.lists).toEqual(infomations)
@@ -93,20 +91,22 @@ describe('Infomations.vue', () => {
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonNotTest(wrapper, null, null)
     })
     it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
-      const infomations = [
+      const infomations = Object.freeze([
         { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2021-01-01T09:00:00+09:00' },
         { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2021-01-02T09:00:00+09:00' },
         { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2021-01-03T09:00:00+09:00' },
         { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2021-01-04T09:00:00+09:00' }
-      ]
+      ])
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations } }))
       const wrapper = mountFunction()
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonViewTest(wrapper, infomations, ['2021/01/01', '2021/01/02', '2021/01/03', '2021/01/04'])
     })
 
@@ -116,14 +116,16 @@ describe('Infomations.vue', () => {
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonNotTest(wrapper, locales.network.failure, null)
     })
     it('[レスポンスエラー]表示されない', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction()
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonNotTest(wrapper, locales.network.error, null)
     })
     it('[データなし]表示されない', async () => {
@@ -132,6 +134,7 @@ describe('Infomations.vue', () => {
       commonLoadingTest(wrapper)
 
       await helper.sleep(1)
+      commonApiCalledTest()
       commonNotTest(wrapper, locales.system.error, null)
     })
   })

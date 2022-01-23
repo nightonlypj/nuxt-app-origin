@@ -37,15 +37,19 @@ describe('Message.vue', () => {
     commonNotTest(wrapper)
   })
   it('[alertなし/noticeあり]表示される', () => {
-    const wrapper = mountFunction(null, 'noticeメッセージ')
-    commonViewTest(wrapper, null, 'noticeメッセージ')
+    const notice = 'noticeメッセージ'
+    const wrapper = mountFunction(null, notice)
+    commonViewTest(wrapper, null, notice)
   })
   it('[alertあり/noticeなし]表示される', () => {
-    const wrapper = mountFunction('alertメッセージ', null)
-    commonViewTest(wrapper, 'alertメッセージ', null)
+    const alert = 'alertメッセージ'
+    const wrapper = mountFunction(alert, null)
+    commonViewTest(wrapper, alert, null)
   })
   it('[alertあり/noticeあり]表示される', () => {
-    const wrapper = mountFunction('alertメッセージ', 'noticeメッセージ')
-    commonViewTest(wrapper, 'alertメッセージ', 'noticeメッセージ')
+    const alert = 'alertメッセージ'
+    const notice = 'noticeメッセージ'
+    const wrapper = mountFunction(alert, notice)
+    commonViewTest(wrapper, alert, notice)
   })
 })

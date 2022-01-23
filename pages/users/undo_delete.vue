@@ -12,17 +12,17 @@
         <br>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn color="secondary" :disabled="processing" v-bind="attrs" v-on="on">取り消し</v-btn>
+            <v-btn id="user_undo_delete_btn" color="secondary" :disabled="processing" v-bind="attrs" v-on="on">取り消し</v-btn>
           </template>
           <template #default="dialog">
-            <v-card>
+            <v-card id="user_undo_delete_dialog">
               <v-toolbar color="secondary" dark>アカウント削除取り消し</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-6">本当に取り消しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn color="primary" @click="dialog.value = false; onUserUndoDelete()">はい</v-btn>
+                <v-btn id="user_undo_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
+                <v-btn id="user_undo_delete_yes_btn" color="primary" @click="dialog.value = false; onUserUndoDelete()">はい</v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -75,7 +75,11 @@ export default {
             this.$toasted.error(this.$t('system.error'))
           } else {
             this.$auth.setUser(response.data.user)
-            return this.appRedirectSuccess(response.data.alert, response.data.notice)
+            if (this.$auth.loggedIn) {
+              return this.appRedirectSuccess(response.data.alert, response.data.notice)
+            } else {
+              return this.appRedirectSignIn(response.data.alert, response.data.notice)
+            }
           }
         },
         (error) => {

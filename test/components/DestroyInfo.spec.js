@@ -18,7 +18,7 @@ describe('DestroyInfo.vue', () => {
         },
         $auth: {
           loggedIn,
-          user
+          user: { ...user }
         }
       }
     })
@@ -49,7 +49,8 @@ describe('DestroyInfo.vue', () => {
     commonNotTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
-    const wrapper = mountFunction('/', true, { destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
+    const user = Object.freeze({ destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
+    const wrapper = mountFunction('/', true, user)
     commonViewTest(wrapper, '2021/01/01')
   })
 
@@ -64,7 +65,8 @@ describe('DestroyInfo.vue', () => {
       commonNotTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {
-      const wrapper = mountFunction(path, true, { destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
+      const user = Object.freeze({ destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
+      const wrapper = mountFunction(path, true, user)
       commonNotTest(wrapper)
     })
   })

@@ -45,7 +45,11 @@ export default {
       this.$router.push({ path: '/users/sign_in', query: { alert, notice } })
     },
     async appSignOut (message = 'auth.unauthenticated', path = null, alert = null, notice = null) {
-      await this.$auth.logout()
+      try {
+        await this.$auth.logout()
+      } catch (error) {
+        this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
+      }
       // Devise Token Auth
       if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
         localStorage.removeItem('token-type')

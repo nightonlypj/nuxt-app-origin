@@ -6,7 +6,7 @@
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
         <v-btn to="/" nuxt>トップページ</v-btn>
-        <v-btn class="ml-1" color="primary" :disabled="processing" @click="onSignOut()">はい（ログアウト）</v-btn>
+        <v-btn id="sign_out_btn" class="ml-1" color="primary" :disabled="processing" @click="onSignOut()">はい（ログアウト）</v-btn>
       </v-card-text>
     </v-card>
   </div>
