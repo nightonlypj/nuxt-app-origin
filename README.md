@@ -1,16 +1,19 @@
 # Nuxt.jsベースアプリケーション
 
 運営元が情報提供して1つのサービスを作る（BtoC向け）  
-(Nuxt @ v2.15.4)
+(Nuxt Bridge)
 
 ## コマンドメモ
 
 ```
 yarn install
-yarn dev
+yarn dev -o
 yarn test
 yarn lint
 yarn lint --fix
+```
+```
+yarn generate
 ```
 
 ## 環境構築手順（Macの場合）
@@ -75,7 +78,5 @@ $ cd nuxt-app-origin
 $ yarn install
 Done
 
-$ yarn dev
+$ yarn dev -o
 ```
-
-- http://localhost:3000

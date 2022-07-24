@@ -25,6 +25,7 @@ const pageLastNumber = (info) => {
 }
 
 export default (_context, inject) => {
+  inject('config', useRuntimeConfig())
   inject('dateFormat', dateFormat)
   inject('timeFormat', timeFormat)
   inject('pageFirstNumber', pageFirstNumber)

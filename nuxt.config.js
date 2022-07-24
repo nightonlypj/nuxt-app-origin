@@ -1,3 +1,4 @@
+import { defineNuxtConfig } from '@nuxt/bridge'
 import colors from 'vuetify/es5/util/colors'
 
 const environment = process.env.NODE_ENV || 'development'
@@ -5,12 +6,8 @@ const envConfig = require(`./config/${environment}.js`)
 // eslint-disable-next-line nuxt/no-cjs-in-config
 const commonConfig = require('./config/common.js')
 
-export default {
+export default defineNuxtConfig({
   publicRuntimeConfig: Object.assign(envConfig, commonConfig),
-
-  server: {
-    port: 5000
-  },
 
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
@@ -47,8 +44,6 @@ export default {
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
-    // https://go.nuxtjs.dev/typescript
-    '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify'
   ],
@@ -141,4 +136,4 @@ export default {
       ]
     }
   }
-}
+})

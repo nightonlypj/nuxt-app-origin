@@ -1,5 +1,10 @@
 # リリースノート
 
+## 1.1.0 (Sprint 3)
+
+- Nuxt Bridgeに移行したい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/462/
+
 ## 1.0.0 (Sprint 2)
 
 - ユニットテストを作成したい
