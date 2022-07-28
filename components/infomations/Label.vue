@@ -4,8 +4,6 @@
 
 <script>
 export default {
-  name: 'InfomationsLabel',
-
   props: {
     list: {
       type: Object,

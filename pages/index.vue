@@ -14,10 +14,15 @@ import SignUp from '~/components/index/SignUp.vue'
 import Infomations from '~/components/index/Infomations.vue'
 
 export default {
-  name: 'Index',
   components: {
     SignUp,
     Infomations
+  },
+
+  head () {
+    return {
+      titleTemplate: this.$t('app_name') + this.$config.envName
+    }
   }
 }
 </script>

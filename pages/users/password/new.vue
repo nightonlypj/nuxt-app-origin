@@ -41,7 +41,6 @@ extend('email', email)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersPasswordNew',
   components: {
     ValidationObserver,
     ValidationProvider,
@@ -53,6 +52,12 @@ export default {
     return {
       waiting: false,
       email: ''
+    }
+  },
+
+  head () {
+    return {
+      title: 'パスワード再設定'
     }
   },
 

@@ -41,8 +41,13 @@
 import Application from '~/plugins/application.js'
 
 export default {
-  name: 'UsersDelete',
   mixins: [Application],
+
+  head () {
+    return {
+      title: 'アカウント削除'
+    }
+  },
 
   async created () {
     try {

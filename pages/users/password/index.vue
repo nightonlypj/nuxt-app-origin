@@ -56,7 +56,6 @@ extend('confirmed_new_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersPasswordIndex',
   components: {
     ValidationObserver,
     ValidationProvider,
@@ -69,6 +68,12 @@ export default {
       waiting: false,
       password: '',
       password_confirmation: ''
+    }
+  },
+
+  head () {
+    return {
+      title: 'パスワード再設定'
     }
   },
 

@@ -12,9 +12,3 @@
     </v-card-actions>
   </v-card>
 </template>
-
-<script>
-export default {
-  name: 'IndexSignUp'
-}
-</script>

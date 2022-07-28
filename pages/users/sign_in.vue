@@ -53,7 +53,6 @@ extend('email', email)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignIn',
   components: {
     ValidationObserver,
     ValidationProvider,
@@ -66,6 +65,12 @@ export default {
       waiting: false,
       email: '',
       password: ''
+    }
+  },
+
+  head () {
+    return {
+      title: 'ログイン'
     }
   },
 

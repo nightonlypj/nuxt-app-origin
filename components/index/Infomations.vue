@@ -28,7 +28,6 @@ import Application from '~/plugins/application.js'
 import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'IndexInfomations',
   components: {
     Label
   },

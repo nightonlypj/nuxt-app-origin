@@ -10,8 +10,6 @@
 
 <script>
 export default {
-  name: 'UsersActionLink',
-
   props: {
     action: {
       type: String,

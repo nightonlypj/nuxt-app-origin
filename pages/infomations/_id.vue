@@ -32,7 +32,6 @@ import Application from '~/plugins/application.js'
 import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'Infomations',
   components: {
     Label
   },
@@ -41,6 +40,12 @@ export default {
   data () {
     return {
       list: null
+    }
+  },
+
+  head () {
+    return {
+      title: this.list?.title
     }
   },
 

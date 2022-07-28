@@ -1,39 +1,41 @@
 <template>
-  <v-app dark>
-    <h1 v-if="error.statusCode === 404">
-      {{ pageNotFound }}
-    </h1>
-    <h1 v-else>
-      {{ otherError }}
-    </h1>
-    <NuxtLink to="/">
-      Home page
-    </NuxtLink>
-  </v-app>
+  <div>
+    <v-card max-width="480px">
+      <v-card-title>{{ message }}</v-card-title>
+      <v-card-actions>
+        <NuxtLink to="/" nuxt>トップページ</NuxtLink>
+      </v-card-actions>
+    </v-card>
+  </div>
 </template>
 
 <script>
 export default {
-  name: 'LayoutsError',
-
-  layout: 'empty',
   props: {
     error: {
       type: Object,
       default: null
     }
   },
-  data () {
+
+  head () {
     return {
-      pageNotFound: '404 Not Found',
-      otherError: 'An error occurred'
+      title: this.title
     }
+  },
+
+  computed: {
+    title () {
+      return (this.error.statusCode === 404) ? 'Not Found' : 'Error'
+    },
+    message () {
+      return (this.error.statusCode === 404) ? 'ページが見つかりません。' : 'エラーが発生しました。'
+    }
+  },
+
+  created () {
+    // eslint-disable-next-line no-console
+    if (this.$config.debug) { console.dir(this.error) }
   }
 }
 </script>
-
-<style scoped>
-h1 {
-  font-size: 20px;
-}
-</style>

@@ -16,8 +16,13 @@
 import Application from '~/plugins/application.js'
 
 export default {
-  name: 'UsersSignOut',
   mixins: [Application],
+
+  head () {
+    return {
+      title: 'ログアウト'
+    }
+  },
 
   created () {
     if (!this.$auth.loggedIn) {

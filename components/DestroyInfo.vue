@@ -4,9 +4,3 @@
     <NuxtLink to="/users/undo_delete">取り消しはこちら</NuxtLink>
   </v-alert>
 </template>
-
-<script>
-export default {
-  name: 'DestroyInfo'
-}
-</script>

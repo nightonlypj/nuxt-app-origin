@@ -81,7 +81,6 @@ extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'InfoEdit',
   components: {
     ValidationObserver,
     ValidationProvider

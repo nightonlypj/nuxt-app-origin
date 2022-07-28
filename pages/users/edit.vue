@@ -29,7 +29,6 @@ import ImageEdit from '~/components/users/edit/ImageEdit.vue'
 import InfoEdit from '~/components/users/edit/InfoEdit.vue'
 
 export default {
-  name: 'UsersEdit',
   components: {
     ImageEdit,
     InfoEdit
@@ -39,6 +38,12 @@ export default {
   data () {
     return {
       user: null
+    }
+  },
+
+  head () {
+    return {
+      title: '登録情報変更'
     }
   },
 

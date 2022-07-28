@@ -77,7 +77,6 @@ extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'UsersSignUp',
   components: {
     ValidationObserver,
     ValidationProvider,
@@ -92,6 +91,12 @@ export default {
       email: '',
       password: '',
       password_confirmation: ''
+    }
+  },
+
+  head () {
+    return {
+      title: 'アカウント登録'
     }
   },
 

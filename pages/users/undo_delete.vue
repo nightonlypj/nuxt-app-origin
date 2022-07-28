@@ -36,8 +36,13 @@
 import Application from '~/plugins/application.js'
 
 export default {
-  name: 'UsersUndoDelete',
   mixins: [Application],
+
+  head () {
+    return {
+      title: 'アカウント削除取り消し'
+    }
+  },
 
   async created () {
     try {

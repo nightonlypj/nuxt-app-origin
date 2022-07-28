@@ -52,7 +52,6 @@ import Application from '~/plugins/application.js'
 import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'Infomations',
   components: {
     Label
   },
@@ -63,6 +62,12 @@ export default {
       page: 1,
       info: null,
       lists: null
+    }
+  },
+
+  head () {
+    return {
+      title: 'お知らせ'
     }
   },
 

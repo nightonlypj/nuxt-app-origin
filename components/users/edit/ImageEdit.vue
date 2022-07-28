@@ -49,7 +49,6 @@ extend('size_20MB', size)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 
 export default {
-  name: 'ImageEdit',
   components: {
     ValidationObserver,
     ValidationProvider

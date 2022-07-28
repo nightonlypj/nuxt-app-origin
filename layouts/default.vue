@@ -143,7 +143,6 @@ import GoTop from '@inotom/vue-go-top'
 import DestroyInfo from '~/components/DestroyInfo.vue'
 
 export default {
-  name: 'LayoutsDefault',
   components: {
     GoTop,
     DestroyInfo
@@ -152,6 +151,12 @@ export default {
   data () {
     return {
       drawer: this.$vuetify.breakpoint.width >= 1264 // Tips: md(Medium)以下の初期表示はメニューを閉じる
+    }
+  },
+
+  head () {
+    return {
+      titleTemplate: '%s - ' + this.$t('app_name') + this.$config.envName
     }
   }
 }
