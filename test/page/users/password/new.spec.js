@@ -59,80 +59,80 @@ describe('new.vue', () => {
     return wrapper
   }
 
-  const commonMessageTest = (wrapper, alert, notice) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(alert)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(notice)
-  }
-  const commonViewTest = (wrapper, alert, notice) => {
+  // テスト内容
+  const viewTest = (wrapper, data) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    commonMessageTest(wrapper, alert, notice)
+
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
+    helper.messageTest(wrapper, Message, data)
+    if (data == null) {
+      helper.mockCalledTest(routerPushMock, 0)
+    } else {
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new' }) // Tips: URLパラメータを消す為
+    }
     expect(wrapper.vm.$data.email).toBe('')
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url, count = 1) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(count)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonApiCalledTest = (values) => {
+
+  const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).toBeCalledWith('https://example.com/users/auth/password.json', {
+    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/password.json', {
       email: values.email,
       redirect_url: 'https://front.example.com/users/password'
     })
   }
-  const commonDisabledTest = (wrapper, button, disabled) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(button.vm.disabled).toBe(disabled)
-  }
 
-  it('[未ログイン]表示される', async () => {
+  // テストケース
+  describe('パラメータなし', () => {
+    const query = Object.freeze({})
+    it('[未ログイン]表示される', () => {
+      const wrapper = mountFunction(false, query)
+      viewTest(wrapper, null)
+    })
+    it('[ログイン中]トップページにリダイレクトされる', () => {
+      mountFunction(true, query)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+    })
+  })
+  describe('パラメータあり', () => {
     const query = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const wrapper = mountFunction(false, query)
-    commonViewTest(wrapper, query.alert, query.notice)
+    it('[未ログイン]表示される', async () => {
+      const wrapper = mountFunction(false, query)
+      viewTest(wrapper, query)
 
-    // 送信ボタン
-    const button = wrapper.find('#password_new_btn')
-    expect(button.exists()).toBe(true)
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
-      if (button.vm.disabled) { break }
-    }
-    expect(button.vm.disabled).toBe(true) // 無効
+      // 送信ボタン
+      const button = wrapper.find('#password_new_btn')
+      expect(button.exists()).toBe(true)
+      for (let i = 0; i < 100; i++) {
+        await helper.sleep(10)
+        if (button.vm.disabled) { break }
+      }
+      expect(button.vm.disabled).toBe(true) // 無効
 
-    // 入力
-    wrapper.vm.$data.email = 'user1@example.com'
+      // 入力
+      wrapper.vm.$data.email = 'user1@example.com'
 
-    // 送信ボタン
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
-      if (!button.vm.disabled) { break }
-    }
-    expect(button.vm.disabled).toBe(false) // 有効
+      // 送信ボタン
+      for (let i = 0; i < 100; i++) {
+        await helper.sleep(10)
+        if (!button.vm.disabled) { break }
+      }
+      expect(button.vm.disabled).toBe(false) // 有効
+    })
+    it('[ログイン中]トップページにリダイレクトされる', () => {
+      mountFunction(true, query)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+    })
   })
-  it('[ログイン中]トップページにリダイレクトされる', () => {
-    mountFunction(true, {})
-    commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
-  })
 
-  describe('パスワード再設定API', () => {
+  describe('パスワード再設定', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com' })
     it('[成功]ログインページにリダイレクトされる', async () => {
@@ -142,30 +142,22 @@ describe('new.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonRedirectTest(null, null, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } }, 2)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
-    it('[入力エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
+    it('[データなし]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#password_new_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, true)
-    })
-    it('[連携エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: null }, data) } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_new_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -175,9 +167,10 @@ describe('new.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.network.failure, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -186,20 +179,32 @@ describe('new.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.network.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
-    it('[データなし]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
+    it('[入力エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#password_new_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.system.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.messageTest(wrapper, Message, data)
+      helper.disabledTest(wrapper, Processing, button, true)
+    })
+    it('[その他エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      const wrapper = mountFunction(false, {}, values)
+      const button = wrapper.find('#password_new_btn')
+      button.trigger('click')
+
+      await helper.sleep(1)
+      apiCalledTest(values)
+      helper.messageTest(wrapper, Message, data)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
   })
 })

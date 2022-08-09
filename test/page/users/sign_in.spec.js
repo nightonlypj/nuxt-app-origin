@@ -55,43 +55,28 @@ describe('sign_in.vue', () => {
     return wrapper
   }
 
-  const commonMessageTest = (wrapper, alert, notice) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(alert)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(notice)
-  }
-  const commonViewTest = (wrapper, alert, notice) => {
+  // テスト内容
+  const viewTest = (wrapper, data) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    commonMessageTest(wrapper, alert, notice)
+
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_in')
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith({ path: '/users/sign_in' })
 
+    helper.messageTest(wrapper, Message, data)
+    if (data == null) {
+      helper.mockCalledTest(routerPushMock, 0)
+    } else {
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in' })
+    }
     expect(wrapper.vm.$data.email).toBe('')
     expect(wrapper.vm.$data.password).toBe('')
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonApiCalledTest = (values) => {
+
+  const apiCalledTest = (values) => {
     expect(authLoginWithMock).toBeCalledTimes(1)
-    expect(authLoginWithMock).toBeCalledWith('local', {
+    expect(authLoginWithMock).nthCalledWith(1, 'local', {
       data: {
         email: values.email,
         password: values.password,
@@ -99,15 +84,11 @@ describe('sign_in.vue', () => {
       }
     })
   }
-  const commonDisabledTest = (wrapper, button, disabled) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(button.vm.disabled).toBe(disabled)
-  }
 
+  // テストケース
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false, {})
-    commonViewTest(wrapper, null, null)
+    viewTest(wrapper, null)
 
     // ログインボタン
     const button = wrapper.find('#sign_in_btn')
@@ -131,18 +112,22 @@ describe('sign_in.vue', () => {
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true, {})
-    commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
+    helper.mockCalledTest(toastedErrorMock, 0)
+    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+    helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
 
   describe('メールアドレス確認成功', () => {
     const query = Object.freeze({ account_confirmation_success: 'true', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
-      commonViewTest(wrapper, query.alert, query.notice + locales.auth.unauthenticated)
+      viewTest(wrapper, { alert: query.alert, notice: query.notice + locales.auth.unauthenticated })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(query.alert, query.notice, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 1, query.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, query.notice)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
 
@@ -150,11 +135,15 @@ describe('sign_in.vue', () => {
     const query = Object.freeze({ account_confirmation_success: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]メールアドレス確認にリダイレクトされる', () => {
       mountFunction(false, query)
-      commonRedirectTest(null, null, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
     })
     it('[ログイン中]メールアドレス確認にリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(null, null, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
     })
   })
 
@@ -162,11 +151,13 @@ describe('sign_in.vue', () => {
     const query = Object.freeze({ unlock: 'true', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
-      commonViewTest(wrapper, query.alert, query.notice + locales.auth.unauthenticated)
+      viewTest(wrapper, { alert: query.alert, notice: query.notice + locales.auth.unauthenticated })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(query.alert, query.notice, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 1, query.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, query.notice)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
 
@@ -174,15 +165,17 @@ describe('sign_in.vue', () => {
     const query = Object.freeze({ unlock: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
-      commonViewTest(wrapper, query.alert, query.notice)
+      viewTest(wrapper, query)
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(query.alert, query.notice, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 1, query.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, query.notice)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
 
-  describe('ログインAPI', () => {
+  describe('ログイン', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
     it('[成功]ログイン状態になり、元のページにリダイレクトされる', async () => {
@@ -192,20 +185,22 @@ describe('sign_in.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(data.alert, data.notice)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
-    it('[入力・連携エラー]エラーメッセージが表示される', async () => {
-      authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+    it('[データなし]エラーメッセージが表示される', async () => {
+      authLoginWithMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#sign_in_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, true)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -215,9 +210,10 @@ describe('sign_in.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.network.failure, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -226,20 +222,21 @@ describe('sign_in.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.network.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
-    it('[データなし]エラーメッセージが表示される', async () => {
-      authLoginWithMock = jest.fn(() => Promise.resolve({ data: null }))
+    it('[その他エラー]エラーメッセージが表示される', async () => {
+      authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#sign_in_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest(values)
-      commonToastedTest(locales.system.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(values)
+      helper.messageTest(wrapper, Message, data)
+      helper.disabledTest(wrapper, Processing, button, true)
     })
   })
 })

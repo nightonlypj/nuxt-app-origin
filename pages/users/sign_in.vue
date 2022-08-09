@@ -78,7 +78,7 @@ export default {
     switch (this.$route.query.account_confirmation_success) {
       case 'true':
         if (this.$auth.loggedIn) {
-          return this.appRedirectSuccess(this.$route.query.alert, this.$route.query.notice)
+          return this.appRedirectTop(this.$route.query)
         }
         break
       case 'false':
@@ -88,7 +88,7 @@ export default {
       case 'true':
       case 'false':
         if (this.$auth.loggedIn) {
-          return this.appRedirectSuccess(this.$route.query.alert, this.$route.query.notice)
+          return this.appRedirectTop(this.$route.query)
         }
     }
     if (this.$auth.loggedIn) {
@@ -99,14 +99,21 @@ export default {
       this.$route.query.notice += this.$t('auth.unauthenticated')
     }
     this.appSetQueryMessage()
+
     this.processing = false
     this.loading = false
   },
 
   methods: {
+    // ログイン
     async onSignIn () {
       this.processing = true
+      await this.postSignIn()
+      this.processing = false
+    },
 
+    // ログインAPI
+    async postSignIn () {
       await this.$auth.loginWith('local', {
         data: {
           email: this.email,
@@ -115,26 +122,16 @@ export default {
         }
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            this.$toasted.error(response.data.alert)
-            this.$toasted.info(response.data.notice)
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.appSetToastedMessage(response.data, false)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.alert = error.response.data.alert
-            this.notice = error.response.data.notice
-            this.waiting = true
-          }
-        })
+          if (!this.appCheckErrorResponse(error, false)) { return }
 
-      this.processing = false
+          this.appSetMessage(error.response.data, true)
+          this.waiting = true
+        })
     }
   }
 }

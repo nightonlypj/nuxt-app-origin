@@ -8,7 +8,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('default.vue', () => {
-  const mountFunction = (loggedIn) => {
+  const mountFunction = (loggedIn, user) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Layout, {
@@ -20,17 +20,11 @@ describe('default.vue', () => {
       },
       mocks: {
         $config: {
-          envName: ''
+          envName: '【テスト】'
         },
         $auth: {
           loggedIn,
-          user: {
-            name: 'user1の氏名',
-            image_url: {
-              small: 'https://example.com/images/user/small_noimage.jpg'
-            },
-            infomation_unread_count: 12345
-          }
+          user: { ...user }
         }
       }
     })
@@ -38,7 +32,8 @@ describe('default.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper, loggedIn) => {
+  // テスト内容
+  const viewTest = (wrapper, loggedIn) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(GoTop).exists()).toBe(true) // 上に戻る
     expect(wrapper.findComponent(DestroyInfo).exists()).toBe(true) // アカウント削除予約
@@ -55,6 +50,7 @@ describe('default.vue', () => {
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
     // console.log(wrapper.text())
+    expect(wrapper.text()).toMatch('【テスト】')
     if (loggedIn) {
       expect(wrapper.text()).toMatch('12345') // [ログイン中]お知らせの未読数
       expect(wrapper.text()).toMatch('user1の氏名') // [ログイン中]ユーザーの氏名
@@ -65,12 +61,20 @@ describe('default.vue', () => {
     expect(wrapper.find('#user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
   }
 
+  // テストケース
   it('[未ログイン]表示される', () => {
-    const wrapper = mountFunction(false)
-    commonViewTest(wrapper, false)
+    const wrapper = mountFunction(false, {})
+    viewTest(wrapper, false)
   })
   it('[ログイン中]表示される', () => {
-    const wrapper = mountFunction(true)
-    commonViewTest(wrapper, true)
+    const user = Object.freeze({
+      name: 'user1の氏名',
+      image_url: {
+        small: 'https://example.com/images/user/small_noimage.jpg'
+      },
+      infomation_unread_count: 12345
+    })
+    const wrapper = mountFunction(true, user)
+    viewTest(wrapper, true)
   })
 })

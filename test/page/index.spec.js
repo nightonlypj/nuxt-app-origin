@@ -25,18 +25,20 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper, loggedIn) => {
+  // テスト内容
+  const viewTest = (wrapper, loggedIn) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(SignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
     expect(wrapper.findComponent(Infomations).exists()).toBe(true) // 大切なお知らせ
   }
 
+  // テストケース
   it('[未ログイン]表示される', () => {
     const wrapper = mountFunction(false)
-    commonViewTest(wrapper, false)
+    viewTest(wrapper, false)
   })
   it('[ログイン中]表示される', () => {
     const wrapper = mountFunction(true)
-    commonViewTest(wrapper, true)
+    viewTest(wrapper, true)
   })
 })

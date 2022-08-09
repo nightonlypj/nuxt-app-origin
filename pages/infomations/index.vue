@@ -10,7 +10,7 @@
             {{ info.total_count.toLocaleString() }}件中 {{ $pageFirstNumber(info).toLocaleString() }}-{{ $pageLastNumber(info).toLocaleString() }}件を表示
           </v-col>
           <v-col cols="auto" md="7" class="d-flex justify-end">
-            <v-pagination id="pagination" v-model="page" :length="info.total_pages" @input="onPagination()" />
+            <v-pagination id="pagination" v-model="page" :length="info.total_pages" @input="onInfomations()" />
           </v-col>
         </v-row>
 
@@ -40,7 +40,7 @@
         </article>
 
         <div v-if="info != null && info.total_pages > 1">
-          <v-pagination id="pagination2" v-model="page" :length="info.total_pages" @input="onPagination()" />
+          <v-pagination id="pagination2" v-model="page" :length="info.total_pages" @input="onInfomations()" />
         </div>
       </v-card-text>
     </v-card>
@@ -72,37 +72,58 @@ export default {
   },
 
   async created () {
-    await this.onPagination(this.page)
+    await this.onInfomations()
     this.loading = false
   },
 
   methods: {
-    async onPagination () {
+    // お知らせ一覧
+    async onInfomations () {
       this.processing = true
+
+      if (await this.getInfomations() && this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) {
+        await this.fetchUser() // Tips: お知らせ未読数をリセット
+      }
+
+      this.processing = false
+    },
+
+    // お知らせ一覧API
+    async getInfomations () {
+      let result = false
 
       await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationsUrl, { params: { page: this.page } })
         .then((response) => {
-          if (response.data == null || response.data.infomation == null) {
-            this.$toasted.error(this.$t('system.error'))
-            if (this.info == null) {
-              return this.$router.push({ path: '/' })
-            }
-            this.page = this.info.current_page
-          } else {
-            this.info = response.data.infomation
-            this.lists = response.data.infomations
-            if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) { this.$auth.fetchUser() } // Tips: お知らせ未読数をリセット
-          }
+          if (!this.appCheckResponse(response, false, response.data?.infomation == null)) { return }
+
+          this.info = response.data.infomation
+          this.lists = response.data.infomations
+          result = true
         },
         (error) => {
-          this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
-          if (this.info == null) {
-            return this.$router.push({ path: '/' })
+          if (this.appCheckErrorResponse(error, false)) {
+            this.appSetToastedMessage(error.response.data, true)
           }
-          this.page = this.info.current_page
         })
 
-      this.processing = false
+      if (this.info == null) {
+        this.appRedirectTop()
+        return false
+      }
+
+      this.page = this.info.current_page
+      return result
+    },
+
+    // トークン検証
+    async fetchUser () {
+      try {
+        await this.$auth.fetchUser()
+      } catch (error) {
+        if (this.appCheckErrorResponse(error, false, { auth: true })) {
+          this.appSetToastedMessage(error.response.data, true)
+        }
+      }
     }
   }
 }

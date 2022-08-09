@@ -42,7 +42,8 @@ describe('sign_out.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
+  // テスト内容
+  const viewTest = (wrapper) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
@@ -52,39 +53,25 @@ describe('sign_out.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonProcessingTest = (wrapper) => {
+
+  const updateViewTest = (wrapper) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(true)
   }
-  const commonApiCalledTest = () => {
-    expect(authLogoutMock).toBeCalledTimes(1)
-  }
 
+  // テストケース
   it('[未ログイン]トップページにリダイレクトされる', () => {
     mountFunction(false)
-    commonRedirectTest(null, locales.auth.already_signed_out, { path: '/' })
+    helper.mockCalledTest(toastedErrorMock, 0)
+    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_signed_out)
+    helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
   it('[ログイン中]表示される', () => {
     const wrapper = mountFunction(true)
-    commonViewTest(wrapper)
+    viewTest(wrapper)
   })
 
-  describe('ログアウトAPI', () => {
+  describe('ログアウト', () => {
     it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authLogoutMock = jest.fn()
       const wrapper = mountFunction(true)
@@ -100,9 +87,10 @@ describe('sign_out.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(null, locales.auth.signed_out)
+      updateViewTest(wrapper)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
 
       // Devise Token Auth
@@ -120,9 +108,10 @@ describe('sign_out.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(locales.network.failure, locales.auth.signed_out)
+      updateViewTest(wrapper)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
@@ -132,9 +121,24 @@ describe('sign_out.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(locales.network.error, locales.auth.signed_out)
+      updateViewTest(wrapper)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
+      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    })
+    it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      const wrapper = mountFunction(true)
+      const button = wrapper.find('#sign_out_btn')
+      button.trigger('click')
+
+      await helper.sleep(1)
+      updateViewTest(wrapper)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
   })

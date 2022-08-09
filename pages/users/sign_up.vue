@@ -110,9 +110,15 @@ export default {
   },
 
   methods: {
+    // アカウント登録
     async onSignUp () {
       this.processing = true
+      await this.postSingUp()
+      this.processing = false
+    },
 
+    // アカウント登録API
+    async postSingUp () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
@@ -121,28 +127,19 @@ export default {
         confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            return this.appRedirectSignIn(response.data.alert, response.data.notice)
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.appRedirectSignIn(response.data)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.alert = error.response.data.alert
-            this.notice = error.response.data.notice
-            if (error.response.data.errors != null) {
-              this.$refs.observer.setErrors(error.response.data.errors)
-              this.waiting = true
-            }
+          if (!this.appCheckErrorResponse(error, true)) { return }
+
+          this.appSetMessage(error.response.data, true)
+          if (error.response.data.errors != null) {
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
-
-      this.processing = false
     }
   }
 }

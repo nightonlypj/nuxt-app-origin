@@ -90,7 +90,7 @@ export default {
   props: {
     user: {
       type: Object,
-      default: null
+      required: true
     }
   },
 
@@ -106,15 +106,21 @@ export default {
   },
 
   created () {
-    this.name = this.name || this.user.name
-    this.email = this.email || this.user.email
+    this.name ||= this.user.name
+    this.email ||= this.user.email
     this.processing = false
   },
 
   methods: {
+    // 登録情報変更
     async onUserUpdate () {
       this.processing = true
+      await this.postUserUpdate()
+      this.processing = false
+    },
 
+    // 登録情報変更API
+    async postUserUpdate () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
@@ -124,35 +130,24 @@ export default {
         confirm_redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.$auth.setUser(response.data.user)
+          if (this.$auth.loggedIn) {
+            this.appRedirectTop(response.data)
           } else {
-            this.$auth.setUser(response.data.user)
-            if (this.$auth.loggedIn) {
-              return this.appRedirectSuccess(response.data.alert, response.data.notice)
-            } else {
-              return this.appRedirectSignIn(response.data.alert, response.data.notice)
-            }
+            this.appRedirectSignIn(response.data)
           }
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.status === 401) {
-            return this.appSignOut()
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.$emit('alert', error.response.data.alert)
-            this.$emit('notice', error.response.data.notice)
-            if (error.response.data.errors != null) {
-              this.$refs.observer.setErrors(error.response.data.errors)
-              this.waiting = true
-            }
+          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
+
+          this.appSetEmitMessage(error.response.data, true)
+          if (error.response.data.errors != null) {
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
-
-      this.processing = false
     }
   }
 }

@@ -10,11 +10,12 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('index.vue', () => {
-  let axiosGetMock, axiosPostMock, authFetchUserMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosGetMock, authFetchUserMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
-    axiosPostMock = null
+    axiosGetMock = null
     authFetchUserMock = jest.fn()
+    authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
@@ -35,13 +36,13 @@ describe('index.vue', () => {
           infomationsUrl: '/infomations.json'
         },
         $axios: {
-          get: axiosGetMock,
-          post: axiosPostMock
+          get: axiosGetMock
         },
         $auth: {
           loggedIn,
           user: { ...user },
-          fetchUser: authFetchUserMock
+          fetchUser: authFetchUserMock,
+          logout: authLogoutMock
         },
         $toasted: {
           error: toastedErrorMock,
@@ -59,16 +60,13 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  const commonLoadingTest = (wrapper) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(true)
-  }
-  const commonApiCalledTest = (page, fetchUserCalled) => {
+  // テスト内容
+  const apiCalledTest = (page) => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).toBeCalledWith('https://example.com/infomations.json', { params: { page } })
-    expect(authFetchUserMock).toBeCalledTimes(fetchUserCalled)
+    expect(axiosGetMock).nthCalledWith(1, 'https://example.com/infomations.json', { params: { page } })
   }
-  const commonViewTest = (wrapper, infomation, infomations, countView, startViews) => {
+
+  const viewTest = (wrapper, infomation, infomations, countView, startViews) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
@@ -97,24 +95,8 @@ describe('index.vue', () => {
       }
     }
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonReturnTest = (alert, notice, wrapper, values) => {
-    commonToastedTest(alert, notice)
 
+  const updateViewTest = (wrapper, values) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.page).toBe(values.info.current_page)
@@ -122,7 +104,8 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.lists).toBe(values.lists)
   }
 
-  describe('お知らせ一覧API', () => {
+  // テストケース
+  describe('お知らせ一覧', () => {
     it('[0件]表示される', async () => {
       const infomation = Object.freeze({
         total_count: 0,
@@ -132,11 +115,13 @@ describe('index.vue', () => {
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations: [] } }))
       const wrapper = mountFunction(true, { infomation_unread_count: 0 }) // ログイン中、未読なし
-      commonLoadingTest(wrapper)
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonApiCalledTest(1, 0) // [未読数]再取得しない
-      commonViewTest(wrapper, infomation, [], '', null)
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 0) // [未読数]再取得しない
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, [], '', null)
     })
     it('[1件（本文あり）]表示される', async () => {
       const infomation = Object.freeze({
@@ -156,11 +141,13 @@ describe('index.vue', () => {
       ])
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
       const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
-      commonLoadingTest(wrapper)
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonApiCalledTest(1, 1) // [未読数]再取得する
-      commonViewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
     })
     it('[1件（本文なし）]表示される', async () => {
       const infomation = Object.freeze({
@@ -179,12 +166,14 @@ describe('index.vue', () => {
         }
       ])
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
-      const wrapper = mountFunction(false, null) // 未ログイン
-      commonLoadingTest(wrapper)
+      const wrapper = mountFunction(false, {}) // 未ログイン
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonApiCalledTest(1, 0) // [未読数]再取得しない
-      commonViewTest(wrapper, infomation, infomations, '', ['2021/01/02'])
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 0) // [未読数]再取得しない
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/02'])
     })
     it('[2頁中1頁]表示される', async () => {
       const infomation = Object.freeze({
@@ -211,11 +200,13 @@ describe('index.vue', () => {
       ])
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
       const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
-      commonLoadingTest(wrapper)
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonApiCalledTest(1, 1) // [未読数]再取得する
-      commonViewTest(wrapper, infomation, infomations, '3件中 1-2件を表示', ['2021/01/01', '2021/01/02'])
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '3件中 1-2件を表示', ['2021/01/01', '2021/01/02'])
     })
     it('[ページネーション]表示される', async () => {
       const infomation = Object.freeze({
@@ -236,66 +227,205 @@ describe('index.vue', () => {
       const values = Object.freeze({ page: 2, info: {} })
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
       const wrapper = mountFunction(true, { infomation_unread_count: 1 }, values) // ログイン中、未読あり
-      commonLoadingTest(wrapper)
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonApiCalledTest(2, 0) // [未読数]再取得しない
-      commonViewTest(wrapper, infomation, infomations, '3件中 3-3件を表示', ['2021/01/03'])
-    })
-
-    describe('接続エラー', () => {
-      it('[初期表示]トップページにリダイレクトされる', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-        const wrapper = mountFunction(false, null) // 未ログイン
-        commonLoadingTest(wrapper)
-
-        await helper.sleep(1)
-        commonRedirectTest(locales.network.failure, null, { path: '/' })
-      })
-      it('[ページネーション]元の表示に戻る', async () => {
-        const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
-        axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-        const wrapper = mountFunction(false, null, values) // 未ログイン
-        commonLoadingTest(wrapper)
-
-        await helper.sleep(1)
-        commonReturnTest(locales.network.failure, null, wrapper, values)
-      })
-    })
-    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, null) // 未ログイン
-      commonLoadingTest(wrapper)
-
-      await helper.sleep(1)
-      commonRedirectTest(locales.network.error, null, { path: '/' })
+      apiCalledTest(2)
+      helper.mockCalledTest(authFetchUserMock, 0) // [未読数]再取得しない
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '3件中 3-3件を表示', ['2021/01/03'])
     })
     describe('データなし', () => {
       it('[初期表示]トップページにリダイレクトされる', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
         const wrapper = mountFunction(true, { infomation_unread_count: 0 }) // ログイン中、未読なし
-        commonLoadingTest(wrapper)
+        helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        commonRedirectTest(locales.system.error, null, { path: '/' })
+        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        helper.mockCalledTest(routerPushMock, 1, { path: '/' })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
         const wrapper = mountFunction(true, { infomation_unread_count: 0 }, values) // ログイン中、未読なし
-        commonLoadingTest(wrapper)
+        helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        commonReturnTest(locales.system.error, null, wrapper, values)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        updateViewTest(wrapper, values)
       })
     })
-    it('[ページ情報なし]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
-      const wrapper = mountFunction(false, null) // 未ログイン
-      commonLoadingTest(wrapper)
+    describe('ページ情報なし', () => {
+      it('[初期表示]トップページにリダイレクトされる', async () => {
+        axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
+        const wrapper = mountFunction(false, {}) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      })
+      it('[ページネーション]元の表示に戻る', async () => {
+        axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
+        const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
+        const wrapper = mountFunction(false, {}, values) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        updateViewTest(wrapper, values)
+      })
+    })
+
+    describe('接続エラー', () => {
+      it('[初期表示]トップページにリダイレクトされる', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+        const wrapper = mountFunction(false, {}) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      })
+      it('[ページネーション]元の表示に戻る', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+        const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
+        const wrapper = mountFunction(false, {}, values) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        updateViewTest(wrapper, values)
+      })
+    })
+    describe('レスポンスエラー', () => {
+      it('[初期表示]トップページにリダイレクトされる', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+        const wrapper = mountFunction(false, {}) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      })
+      it('[ページネーション]元の表示に戻る', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+        const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
+        const wrapper = mountFunction(false, {}, values) // 未ログイン
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+        helper.mockCalledTest(toastedInfoMock, 0)
+        updateViewTest(wrapper, values)
+      })
+    })
+    describe('その他エラー', () => {
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      it('[初期表示]トップページにリダイレクトされる', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+        const wrapper = mountFunction(true, { infomation_unread_count: 0 }) // ログイン中、未読なし
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+        helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+        helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      })
+      it('[ページネーション]元の表示に戻る', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+        const values = Object.freeze({ page: 2, info: { current_page: 1 }, lists: [{ title: 'タイトル' }] })
+        const wrapper = mountFunction(true, { infomation_unread_count: 0 }, values) // ログイン中、未読なし
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+        helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+        updateViewTest(wrapper, values)
+      })
+    })
+  })
+
+  describe('トークン検証', () => {
+    const infomation = Object.freeze({
+      total_count: 1,
+      current_page: 1,
+      total_pages: 1,
+      limit_value: 2
+    })
+    const infomations = Object.freeze([
+      {
+        id: 1,
+        title: 'タイトル1',
+        summary: '概要1',
+        body_present: true,
+        started_at: '2021-01-01T09:00:00+09:00'
+      }
+    ])
+    it('[接続エラー]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      commonRedirectTest(locales.system.error, null, { path: '/' })
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+    })
+    it('[認証エラー]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      helper.loadingTest(wrapper, Loading)
+
+      await helper.sleep(1)
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 1)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+    })
+    it('[レスポンスエラー]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      helper.loadingTest(wrapper, Loading)
+
+      await helper.sleep(1)
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+    })
+    it('[その他エラー]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation, infomations } }))
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      const wrapper = mountFunction(true, { infomation_unread_count: 1 }) // ログイン中、未読あり
+      helper.loadingTest(wrapper, Loading)
+
+      await helper.sleep(1)
+      apiCalledTest(1)
+      helper.mockCalledTest(authFetchUserMock, 1) // [未読数]再取得する
+      helper.mockCalledTest(authLogoutMock, 0)
+      viewTest(wrapper, infomation, infomations, '', ['2021/01/01'])
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
     })
   })
 })

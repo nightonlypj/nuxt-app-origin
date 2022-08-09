@@ -72,36 +72,33 @@ export default {
   },
 
   methods: {
+    // パスワード再設定
     async onPasswordNew () {
       this.processing = true
+      await this.postPasswordNew()
+      this.processing = false
+    },
 
+    // パスワード再設定API
+    async postPasswordNew () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordNewUrl, {
         email: this.email,
         redirect_url: this.$config.frontBaseURL + this.$config.passwordRedirectUrl
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            return this.appRedirectSignIn(response.data.alert, response.data.notice)
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.appRedirectSignIn(response.data)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.alert = error.response.data.alert
-            this.notice = error.response.data.notice
-            if (error.response.data.errors != null) {
-              this.$refs.observer.setErrors(error.response.data.errors)
-              this.waiting = true
-            }
+          if (!this.appCheckErrorResponse(error, false)) { return }
+
+          this.appSetMessage(error.response.data, true)
+          if (error.response.data.errors != null) {
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
-
-      this.processing = false
     }
   }
 }

@@ -56,11 +56,8 @@ describe('ImageEdit.vue', () => {
     return wrapper
   }
 
-  const commonMessageTest = (wrapper, alert, notice) => {
-    expect(wrapper.emitted().alert).toEqual([[alert]])
-    expect(wrapper.emitted().notice).toEqual([[notice]])
-  }
-  const commonViewTest = (wrapper, uploadImage) => {
+  // テスト内容
+  const viewTest = (wrapper, uploadImage) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.image).toBe(null)
@@ -75,45 +72,30 @@ describe('ImageEdit.vue', () => {
     expect(deleteButton.exists()).toBe(true)
     expect(deleteButton.vm.disabled).toBe(!uploadImage) // [アップロード画像]有効
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonApiCalledTest = (target, values, setUserCalled, logoutCalled) => {
+
+  const updateApiCalledTest = (values) => {
+    const params = new FormData()
+    params.append('image', values.image)
     expect(axiosPostMock).toBeCalledTimes(1)
-    if (target === 'update') {
-      const params = new FormData()
-      params.append('image', values.image)
-      expect(axiosPostMock).toBeCalledWith('https://example.com/users/auth/image/update.json', params)
-    } else if (target === 'delete') {
-      expect(axiosPostMock).toBeCalledWith('https://example.com/users/auth/image/delete.json')
-    } else {
-      // eslint-disable-next-line no-throw-literal
-      throw 'Not defined: commonApiCalledTest target(' + target + ')'
-    }
-    expect(authSetUserMock).toBeCalledTimes(setUserCalled)
-    expect(authLogoutMock).toBeCalledTimes(logoutCalled)
-  }
-  const commonDisabledTest = (wrapper, button, disabled) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(button.vm.disabled).toBe(disabled)
-  }
-  const commonSuccessTest = (alert, notice, wrapper, button, disabled) => {
-    commonToastedTest(alert, notice)
-    commonDisabledTest(wrapper, button, disabled)
-    expect(wrapper.vm.$data.image).toBe(null)
+    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/image/update.json', params)
   }
 
+  const deleteApiCalledTest = () => {
+    expect(axiosPostMock).toBeCalledTimes(1)
+    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/image/delete.json')
+  }
+
+  const updateViewTest = (wrapper) => {
+    // console.log(wrapper.html())
+    expect(wrapper.findComponent(Processing).exists()).toBe(false)
+    expect(wrapper.vm.$data.image).toBe(null)
+    // Tips: 画像変更のテストは省略（Mockでは実行されない為）
+  }
+
+  // テストケース
   it('[デフォルト画像]表示される', async () => {
     const wrapper = mountFunction(false)
-    commonViewTest(wrapper, false)
+    viewTest(wrapper, false)
 
     // アップロードボタン
     const button = wrapper.find('#user_image_update_btn')
@@ -132,7 +114,7 @@ describe('ImageEdit.vue', () => {
   })
   it('[アップロード画像]表示される', async () => {
     const wrapper = mountFunction(true)
-    commonViewTest(wrapper, true)
+    viewTest(wrapper, true)
 
     // 削除ボタン
     const button = wrapper.find('#user_image_delete_btn')
@@ -152,7 +134,7 @@ describe('ImageEdit.vue', () => {
     noButton.trigger('click')
   })
 
-  describe('画像変更API', () => {
+  describe('画像変更', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ image: {} })
     it('[成功]変更後の画像が表示される', async () => {
@@ -162,31 +144,27 @@ describe('ImageEdit.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 1, 0)
-      commonSuccessTest(data.alert, data.notice, wrapper, button, true)
-      // Tips: 画像変更のテストは省略（Mockでは実行されない為）
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.disabledTest(wrapper, Processing, button, true)
+      updateViewTest(wrapper)
     })
-    it('[入力エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { image: ['errorメッセージ'] } }, data) } }))
+    it('[データなし]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(true, values)
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 0)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, true)
-    })
-    it('[連携エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: null }, data) } }))
-      const wrapper = mountFunction(true, values)
-      const button = wrapper.find('#user_image_update_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 0)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, false)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -196,9 +174,12 @@ describe('ImageEdit.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 0)
-      commonToastedTest(locales.network.failure, null)
-      commonDisabledTest(wrapper, button, false)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -207,8 +188,11 @@ describe('ImageEdit.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 1)
-      commonToastedTest(null, locales.auth.unauthenticated)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -218,24 +202,42 @@ describe('ImageEdit.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 0)
-      commonToastedTest(locales.network.error, null)
-      commonDisabledTest(wrapper, button, false)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
-    it('[データなし]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
+    it('[入力エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { image: ['errorメッセージ'] } }, data) } }))
       const wrapper = mountFunction(true, values)
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('update', values, 0, 0)
-      commonToastedTest(locales.system.error, null)
-      commonDisabledTest(wrapper, button, false)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.emitMessageTest(wrapper, data)
+      helper.disabledTest(wrapper, Processing, button, true)
+    })
+    it('[その他エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      const wrapper = mountFunction(true, values)
+      const button = wrapper.find('#user_image_update_btn')
+      button.trigger('click')
+
+      await helper.sleep(1)
+      updateApiCalledTest(values)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.emitMessageTest(wrapper, data)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
   })
 
-  describe('画像削除API', () => {
+  describe('画像削除', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[成功]デフォルト画像が表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
@@ -249,12 +251,16 @@ describe('ImageEdit.vue', () => {
       wrapper.vm.$auth.user.upload_image = false // Tips: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 1, 0)
-      commonSuccessTest(data.alert, data.notice, wrapper, button, true)
-      // Tips: 画像変更のテストは省略（Mockでは実行されない為）
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.disabledTest(wrapper, Processing, button, true)
+      updateViewTest(wrapper)
     })
-    it('[連携エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+    it('[データなし]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(true)
       const button = wrapper.find('#user_image_delete_btn')
       button.trigger('click')
@@ -264,9 +270,12 @@ describe('ImageEdit.vue', () => {
       yesButton.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 0, 0)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, false)
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -280,9 +289,12 @@ describe('ImageEdit.vue', () => {
       yesButton.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 0, 0)
-      commonToastedTest(locales.network.failure, null)
-      commonDisabledTest(wrapper, button, false)
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -295,8 +307,11 @@ describe('ImageEdit.vue', () => {
       yesButton.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 0, 1)
-      commonToastedTest(null, locales.auth.unauthenticated)
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -310,12 +325,15 @@ describe('ImageEdit.vue', () => {
       yesButton.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 0, 0)
-      commonToastedTest(locales.network.error, null)
-      commonDisabledTest(wrapper, button, false)
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
-    it('[データなし]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
+    it('[その他エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
       const wrapper = mountFunction(true)
       const button = wrapper.find('#user_image_delete_btn')
       button.trigger('click')
@@ -325,9 +343,11 @@ describe('ImageEdit.vue', () => {
       yesButton.trigger('click')
 
       await helper.sleep(1)
-      commonApiCalledTest('delete', null, 0, 0)
-      commonToastedTest(locales.system.error, null)
-      commonDisabledTest(wrapper, button, false)
+      deleteApiCalledTest()
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.emitMessageTest(wrapper, data)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
   })
 })

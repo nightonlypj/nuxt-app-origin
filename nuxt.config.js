@@ -65,7 +65,9 @@ export default defineNuxtConfig({
   },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {},
+  axios: {
+    debug: envConfig.debug
+  },
 
   // Auth module configuration: https://auth.nuxtjs.org/
   auth: {

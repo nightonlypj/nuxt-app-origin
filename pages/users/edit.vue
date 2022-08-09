@@ -2,7 +2,7 @@
   <div>
     <Loading v-if="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
-    <v-card v-if="!loading" max-width="850px">
+    <v-card v-if="!loading && user != null" max-width="850px">
       <v-card-title>登録情報変更</v-card-title>
       <v-row>
         <v-col cols="auto" md="4">
@@ -15,7 +15,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li v-if="user != null && user.unconfirmed_email !== null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
+          <li v-if="user.unconfirmed_email !== null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
           <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
         </ul>
       </v-card-actions>
@@ -48,47 +48,46 @@ export default {
   },
 
   async created () {
+    // トークン検証
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (error.response == null) {
-        this.$toasted.error(this.$t('network.failure'))
-      } else if (error.response.status === 401) {
-        return this.appSignOut()
-      } else {
-        this.$toasted.error(this.$t('network.error'))
-      }
-      return this.$router.push({ path: '/' })
+      if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
+
+      return this.appRedirectTop(error.response.data, true)
     }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
-    }
-    if (this.$auth.user.destroy_schedule_at !== null) {
+    } else if (this.$auth.user.destroy_schedule_at !== null) {
       return this.appRedirectDestroyReserved()
     }
 
-    await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
-      .then((response) => {
-        if (response.data == null) {
-          this.$toasted.error(this.$t('system.error'))
-          return this.$router.push({ path: '/' })
-        } else {
-          this.user = response.data.user
-        }
-      },
-      (error) => {
-        if (error.response == null) {
-          this.$toasted.error(this.$t('network.failure'))
-        } else if (error.response.status === 401) {
-          return this.appSignOut()
-        } else {
-          this.$toasted.error(this.$t('network.error'))
-        }
-        return this.$router.push({ path: '/' })
-      })
+    if (!await this.getUserShow()) { return }
 
     this.loading = false
+  },
+
+  methods: {
+    // 登録情報詳細API
+    async getUserShow () {
+      let result = false
+
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
+        .then((response) => {
+          if (!this.appCheckResponse(response, true)) { return }
+
+          this.user = response.data.user
+          result = true
+        },
+        (error) => {
+          if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
+
+          this.appRedirectTop(error.response.data, true)
+        })
+
+      return result
+    }
   }
 }
 </script>

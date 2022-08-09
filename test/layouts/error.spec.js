@@ -27,19 +27,21 @@ describe('error.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
+  // テスト内容
+  const viewTest = (wrapper) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
     expect(links.includes('/')).toBe(true) // トップページ
   }
 
+  // テストケース
   it('[404]表示される', () => {
     const wrapper = mountFunction(404)
-    commonViewTest(wrapper)
+    viewTest(wrapper)
   })
   it('[500]表示される', () => {
     const wrapper = mountFunction(500)
-    commonViewTest(wrapper)
+    viewTest(wrapper)
   })
 })

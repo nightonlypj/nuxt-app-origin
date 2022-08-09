@@ -57,79 +57,68 @@ export default {
 
   data () {
     return {
+      processing: false,
       waiting: false,
       image: null
     }
   },
 
-  created () {
-    this.processing = false
-  },
-
   methods: {
+    // 画像変更
     async onUserImageUpdate () {
       this.processing = true
+      await this.postUserImageUpdate()
+      this.processing = false
+    },
 
+    // 画像削除
+    async onUserImageDelete () {
+      this.processing = true
+      await this.postUserImageDelete()
+      this.processing = false
+    },
+
+    // 画像変更API
+    async postUserImageUpdate () {
       const params = new FormData()
       params.append('image', this.image)
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            this.$auth.setUser(response.data.user)
-            this.$toasted.error(response.data.alert)
-            this.$toasted.info(response.data.notice)
-            this.image = null
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.setUser(response)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.status === 401) {
-            return this.appSignOut()
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.$emit('alert', error.response.data.alert)
-            this.$emit('notice', error.response.data.notice)
-            if (error.response.data.errors != null) {
-              this.$refs.observer.setErrors(error.response.data.errors)
-              this.waiting = true
-            }
+          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
+
+          this.appSetEmitMessage(error.response.data, true)
+          if (error.response.data.errors != null) {
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
-
-      this.processing = false
     },
-    async onUserImageDelete () {
-      this.processing = true
 
+    // 画像削除API
+    async postUserImageDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            this.$auth.setUser(response.data.user)
-            this.$toasted.error(response.data.alert)
-            this.$toasted.info(response.data.notice)
-            this.image = null
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.setUser(response)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.status === 401) {
-            return this.appSignOut()
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.$emit('alert', error.response.data.alert)
-            this.$emit('notice', error.response.data.notice)
-          }
-        })
+          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
 
-      this.processing = false
+          this.appSetEmitMessage(error.response.data, true)
+        })
+    },
+
+    // ユーザー情報更新
+    setUser (response) {
+      this.$auth.setUser(response.data.user)
+      this.appSetToastedMessage(response.data, false)
+      this.image = null
     }
   }
 }

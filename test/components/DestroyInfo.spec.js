@@ -26,11 +26,8 @@ describe('DestroyInfo.vue', () => {
     return wrapper
   }
 
-  const commonNotTest = (wrapper) => {
-    // console.log(wrapper.html())
-    expect(wrapper.html()).toBe('')
-  }
-  const commonViewTest = (wrapper, destroyScheduleDate) => {
+  // テスト内容
+  const viewTest = (wrapper, destroyScheduleDate) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
@@ -40,34 +37,35 @@ describe('DestroyInfo.vue', () => {
     expect(wrapper.text()).toMatch(destroyScheduleDate) // 削除予定日
   }
 
+  // テストケース
   it('[未ログイン]表示されない', () => {
-    const wrapper = mountFunction('/', false, null)
-    commonNotTest(wrapper)
+    const wrapper = mountFunction('/', false, {})
+    helper.blankTest(wrapper)
   })
   it('[ログイン中]表示されない', () => {
-    const wrapper = mountFunction('/', true, null)
-    commonNotTest(wrapper)
+    const wrapper = mountFunction('/', true, {})
+    helper.blankTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
     const user = Object.freeze({ destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
     const wrapper = mountFunction('/', true, user)
-    commonViewTest(wrapper, '2021/01/01')
+    viewTest(wrapper, '2021/01/01')
   })
 
   describe('アカウント削除取り消しページ', () => {
     const path = '/users/undo_delete'
     it('[未ログイン]表示されない', () => {
-      const wrapper = mountFunction(path, false, null)
-      commonNotTest(wrapper)
+      const wrapper = mountFunction(path, false, {})
+      helper.blankTest(wrapper)
     })
     it('[ログイン中]表示されない', () => {
-      const wrapper = mountFunction(path, true, null)
-      commonNotTest(wrapper)
+      const wrapper = mountFunction(path, true, {})
+      helper.blankTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {
       const user = Object.freeze({ destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
       const wrapper = mountFunction(path, true, user)
-      commonNotTest(wrapper)
+      helper.blankTest(wrapper)
     })
   })
 })

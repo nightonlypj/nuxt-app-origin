@@ -17,7 +17,8 @@ describe('SignUp.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
+  // テスト内容
+  const viewTest = (wrapper) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
@@ -25,8 +26,9 @@ describe('SignUp.vue', () => {
     expect(links.includes('/users/sign_in')).toBe(true) // ログイン
   }
 
+  // テストケース
   it('表示される', () => {
     const wrapper = mountFunction()
-    commonViewTest(wrapper)
+    viewTest(wrapper)
   })
 })

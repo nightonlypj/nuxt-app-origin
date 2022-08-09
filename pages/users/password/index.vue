@@ -93,44 +93,43 @@ export default {
   },
 
   methods: {
+    // パスワード再設定
     async onPasswordUpdate () {
       this.processing = true
+      await this.postPasswordUpdate()
+      this.processing = false
+    },
 
+    // パスワード再設定API
+    async postPasswordUpdate () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
         password_confirmation: this.password_confirmation
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.$auth.setUser(response.data.user)
+          if (this.$auth.loggedIn) {
+            this.appRedirectTop(response.data)
           } else {
-            this.$auth.setUser(response.data.user)
-            if (this.$auth.loggedIn) {
-              return this.appRedirectSuccess(response.data.alert, response.data.notice)
-            } else {
-              return this.appRedirectSignIn(response.data.alert, response.data.notice)
-            }
+            this.appRedirectSignIn(response.data)
           }
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
+          if (!this.appCheckErrorResponse(error, false)) {
+            return
           } else if (error.response.data.errors == null) {
             return this.$router.push({ path: '/users/password/new', query: { alert: error.response.data.alert, notice: error.response.data.notice } })
-          } else {
-            this.alert = error.response.data.alert
-            this.notice = error.response.data.notice
-            if (error.response.data.errors != null) {
-              this.$refs.observer.setErrors(error.response.data.errors)
-              this.waiting = true
-            }
+          }
+
+          this.appSetMessage(error.response.data, true)
+          if (error.response.data.errors != null) {
+            this.$refs.observer.setErrors(error.response.data.errors)
+            this.waiting = true
           }
         })
-
-      this.processing = false
     }
   }
 }

@@ -40,20 +40,25 @@ export default {
   },
 
   async created () {
-    await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
-      .then((response) => {
-        if (response.data == null) {
-          this.$toasted.error(this.$t('system.error'))
-          this.lists = null
-        } else {
-          this.lists = response.data.infomations
-        }
-      },
-      (error) => {
-        this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
-      })
-
+    await this.getInfomations()
     this.loading = false
+  },
+
+  methods: {
+    // 大切なお知らせAPI
+    async getInfomations () {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
+        .then((response) => {
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.lists = response.data.infomations
+        },
+        (error) => {
+          if (!this.appCheckErrorResponse(error, false)) { return }
+
+          this.appSetToastedMessage(error.response.data, true)
+        })
+    }
   }
 }
 </script>

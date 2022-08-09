@@ -50,23 +50,18 @@ export default {
   },
 
   async created () {
+    // トークン検証
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (error.response == null) {
-        this.$toasted.error(this.$t('network.failure'))
-      } else if (error.response.status === 401) {
-        return this.appSignOut()
-      } else {
-        this.$toasted.error(this.$t('network.error'))
-      }
-      return this.$router.push({ path: '/' })
+      if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
+
+      return this.appRedirectTop(error.response.data, true)
     }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
-    }
-    if (this.$auth.user.destroy_schedule_at !== null) {
+    } else if (this.$auth.user.destroy_schedule_at !== null) {
       return this.appRedirectDestroyReserved()
     }
 
@@ -75,33 +70,28 @@ export default {
   },
 
   methods: {
+    // アカウント削除
     async onUserDelete () {
       this.processing = true
+      await this.postUserDelete()
+      this.processing = false
+    },
 
+    // アカウント削除API
+    async postUserDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userDeleteUrl, {
         undo_delete_url: this.$config.frontBaseURL + this.$config.userSendUndoDeleteUrl
       })
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
-          } else {
-            return this.appSignOut(null, '/users/sign_in', response.data.alert, response.data.notice)
-          }
+          if (!this.appCheckResponse(response, false)) { return }
+
+          this.appSignOut(null, '/users/sign_in', response.data)
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.status === 401) {
-            return this.appSignOut()
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.$toasted.error(error.response.data.alert)
-            this.$toasted.info(error.response.data.notice)
-          }
-        })
+          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
 
-      this.processing = false
+          this.appSetToastedMessage(error.response.data, true)
+        })
     }
   }
 }

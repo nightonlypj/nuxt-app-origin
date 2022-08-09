@@ -1,4 +1,4 @@
-export default function ({ $axios }) {
+export default ({ $axios }) => {
   $axios.onRequest((config) => {
     // Devise Token Auth
     if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {

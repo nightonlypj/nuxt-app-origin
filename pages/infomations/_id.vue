@@ -45,36 +45,36 @@ export default {
 
   head () {
     return {
-      title: this.list?.title
+      title: this.list.title ?? null
     }
   },
 
   async created () {
-    await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace('_id', this.$route.params.id))
-      .then((response) => {
-        if (response.data == null) {
-          this.$toasted.error(this.$t('system.error'))
-          return this.$router.push({ path: '/' })
-        }
-        this.list = response.data.infomation
-      },
-      (error) => {
-        if (error.response == null) {
-          this.$toasted.error(this.$t('network.failure'))
-          return this.$router.push({ path: '/' })
-        } else if (error.response.data == null && error.response.status !== 404) {
-          this.$toasted.error(this.$t('network.error'))
-          return this.$router.push({ path: '/' })
-        } else {
-          if (error.response.data != null) {
-            this.$toasted.error(error.response.data.alert)
-            this.$toasted.info(error.response.data.notice)
-          }
-          return this.$nuxt.error({ statusCode: error.response.status })
-        }
-      })
+    if (!await this.getInfomation()) { return }
 
     this.loading = false
+  },
+
+  methods: {
+    // お知らせ詳細API
+    async getInfomation () {
+      let result = false
+
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace('_id', this.$route.params.id))
+        .then((response) => {
+          if (!this.appCheckResponse(response, true)) { return }
+
+          this.list = response.data.infomation
+          result = true
+        },
+        (error) => {
+          if (!this.appCheckErrorResponse(error, true, { notfound: true })) { return }
+
+          this.appRedirectTop(error.response.data, true)
+        })
+
+      return result
+    }
   }
 }
 </script>
