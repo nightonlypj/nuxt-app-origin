@@ -66,7 +66,7 @@ describe('default.vue', () => {
     const wrapper = mountFunction(false, {})
     viewTest(wrapper, false)
   })
-  it('[ログイン中]表示される', () => {
+  it('[ログイン中]表示される', async () => {
     const user = Object.freeze({
       name: 'user1の氏名',
       image_url: {
@@ -75,6 +75,13 @@ describe('default.vue', () => {
       infomation_unread_count: 12345
     })
     const wrapper = mountFunction(true, user)
+
+    // ユーザー名クリック時のメニュー表示
+    const button = wrapper.find('#user_menu_btn')
+    expect(button.exists()).toBe(true)
+    button.trigger('click')
+
+    await helper.sleep(1)
     viewTest(wrapper, true)
   })
 })

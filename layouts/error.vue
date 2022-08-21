@@ -3,7 +3,7 @@
     <v-card max-width="480px">
       <v-card-title>{{ message }}</v-card-title>
       <v-card-actions>
-        <NuxtLink to="/" nuxt>トップページ</NuxtLink>
+        <NuxtLink to="/">トップページ</NuxtLink>
       </v-card-actions>
     </v-card>
   </div>

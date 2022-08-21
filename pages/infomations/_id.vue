@@ -45,7 +45,7 @@ export default {
 
   head () {
     return {
-      title: this.list.title ?? null
+      title: this.list?.title ?? null
     }
   },
 

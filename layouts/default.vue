@@ -1,85 +1,24 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" width="300px" clipped fixed app>
-      <v-list>
-        <template v-if="!$auth.loggedIn">
-          <v-list-item to="/users/sign_in" exact nuxt>
-            <v-list-item-icon>
-              <v-icon>mdi-login</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>ログイン</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item to="/users/sign_up" exact nuxt>
-            <v-list-item-icon>
-              <v-icon>mdi-account-plus</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>アカウント登録</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider />
-          <v-list-item to="/infomations" exact nuxt>
-            <v-list-item-icon>
-              <v-icon>mdi-bell</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>お知らせ</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-        <template v-if="$auth.loggedIn">
-          <v-list-item to="/infomations" exact nuxt>
-            <v-list-item-icon>
-              <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
-                <v-icon>mdi-bell</v-icon>
-              </v-badge>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>お知らせ</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-divider />
-          <v-list-item to="/users/edit" exact nuxt>
-            <v-list-item-icon>
-              <v-icon>mdi-account-edit</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>登録情報変更</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-          <v-list-item to="/users/sign_out" exact nuxt>
-            <v-list-item-icon>
-              <v-icon>mdi-logout</v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title>ログアウト</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </template>
-      </v-list>
-    </v-navigation-drawer>
-
     <v-app-bar clipped-left fixed app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/v.png" max-width="40px" max-height="40px" />
-        <v-toolbar-title
+        <v-app-bar-title
           v-if="$vuetify.breakpoint.width > 226"
           :style="{ 'max-width': ($vuetify.breakpoint.width - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ $t('app_name') + $config.envName }}
-        </v-toolbar-title>
+        </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
-        <v-btn to="/users/sign_in" text rounded exact nuxt>
+        <v-btn to="/users/sign_in" text rounded nuxt>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
         </v-btn>
-        <v-btn to="/users/sign_up" text rounded exact nuxt>
+        <v-btn to="/users/sign_up" text rounded nuxt>
           <v-icon>mdi-account-plus</v-icon>
           <div class="hidden-sm-and-down">アカウント登録</div>
         </v-btn>
@@ -87,33 +26,25 @@
       <template v-else>
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
-            <v-btn class="d-inline-block" max-width="400px" style="text-transform: none" text v-bind="attrs" v-on="on">
+            <v-btn id="user_menu_btn" class="d-inline-block" max-width="400px" style="text-transform: none" text v-bind="attrs" v-on="on">
               <v-avatar size="32px">
                 <v-img id="user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
-              <div class="text-truncate hidden-sm-and-down">{{ $auth.user.name }}</div>
+              <div class="text-truncate hidden-sm-and-down ml-1">{{ $auth.user.name }}</div>
             </v-btn>
           </template>
-          <v-list>
-            <v-list-item to="/users/edit" exact nuxt>
-              <v-list-item-icon>
-                <v-icon>mdi-account-edit</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>登録情報変更</v-list-item-title>
-              </v-list-item-content>
+          <v-list dense rounded>
+            <v-list-item to="/users/edit" nuxt>
+              <v-icon>mdi-account-edit</v-icon>
+              <v-list-item-title class="ml-2">登録情報変更</v-list-item-title>
             </v-list-item>
-            <v-list-item to="/users/sign_out" exact nuxt>
-              <v-list-item-icon>
-                <v-icon>mdi-logout</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>ログアウト</v-list-item-title>
-              </v-list-item-content>
+            <v-list-item to="/users/sign_out" nuxt>
+              <v-icon>mdi-logout</v-icon>
+              <v-list-item-title class="ml-2">ログアウト</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
-        <v-btn to="/infomations" text rounded exact nuxt>
+        <v-btn to="/infomations" text rounded nuxt>
           <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
             <v-icon>mdi-bell</v-icon>
           </v-badge>
@@ -121,8 +52,54 @@
       </template>
     </v-app-bar>
 
-    <v-main>
-      <v-container>
+    <v-navigation-drawer v-model="drawer" width="300px" clipped fixed app>
+      <v-list>
+        <template v-if="!$auth.loggedIn">
+          <v-list-item to="/users/sign_in" nuxt>
+            <v-icon>mdi-login</v-icon>
+            <v-list-item-title class="ml-2">ログイン</v-list-item-title>
+          </v-list-item>
+          <v-list-item to="/users/sign_up" nuxt>
+            <v-icon>mdi-account-plus</v-icon>
+            <v-list-item-title class="ml-2">アカウント登録</v-list-item-title>
+          </v-list-item>
+          <v-divider />
+          <v-list-item to="/infomations" nuxt>
+            <v-icon>mdi-bell</v-icon>
+            <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
+          </v-list-item>
+        </template>
+        <template v-if="$auth.loggedIn">
+          <v-list-group>
+            <template #activator>
+              <v-avatar size="32px">
+                <v-img id="user_image" :src="$auth.user.image_url.small" />
+              </v-avatar>
+              <v-list-item-title>
+                <div class="text-truncate ml-1">{{ $auth.user.name }}</div>
+              </v-list-item-title>
+            </template>
+            <v-list-item to="/users/edit" nuxt>
+              <v-icon class="ml-4">mdi-account-edit</v-icon>
+              <v-list-item-title class="ml-2">登録情報変更</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/users/sign_out" nuxt>
+              <v-icon class="ml-4">mdi-logout</v-icon>
+              <v-list-item-title class="ml-2">ログアウト</v-list-item-title>
+            </v-list-item>
+          </v-list-group>
+          <v-list-item to="/infomations" nuxt>
+            <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
+              <v-icon>mdi-bell</v-icon>
+            </v-badge>
+            <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
+          </v-list-item>
+        </template>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main class="mx-2">
+      <v-container fluid>
         <DestroyInfo />
         <nuxt />
       </v-container>
