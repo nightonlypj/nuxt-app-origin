@@ -27,12 +27,6 @@ describe('new.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          unlockNewUrl: '/users/auth/unlock.json',
-          frontBaseURL: 'https://front.example.com',
-          unlockRedirectUrl: '/users/sign_in'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -79,9 +73,9 @@ describe('new.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/unlock.json', {
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.unlockNewUrl, {
       email: values.email,
-      redirect_url: 'https://front.example.com/users/sign_in'
+      redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
     })
   }
 

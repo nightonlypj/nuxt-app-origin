@@ -27,12 +27,6 @@ describe('sign_up.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          singUpUrl: '/users/auth/sign_up.json',
-          frontBaseURL: 'https://front.example.com',
-          singUpSuccessUrl: '/users/sign_in'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -73,12 +67,12 @@ describe('sign_up.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/sign_up.json', {
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.singUpUrl, {
       name: values.name,
       email: values.email,
       password: values.password,
       password_confirmation: values.password_confirmation,
-      confirm_success_url: 'https://front.example.com/users/sign_in'
+      confirm_success_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
     })
   }
 

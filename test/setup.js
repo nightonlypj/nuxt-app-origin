@@ -7,8 +7,11 @@ import locales from '~/locales/ja.js'
 Vue.use(Vuetify)
 Vue.use(TestPluginUtils)
 
-// Mock i18n
+// Mock Config/i18n
+const envConfig = require('~/config/test.js')
+const commonConfig = require('~/config/common.js')
 config.mocks = {
+  $config: Object.assign(envConfig, commonConfig),
   $t: (key) => {
     let locale = locales
     const parts = key.split('.')

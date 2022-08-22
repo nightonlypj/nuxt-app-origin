@@ -29,12 +29,6 @@ describe('InfoEdit.vue', () => {
         user: { ...user }
       },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          userUpdateUrl: '/users/auth/update.json',
-          frontBaseURL: 'https://front.example.com',
-          confirmationSuccessUrl: '/users/sign_in'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -72,13 +66,13 @@ describe('InfoEdit.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/update.json', {
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUpdateUrl, {
       name: values.name,
       email: values.email,
       password: values.password,
       password_confirmation: values.password_confirmation,
       current_password: values.current_password,
-      confirm_redirect_url: 'https://front.example.com/users/sign_in'
+      confirm_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
     })
   }
 

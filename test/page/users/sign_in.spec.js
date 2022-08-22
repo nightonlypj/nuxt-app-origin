@@ -27,10 +27,6 @@ describe('sign_in.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          frontBaseURL: 'https://front.example.com',
-          unlockRedirectUrl: '/users/sign_in'
-        },
         $auth: {
           loggedIn,
           loginWith: authLoginWithMock
@@ -80,7 +76,7 @@ describe('sign_in.vue', () => {
       data: {
         email: values.email,
         password: values.password,
-        unlock_redirect_url: 'https://front.example.com/users/sign_in'
+        unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
       }
     })
   }

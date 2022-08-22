@@ -16,11 +16,6 @@ describe('error.vue', () => {
         error: {
           statusCode
         }
-      },
-      mocks: {
-        $config: {
-          debug: false
-        }
       }
     })
     expect(wrapper.vm).toBeTruthy()

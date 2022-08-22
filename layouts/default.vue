@@ -88,6 +88,7 @@
               <v-list-item-title class="ml-2">ログアウト</v-list-item-title>
             </v-list-item>
           </v-list-group>
+          <v-divider />
           <v-list-item to="/infomations" nuxt>
             <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
               <v-icon>mdi-bell</v-icon>

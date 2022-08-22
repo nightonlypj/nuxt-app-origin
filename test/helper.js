@@ -1,6 +1,9 @@
 import { RouterLinkStub } from '@vue/test-utils'
 
 export class Helper {
+  envConfig = require('~/config/test.js')
+  commonConfig = require('~/config/common.js')
+
   // 一定時間停止
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 

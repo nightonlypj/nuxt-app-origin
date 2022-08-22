@@ -28,10 +28,6 @@ describe('index.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          passwordUpdateUrl: '/users/auth/password/update.json'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -74,7 +70,7 @@ describe('index.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/password/update.json', {
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
       reset_password_token: values.reset_password_token,
       password: values.password,
       password_confirmation: values.password_confirmation

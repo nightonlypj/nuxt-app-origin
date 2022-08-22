@@ -19,9 +19,6 @@ describe('default.vue', () => {
         Nuxt: true
       },
       mocks: {
-        $config: {
-          envName: '【テスト】'
-        },
         $auth: {
           loggedIn,
           user: { ...user }
@@ -50,7 +47,7 @@ describe('default.vue', () => {
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
     // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch('【テスト】')
+    expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
       expect(wrapper.text()).toMatch('12345') // [ログイン中]お知らせの未読数
       expect(wrapper.text()).toMatch('user1の氏名') // [ログイン中]ユーザーの氏名

@@ -34,10 +34,6 @@ describe('edit.vue', () => {
         InfoEdit: true
       },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          userShowUrl: '/users/auth/show.json'
-        },
         $axios: {
           get: axiosGetMock
         },
@@ -64,7 +60,7 @@ describe('edit.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, 'https://example.com/users/auth/show.json')
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userShowUrl)
   }
 
   const viewTest = (wrapper, user, unconfirmed) => {

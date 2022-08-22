@@ -25,11 +25,6 @@ describe('ImageEdit.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          userImageUpdateUrl: '/users/auth/image/update.json',
-          userImageDeleteUrl: '/users/auth/image/delete.json'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -77,12 +72,12 @@ describe('ImageEdit.vue', () => {
     const params = new FormData()
     params.append('image', values.image)
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/image/update.json', params)
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, params)
   }
 
   const deleteApiCalledTest = () => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/image/delete.json')
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl)
   }
 
   const updateViewTest = (wrapper) => {

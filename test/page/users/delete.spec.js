@@ -28,12 +28,6 @@ describe('delete.vue', () => {
       localVue,
       vuetify,
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          userDeleteUrl: '/users/auth/delete.json',
-          frontBaseURL: 'https://front.example.com',
-          userSendUndoDeleteUrl: '/users/undo_delete'
-        },
         $axios: {
           post: axiosPostMock
         },
@@ -69,8 +63,8 @@ describe('delete.vue', () => {
 
   const apiCalledTest = () => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, 'https://example.com/users/auth/delete.json', {
-      undo_delete_url: 'https://front.example.com/users/undo_delete'
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDeleteUrl, {
+      undo_delete_url: helper.envConfig.frontBaseURL + helper.commonConfig.userSendUndoDeleteUrl
     })
   }
 

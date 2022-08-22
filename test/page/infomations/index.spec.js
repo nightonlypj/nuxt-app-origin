@@ -31,10 +31,6 @@ describe('index.vue', () => {
         Label: true
       },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          infomationsUrl: '/infomations.json'
-        },
         $axios: {
           get: axiosGetMock
         },
@@ -63,7 +59,7 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (page) => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, 'https://example.com/infomations.json', { params: { page } })
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationsUrl, { params: { page } })
   }
 
   const viewTest = (wrapper, infomation, infomations, countView, startViews) => {

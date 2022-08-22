@@ -27,10 +27,6 @@ describe('Infomations.vue', () => {
         Label: true
       },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          importantInfomationsUrl: '/infomations/important.json'
-        },
         $axios: {
           get: axiosGetMock
         },
@@ -47,7 +43,7 @@ describe('Infomations.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, 'https://example.com/infomations/important.json')
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.importantInfomationsUrl)
   }
 
   const viewTest = (wrapper, infomations, startViews) => {
