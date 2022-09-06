@@ -54,8 +54,8 @@ export class Helper {
   messageTest = (wrapper, Message, data) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert ?? null)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice ?? null)
+    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null)
+    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null)
   }
 
   emitMessageTest = (wrapper, data) => {

@@ -5,14 +5,22 @@
       <Processing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
-        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') || 'N/A' }}以降に削除されます。それまでは取り消し可能です。
+        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja', 'N/A') }}以降に削除されます。それまでは取り消し可能です。
         <div v-if="$auth.user.destroy_requested_at != null">
-          ※{{ $timeFormat($auth.user.destroy_requested_at, 'ja') }}にアカウント削除依頼を受け付けています。
+          ※{{ $timeFormat($auth.user.destroy_requested_at, 'ja', 'N/A') }}にアカウント削除依頼を受け付けています。
         </div>
         <br>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn id="user_undo_delete_btn" color="secondary" :disabled="processing" v-bind="attrs" v-on="on">取り消し</v-btn>
+            <v-btn
+              id="user_undo_delete_btn"
+              color="secondary"
+              :disabled="processing"
+              v-bind="attrs"
+              v-on="on"
+            >
+              取り消し
+            </v-btn>
           </template>
           <template #default="dialog">
             <v-card id="user_undo_delete_dialog">
@@ -21,8 +29,20 @@
                 <div class="text-h6 pa-6">本当に取り消しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn id="user_undo_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn id="user_undo_delete_yes_btn" color="primary" @click="dialog.value = false; onUserUndoDelete()">はい</v-btn>
+                <v-btn
+                  id="user_undo_delete_no_btn"
+                  color="secondary"
+                  @click="dialog.value = false"
+                >
+                  いいえ
+                </v-btn>
+                <v-btn
+                  id="user_undo_delete_yes_btn"
+                  color="primary"
+                  @click="dialog.value = false; onUserUndoDelete()"
+                >
+                  はい
+                </v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -49,14 +69,12 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
-
-      return this.appRedirectTop(error.response.data, true)
+      return this.appCheckErrorResponse(error, { redirect: true }, { auth: true })
     }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
-    } else if (this.$auth.user.destroy_schedule_at === null) {
+    } else if (this.$auth.user.destroy_schedule_at == null) {
       return this.appRedirectNotDestroyReserved()
     }
 
@@ -76,7 +94,7 @@ export default {
     async postUserUndoDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.$auth.setUser(response.data.user)
           if (this.$auth.loggedIn) {
@@ -86,9 +104,7 @@ export default {
           }
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
-
-          this.appSetToastedMessage(error.response.data, true)
+          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
         })
     }
   }

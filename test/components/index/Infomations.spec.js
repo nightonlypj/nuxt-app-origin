@@ -10,12 +10,10 @@ const helper = new Helper()
 
 describe('Infomations.vue', () => {
   const localVue = createLocalVue()
-  let axiosGetMock, toastedErrorMock, toastedInfoMock
+  let axiosGetMock
 
   beforeEach(() => {
     axiosGetMock = null
-    toastedErrorMock = jest.fn()
-    toastedInfoMock = jest.fn()
   })
 
   const mountFunction = () => {
@@ -29,10 +27,6 @@ describe('Infomations.vue', () => {
       mocks: {
         $axios: {
           get: axiosGetMock
-        },
-        $toasted: {
-          error: toastedErrorMock,
-          info: toastedInfoMock
         }
       }
     })
@@ -46,23 +40,29 @@ describe('Infomations.vue', () => {
     expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.importantInfomationsUrl)
   }
 
-  const viewTest = (wrapper, infomations, startViews) => {
+  const viewTest = (wrapper, data) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.vm.$data.lists).toEqual(infomations)
+    expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
 
     const labels = wrapper.findAllComponents(Label)
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
     // console.log(wrapper.text())
-    for (const [index, list] of infomations.entries()) {
+    for (const [index, infomation] of data.infomations.entries()) {
       expect(labels.at(index).exists()).toBe(true) // ラベル
-      expect(labels.at(index).vm.$props.list).toEqual(list)
-      expect(links.includes('/infomations/' + list.id)).toBe(list.body_present || list.summary !== null) // [本文or概要あり]お知らせ詳細
-      expect(wrapper.text()).toMatch(list.title) // タイトル
-      expect(wrapper.text()).toMatch(startViews[index]) // 開始日時
+      expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
+      expect(links.includes('/infomations/' + infomation.id)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
+      expect(wrapper.text()).toMatch(infomation.title) // タイトル
+      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日時
     }
+  }
+
+  const viewErrorTest = (wrapper, errorMessage, localesMessage) => {
+    // console.log(wrapper.text())
+    expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
+    expect(wrapper.text()).toMatch(localesMessage)
   }
 
   // テストケース
@@ -75,69 +75,60 @@ describe('Infomations.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.blankTest(wrapper, Loading)
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
     })
     it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
-      const infomations = Object.freeze([
-        { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2021-01-01T09:00:00+09:00' },
-        { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2021-01-02T09:00:00+09:00' },
-        { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2021-01-03T09:00:00+09:00' },
-        { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2021-01-04T09:00:00+09:00' }
-      ])
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations } }))
+      const data = Object.freeze({
+        infomations: [
+          { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2021-01-01T09:00:00+09:00' },
+          { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2021-01-02T09:00:00+09:00' },
+          { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2021-01-03T09:00:00+09:00' },
+          { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2021-01-04T09:00:00+09:00' }
+        ]
+      })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
-      viewTest(wrapper, infomations, ['2021/01/01', '2021/01/02', '2021/01/03', '2021/01/04'])
+      viewTest(wrapper, data)
     })
-    it('[データなし]表示されない', async () => {
+    it('[データなし]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
-      helper.blankTest(wrapper, Loading)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
-      helper.mockCalledTest(toastedInfoMock, 0)
+      viewErrorTest(wrapper, 'system.error', locales.system.error_short)
     })
 
-    it('[接続エラー]表示されない', async () => {
+    it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
-      helper.blankTest(wrapper, Loading)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
-      helper.mockCalledTest(toastedInfoMock, 0)
+      viewErrorTest(wrapper, 'network.failure', locales.network.failure_short)
     })
-    it('[レスポンスエラー]表示されない', async () => {
+    it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
-      helper.blankTest(wrapper, Loading)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
-      helper.mockCalledTest(toastedInfoMock, 0)
+      viewErrorTest(wrapper, 'network.error', locales.network.error_short)
     })
-    it('[その他エラー]表示されない', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+    it('[その他エラー]エラーメッセージが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
-      helper.blankTest(wrapper, Loading)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      viewErrorTest(wrapper, 'system.default', locales.system.default_short)
     })
   })
 })

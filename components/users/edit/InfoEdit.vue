@@ -10,10 +10,10 @@
             prepend-icon="mdi-account"
             autocomplete="off"
             :error-messages="errors"
-            @click="waiting = false"
+            @input="waiting = false"
           />
         </validation-provider>
-        <v-alert v-if="user.unconfirmed_email !== null" color="info">
+        <v-alert v-if="user.unconfirmed_email != null" color="info">
           確認待ち: {{ user.unconfirmed_email }}<br>
           <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
         </v-alert>
@@ -24,7 +24,7 @@
             prepend-icon="mdi-email"
             autocomplete="off"
             :error-messages="errors"
-            @click="waiting = false"
+            @input="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password" rules="min:8">
@@ -36,7 +36,7 @@
             append-icon="mdi-eye-off"
             autocomplete="new-password"
             :error-messages="errors"
-            @click="waiting = false"
+            @input="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
@@ -48,7 +48,7 @@
             append-icon="mdi-eye-off"
             autocomplete="new-password"
             :error-messages="errors"
-            @click="waiting = false"
+            @input="waiting = false"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="current_password" rules="required">
@@ -58,12 +58,19 @@
             label="現在のパスワード"
             prepend-icon="mdi-lock"
             append-icon="mdi-eye-off"
-            autocomplete="off"
+            autocomplete="new-password"
             :error-messages="errors"
-            @click="waiting = false"
+            @input="waiting = false"
           />
         </validation-provider>
-        <v-btn id="user_update_btn" color="primary" :disabled="invalid || processing || waiting" @click="onUserUpdate()">変更</v-btn>
+        <v-btn
+          id="user_update_btn"
+          color="primary"
+          :disabled="invalid || processing || waiting"
+          @click="onUserUpdate()"
+        >
+          変更
+        </v-btn>
       </v-card-text>
     </v-form>
   </validation-observer>
@@ -130,7 +137,7 @@ export default {
         confirm_redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.$auth.setUser(response.data.user)
           if (this.$auth.loggedIn) {
@@ -140,7 +147,7 @@ export default {
           }
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {

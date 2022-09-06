@@ -2,22 +2,24 @@
   <div>
     <Loading v-if="loading" />
     <v-card v-if="!loading">
-      <v-card-title v-if="list">
-        <Label :list="list" />
-        <span class="ml-1 font-weight-bold">
-          {{ list.title }}
-        </span>
-        <span class="ml-1">
-          ({{ $dateFormat(list.started_at, 'ja') }})
-        </span>
-      </v-card-title>
-      <v-card-text v-if="list">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="list.body" class="mx-2 my-2" v-html="list.body" />
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-else-if="list.summary" class="mx-2 my-2" v-html="list.summary" />
-      </v-card-text>
-      <v-divider />
+      <div v-if="infomation != null">
+        <v-card-title>
+          <Label :infomation="infomation" />
+          <span class="ml-1 font-weight-bold">
+            {{ infomation.title }}
+          </span>
+          <span class="ml-1">
+            ({{ $dateFormat(infomation.started_at, 'ja', 'N/A') }})
+          </span>
+        </v-card-title>
+        <v-card-text>
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-if="infomation.body" class="mx-2 my-2" v-html="infomation.body" />
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-else-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+        </v-card-text>
+        <v-divider />
+      </div>
       <v-card-actions>
         <ul class="my-2">
           <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
@@ -39,38 +41,46 @@ export default {
 
   data () {
     return {
-      list: null
+      infomation: null
     }
   },
 
   head () {
     return {
-      title: this.list?.title ?? null
+      title: this.title
+    }
+  },
+
+  computed: {
+    title () {
+      let label = ''
+      if (this.infomation?.label_i18n != null && this.infomation?.label_i18n !== '') {
+        label = '[' + this.infomation.label_i18n + ']'
+      }
+      return label + (this.infomation?.title || '')
     }
   },
 
   async created () {
-    if (!await this.getInfomation()) { return }
+    if (!await this.getInfomationDetail()) { return }
 
     this.loading = false
   },
 
   methods: {
     // お知らせ詳細API
-    async getInfomation () {
+    async getInfomationDetail () {
       let result = false
 
       await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace('_id', this.$route.params.id))
         .then((response) => {
-          if (!this.appCheckResponse(response, true)) { return }
+          if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
 
-          this.list = response.data.infomation
+          this.infomation = response.data.infomation
           result = true
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, true, { notfound: true })) { return }
-
-          this.appRedirectTop(error.response.data, true)
+          this.appCheckErrorResponse(error, { redirect: true }, { notfound: true })
         })
 
       return result

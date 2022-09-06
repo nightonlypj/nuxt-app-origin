@@ -7,7 +7,9 @@
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
           <v-card-title>パスワード再設定</v-card-title>
-          <v-card-text>
+          <v-card-text
+            @keyup.enter="onPasswordUpdate(invalid)"
+          >
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
                 v-model="password"
@@ -17,7 +19,7 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
@@ -29,10 +31,17 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
-            <v-btn id="password_update_btn" color="primary" :disabled="invalid || processing || waiting" @click="onPasswordUpdate()">変更</v-btn>
+            <v-btn
+              id="password_update_btn"
+              color="primary"
+              :disabled="invalid || processing || waiting"
+              @click="onPasswordUpdate(invalid)"
+            >
+              変更
+            </v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>
@@ -94,7 +103,9 @@ export default {
 
   methods: {
     // パスワード再設定
-    async onPasswordUpdate () {
+    async onPasswordUpdate (invalid) {
+      if (invalid || this.processing || this.waiting) { return }
+
       this.processing = true
       await this.postPasswordUpdate()
       this.processing = false
@@ -108,7 +119,7 @@ export default {
         password_confirmation: this.password_confirmation
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.$auth.setUser(response.data.user)
           if (this.$auth.loggedIn) {
@@ -118,10 +129,10 @@ export default {
           }
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false)) {
+          if (!this.appCheckErrorResponse(error, { toasted: true })) {
             return
           } else if (error.response.data.errors == null) {
-            return this.$router.push({ path: '/users/password/new', query: { alert: error.response.data.alert, notice: error.response.data.notice } })
+            return this.$router.push({ path: '/users/password/new', query: { alert: this.appGetAlertMessage(error.response.data, true), notice: error.response.data.notice } })
           }
 
           this.appSetMessage(error.response.data, true)

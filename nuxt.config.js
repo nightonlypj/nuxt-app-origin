@@ -81,7 +81,8 @@ export default defineNuxtConfig({
       local: {
         token: {
           property: 'token',
-          global: true
+          global: true,
+          maxAge: 60 * 60 * 24 // バックエンドと同じか長くしないと不整合な状態になる（フロントが未ログイン、バックエンドがログイン中）
         },
         user: {
           property: 'user'

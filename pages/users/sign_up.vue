@@ -5,7 +5,7 @@
     <v-card v-if="!loading" max-width="480px">
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
-        <v-form autocomplete="off">
+        <v-form autocomplete="on">
           <v-card-title>アカウント登録</v-card-title>
           <v-card-text>
             <validation-provider v-slot="{ errors }" name="name" rules="required">
@@ -13,9 +13,9 @@
                 v-model="name"
                 label="氏名"
                 prepend-icon="mdi-account"
-                autocomplete="off"
+                autocomplete="name"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
@@ -23,9 +23,9 @@
                 v-model="email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
-                autocomplete="off"
+                autocomplete="email"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
@@ -37,7 +37,7 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
@@ -49,10 +49,17 @@
                 append-icon="mdi-eye-off"
                 autocomplete="new-password"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
-            <v-btn id="sign_up_btn" color="primary" :disabled="invalid || processing || waiting" @click="onSignUp()">登録</v-btn>
+            <v-btn
+              id="sign_up_btn"
+              color="primary"
+              :disabled="invalid || processing || waiting"
+              @click="onSignUp()"
+            >
+              登録
+            </v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>
@@ -127,12 +134,12 @@ export default {
         confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.appRedirectSignIn(response.data)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, true)) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {

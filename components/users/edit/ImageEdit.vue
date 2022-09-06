@@ -17,10 +17,25 @@
             @click="waiting = false"
           />
         </validation-provider>
-        <v-btn id="user_image_update_btn" color="primary" :disabled="invalid || image === null || processing || waiting" @click="onUserImageUpdate()">アップロード</v-btn>
+        <v-btn
+          id="user_image_update_btn"
+          color="primary"
+          :disabled="invalid || image == null || processing || waiting"
+          @click="onUserImageUpdate()"
+        >
+          アップロード
+        </v-btn>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn id="user_image_delete_btn" color="secondary" :disabled="!$auth.user.upload_image || processing" v-bind="attrs" v-on="on">画像削除</v-btn>
+            <v-btn
+              id="user_image_delete_btn"
+              color="secondary"
+              :disabled="!$auth.user.upload_image || processing"
+              v-bind="attrs"
+              v-on="on"
+            >
+              画像削除
+            </v-btn>
           </template>
           <template #default="dialog">
             <v-card id="user_image_delete_dialog">
@@ -29,8 +44,20 @@
                 <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn id="user_image_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn id="user_image_delete_yes_btn" color="primary" @click="dialog.value = false; onUserImageDelete()">はい</v-btn>
+                <v-btn
+                  id="user_image_delete_no_btn"
+                  color="secondary"
+                  @click="dialog.value = false"
+                >
+                  いいえ
+                </v-btn>
+                <v-btn
+                  id="user_image_delete_yes_btn"
+                  color="primary"
+                  @click="dialog.value = false; onUserImageDelete()"
+                >
+                  はい
+                </v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -84,12 +111,12 @@ export default {
       params.append('image', this.image)
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {
@@ -103,12 +130,12 @@ export default {
     async postUserImageDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
         })

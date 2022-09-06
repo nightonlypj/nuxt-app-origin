@@ -1,7 +1,8 @@
 <template>
   <div>
-    <v-card max-width="480px">
-      <v-card-title>{{ message }}</v-card-title>
+    <v-card>
+      <v-card-title>{{ alert }}</v-card-title>
+      <v-card-text v-if="error.notice != null">{{ error.notice }}</v-card-text>
       <v-card-actions>
         <NuxtLink to="/">トップページ</NuxtLink>
       </v-card-actions>
@@ -28,8 +29,12 @@ export default {
     title () {
       return (this.error.statusCode === 404) ? 'Not Found' : 'Error'
     },
-    message () {
-      return (this.error.statusCode === 404) ? 'ページが見つかりません。' : 'エラーが発生しました。'
+    alert () {
+      if (this.error.alert == null) {
+        return (this.error.statusCode === 404) ? this.$t('system.notfound') : this.$t('system.default')
+      }
+
+      return this.error.alert
     }
   },
 

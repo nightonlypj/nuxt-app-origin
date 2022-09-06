@@ -128,8 +128,7 @@ describe('sign_out.vue', () => {
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(true)
       const button = wrapper.find('#sign_out_btn')
       button.trigger('click')
@@ -137,7 +136,7 @@ describe('sign_out.vue', () => {
       await helper.sleep(1)
       updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })

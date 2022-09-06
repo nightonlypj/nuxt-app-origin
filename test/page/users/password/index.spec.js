@@ -241,7 +241,7 @@ describe('index.vue', () => {
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]パスワード再設定（メールアドレス入力）にリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(false, query, values)
       const button = wrapper.find('#password_update_btn')
       button.trigger('click')
@@ -251,7 +251,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: locales.system.default } })
     })
   })
 })

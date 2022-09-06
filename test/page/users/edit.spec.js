@@ -11,7 +11,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('edit.vue', () => {
-  let axiosGetMock, authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosGetMock, authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
 
   beforeEach(() => {
     axiosGetMock = null
@@ -21,6 +21,7 @@ describe('edit.vue', () => {
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
+    nuxtErrorMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, user) => {
@@ -50,6 +51,9 @@ describe('edit.vue', () => {
         },
         $router: {
           push: routerPushMock
+        },
+        $nuxt: {
+          error: nuxtErrorMock
         }
       }
     })
@@ -130,7 +134,7 @@ describe('edit.vue', () => {
 
   describe('トークン検証', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
-    it('[接続エラー]トップページにリダイレクトされる', async () => {
+    it('[接続エラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -138,9 +142,9 @@ describe('edit.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -154,7 +158,7 @@ describe('edit.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
-    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+    it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -162,28 +166,27 @@ describe('edit.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
     })
-    it('[その他エラー]トップページにリダイレクトされる', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+    it('[その他エラー]エラーページが表示される', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400 })
     })
   })
 
   describe('登録情報詳細', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
-    it('[データなし]トップページにリダイレクトされる', async () => {
+    it('[データなし]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -191,12 +194,12 @@ describe('edit.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.system.error })
     })
 
-    it('[接続エラー]トップページにリダイレクトされる', async () => {
+    it('[接続エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -204,9 +207,9 @@ describe('edit.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -220,7 +223,7 @@ describe('edit.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
-    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+    it('[レスポンスエラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -228,22 +231,21 @@ describe('edit.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
     })
-    it('[その他エラー]トップページにリダイレクトされる', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+    it('[その他エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400 })
     })
   })
 })

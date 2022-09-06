@@ -7,7 +7,9 @@
       <validation-observer v-slot="{ invalid }">
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>
-          <v-card-text>
+          <v-card-text
+            @keyup.enter="onSignIn(invalid)"
+          >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
                 v-model="email"
@@ -15,7 +17,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required">
@@ -27,10 +29,17 @@
                 append-icon="mdi-eye-off"
                 autocomplete="current-password"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
-            <v-btn id="sign_in_btn" color="primary" :disabled="invalid || processing || waiting" @click="onSignIn()">ログイン</v-btn>
+            <v-btn
+              id="sign_in_btn"
+              color="primary"
+              :disabled="invalid || processing || waiting"
+              @click="onSignIn(invalid)"
+            >
+              ログイン
+            </v-btn>
           </v-card-text>
           <v-divider />
           <v-card-actions>
@@ -106,7 +115,9 @@ export default {
 
   methods: {
     // ログイン
-    async onSignIn () {
+    async onSignIn (invalid) {
+      if (invalid || this.processing || this.waiting) { return }
+
       this.processing = true
       await this.postSignIn()
       this.processing = false
@@ -122,12 +133,12 @@ export default {
         }
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.appSetToastedMessage(response.data, false)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false)) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
 
           this.appSetMessage(error.response.data, true)
           this.waiting = true

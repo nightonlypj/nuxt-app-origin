@@ -26,7 +26,7 @@ describe('InfoEdit.vue', () => {
       localVue,
       vuetify,
       propsData: {
-        user: { ...user }
+        user
       },
       mocks: {
         $axios: {
@@ -206,7 +206,7 @@ describe('InfoEdit.vue', () => {
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(user, values)
       const button = wrapper.find('#user_update_btn')
       button.trigger('click')
@@ -215,7 +215,7 @@ describe('InfoEdit.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, data)
+      helper.emitMessageTest(wrapper, { alert: locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

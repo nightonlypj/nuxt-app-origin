@@ -224,14 +224,14 @@ describe('sign_in.vue', () => {
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
-      authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#sign_in_btn')
       button.trigger('click')
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.messageTest(wrapper, Message, data)
+      helper.messageTest(wrapper, Message, { alert: locales.system.default })
       helper.disabledTest(wrapper, Processing, button, true)
     })
   })

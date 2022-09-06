@@ -190,14 +190,14 @@ describe('new.vue', () => {
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#password_new_btn')
       button.trigger('click')
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.messageTest(wrapper, Message, data)
+      helper.messageTest(wrapper, Message, { alert: locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

@@ -5,9 +5,11 @@
     <v-card v-if="!loading" max-width="480px">
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
-        <v-form autocomplete="off">
+        <v-form autocomplete="off" @submit.prevent>
           <v-card-title>メールアドレス確認</v-card-title>
-          <v-card-text>
+          <v-card-text
+            @keyup.enter="onConfirmationNew(invalid)"
+          >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
                 v-model="email"
@@ -15,10 +17,17 @@
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
-                @click="waiting = false"
+                @input="waiting = false"
               />
             </validation-provider>
-            <v-btn id="confirmation_new_btn" color="primary" :disabled="invalid || processing || waiting" @click="onConfirmationNew()">送信</v-btn>
+            <v-btn
+              id="confirmation_new_btn"
+              color="primary"
+              :disabled="invalid || processing || waiting"
+              @click="onConfirmationNew(invalid)"
+            >
+              送信
+            </v-btn>
           </v-card-text>
           <v-divider v-if="!$auth.loggedIn" />
           <v-card-actions v-if="!$auth.loggedIn">
@@ -69,7 +78,9 @@ export default {
 
   methods: {
     // メールアドレス確認
-    async onConfirmationNew () {
+    async onConfirmationNew (invalid) {
+      if (invalid || this.processing || this.waiting) { return }
+
       this.processing = true
       await this.postConfirmationNew()
       this.processing = false
@@ -82,7 +93,7 @@ export default {
         redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           if (this.$auth.loggedIn) {
             this.appRedirectTop(response.data)
@@ -91,7 +102,7 @@ export default {
           }
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false)) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {

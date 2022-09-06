@@ -4,25 +4,35 @@ describe('utils.js', () => {
   const localVue = createLocalVue()
 
   describe('dateFormat/timeFormat', () => {
-    const mountFunction = (value, locales) => {
+    const mountFunction = (value, locales, defaultValue = null) => {
       return mount({
         mounted () {
-          this.dateFormat = this.$dateFormat(value, locales)
-          this.timeFormat = this.$timeFormat(value, locales)
+          this.dateFormat = this.$dateFormat(value, locales, defaultValue)
+          this.timeFormat = this.$timeFormat(value, locales, defaultValue)
         },
         template: '<div />'
       }, { localVue })
     }
 
-    it('[null]空が返却される', () => {
+    it('[null]nullが返却される', () => {
       const wrapper = mountFunction(null, 'ja')
-      expect(wrapper.vm.dateFormat).toBe('')
-      expect(wrapper.vm.timeFormat).toBe('')
+      expect(wrapper.vm.dateFormat).toBe(null)
+      expect(wrapper.vm.timeFormat).toBe(null)
     })
-    it('[なし]空が返却される', () => {
+    it('[null/デフォルトあり]デフォルト値が返却される', () => {
+      const wrapper = mountFunction(null, 'ja', 'N/A')
+      expect(wrapper.vm.dateFormat).toBe('N/A')
+      expect(wrapper.vm.timeFormat).toBe('N/A')
+    })
+    it('[なし]nullが返却される', () => {
       const wrapper = mountFunction('', 'ja')
-      expect(wrapper.vm.dateFormat).toBe('')
-      expect(wrapper.vm.timeFormat).toBe('')
+      expect(wrapper.vm.dateFormat).toBe(null)
+      expect(wrapper.vm.timeFormat).toBe(null)
+    })
+    it('[なし/デフォルトあり]デフォルト値が返却される', () => {
+      const wrapper = mountFunction('', 'ja', 'N/A')
+      expect(wrapper.vm.dateFormat).toBe('N/A')
+      expect(wrapper.vm.timeFormat).toBe('N/A')
     })
     it('[あり]日付が返却される', () => {
       const wrapper = mountFunction('2021-01-01T09:00:00+09:00', 'ja')
@@ -42,10 +52,15 @@ describe('utils.js', () => {
       }, { localVue })
     }
 
-    it('[null]空が返却される', () => {
+    it('[null]nullが返却される', () => {
       const wrapper = mountFunction(null)
-      expect(wrapper.vm.pageFirstNumber).toBe('')
-      expect(wrapper.vm.pageLastNumber).toBe('')
+      expect(wrapper.vm.pageFirstNumber).toBe(null)
+      expect(wrapper.vm.pageLastNumber).toBe(null)
+    })
+    it('[なし]nullが返却される', () => {
+      const wrapper = mountFunction({})
+      expect(wrapper.vm.pageFirstNumber).toBe(null)
+      expect(wrapper.vm.pageLastNumber).toBe(null)
     })
     it('[0件]1-0が返却される', () => {
       const info = Object.freeze({
@@ -79,6 +94,38 @@ describe('utils.js', () => {
       const wrapper = mountFunction(info)
       expect(wrapper.vm.pageFirstNumber).toBe(26)
       expect(wrapper.vm.pageLastNumber).toBe(26)
+    })
+  })
+
+  describe('localeString', () => {
+    const mountFunction = (value, defaultValue = null) => {
+      return mount({
+        mounted () {
+          this.localeString = this.$localeString(value, defaultValue)
+        },
+        template: '<div />'
+      }, { localVue })
+    }
+
+    it('[null]nullが返却される', () => {
+      const wrapper = mountFunction(null)
+      expect(wrapper.vm.localeString).toBe(null)
+    })
+    it('[null/デフォルトあり]デフォルト値が返却される', () => {
+      const wrapper = mountFunction(null, 'N/A')
+      expect(wrapper.vm.localeString).toBe('N/A')
+    })
+    it('[なし]nullが返却される', () => {
+      const wrapper = mountFunction('')
+      expect(wrapper.vm.localeString).toBe(null)
+    })
+    it('[なし/デフォルトあり]デフォルト値が返却される', () => {
+      const wrapper = mountFunction('', 'N/A')
+      expect(wrapper.vm.localeString).toBe('N/A')
+    })
+    it('[数値]値が返却される', () => {
+      const wrapper = mountFunction('1000')
+      expect(wrapper.vm.localeString).toBe('1000') // Tips: Jestだとカンマ区切りにならない
     })
   })
 })

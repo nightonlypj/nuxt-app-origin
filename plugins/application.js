@@ -20,38 +20,51 @@ export default {
 
   methods: {
     // レスポンスチェック
-    appCheckResponse (response, redirect, systemError = false) {
+    appCheckResponse (response, action = { redirect: false, toasted: false, returnMessage: false }, systemError = false) {
       if (response.data == null || systemError) {
-        this.$toasted.error(this.$t('system.error'))
-        if (redirect) {
-          this.appRedirectTop()
+        if (action.redirect) {
+          this.appRedirectError(null, { alert: this.$t('system.error') })
+        } else if (action.toasted) {
+          this.$toasted.error(this.$t('system.error'))
         }
-        return false
+        return (action.returnMessage) ? 'system.error' : false
       }
 
-      return true
+      return (action.returnMessage) ? null : true
     },
 
     // エラーレスポンスチェック
-    appCheckErrorResponse (error, redirect, check = { auth: false, notfound: false }) {
+    appCheckErrorResponse (error, action = { redirect: false, toasted: false, returnMessage: false, require: false }, check = { auth: false, notfound: false }) {
       if (error.response == null) {
-        this.$toasted.error(this.$t('network.failure'))
-        if (redirect) {
-          this.appRedirectTop()
+        if (action.redirect) {
+          this.appRedirectError(null, { alert: this.$t('network.failure') })
+        } else if (action.toasted) {
+          this.$toasted.error(this.$t('network.failure'))
         }
-        return false
+        return (action.returnMessage) ? 'network.failure' : false
       } else if (check.auth && error.response.status === 401) {
         this.appSignOut()
         return false
       } else if (check.notfound && error.response.status === 404) {
-        this.$nuxt.error({ statusCode: error.response.status })
+        this.appRedirectError(error.response.status, error.response.data)
         return false
       } else if (error.response.data == null) {
-        this.$toasted.error(this.$t('network.error'))
-        if (redirect) {
-          this.appRedirectTop()
+        if (action.redirect) {
+          this.appRedirectError(error.response.status, { alert: this.$t('network.error') })
+        } else if (action.toasted) {
+          this.$toasted.error(this.$t('network.error'))
         }
+        return (action.returnMessage) ? 'network.error' : false
+      }
+
+      if (action.redirect) {
+        this.appRedirectError(error.response.status, error.response.data)
         return false
+      } else if (action.require) {
+        if (action.toasted) {
+          this.$toasted.error(this.$t('system.default'))
+        }
+        return (action.returnMessage) ? 'system.default' : false
       }
 
       return true
@@ -110,15 +123,16 @@ export default {
     appRedirectSignIn (data) {
       this.$router.push({ path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     },
+    appRedirectError (statusCode, data) {
+      this.$nuxt.error({ statusCode, alert: data.alert, notice: data.notice })
+    },
 
     // ログアウト
     async appSignOut (message = 'auth.unauthenticated', path = null, data = null) {
       try {
         await this.$auth.logout()
       } catch (error) {
-        if (this.appCheckErrorResponse(error, false)) {
-          this.$toasted.error(error.response.data.alert)
-        }
+        this.appCheckErrorResponse(error, { toasted: true, require: true })
       }
 
       // Devise Token Auth
@@ -130,10 +144,10 @@ export default {
         localStorage.removeItem('expiry')
       }
 
-      if (message !== null) {
+      if (message != null) {
         this.$toasted.info(this.$t(message)) // Tips: メッセージを上書き
       }
-      if (path !== null) {
+      if (path != null) {
         this.$router.push({ path, query: { alert: data.alert, notice: data.notice } })
       }
     }

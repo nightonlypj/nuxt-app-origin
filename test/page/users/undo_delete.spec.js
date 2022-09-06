@@ -9,7 +9,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('undo_delete.vue', () => {
-  let axiosPostMock, authFetchUserMock, authSetUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, authFetchUserMock, authSetUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
 
   beforeEach(() => {
     axiosPostMock = null
@@ -20,6 +20,7 @@ describe('undo_delete.vue', () => {
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
+    nuxtErrorMock = jest.fn()
   })
 
   const mountFunction = (loggedIn, user) => {
@@ -46,6 +47,9 @@ describe('undo_delete.vue', () => {
         },
         $router: {
           push: routerPushMock
+        },
+        $nuxt: {
+          error: nuxtErrorMock
         }
       }
     })
@@ -123,7 +127,7 @@ describe('undo_delete.vue', () => {
 
   describe('トークン検証', () => {
     const user = Object.freeze({ destroy_requested_at: '2021-01-01T09:00:00+09:00', destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
-    it('[接続エラー]トップページにリダイレクトされる', async () => {
+    it('[接続エラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -131,9 +135,9 @@ describe('undo_delete.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -147,7 +151,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
-    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+    it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, Loading)
@@ -155,9 +159,9 @@ describe('undo_delete.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
     })
   })
 
@@ -287,7 +291,7 @@ describe('undo_delete.vue', () => {
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data } }))
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       const wrapper = mountFunction(true, user)
 
       await helper.sleep(1)
@@ -302,8 +306,8 @@ describe('undo_delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
+      helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

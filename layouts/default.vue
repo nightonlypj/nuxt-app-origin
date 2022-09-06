@@ -26,7 +26,15 @@
       <template v-else>
         <v-menu offset-y>
           <template #activator="{ on, attrs }">
-            <v-btn id="user_menu_btn" class="d-inline-block" max-width="400px" style="text-transform: none" text v-bind="attrs" v-on="on">
+            <v-btn
+              id="user_menu_btn"
+              class="d-inline-block"
+              max-width="400px"
+              style="text-transform: none"
+              text
+              v-bind="attrs"
+              v-on="on"
+            >
               <v-avatar size="32px">
                 <v-img id="user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
@@ -69,7 +77,7 @@
             <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
           </v-list-item>
         </template>
-        <template v-if="$auth.loggedIn">
+        <template v-else>
           <v-list-group>
             <template #activator>
               <v-avatar size="32px">

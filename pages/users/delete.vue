@@ -11,7 +11,15 @@
         </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn id="user_delete_btn" color="error" :disabled="processing" v-bind="attrs" v-on="on">削除</v-btn>
+            <v-btn
+              id="user_delete_btn"
+              color="error"
+              :disabled="processing"
+              v-bind="attrs"
+              v-on="on"
+            >
+              削除
+            </v-btn>
           </template>
           <template #default="dialog">
             <v-card id="user_delete_dialog">
@@ -20,8 +28,19 @@
                 <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn id="user_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn id="user_delete_yes_btn" color="error" @click="dialog.value = false; onUserDelete()">はい</v-btn>
+                <v-btn
+                  id="user_delete_no_btn"
+                  color="secondary"
+                  @click="dialog.value = false"
+                >
+                  いいえ
+                </v-btn>
+                <v-btn
+                  id="user_delete_yes_btn"
+                  color="error" @click="dialog.value = false; onUserDelete()"
+                >
+                  はい
+                </v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -54,14 +73,12 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
-
-      return this.appRedirectTop(error.response.data, true)
+      return this.appCheckErrorResponse(error, { redirect: true }, { auth: true })
     }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
-    } else if (this.$auth.user.destroy_schedule_at !== null) {
+    } else if (this.$auth.user.destroy_schedule_at != null) {
       return this.appRedirectDestroyReserved()
     }
 
@@ -83,14 +100,12 @@ export default {
         undo_delete_url: this.$config.frontBaseURL + this.$config.userSendUndoDeleteUrl
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.appSignOut(null, '/users/sign_in', response.data)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false, { auth: true })) { return }
-
-          this.appSetToastedMessage(error.response.data, true)
+          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
         })
     }
   }

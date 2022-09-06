@@ -1,21 +1,25 @@
 <template>
-  <div v-if="loading || (!loading && lists != null && lists.length > 0)">
+  <div v-if="loading || errorMessage != null || existInfomations">
     <Loading v-if="loading" />
-    <v-card v-if="!loading && lists != null && lists.length > 0">
+    <v-card v-if="!loading">
       <v-card-title>大切なお知らせ</v-card-title>
-      <v-card-text>
-        <article v-for="list in lists" :key="list.id" class="mb-1">
-          <Label :list="list" />
+      <v-card-text v-if="errorMessage != null">
+        <v-icon color="warning">mdi-alert</v-icon>
+        {{ $t(errorMessage + '_short') }}
+      </v-card-text>
+      <v-card-text v-else>
+        <article v-for="infomation in infomations" :key="infomation.id" class="mb-1">
+          <Label :infomation="infomation" />
           <span class="ml-1">
-            <template v-if="list.body_present === true || list.summary !== null">
-              <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: list.id }}">{{ list.title }}</NuxtLink>
+            <template v-if="infomation.body_present === true || infomation.summary !== null">
+              <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: infomation.id }}">{{ infomation.title }}</NuxtLink>
             </template>
             <template v-else>
-              {{ list.title }}
+              {{ infomation.title }}
             </template>
           </span>
           <span class="ml-1">
-            ({{ $dateFormat(list.started_at, 'ja') }})
+            ({{ $dateFormat(infomation.started_at, 'ja', 'N/A') }})
           </span>
         </article>
       </v-card-text>
@@ -35,28 +39,34 @@ export default {
 
   data () {
     return {
-      lists: null
+      errorMessage: null,
+      infomations: null
+    }
+  },
+
+  computed: {
+    existInfomations () {
+      return this.infomations?.length > 0
     }
   },
 
   async created () {
-    await this.getInfomations()
+    await this.getImportantInfomations()
     this.loading = false
   },
 
   methods: {
     // 大切なお知らせAPI
-    async getInfomations () {
+    async getImportantInfomations () {
       await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
         .then((response) => {
-          if (!this.appCheckResponse(response, false)) { return }
+          this.errorMessage = this.appCheckResponse(response, { returnMessage: true })
+          if (this.errorMessage != null) { return }
 
-          this.lists = response.data.infomations
+          this.infomations = response.data.infomations
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, false)) { return }
-
-          this.appSetToastedMessage(error.response.data, true)
+          this.errorMessage = this.appCheckErrorResponse(error, { returnMessage: true, require: true })
         })
     }
   }

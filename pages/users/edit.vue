@@ -15,7 +15,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li v-if="user.unconfirmed_email !== null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
+          <li v-if="user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
           <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
         </ul>
       </v-card-actions>
@@ -52,14 +52,12 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
-
-      return this.appRedirectTop(error.response.data, true)
+      return this.appCheckErrorResponse(error, { redirect: true }, { auth: true })
     }
 
     if (!this.$auth.loggedIn) {
       return this.appRedirectAuth()
-    } else if (this.$auth.user.destroy_schedule_at !== null) {
+    } else if (this.$auth.user.destroy_schedule_at != null) {
       return this.appRedirectDestroyReserved()
     }
 
@@ -75,15 +73,13 @@ export default {
 
       await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
         .then((response) => {
-          if (!this.appCheckResponse(response, true)) { return }
+          if (!this.appCheckResponse(response, { redirect: true })) { return }
 
           this.user = response.data.user
           result = true
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, true, { auth: true })) { return }
-
-          this.appRedirectTop(error.response.data, true)
+          this.appCheckErrorResponse(error, { redirect: true }, { auth: true })
         })
 
       return result
