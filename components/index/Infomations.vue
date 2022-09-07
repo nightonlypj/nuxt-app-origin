@@ -60,13 +60,13 @@ export default {
     async getImportantInfomations () {
       await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
         .then((response) => {
-          this.errorMessage = this.appCheckResponse(response, { returnMessage: true })
+          this.errorMessage = this.appCheckResponse(response, { returnKey: true })
           if (this.errorMessage != null) { return }
 
           this.infomations = response.data.infomations
         },
         (error) => {
-          this.errorMessage = this.appCheckErrorResponse(error, { returnMessage: true, require: true })
+          this.errorMessage = this.appCheckErrorResponse(error, { returnKey: true, require: true })
         })
     }
   }

@@ -69,7 +69,7 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      return this.appCheckErrorResponse(error, { redirect: true }, { auth: true })
+      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
     }
 
     if (!this.$auth.loggedIn) {

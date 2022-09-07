@@ -20,54 +20,44 @@ export default {
 
   methods: {
     // レスポンスチェック
-    appCheckResponse (response, action = { redirect: false, toasted: false, returnMessage: false }, systemError = false) {
+    appCheckResponse (response, action = { redirect: false, toasted: false, returnKey: false }, systemError = false) {
       if (response.data == null || systemError) {
-        if (action.redirect) {
-          this.appRedirectError(null, { alert: this.$t('system.error') })
-        } else if (action.toasted) {
-          this.$toasted.error(this.$t('system.error'))
-        }
-        return (action.returnMessage) ? 'system.error' : false
+        return this.appReturnResponse(action, null, 'system.error')
       }
 
-      return (action.returnMessage) ? null : true
+      return (action.returnKey) ? null : true
     },
 
     // エラーレスポンスチェック
-    appCheckErrorResponse (error, action = { redirect: false, toasted: false, returnMessage: false, require: false }, check = { auth: false, notfound: false }) {
+    appCheckErrorResponse (error, action = { redirect: false, toasted: false, returnKey: false, require: false }, check = { auth: false, forbidden: false, notfound: false }) {
       if (error.response == null) {
-        if (action.redirect) {
-          this.appRedirectError(null, { alert: this.$t('network.failure') })
-        } else if (action.toasted) {
-          this.$toasted.error(this.$t('network.failure'))
-        }
-        return (action.returnMessage) ? 'network.failure' : false
+        return this.appReturnResponse(action, null, 'network.failure')
       } else if (check.auth && error.response.status === 401) {
         this.appSignOut()
-        return false
+        return (action.returnKey) ? 'auth.unauthenticated' : false
+      } else if (check.forbidden && error.response.status === 403) {
+        return this.appReturnResponse(action, error.response.status, 'auth.forbidden')
       } else if (check.notfound && error.response.status === 404) {
-        this.appRedirectError(error.response.status, error.response.data)
-        return false
+        return this.appReturnResponse(action, error.response.status, 'system.notfound', error.response.data)
       } else if (error.response.data == null) {
-        if (action.redirect) {
-          this.appRedirectError(error.response.status, { alert: this.$t('network.error') })
-        } else if (action.toasted) {
-          this.$toasted.error(this.$t('network.error'))
-        }
-        return (action.returnMessage) ? 'network.error' : false
+        return this.appReturnResponse(action, error.response.status, 'network.error')
       }
 
+      if (action.require) {
+        return this.appReturnResponse(action, error.response.status, 'system.default', error.response.data)
+      }
+
+      return (action.returnKey) ? null : true
+    },
+
+    // レスポンス返却
+    appReturnResponse (action, status, alertKey, data = null) {
       if (action.redirect) {
-        this.appRedirectError(error.response.status, error.response.data)
-        return false
-      } else if (action.require) {
-        if (action.toasted) {
-          this.$toasted.error(this.$t('system.default'))
-        }
-        return (action.returnMessage) ? 'system.default' : false
+        this.appRedirectError(status, { alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice })
+      } else if (action.toasted) {
+        this.appSetToastedMessage({ alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice }, false)
       }
-
-      return true
+      return (action.returnKey) ? alertKey : false
     },
 
     // メッセージ表示
@@ -95,8 +85,8 @@ export default {
       this.notice = this.$route.query.notice
       this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
     },
-    appGetAlertMessage (data, require) {
-      return (require && data?.alert == null) ? this.$t('system.default') : data?.alert
+    appGetAlertMessage (data, require, defaultKey = 'system.default') {
+      return (require && data?.alert == null) ? this.$t(defaultKey) : data?.alert
     },
 
     // リダイレクト

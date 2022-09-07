@@ -331,7 +331,7 @@ describe('index.vue', () => {
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400 })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: locales.system.default })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))

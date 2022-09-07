@@ -80,7 +80,7 @@ export default {
           result = true
         },
         (error) => {
-          this.appCheckErrorResponse(error, { redirect: true }, { notfound: true })
+          this.appCheckErrorResponse(error, { redirect: true, require: true }, { notfound: true })
         })
 
       return result

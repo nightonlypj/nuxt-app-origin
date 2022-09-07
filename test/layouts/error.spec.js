@@ -25,37 +25,35 @@ describe('error.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, title, alert) => {
+  const viewTest = (wrapper, alertMessage) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
     expect(links.includes('/')).toBe(true) // トップページ
 
-    expect(wrapper.vm.title).toEqual(title)
-    expect(wrapper.vm.alert).toEqual(alert)
+    expect(wrapper.vm.alertMessage).toEqual(alertMessage)
   }
 
   // テストケース
-  const title = { notfound: 'Not Found', error: 'Error' }
   describe('alertなし', () => {
     it('[404]表示される', () => {
       const wrapper = mountFunction(404)
-      viewTest(wrapper, title.notfound, locales.system.notfound)
+      viewTest(wrapper, locales.system.notfound)
     })
     it('[500]表示される', () => {
       const wrapper = mountFunction(500)
-      viewTest(wrapper, title.error, locales.system.default)
+      viewTest(wrapper, locales.system.default)
     })
   })
   describe('alertあり', () => {
-    const alert = 'alertメッセージ'
+    const alertMessage = 'alertメッセージ'
     it('[404]表示される', () => {
-      const wrapper = mountFunction(404, alert)
-      viewTest(wrapper, title.notfound, alert)
+      const wrapper = mountFunction(404, alertMessage)
+      viewTest(wrapper, alertMessage)
     })
     it('[500]表示される', () => {
-      const wrapper = mountFunction(500, alert)
-      viewTest(wrapper, title.error, alert)
+      const wrapper = mountFunction(500, alertMessage)
+      viewTest(wrapper, alertMessage)
     })
   })
 })

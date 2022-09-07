@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card>
-      <v-card-title>{{ alert }}</v-card-title>
+      <v-card-title>{{ alertMessage }}</v-card-title>
       <v-card-text v-if="error.notice != null">{{ error.notice }}</v-card-text>
       <v-card-actions>
         <NuxtLink to="/">トップページ</NuxtLink>
@@ -21,17 +21,14 @@ export default {
 
   head () {
     return {
-      title: this.title
+      title: (this.error.statusCode === 404) ? 'Not Found' : 'エラー'
     }
   },
 
   computed: {
-    title () {
-      return (this.error.statusCode === 404) ? 'Not Found' : 'Error'
-    },
-    alert () {
+    alertMessage () {
       if (this.error.alert == null) {
-        return (this.error.statusCode === 404) ? this.$t('system.notfound') : this.$t('system.default')
+        return this.$t((this.error.statusCode === 404) ? 'system.notfound' : 'system.default')
       }
 
       return this.error.alert

@@ -165,7 +165,7 @@ describe('_id.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400 })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: locales.system.default })
     })
   })
 })
