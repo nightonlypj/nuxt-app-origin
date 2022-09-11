@@ -5,6 +5,11 @@
 - Nuxt Bridgeに移行したい
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/462/
 
+### spaceブランチ
+
+- スペースを作成してメンバーを招待できるようにしたい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/469/
+
 ## 1.0.0 (Sprint 2)
 
 - ユニットテストを作成したい

@@ -39,5 +39,7 @@ module.exports = {
   // お知らせ一覧API
   infomationsUrl: '/infomations.json',
   // お知らせ詳細API
-  infomationDetailUrl: '/infomations/_id.json'
+  infomationDetailUrl: '/infomations/_id.json',
+  // スペース一覧API
+  spacesUrl: '/spaces.json'
 }

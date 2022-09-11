@@ -15,6 +15,8 @@ export class Helper {
       const link = routerlinks.at(i).props().to
       if (link.name === 'infomations-id___ja') {
         links.push('/infomations/' + link.params.id) // お知らせ一覧
+      } else if (link.name === 'spaces-code___ja') {
+        links.push('/spaces/' + link.params.code) // スペース一覧
       } else {
         links.push(link)
       }

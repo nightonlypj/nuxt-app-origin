@@ -104,6 +104,10 @@
             <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
           </v-list-item>
         </template>
+        <v-list-item to="/spaces" nuxt>
+          <v-icon>mdi-format-list-bulleted</v-icon>
+          <v-list-item-title class="ml-2">スペース</v-list-item-title>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
 

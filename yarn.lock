@@ -12961,6 +12961,11 @@ vue-i18n@^8.27.1:
   resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-8.27.2.tgz#b649a65ff42b7d1a482679b732902f889965a068"
   integrity sha512-QVzn7u2WVH8F7eSKIM00lujC7x1mnuGPaTnDTmB01Hd709jDtB9kYtBqM+MWmp5AJRx3gnqAdZbee9MelqwFBg==
 
+vue-infinite-loading@^2.4.5:
+  version "2.4.5"
+  resolved "https://registry.yarnpkg.com/vue-infinite-loading/-/vue-infinite-loading-2.4.5.tgz#cc20fd40af7f20188006443c99b60470cf1de1b3"
+  integrity sha512-xhq95Mxun060bRnsOoLE2Be6BR7jYwuC89kDe18+GmCLVrRA/dU0jrGb12Xu6NjmKs+iTW0AA6saSEmEW4cR7g==
+
 vue-jest@^3.0.4:
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/vue-jest/-/vue-jest-3.0.7.tgz#a6d29758a5cb4d750f5d1242212be39be4296a33"

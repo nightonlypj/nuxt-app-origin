@@ -128,4 +128,28 @@ describe('utils.js', () => {
       expect(wrapper.vm.localeString).toBe('1000') // Tips: Jestだとカンマ区切りにならない
     })
   })
+
+  describe('textTruncate', () => {
+    const mountFunction = (text, length) => {
+      return mount({
+        mounted () {
+          this.textTruncate = this.$textTruncate(text, length)
+        },
+        template: '<div />'
+      }, { localVue })
+    }
+
+    it('[null]nullが返却される', () => {
+      const wrapper = mountFunction(null)
+      expect(wrapper.vm.textTruncate).toBeNull()
+    })
+    it('[最大値]そのまま返却される', () => {
+      const wrapper = mountFunction('123', 3)
+      expect(wrapper.vm.textTruncate).toBe('123')
+    })
+    it('[最大値以上]省略されて返却される', () => {
+      const wrapper = mountFunction('123', 2)
+      expect(wrapper.vm.textTruncate).toBe('12...')
+    })
+  })
 })

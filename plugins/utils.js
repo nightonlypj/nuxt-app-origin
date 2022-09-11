@@ -30,6 +30,10 @@ const localeString = (value, defaultValue = null) => {
   return value.toLocaleString()
 }
 
+const textTruncate = (text, length) => {
+  return text == null || text.length <= length ? text : text.substr(0, length) + '...'
+}
+
 export default (_context, inject) => {
   inject('config', useRuntimeConfig())
   inject('dateFormat', dateFormat)
@@ -37,6 +41,7 @@ export default (_context, inject) => {
   inject('pageFirstNumber', pageFirstNumber)
   inject('pageLastNumber', pageLastNumber)
   inject('localeString', localeString)
+  inject('textTruncate', textTruncate)
 }
 
 export const TestPluginUtils = {
@@ -46,5 +51,6 @@ export const TestPluginUtils = {
     Vue.prototype.$pageFirstNumber = pageFirstNumber
     Vue.prototype.$pageLastNumber = pageLastNumber
     Vue.prototype.$localeString = localeString
+    Vue.prototype.$textTruncate = textTruncate
   }
 }
