@@ -55,7 +55,7 @@ describe('ImageEdit.vue', () => {
   const viewTest = (wrapper, uploadImage) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.vm.$data.image).toBe(null)
+    expect(wrapper.vm.$data.image).toBeNull()
 
     // アップロードボタン
     const updateButton = wrapper.find('#user_image_update_btn')
@@ -83,7 +83,7 @@ describe('ImageEdit.vue', () => {
   const updateViewTest = (wrapper) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.vm.$data.image).toBe(null)
+    expect(wrapper.vm.$data.image).toBeNull()
     // Tips: 画像変更のテストは省略（Mockでは実行されない為）
   }
 
@@ -138,7 +138,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
@@ -153,7 +153,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
@@ -168,7 +168,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
@@ -182,7 +182,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
@@ -196,7 +196,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
@@ -210,7 +210,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
@@ -223,7 +223,7 @@ describe('ImageEdit.vue', () => {
       const button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
-      await helper.sleep(1)
+      await helper.sleep(10)
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)

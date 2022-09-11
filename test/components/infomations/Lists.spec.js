@@ -36,7 +36,9 @@ describe('Lists.vue', () => {
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
       expect(links.includes('/infomations/' + infomation.id)).toBe(infomation.body_present) // [本文あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
-      expect(wrapper.text()).toMatch(infomation.summary) // 概要
+      if (infomation.summary != null) {
+        expect(wrapper.text()).toMatch(infomation.summary) // 概要
+      }
       expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日時
     }
   }
@@ -63,7 +65,7 @@ describe('Lists.vue', () => {
       {
         id: 2,
         title: 'タイトル2',
-        summary: '概要2',
+        summary: null,
         body_present: false,
         started_at: '2021-01-02T09:00:00+09:00'
       }

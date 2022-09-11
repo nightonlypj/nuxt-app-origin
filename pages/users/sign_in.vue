@@ -8,7 +8,8 @@
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>
           <v-card-text
-            @keyup.enter="onSignIn(invalid)"
+            @keydown.enter="onKeyDown"
+            @keyup.enter="onSignIn(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -73,7 +74,8 @@ export default {
     return {
       waiting: false,
       email: '',
-      password: ''
+      password: '',
+      keyDownEnter: false
     }
   },
 
@@ -114,9 +116,16 @@ export default {
   },
 
   methods: {
+    // Tips: IME確定のEnterやShift+Enterでログインされないようにする
+    onKeyDown (event) {
+      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+    },
+
     // ログイン
-    async onSignIn (invalid) {
-      if (invalid || this.processing || this.waiting) { return }
+    async onSignIn (invalid, keydown = false) {
+      const enter = this.keyDownEnter
+      this.keyDownEnter = false
+      if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
       await this.postSignIn()

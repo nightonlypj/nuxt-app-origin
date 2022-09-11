@@ -94,11 +94,11 @@ describe('sign_out.vue', () => {
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
 
       // Devise Token Auth
-      expect(localStorage.getItem('token-type')).toBe(null)
-      expect(localStorage.getItem('uid')).toBe(null)
-      expect(localStorage.getItem('client')).toBe(null)
-      expect(localStorage.getItem('access-token')).toBe(null)
-      expect(localStorage.getItem('expiry')).toBe(null)
+      expect(localStorage.getItem('token-type')).toBeNull()
+      expect(localStorage.getItem('uid')).toBeNull()
+      expect(localStorage.getItem('client')).toBeNull()
+      expect(localStorage.getItem('access-token')).toBeNull()
+      expect(localStorage.getItem('expiry')).toBeNull()
     })
 
     it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる

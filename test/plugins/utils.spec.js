@@ -16,8 +16,8 @@ describe('utils.js', () => {
 
     it('[null]nullが返却される', () => {
       const wrapper = mountFunction(null, 'ja')
-      expect(wrapper.vm.dateFormat).toBe(null)
-      expect(wrapper.vm.timeFormat).toBe(null)
+      expect(wrapper.vm.dateFormat).toBeNull()
+      expect(wrapper.vm.timeFormat).toBeNull()
     })
     it('[null/デフォルトあり]デフォルト値が返却される', () => {
       const wrapper = mountFunction(null, 'ja', 'N/A')
@@ -26,8 +26,8 @@ describe('utils.js', () => {
     })
     it('[なし]nullが返却される', () => {
       const wrapper = mountFunction('', 'ja')
-      expect(wrapper.vm.dateFormat).toBe(null)
-      expect(wrapper.vm.timeFormat).toBe(null)
+      expect(wrapper.vm.dateFormat).toBeNull()
+      expect(wrapper.vm.timeFormat).toBeNull()
     })
     it('[なし/デフォルトあり]デフォルト値が返却される', () => {
       const wrapper = mountFunction('', 'ja', 'N/A')
@@ -54,13 +54,13 @@ describe('utils.js', () => {
 
     it('[null]nullが返却される', () => {
       const wrapper = mountFunction(null)
-      expect(wrapper.vm.pageFirstNumber).toBe(null)
-      expect(wrapper.vm.pageLastNumber).toBe(null)
+      expect(wrapper.vm.pageFirstNumber).toBeNull()
+      expect(wrapper.vm.pageLastNumber).toBeNull()
     })
     it('[なし]nullが返却される', () => {
       const wrapper = mountFunction({})
-      expect(wrapper.vm.pageFirstNumber).toBe(null)
-      expect(wrapper.vm.pageLastNumber).toBe(null)
+      expect(wrapper.vm.pageFirstNumber).toBeNull()
+      expect(wrapper.vm.pageLastNumber).toBeNull()
     })
     it('[0件]1-0が返却される', () => {
       const info = Object.freeze({
@@ -109,7 +109,7 @@ describe('utils.js', () => {
 
     it('[null]nullが返却される', () => {
       const wrapper = mountFunction(null)
-      expect(wrapper.vm.localeString).toBe(null)
+      expect(wrapper.vm.localeString).toBeNull()
     })
     it('[null/デフォルトあり]デフォルト値が返却される', () => {
       const wrapper = mountFunction(null, 'N/A')
@@ -117,7 +117,7 @@ describe('utils.js', () => {
     })
     it('[なし]nullが返却される', () => {
       const wrapper = mountFunction('')
-      expect(wrapper.vm.localeString).toBe(null)
+      expect(wrapper.vm.localeString).toBeNull()
     })
     it('[なし/デフォルトあり]デフォルト値が返却される', () => {
       const wrapper = mountFunction('', 'N/A')

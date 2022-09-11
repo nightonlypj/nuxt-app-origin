@@ -41,7 +41,7 @@ export default {
 
   data () {
     return {
-      page: 1,
+      page: Number(this.$route?.query?.page) || 1,
       infomation: null,
       infomations: null
     }
@@ -101,7 +101,12 @@ export default {
           this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true })
         })
 
-      this.page = this.infomation?.current_page
+      this.page = this.infomation?.current_page || 1
+      if (this.page === 1) {
+        this.$router.push({ query: null })
+      } else {
+        this.$router.push({ query: { page: this.page } })
+      }
       return result
     }
   }

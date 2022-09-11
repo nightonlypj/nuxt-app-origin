@@ -8,7 +8,8 @@
         <v-form autocomplete="off" @submit.prevent>
           <v-card-title>パスワード再設定</v-card-title>
           <v-card-text
-            @keyup.enter="onPasswordNew(invalid)"
+            @keydown.enter="onKeyDown"
+            @keyup.enter="onPasswordNew(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -60,7 +61,8 @@ export default {
   data () {
     return {
       waiting: false,
-      email: ''
+      email: '',
+      keyDownEnter: false
     }
   },
 
@@ -81,9 +83,16 @@ export default {
   },
 
   methods: {
+    // Tips: IME確定のEnterやShift+Enter等で送信されないようにする
+    onKeyDown (event) {
+      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+    },
+
     // パスワード再設定
-    async onPasswordNew (invalid) {
-      if (invalid || this.processing || this.waiting) { return }
+    async onPasswordNew (invalid, keydown = false) {
+      const enter = this.keyDownEnter
+      this.keyDownEnter = false
+      if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
       await this.postPasswordNew()
