@@ -1,6 +1,6 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import Member from '~/components/spaces/Member.vue'
+import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Lists.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -14,7 +14,7 @@ describe('Lists.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Member: true
+        SpacesIcon: true
       },
       propsData: {
         spaces
@@ -27,7 +27,7 @@ describe('Lists.vue', () => {
   // テスト内容
   const viewTest = (wrapper, spaces) => {
     const links = helper.getLinks(wrapper)
-    const members = wrapper.findAllComponents(Member)
+    const spacesIcon = wrapper.findAllComponents(SpacesIcon)
 
     // console.log(links)
     // console.log(wrapper.text())
@@ -35,13 +35,10 @@ describe('Lists.vue', () => {
       expect(wrapper.find('#space_image_' + space.code).exists()).toBe(space.image_url != null) // 画像
       expect(links.includes('/spaces/' + space.code)).toBe(true) // スペース詳細
       expect(wrapper.text()).toMatch(space.name) // 名称
-      expect(wrapper.find('#private_icon_' + space.code).exists()).toBe(space.private) // 非公開
-      expect(members.at(index).exists()).toBe(true) // メンバー
-      expect(members.at(index).vm.$props.member).toEqual(space.member || null)
-      if (space.destroy_schedule_at != null) {
-        expect(wrapper.find('#destroy_schedule_icon_' + space.code).exists()).toBe(space.private) // 削除予定日時
-      }
+      expect(spacesIcon.at(index).exists()).toBe(true) // アイコン
+      expect(spacesIcon.at(index).vm.$props.space).toEqual(space)
       expect(wrapper.text()).toMatch(space.description) // 説明
+      expect(links.includes('/members/' + space.code)).toBe(space.current_member != null) // メンバー一覧
     }
   }
 
@@ -66,8 +63,8 @@ describe('Lists.vue', () => {
         description: '非公開スペース1の説明',
         private: true,
         destroy_schedule_at: '2021-01-01T09:00:00+09:00',
-        member: {
-          power: 'Admin',
+        current_member: {
+          power: 'admin',
           power_i18n: '管理者'
         }
       },

@@ -1,4 +1,13 @@
 module.exports = {
+  enum: {
+    member: {
+      powerIcon: {
+        admin: 'mdi-account-cog',
+        writer: 'mdi-account-edit',
+        default: 'mdi-account'
+      }
+    }
+  },
   // ログインAPI
   authSignInURL: '/users/auth/sign_in.json',
   authRedirectSignInURL: '/users/sign_in',
@@ -41,5 +50,7 @@ module.exports = {
   // お知らせ詳細API
   infomationDetailUrl: '/infomations/_id.json',
   // スペース一覧API
-  spacesUrl: '/spaces.json'
+  spacesUrl: '/spaces.json',
+  // メンバー一覧API
+  membersUrl: '/members/_code.json'
 }

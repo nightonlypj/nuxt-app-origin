@@ -2,6 +2,15 @@ module.exports = {
   app_name: 'NuxtAppOrigin',
   my_name: 'My name',
   my_url: 'https://example.com',
+  enums: {
+    member: {
+      power: {
+        admin: '管理者',
+        writer: '投稿者',
+        reader: '閲覧者'
+      }
+    }
+  },
   network: {
     failure: '通信に失敗しました。しばらく時間をあけてから、やり直してください。',
     failure_short: '通信に失敗しました。',

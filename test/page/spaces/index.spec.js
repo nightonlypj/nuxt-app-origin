@@ -4,7 +4,7 @@ import InfiniteLoading from 'vue-infinite-loading'
 import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
-import Lists from '~/components/spaces/Lists.vue'
+import SpacesLists from '~/components/spaces/Lists.vue'
 import Page from '~/pages/spaces/index.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -28,8 +28,8 @@ describe('index.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Lists: true,
-        InfiniteLoading: true
+        InfiniteLoading: true,
+        SpacesLists: true
       },
       mocks: {
         $axios: {
@@ -116,7 +116,7 @@ describe('index.vue', () => {
       expect(wrapper.text()).toMatch('スペースが見つかりません。')
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数
-    expect(wrapper.findComponent(Lists).exists()).toBe(data.spaces?.length > 0)
+    expect(wrapper.findComponent(SpacesLists).exists()).toBe(data.spaces?.length > 0)
 
     const infiniteLoading = wrapper.findComponent(InfiniteLoading)
     expect(infiniteLoading.exists()).toBe(existInfinite)
