@@ -3,6 +3,7 @@ import { createLocalVue, mount } from '@vue/test-utils'
 describe('utils.js', () => {
   const localVue = createLocalVue()
 
+  // 日付/時間を言語のフォーマットで返却
   describe('dateFormat/timeFormat', () => {
     const mountFunction = (value, locales, defaultValue = null) => {
       return mount({
@@ -41,6 +42,7 @@ describe('utils.js', () => {
     })
   })
 
+  // ページの最初/最後の番号を返却
   describe('pageFirstNumber/pageLastNumber', () => {
     const mountFunction = (info) => {
       return mount({
@@ -97,6 +99,7 @@ describe('utils.js', () => {
     })
   })
 
+  // 数値を言語のフォーマットで返却
   describe('localeString', () => {
     const mountFunction = (value, defaultValue = null) => {
       return mount({

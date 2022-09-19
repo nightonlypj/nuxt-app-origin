@@ -90,7 +90,7 @@ describe('sign_in.vue', () => {
     const button = wrapper.find('#sign_in_btn')
     expect(button.exists()).toBe(true)
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(true) // 無効
@@ -101,7 +101,7 @@ describe('sign_in.vue', () => {
 
     // ログインボタン
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (!button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(false) // 有効
@@ -133,13 +133,13 @@ describe('sign_in.vue', () => {
       mountFunction(false, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/resend', query: { alert: query.alert, notice: query.notice } })
     })
     it('[ログイン中]メールアドレス確認にリダイレクトされる', () => {
       mountFunction(true, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/resend', query: { alert: query.alert, notice: query.notice } })
     })
   })
 

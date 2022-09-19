@@ -49,7 +49,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li><NuxtLink to="/users/edit">登録情報変更</NuxtLink></li>
+          <li><NuxtLink to="/users/update">登録情報変更</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>

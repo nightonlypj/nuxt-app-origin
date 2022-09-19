@@ -9,17 +9,10 @@ export class Helper {
 
   // NuxtLinkのURL一覧を配列で返却
   getLinks = (wrapper) => {
-    const routerlinks = wrapper.findAllComponents(RouterLinkStub)
     const links = []
+    const routerlinks = wrapper.findAllComponents(RouterLinkStub)
     for (let i = 0; i < routerlinks.length; i++) {
-      const link = routerlinks.at(i).props().to
-      if (link.name === 'infomations-id___ja') {
-        links.push('/infomations/' + link.params.id) // お知らせ一覧
-      } else if (link.name === 'spaces-code___ja') {
-        links.push('/spaces/' + link.params.code) // スペース一覧
-      } else {
-        links.push(link)
-      }
+      links.push(routerlinks.at(i).props().to)
     }
     return links
   }

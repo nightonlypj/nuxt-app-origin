@@ -21,17 +21,17 @@ module.exports = {
   singUpUrl: '/users/auth/sign_up.json',
   singUpSuccessUrl: '/users/sign_in',
   // メールアドレス確認API
-  confirmationNewUrl: '/users/auth/confirmation.json',
+  confirmationUrl: '/users/auth/confirmation.json',
   confirmationSuccessUrl: '/users/sign_in',
   // アカウントロック解除API
-  unlockNewUrl: '/users/auth/unlock.json',
+  unlockUrl: '/users/auth/unlock.json',
   unlockRedirectUrl: '/users/sign_in',
   // パスワード再設定API
-  passwordNewUrl: '/users/auth/password.json',
+  passwordUrl: '/users/auth/password.json',
   passwordRedirectUrl: '/users/password',
   passwordUpdateUrl: '/users/auth/password/update.json',
   // 登録情報詳細API
-  userShowUrl: '/users/auth/show.json',
+  userDetailUrl: '/users/auth/detail.json',
   // 登録情報変更API
   userUpdateUrl: '/users/auth/update.json',
   // 画像変更API

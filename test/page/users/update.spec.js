@@ -3,14 +3,14 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
-import ImageEdit from '~/components/users/edit/ImageEdit.vue'
-import InfoEdit from '~/components/users/edit/InfoEdit.vue'
-import Page from '~/pages/users/edit.vue'
+import UpdateImage from '~/components/users/update/Image.vue'
+import UpdateData from '~/components/users/update/Data.vue'
+import Page from '~/pages/users/update.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('edit.vue', () => {
+describe('update.vue', () => {
   let axiosGetMock, authFetchUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
 
   beforeEach(() => {
@@ -31,8 +31,8 @@ describe('edit.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        ImageEdit: true,
-        InfoEdit: true
+        UpdateImage: true,
+        UpdateData: true
       },
       mocks: {
         $axios: {
@@ -64,7 +64,7 @@ describe('edit.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userShowUrl)
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDetailUrl)
   }
 
   const viewTest = (wrapper, user, unconfirmed) => {
@@ -73,14 +73,14 @@ describe('edit.vue', () => {
     expect(wrapper.findComponent(Message).exists()).toBe(true)
     expect(wrapper.findComponent(Message).vm.$props.alert).toBeNull()
     expect(wrapper.findComponent(Message).vm.$props.notice).toBeNull()
-    expect(wrapper.findComponent(ImageEdit).exists()).toBe(true)
-    expect(wrapper.findComponent(InfoEdit).exists()).toBe(true)
-    expect(wrapper.findComponent(InfoEdit).vm.$props.user).toBe(user)
+    expect(wrapper.findComponent(UpdateImage).exists()).toBe(true)
+    expect(wrapper.findComponent(UpdateData).exists()).toBe(true)
+    expect(wrapper.findComponent(UpdateData).vm.$props.user).toBe(user)
 
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
-    expect(links.includes('/users/confirmation/new')).toBe(unconfirmed) // [メールアドレス変更中]メールアドレス確認
+    expect(links.includes('/users/confirmation/resend')).toBe(unconfirmed) // [メールアドレス変更中]メールアドレス確認
     expect(links.includes('/users/delete')).toBe(true) // アカウント削除
   }
 

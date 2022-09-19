@@ -9,17 +9,19 @@
           <v-col cols="auto" md="5" align-self="center">
             {{ $localeString(infomation['total_count'], 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString($pageFirstNumber(infomation), 'N/A') }}-{{ $localeString($pageLastNumber(infomation), 'N/A') }}件を表示</template>
           </v-col>
-          <v-col v-if="enablePagination" cols="auto" md="7" class="d-flex justify-end">
-            <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="onInfomations()" />
+          <v-col v-if="enablePagination" cols="12" md="7" class="px-0 py-0">
+            <div class="d-flex justify-end">
+              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="onInfomations()" />
+            </div>
           </v-col>
         </v-row>
 
         <v-divider class="my-4" />
-        <article v-if="!existInfomations">
+        <template v-if="!existInfomations">
           <span class="ml-1">お知らせはありません。</span>
           <v-divider class="my-4" />
-        </article>
-        <Lists v-else :infomations="infomations" />
+        </template>
+        <InfomationsLists v-else :infomations="infomations" />
 
         <div v-if="enablePagination">
           <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="onInfomations()" />
@@ -30,12 +32,12 @@
 </template>
 
 <script>
-import Lists from '~/components/infomations/Lists.vue'
+import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/plugins/application.js'
 
 export default {
   components: {
-    Lists
+    InfomationsLists
   },
   mixins: [Application],
 

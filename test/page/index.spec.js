@@ -1,7 +1,7 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import SignUp from '~/components/index/SignUp.vue'
-import Infomations from '~/components/index/Infomations.vue'
+import IndexSignUp from '~/components/index/SignUp.vue'
+import IndexInfomations from '~/components/index/Infomations.vue'
 import Page from '~/pages/index.vue'
 
 describe('index.vue', () => {
@@ -12,8 +12,8 @@ describe('index.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        SignUp: true,
-        Infomations: true
+        IndexSignUp: true,
+        IndexInfomations: true
       },
       mocks: {
         $auth: {
@@ -28,8 +28,8 @@ describe('index.vue', () => {
   // テスト内容
   const viewTest = (wrapper, loggedIn) => {
     // console.log(wrapper.html())
-    expect(wrapper.findComponent(SignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
-    expect(wrapper.findComponent(Infomations).exists()).toBe(true) // 大切なお知らせ
+    expect(wrapper.findComponent(IndexSignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
+    expect(wrapper.findComponent(IndexInfomations).exists()).toBe(true) // 大切なお知らせ
   }
 
   // テストケース

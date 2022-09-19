@@ -87,7 +87,7 @@ describe('index.vue', () => {
     const button = wrapper.find('#password_update_btn')
     expect(button.exists()).toBe(true)
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(true) // 無効
@@ -98,7 +98,7 @@ describe('index.vue', () => {
 
     // 変更ボタン
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (!button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(false) // 有効
@@ -116,7 +116,7 @@ describe('index.vue', () => {
       mountFunction(false, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: query.alert, notice: query.notice } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
@@ -132,7 +132,7 @@ describe('index.vue', () => {
       mountFunction(false, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: locales.auth.reset_password_token_blank } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
@@ -147,7 +147,7 @@ describe('index.vue', () => {
       mountFunction(false, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: locales.auth.reset_password_token_blank } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
@@ -251,7 +251,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/new', query: { alert: locales.system.default } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: locales.system.default } })
     })
   })
 })

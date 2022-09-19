@@ -2,7 +2,7 @@ import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/_id.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -25,7 +25,7 @@ describe('_id.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Label: true
+        InfomationsLabel: true
       },
       mocks: {
         $route: {
@@ -60,8 +60,8 @@ describe('_id.vue', () => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
 
-    expect(wrapper.findComponent(Label).exists()).toBe(true) // ラベル
-    expect(wrapper.findComponent(Label).vm.$props.infomation).toEqual(data.infomation)
+    expect(wrapper.findComponent(InfomationsLabel).exists()).toBe(true) // ラベル
+    expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(data.infomation)
 
     // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(data.infomation.title) // タイトル

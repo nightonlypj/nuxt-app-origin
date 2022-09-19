@@ -42,7 +42,7 @@
             </v-btn>
           </template>
           <v-list dense rounded>
-            <v-list-item to="/users/edit" nuxt>
+            <v-list-item to="/users/update" nuxt>
               <v-icon>mdi-account-edit</v-icon>
               <v-list-item-title class="ml-2">登録情報変更</v-list-item-title>
             </v-list-item>
@@ -87,7 +87,7 @@
                 <div class="text-truncate ml-1">{{ $auth.user.name }}</div>
               </v-list-item-title>
             </template>
-            <v-list-item to="/users/edit" nuxt>
+            <v-list-item to="/users/update" nuxt>
               <v-icon class="ml-4">mdi-account-edit</v-icon>
               <v-list-item-title class="ml-2">登録情報変更</v-list-item-title>
             </v-list-item>

@@ -114,6 +114,7 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
+          this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
@@ -133,6 +134,7 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
+          this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }

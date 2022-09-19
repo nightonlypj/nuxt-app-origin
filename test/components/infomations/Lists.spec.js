@@ -1,6 +1,6 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/infomations/Lists.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -14,7 +14,7 @@ describe('Lists.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Label: true
+        InfomationsLabel: true
       },
       propsData: {
         infomations
@@ -26,7 +26,7 @@ describe('Lists.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, infomations) => {
-    const labels = wrapper.findAllComponents(Label)
+    const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
 
     // console.log(links)

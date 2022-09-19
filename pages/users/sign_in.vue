@@ -93,7 +93,7 @@ export default {
         }
         break
       case 'false':
-        return this.$router.push({ path: '/users/confirmation/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+        return this.$router.push({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
     switch (this.$route.query.unlock) {
       case 'true':
@@ -116,7 +116,7 @@ export default {
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enterでログインされないようにする
+    // Tips: IME確定のEnterやShift+Enter等でログインされないようにする
     onKeyDown (event) {
       this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
     },

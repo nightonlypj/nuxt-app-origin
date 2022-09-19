@@ -2,10 +2,10 @@
   <div v-if="infomations != null && infomations.length > 0">
     <article v-for="infomation in infomations" :key="infomation.id">
       <div>
-        <Label :infomation="infomation" />
+        <InfomationsLabel :infomation="infomation" />
         <span class="ml-1 font-weight-bold">
           <template v-if="infomation.body_present === true">
-            <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: infomation.id }}">{{ infomation.title }}</NuxtLink>
+            <NuxtLink :to="'/infomations/' + infomation.id">{{ infomation.title }}</NuxtLink>
           </template>
           <template v-else>
             {{ infomation.title }}
@@ -23,30 +23,17 @@
 </template>
 
 <script>
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 
 export default {
   components: {
-    Label
+    InfomationsLabel
   },
 
   props: {
     infomations: {
       type: Array,
       default: null
-    }
-  },
-
-  methods: {
-    powerIcon (power) {
-      switch (power) {
-        case 'Admin':
-          return 'mdi-account-cog'
-        case 'Writer':
-          return 'mdi-account-edit'
-        default:
-          return 'mdi-account'
-      }
     }
   }
 }

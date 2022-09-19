@@ -67,7 +67,7 @@ export default {
     },
     appSetEmitMessage (data, require) {
       this.$emit('alert', this.appGetAlertMessage(data, require))
-      this.$emit('notice', data.notice)
+      this.$emit('notice', data?.notice)
     },
     appSetToastedMessage (data, require) {
       const alert = this.appGetAlertMessage(data, require)
