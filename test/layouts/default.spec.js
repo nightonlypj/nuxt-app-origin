@@ -43,7 +43,7 @@ describe('default.vue', () => {
     expect(links.includes('/users/sign_in')).toBe(!loggedIn) // [未ログイン]ログイン
     expect(links.includes('/users/sign_up')).toBe(!loggedIn) // [未ログイン]アカウント登録
     expect(links.includes('/infomations')).toBe(true) // お知らせ一覧
-    expect(links.includes('/users/edit')).toBe(loggedIn) // [ログイン中]登録情報変更
+    expect(links.includes('/users/update')).toBe(loggedIn) // [ログイン中]登録情報変更
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
     // console.log(wrapper.text())

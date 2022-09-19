@@ -93,10 +93,10 @@ export default {
       return this.appRedirectAlreadyAuth()
     }
     if (this.$route.query.reset_password === 'false') {
-      return this.$router.push({ path: '/users/password/new', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+      return this.$router.push({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
     if (!this.$route.query.reset_password_token) {
-      return this.$router.push({ path: '/users/password/new', query: { alert: this.$t('auth.reset_password_token_blank') } })
+      return this.$router.push({ path: '/users/password/reset', query: { alert: this.$t('auth.reset_password_token_blank') } })
     }
 
     this.processing = false
@@ -141,7 +141,7 @@ export default {
           if (!this.appCheckErrorResponse(error, { toasted: true })) {
             return
           } else if (error.response.data.errors == null) {
-            return this.$router.push({ path: '/users/password/new', query: { alert: this.appGetAlertMessage(error.response.data, true), notice: error.response.data.notice } })
+            return this.$router.push({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(error.response.data, true), notice: error.response.data.notice } })
           }
 
           this.appSetMessage(error.response.data, true)

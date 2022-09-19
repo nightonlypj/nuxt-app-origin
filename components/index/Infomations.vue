@@ -9,10 +9,10 @@
       </v-card-text>
       <v-card-text v-else>
         <article v-for="infomation in infomations" :key="infomation.id" class="mb-1">
-          <Label :infomation="infomation" />
+          <InfomationsLabel :infomation="infomation" />
           <span class="ml-1">
             <template v-if="infomation.body_present === true || infomation.summary !== null">
-              <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: infomation.id }}">{{ infomation.title }}</NuxtLink>
+              <NuxtLink :to="'/infomations/' + infomation.id">{{ infomation.title }}</NuxtLink>
             </template>
             <template v-else>
               {{ infomation.title }}
@@ -29,11 +29,11 @@
 
 <script>
 import Application from '~/plugins/application.js'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 
 export default {
   components: {
-    Label
+    InfomationsLabel
   },
   mixins: [Application],
 

@@ -6,10 +6,10 @@
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off" @submit.prevent>
-          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-title>メールアドレス確認</v-card-title>
           <v-card-text
             @keydown.enter="onKeyDown"
-            @keyup.enter="onPasswordNew(invalid, true)"
+            @keyup.enter="onConfirmationNew(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -22,17 +22,17 @@
               />
             </validation-provider>
             <v-btn
-              id="password_new_btn"
+              id="confirmation_btn"
               color="primary"
               :disabled="invalid || processing || waiting"
-              @click="onPasswordNew(invalid)"
+              @click="onConfirmationNew(invalid)"
             >
               送信
             </v-btn>
           </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <ActionLink action="password" />
+          <v-divider v-if="!$auth.loggedIn" />
+          <v-card-actions v-if="!$auth.loggedIn">
+            <ActionLink action="confirmation" />
           </v-card-actions>
         </v-form>
       </validation-observer>
@@ -68,15 +68,11 @@ export default {
 
   head () {
     return {
-      title: 'パスワード再設定'
+      title: 'メールアドレス確認'
     }
   },
 
   created () {
-    if (this.$auth.loggedIn) {
-      return this.appRedirectAlreadyAuth()
-    }
-
     this.appSetQueryMessage()
     this.processing = false
     this.loading = false
@@ -88,27 +84,31 @@ export default {
       this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
     },
 
-    // パスワード再設定
-    async onPasswordNew (invalid, keydown = false) {
+    // メールアドレス確認
+    async onConfirmationNew (invalid, keydown = false) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.postPasswordNew()
+      await this.postConfirmationNew()
       this.processing = false
     },
 
-    // パスワード再設定API
-    async postPasswordNew () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordNewUrl, {
+    // メールアドレス確認API
+    async postConfirmationNew () {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationUrl, {
         email: this.email,
-        redirect_url: this.$config.frontBaseURL + this.$config.passwordRedirectUrl
+        redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appRedirectSignIn(response.data)
+          if (this.$auth.loggedIn) {
+            this.appRedirectTop(response.data)
+          } else {
+            this.appRedirectSignIn(response.data)
+          }
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true })) { return }

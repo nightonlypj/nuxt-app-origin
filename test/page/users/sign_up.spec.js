@@ -85,7 +85,7 @@ describe('sign_up.vue', () => {
     const button = wrapper.find('#sign_up_btn')
     expect(button.exists()).toBe(true)
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(true) // 無効
@@ -98,7 +98,7 @@ describe('sign_up.vue', () => {
 
     // 登録ボタン
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (!button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(false) // 有効

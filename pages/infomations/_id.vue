@@ -4,7 +4,7 @@
     <v-card v-if="!loading">
       <div v-if="infomation != null">
         <v-card-title>
-          <Label :infomation="infomation" />
+          <InfomationsLabel :infomation="infomation" />
           <span class="ml-1 font-weight-bold">
             {{ infomation.title }}
           </span>
@@ -31,11 +31,11 @@
 
 <script>
 import Application from '~/plugins/application.js'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 
 export default {
   components: {
-    Label
+    InfomationsLabel
   },
   mixins: [Application],
 

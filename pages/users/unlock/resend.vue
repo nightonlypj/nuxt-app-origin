@@ -22,7 +22,7 @@
               />
             </validation-provider>
             <v-btn
-              id="unlock_new_btn"
+              id="unlock_btn"
               color="primary"
               :disabled="invalid || processing || waiting"
               @click="onUnlockNew(invalid)"
@@ -101,7 +101,7 @@ export default {
 
     // アカウントロック解除API
     async postUnlockNew () {
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockNewUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockUrl, {
         email: this.email,
         redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
       })

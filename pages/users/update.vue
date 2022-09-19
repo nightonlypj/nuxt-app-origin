@@ -6,16 +6,16 @@
       <v-card-title>登録情報変更</v-card-title>
       <v-row>
         <v-col cols="auto" md="4">
-          <ImageEdit @alert="alert = $event" @notice="notice = $event" />
+          <UpdateImage @alert="alert = $event" @notice="notice = $event" />
         </v-col>
         <v-col cols="12" md="8">
-          <InfoEdit :user="user" @alert="alert = $event" @notice="notice = $event" />
+          <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
         </v-col>
       </v-row>
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li v-if="user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/new">メールアドレス確認</NuxtLink></li>
+          <li v-if="user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
           <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
         </ul>
       </v-card-actions>
@@ -25,13 +25,13 @@
 
 <script>
 import Application from '~/plugins/application.js'
-import ImageEdit from '~/components/users/edit/ImageEdit.vue'
-import InfoEdit from '~/components/users/edit/InfoEdit.vue'
+import UpdateImage from '~/components/users/update/Image.vue'
+import UpdateData from '~/components/users/update/Data.vue'
 
 export default {
   components: {
-    ImageEdit,
-    InfoEdit
+    UpdateImage,
+    UpdateData
   },
   mixins: [Application],
 
@@ -61,17 +61,17 @@ export default {
       return this.appRedirectDestroyReserved()
     }
 
-    if (!await this.getUserShow()) { return }
+    if (!await this.getUserDetail()) { return }
 
     this.loading = false
   },
 
   methods: {
     // 登録情報詳細API
-    async getUserShow () {
+    async getUserDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.userShowUrl)
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.userDetailUrl)
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true })) { return }
 

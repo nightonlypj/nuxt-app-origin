@@ -2,12 +2,12 @@ import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import locales from '~/locales/ja.js'
 import Processing from '~/components/Processing.vue'
-import Component from '~/components/users/edit/InfoEdit.vue'
+import Component from '~/components/users/update/Data.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('InfoEdit.vue', () => {
+describe('Data.vue', () => {
   let axiosPostMock, authSetUserMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
@@ -86,7 +86,7 @@ describe('InfoEdit.vue', () => {
     const button = wrapper.find('#user_update_btn')
     expect(button.exists()).toBe(true)
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(true) // 無効
@@ -96,7 +96,7 @@ describe('InfoEdit.vue', () => {
 
     // 変更ボタン
     for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
+      await helper.sleep(1)
       if (!button.vm.disabled) { break }
     }
     expect(button.vm.disabled).toBe(false) // 有効

@@ -2,7 +2,7 @@ import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/index/Infomations.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -22,7 +22,7 @@ describe('Infomations.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Label: true
+        InfomationsLabel: true
       },
       mocks: {
         $axios: {
@@ -45,7 +45,7 @@ describe('Infomations.vue', () => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
 
-    const labels = wrapper.findAllComponents(Label)
+    const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
 
     // console.log(links)

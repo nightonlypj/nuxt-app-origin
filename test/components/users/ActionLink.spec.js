@@ -27,9 +27,9 @@ describe('ActionLink.vue', () => {
     // console.log(links)
     expect(links.includes('/users/sign_in')).toBe(action !== 'sign_in') // ログイン
     expect(links.includes('/users/sign_up')).toBe(action !== 'sign_up') // アカウント登録
-    expect(links.includes('/users/password/new')).toBe(action !== 'password') // パスワード再設定
-    expect(links.includes('/users/confirmation/new')).toBe(action !== 'confirmation') // メールアドレス確認
-    expect(links.includes('/users/unlock/new')).toBe(action !== 'unlock') // アカウントロック解除
+    expect(links.includes('/users/password/reset')).toBe(action !== 'password') // パスワード再設定
+    expect(links.includes('/users/confirmation/resend')).toBe(action !== 'confirmation') // メールアドレス確認
+    expect(links.includes('/users/unlock/resend')).toBe(action !== 'unlock') // アカウントロック解除
   }
 
   // テストケース

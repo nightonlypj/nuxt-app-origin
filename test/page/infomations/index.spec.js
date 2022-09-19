@@ -3,7 +3,7 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
-import Lists from '~/components/infomations/Lists.vue'
+import InfomationsLists from '~/components/infomations/Lists.vue'
 import Page from '~/pages/infomations/index.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -29,7 +29,7 @@ describe('index.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Lists: true
+        InfomationsLists: true
       },
       mocks: {
         $axios: {
@@ -115,7 +115,7 @@ describe('index.vue', () => {
       expect(wrapper.find('#pagination2').exists()).toBe(data.infomation.total_pages >= 2)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数、[2頁以上]開始・終了
-    expect(wrapper.findComponent(Lists).exists()).toBe(data.infomations?.length > 0)
+    expect(wrapper.findComponent(InfomationsLists).exists()).toBe(data.infomations?.length > 0)
   }
 
   // テストケース

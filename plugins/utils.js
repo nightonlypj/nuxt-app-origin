@@ -1,3 +1,4 @@
+// 日付を言語のフォーマットで返却
 const dateFormat = (value, locales, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
@@ -5,6 +6,7 @@ const dateFormat = (value, locales, defaultValue = null) => {
   return dtf.format(new Date(value))
 }
 
+// 時間を言語のフォーマットで返却
 const timeFormat = (value, locales, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
@@ -12,18 +14,21 @@ const timeFormat = (value, locales, defaultValue = null) => {
   return dtf.format(new Date(value))
 }
 
+// ページの最初の番号を返却
 const pageFirstNumber = (info) => {
   if (info?.limit_value == null || info?.current_page == null) { return null }
 
   return info.limit_value * (info.current_page - 1) + 1
 }
 
+// ページの最後の番号を返却
 const pageLastNumber = (info) => {
   if (info?.limit_value == null || info?.current_page == null || info?.total_pages == null || info?.total_count == null) { return null }
 
   return (info.current_page < info.total_pages) ? info.limit_value * info.current_page : info.total_count
 }
 
+// 数値を言語のフォーマットで返却
 const localeString = (value, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
