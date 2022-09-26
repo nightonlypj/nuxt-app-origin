@@ -8,8 +8,8 @@
         <v-form autocomplete="off" @submit.prevent>
           <v-card-title>メールアドレス確認</v-card-title>
           <v-card-text
-            @keydown.enter="onKeyDown"
-            @keyup.enter="onConfirmationNew(invalid, true)"
+            @keydown.enter="setKeyDownEnter"
+            @keyup.enter="postConfirmationNew(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -24,8 +24,9 @@
             <v-btn
               id="confirmation_btn"
               color="primary"
+              class="mt-2"
               :disabled="invalid || processing || waiting"
-              @click="onConfirmationNew(invalid)"
+              @click="postConfirmationNew(invalid, false)"
             >
               送信
             </v-btn>
@@ -43,6 +44,9 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
@@ -54,13 +58,20 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
+    Processing,
+    Message,
     ActionLink
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
+      processing: true,
       waiting: false,
+      alert: null,
+      notice: null,
       email: '',
       keyDownEnter: false
     }
@@ -79,24 +90,13 @@ export default {
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等で送信されないようにする
-    onKeyDown (event) {
-      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
-    },
-
     // メールアドレス確認
-    async onConfirmationNew (invalid, keydown = false) {
+    async postConfirmationNew (invalid, keydown) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.postConfirmationNew()
-      this.processing = false
-    },
-
-    // メールアドレス確認API
-    async postConfirmationNew () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationUrl, {
         email: this.email,
         redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
@@ -119,6 +119,8 @@ export default {
             this.waiting = true
           }
         })
+
+      this.processing = false
     }
   }
 }

@@ -30,17 +30,20 @@
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Loading from '~/components/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
+import Application from '~/plugins/application.js'
 
 export default {
   components: {
+    Loading,
     InfomationsLabel
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
       infomation: null
     }
   },
@@ -68,11 +71,11 @@ export default {
   },
 
   methods: {
-    // お知らせ詳細API
+    // お知らせ詳細取得
     async getInfomationDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace('_id', this.$route.params.id))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace(':id', this.$route.params.id))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
 

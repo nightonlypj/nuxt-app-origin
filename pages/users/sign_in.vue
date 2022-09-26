@@ -8,8 +8,8 @@
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>
           <v-card-text
-            @keydown.enter="onKeyDown"
-            @keyup.enter="onSignIn(invalid, true)"
+            @keydown.enter="setKeyDownEnter"
+            @keyup.enter="signIn(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
@@ -36,8 +36,9 @@
             <v-btn
               id="sign_in_btn"
               color="primary"
+              class="mt-4"
               :disabled="invalid || processing || waiting"
-              @click="onSignIn(invalid)"
+              @click="signIn(invalid, false)"
             >
               ログイン
             </v-btn>
@@ -55,6 +56,9 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
@@ -66,13 +70,20 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
+    Processing,
+    Message,
     ActionLink
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
+      processing: true,
       waiting: false,
+      alert: null,
+      notice: null,
       email: '',
       password: '',
       keyDownEnter: false
@@ -116,24 +127,13 @@ export default {
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等でログインされないようにする
-    onKeyDown (event) {
-      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
-    },
-
     // ログイン
-    async onSignIn (invalid, keydown = false) {
+    async signIn (invalid, keydown) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.postSignIn()
-      this.processing = false
-    },
-
-    // ログインAPI
-    async postSignIn () {
       await this.$auth.loginWith('local', {
         data: {
           email: this.email,
@@ -152,6 +152,8 @@ export default {
           this.appSetMessage(error.response.data, true)
           this.waiting = true
         })
+
+      this.processing = false
     }
   }
 }

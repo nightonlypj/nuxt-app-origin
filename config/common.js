@@ -30,20 +30,20 @@ module.exports = {
   passwordUrl: '/users/auth/password.json',
   passwordRedirectUrl: '/users/password',
   passwordUpdateUrl: '/users/auth/password/update.json',
-  // 登録情報詳細API
+  // ユーザー情報詳細API
   userDetailUrl: '/users/auth/detail.json',
-  // 登録情報変更API
+  // ユーザー情報変更API
   userUpdateUrl: '/users/auth/update.json',
-  // 画像変更API
+  // ユーザー画像変更API
   userImageUpdateUrl: '/users/auth/image/update.json',
-  // 画像削除API
+  // ユーザー画像削除API
   userImageDeleteUrl: '/users/auth/image/delete.json',
   // アカウント削除API
   userDeleteUrl: '/users/auth/delete.json',
   userSendUndoDeleteUrl: '/users/undo_delete',
   // アカウント削除取り消しAPI
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
-  // 大切なお知らせAPI
+  // 大切なお知らせ一覧API
   importantInfomationsUrl: '/infomations/important.json',
   // お知らせ一覧API
   infomationsUrl: '/infomations.json',

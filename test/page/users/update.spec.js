@@ -184,7 +184,7 @@ describe('update.vue', () => {
     })
   })
 
-  describe('登録情報詳細', () => {
+  describe('ユーザー情報詳細', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
     it('[データなし]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))

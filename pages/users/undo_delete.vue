@@ -24,7 +24,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_undo_delete_dialog">
-              <v-toolbar color="secondary" dark>アカウント削除取り消し</v-toolbar>
+              <v-toolbar color="secondary" dense dark>アカウント削除取り消し</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-6">本当に取り消しますか？</div>
               </v-card-text>
@@ -39,7 +39,7 @@
                 <v-btn
                   id="user_undo_delete_yes_btn"
                   color="primary"
-                  @click="dialog.value = false; onUserUndoDelete()"
+                  @click="postUserUndoDelete(dialog)"
                 >
                   はい
                 </v-btn>
@@ -53,10 +53,23 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 export default {
+  components: {
+    Loading,
+    Processing
+  },
   mixins: [Application],
+
+  data () {
+    return {
+      loading: true,
+      processing: true
+    }
+  },
 
   head () {
     return {
@@ -84,14 +97,10 @@ export default {
 
   methods: {
     // アカウント削除取り消し
-    async onUserUndoDelete () {
+    async postUserUndoDelete ($dialog) {
       this.processing = true
-      await this.postUserUndoDelete()
-      this.processing = false
-    },
+      $dialog.value = false
 
-    // アカウント削除取り消しAPI
-    async postUserUndoDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
@@ -106,6 +115,8 @@ export default {
         (error) => {
           this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
         })
+
+      this.processing = false
     }
   }
 }

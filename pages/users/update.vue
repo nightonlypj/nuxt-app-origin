@@ -3,7 +3,7 @@
     <Loading v-if="loading" />
     <Message v-if="!loading" :alert="alert" :notice="notice" />
     <v-card v-if="!loading && user != null" max-width="850px">
-      <v-card-title>登録情報変更</v-card-title>
+      <v-card-title>ユーザー情報変更</v-card-title>
       <v-row>
         <v-col cols="auto" md="4">
           <UpdateImage @alert="alert = $event" @notice="notice = $event" />
@@ -24,12 +24,16 @@
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Loading from '~/components/Loading.vue'
+import Message from '~/components/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
+import Application from '~/plugins/application.js'
 
 export default {
   components: {
+    Loading,
+    Message,
     UpdateImage,
     UpdateData
   },
@@ -37,13 +41,16 @@ export default {
 
   data () {
     return {
+      loading: true,
+      alert: null,
+      notice: null,
       user: null
     }
   },
 
   head () {
     return {
-      title: '登録情報変更'
+      title: 'ユーザー情報変更'
     }
   },
 
@@ -67,7 +74,7 @@ export default {
   },
 
   methods: {
-    // 登録情報詳細API
+    // ユーザー情報詳細取得
     async getUserDetail () {
       let result = false
 

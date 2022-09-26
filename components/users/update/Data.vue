@@ -66,8 +66,9 @@
         <v-btn
           id="user_update_btn"
           color="primary"
+          class="mt-4"
           :disabled="invalid || processing || waiting"
-          @click="onUserUpdate()"
+          @click="postUserUpdate()"
         >
           変更
         </v-btn>
@@ -79,6 +80,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
@@ -90,7 +92,8 @@ configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js'))
 export default {
   components: {
     ValidationObserver,
-    ValidationProvider
+    ValidationProvider,
+    Processing
   },
   mixins: [Application],
 
@@ -103,6 +106,7 @@ export default {
 
   data () {
     return {
+      processing: true,
       waiting: false,
       name: '',
       email: '',
@@ -119,15 +123,10 @@ export default {
   },
 
   methods: {
-    // 登録情報変更
-    async onUserUpdate () {
-      this.processing = true
-      await this.postUserUpdate()
-      this.processing = false
-    },
-
-    // 登録情報変更API
+    // ユーザー情報変更
     async postUserUpdate () {
+      this.processing = true
+
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
         name: this.name,
         email: this.email,
@@ -155,6 +154,8 @@ export default {
             this.waiting = true
           }
         })
+
+      this.processing = false
     }
   }
 }

@@ -23,7 +23,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_delete_dialog">
-              <v-toolbar color="error" dark>アカウント削除</v-toolbar>
+              <v-toolbar color="error" dense dark>アカウント削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
@@ -37,7 +37,8 @@
                 </v-btn>
                 <v-btn
                   id="user_delete_yes_btn"
-                  color="error" @click="dialog.value = false; onUserDelete()"
+                  color="error"
+                  @click="postUserDelete(dialog)"
                 >
                   はい
                 </v-btn>
@@ -49,7 +50,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li><NuxtLink to="/users/update">登録情報変更</NuxtLink></li>
+          <li><NuxtLink to="/users/update">ユーザー情報変更</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>
@@ -57,10 +58,23 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 export default {
+  components: {
+    Loading,
+    Processing
+  },
   mixins: [Application],
+
+  data () {
+    return {
+      loading: true,
+      processing: true
+    }
+  },
 
   head () {
     return {
@@ -88,14 +102,10 @@ export default {
 
   methods: {
     // アカウント削除
-    async onUserDelete () {
+    async postUserDelete ($dialog) {
       this.processing = true
-      await this.postUserDelete()
-      this.processing = false
-    },
+      $dialog.value = false
 
-    // アカウント削除API
-    async postUserDelete () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userDeleteUrl, {
         undo_delete_url: this.$config.frontBaseURL + this.$config.userSendUndoDeleteUrl
       })
@@ -107,6 +117,8 @@ export default {
         (error) => {
           this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
         })
+
+      this.processing = false
     }
   }
 }
