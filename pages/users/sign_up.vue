@@ -55,8 +55,9 @@
             <v-btn
               id="sign_up_btn"
               color="primary"
+              class="mt-4"
               :disabled="invalid || processing || waiting"
-              @click="onSignUp()"
+              @click="postSingUp()"
             >
               登録
             </v-btn>
@@ -74,6 +75,9 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
@@ -87,13 +91,20 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
+    Processing,
+    Message,
     ActionLink
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
+      processing: true,
       waiting: false,
+      alert: null,
+      notice: null,
       name: '',
       email: '',
       password: '',
@@ -118,14 +129,9 @@ export default {
 
   methods: {
     // アカウント登録
-    async onSignUp () {
-      this.processing = true
-      await this.postSingUp()
-      this.processing = false
-    },
-
-    // アカウント登録API
     async postSingUp () {
+      this.processing = true
+
       await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
         name: this.name,
         email: this.email,
@@ -147,6 +153,8 @@ export default {
             this.waiting = true
           }
         })
+
+      this.processing = false
     }
   }
 }

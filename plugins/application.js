@@ -1,24 +1,10 @@
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
-
 export default {
-  components: {
-    Loading,
-    Processing,
-    Message
-  },
-
-  data () {
-    return {
-      loading: true,
-      processing: true,
-      alert: null,
-      notice: null
-    }
-  },
-
   methods: {
+    // Tips: IME確定のEnterやShift+Enter等でログインされないようにする
+    setKeyDownEnter ($event) {
+      this.keyDownEnter = $event.keyCode === 13 && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
+    },
+
     // レスポンスチェック
     appCheckResponse (response, action = { redirect: false, toasted: false, returnKey: false }, systemError = false) {
       if (response.data == null || systemError) {

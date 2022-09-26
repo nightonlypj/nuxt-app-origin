@@ -34,22 +34,22 @@ describe('Label.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[なし]表示されない', () => {
-    const infomation = Object.freeze({ label: 'Not', label_i18n: '' })
+    const infomation = Object.freeze({ label: 'not', label_i18n: '' })
     const wrapper = mountFunction(infomation)
     helper.blankTest(wrapper)
   })
   it('[メンテナンス]表示される', () => {
-    const infomation = Object.freeze({ label: 'Maintenance', label_i18n: 'メンテナンス' })
+    const infomation = Object.freeze({ label: 'maintenance', label_i18n: 'メンテナンス' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'error', infomation)
   })
   it('[障害]表示される', () => {
-    const infomation = Object.freeze({ label: 'Hindrance', label_i18n: '障害' })
+    const infomation = Object.freeze({ label: 'hindrance', label_i18n: '障害' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'warning', infomation)
   })
   it('[その他]表示される', () => {
-    const infomation = Object.freeze({ label: 'Other', label_i18n: 'その他' })
+    const infomation = Object.freeze({ label: 'other', label_i18n: 'その他' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'info', infomation)
   })

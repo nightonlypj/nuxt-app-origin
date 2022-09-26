@@ -102,7 +102,7 @@ describe('Data.vue', () => {
     expect(button.vm.disabled).toBe(false) // 有効
   })
 
-  describe('登録情報変更', () => {
+  describe('ユーザー情報変更', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     const values = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })

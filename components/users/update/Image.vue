@@ -20,8 +20,9 @@
         <v-btn
           id="user_image_update_btn"
           color="primary"
+          class="mt-2"
           :disabled="invalid || image == null || processing || waiting"
-          @click="onUserImageUpdate()"
+          @click="postUserImageUpdate()"
         >
           アップロード
         </v-btn>
@@ -30,6 +31,7 @@
             <v-btn
               id="user_image_delete_btn"
               color="secondary"
+              class="mt-2"
               :disabled="!$auth.user.upload_image || processing"
               v-bind="attrs"
               v-on="on"
@@ -39,7 +41,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_image_delete_dialog">
-              <v-toolbar color="secondary" dark>画像削除</v-toolbar>
+              <v-toolbar color="secondary" dense dark>画像削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-6">本当に削除しますか？</div>
               </v-card-text>
@@ -54,7 +56,7 @@
                 <v-btn
                   id="user_image_delete_yes_btn"
                   color="primary"
-                  @click="dialog.value = false; onUserImageDelete()"
+                  @click="postUserImageDelete(dialog)"
                 >
                   はい
                 </v-btn>
@@ -70,6 +72,7 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { size } from 'vee-validate/dist/rules'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 extend('size_20MB', size)
@@ -78,7 +81,8 @@ configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js'))
 export default {
   components: {
     ValidationObserver,
-    ValidationProvider
+    ValidationProvider,
+    Processing
   },
   mixins: [Application],
 
@@ -91,22 +95,10 @@ export default {
   },
 
   methods: {
-    // 画像変更
-    async onUserImageUpdate () {
-      this.processing = true
-      await this.postUserImageUpdate()
-      this.processing = false
-    },
-
-    // 画像削除
-    async onUserImageDelete () {
-      this.processing = true
-      await this.postUserImageDelete()
-      this.processing = false
-    },
-
-    // 画像変更API
+    // ユーザー画像変更
     async postUserImageUpdate () {
+      this.processing = true
+
       const params = new FormData()
       params.append('image', this.image)
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
@@ -114,7 +106,6 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
-          this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
@@ -125,22 +116,28 @@ export default {
             this.waiting = true
           }
         })
+
+      this.processing = false
     },
 
-    // 画像削除API
-    async postUserImageDelete () {
+    // ユーザー画像削除
+    async postUserImageDelete ($dialog) {
+      this.processing = true
+      $dialog.value = false
+
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.setUser(response)
-          this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
         })
+
+      this.processing = false
     },
 
     // ユーザー情報更新
@@ -148,6 +145,8 @@ export default {
       this.$auth.setUser(response.data.user)
       this.appSetToastedMessage(response.data, false)
       this.image = null
+
+      this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
     }
   }
 }

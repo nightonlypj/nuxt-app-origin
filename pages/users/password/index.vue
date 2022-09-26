@@ -8,8 +8,8 @@
         <v-form autocomplete="off">
           <v-card-title>パスワード再設定</v-card-title>
           <v-card-text
-            @keydown.enter="onKeyDown"
-            @keyup.enter="onPasswordUpdate(invalid, true)"
+            @keydown.enter="setKeyDownEnter"
+            @keyup.enter="postPasswordUpdate(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
@@ -38,8 +38,9 @@
             <v-btn
               id="password_update_btn"
               color="primary"
+              class="mt-4"
               :disabled="invalid || processing || waiting"
-              @click="onPasswordUpdate(invalid)"
+              @click="postPasswordUpdate(invalid, false)"
             >
               変更
             </v-btn>
@@ -57,6 +58,9 @@
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, min, confirmed } from 'vee-validate/dist/rules'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
@@ -69,13 +73,20 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
+    Loading,
+    Processing,
+    Message,
     ActionLink
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
+      processing: true,
       waiting: false,
+      alert: null,
+      notice: null,
       password: '',
       password_confirmation: '',
       keyDownEnter: false
@@ -104,24 +115,13 @@ export default {
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等で送信されないようにする
-    onKeyDown (event) {
-      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
-    },
-
     // パスワード再設定
-    async onPasswordUpdate (invalid, keydown = false) {
+    async postPasswordUpdate (invalid, keydown) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.postPasswordUpdate()
-      this.processing = false
-    },
-
-    // パスワード再設定API
-    async postPasswordUpdate () {
       await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         password: this.password,
@@ -150,6 +150,8 @@ export default {
             this.waiting = true
           }
         })
+
+      this.processing = false
     }
   }
 }

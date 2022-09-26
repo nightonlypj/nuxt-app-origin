@@ -52,7 +52,7 @@ describe('_id.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace('_id', 1))
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', 1))
   }
 
   const viewTest = (wrapper, data) => {

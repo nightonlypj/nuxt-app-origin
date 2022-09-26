@@ -28,17 +28,20 @@
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Loading from '~/components/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
+import Application from '~/plugins/application.js'
 
 export default {
   components: {
+    Loading,
     InfomationsLabel
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
       errorMessage: null,
       infomations: null
     }
@@ -56,7 +59,7 @@ export default {
   },
 
   methods: {
-    // 大切なお知らせAPI
+    // 大切なお知らせ一覧取得
     async getImportantInfomations () {
       await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
         .then((response) => {

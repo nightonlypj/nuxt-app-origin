@@ -11,7 +11,7 @@
           class="ml-1"
           color="primary"
           :disabled="processing"
-          @click="onSignOut()"
+          @click="signOut()"
         >
           はい（ログアウト）
         </v-btn>
@@ -21,10 +21,23 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 export default {
+  components: {
+    Loading,
+    Processing
+  },
   mixins: [Application],
+
+  data () {
+    return {
+      loading: true,
+      processing: true
+    }
+  },
 
   head () {
     return {
@@ -43,7 +56,7 @@ export default {
 
   methods: {
     // ログアウト
-    onSignOut () {
+    signOut () {
       this.processing = true
       this.appSignOut('auth.signed_out')
     }

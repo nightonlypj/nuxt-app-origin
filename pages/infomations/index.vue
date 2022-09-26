@@ -11,7 +11,7 @@
           </v-col>
           <v-col v-if="enablePagination" cols="12" md="7" class="px-0 py-0">
             <div class="d-flex justify-end">
-              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="onInfomations()" />
+              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomations()" />
             </div>
           </v-col>
         </v-row>
@@ -24,7 +24,7 @@
         <InfomationsLists v-else :infomations="infomations" />
 
         <div v-if="enablePagination">
-          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="onInfomations()" />
+          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomations()" />
         </div>
       </v-card-text>
     </v-card>
@@ -32,17 +32,23 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/plugins/application.js'
 
 export default {
   components: {
+    Loading,
+    Processing,
     InfomationsLists
   },
   mixins: [Application],
 
   data () {
     return {
+      loading: true,
+      processing: true,
       page: Number(this.$route?.query?.page) || 1,
       infomation: null,
       infomations: null
@@ -65,29 +71,22 @@ export default {
   },
 
   async created () {
-    await this.onInfomations()
+    if (await this.getInfomations() && this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
+      // トークン検証
+      try {
+        await this.$auth.fetchUser() // Tips: お知らせ未読数をリセット
+      } catch (error) {
+        this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
+      }
+    }
+
     this.loading = false
   },
 
   methods: {
-    // お知らせ一覧
-    async onInfomations () {
-      this.processing = true
-
-      if (await this.getInfomations() && this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) {
-        // トークン検証
-        try {
-          await this.$auth.fetchUser() // Tips: お知らせ未読数をリセット
-        } catch (error) {
-          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
-        }
-      }
-
-      this.processing = false
-    },
-
-    // お知らせ一覧API
+    // お知らせ一覧取得
     async getInfomations () {
+      this.processing = true
       let result = false
 
       const redirect = this.infomation == null
@@ -109,6 +108,8 @@ export default {
       } else {
         this.$router.push({ query: { page: this.page } })
       }
+
+      this.processing = false
       return result
     }
   }
