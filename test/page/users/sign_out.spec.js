@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/sign_out.vue'
@@ -24,6 +23,10 @@ describe('sign_out.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true
+      },
       mocks: {
         $auth: {
           loggedIn,
@@ -63,7 +66,7 @@ describe('sign_out.vue', () => {
   it('[未ログイン]トップページにリダイレクトされる', () => {
     mountFunction(false)
     helper.mockCalledTest(toastedErrorMock, 0)
-    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_signed_out)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_signed_out)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
   it('[ログイン中]表示される', () => {
@@ -90,7 +93,7 @@ describe('sign_out.vue', () => {
       updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
 
       // Devise Token Auth
@@ -110,8 +113,8 @@ describe('sign_out.vue', () => {
       await helper.sleep(1)
       updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
@@ -123,8 +126,8 @@ describe('sign_out.vue', () => {
       await helper.sleep(1)
       updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
@@ -136,8 +139,8 @@ describe('sign_out.vue', () => {
       await helper.sleep(1)
       updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.signed_out)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
   })

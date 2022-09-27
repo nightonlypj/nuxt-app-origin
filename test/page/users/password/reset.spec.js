@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -26,6 +25,12 @@ describe('reset.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true,
+        Message: true,
+        ActionLink: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -89,7 +94,7 @@ describe('reset.vue', () => {
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
@@ -102,26 +107,20 @@ describe('reset.vue', () => {
       // 送信ボタン
       const button = wrapper.find('#password_btn')
       expect(button.exists()).toBe(true)
-      for (let i = 0; i < 100; i++) {
-        await helper.sleep(1)
-        if (button.vm.disabled) { break }
-      }
+      await helper.waitChangeDisabled(button, true)
       expect(button.vm.disabled).toBe(true) // 無効
 
       // 入力
       wrapper.vm.$data.email = 'user1@example.com'
 
       // 送信ボタン
-      for (let i = 0; i < 100; i++) {
-        await helper.sleep(1)
-        if (!button.vm.disabled) { break }
-      }
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
@@ -129,7 +128,7 @@ describe('reset.vue', () => {
   describe('パスワード再設定', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com' })
-    it('[成功]ログインページにリダイレクトされる', async () => {
+    it('[成功][ボタンクリック]ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       const wrapper = mountFunction(false, {}, values)
       const button = wrapper.find('#password_btn')
@@ -141,6 +140,29 @@ describe('reset.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
+    it('[成功][Enter送信]ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      const wrapper = mountFunction(false, {}, values)
+      const inputArea = wrapper.find('#input_area')
+      inputArea.trigger('keydown.enter', { isComposing: false })
+      inputArea.trigger('keyup.enter')
+
+      await helper.sleep(1)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+    })
+    it('[成功][IME確定のEnter]APIリクエストされない', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      const wrapper = mountFunction(false, {}, values)
+      const inputArea = wrapper.find('#input_area')
+      inputArea.trigger('keydown.enter', { isComposing: true })
+      inputArea.trigger('keyup.enter')
+
+      await helper.sleep(1)
+      expect(axiosPostMock).toBeCalledTimes(0)
+    })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       const wrapper = mountFunction(false, {}, values)
@@ -149,7 +171,7 @@ describe('reset.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -162,7 +184,7 @@ describe('reset.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -174,7 +196,7 @@ describe('reset.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -197,7 +219,7 @@ describe('reset.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.messageTest(wrapper, Message, { alert: locales.system.default })
+      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

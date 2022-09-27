@@ -16,6 +16,7 @@ describe('default.vue', () => {
       vuetify,
       stubs: {
         GoTop: true,
+        DestroyInfo: true,
         Nuxt: true
       },
       mocks: {

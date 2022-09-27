@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
@@ -29,6 +28,8 @@ describe('index.vue', () => {
       localVue,
       vuetify,
       stubs: {
+        Loading: true,
+        Processing: true,
         InfomationsLists: true
       },
       mocks: {
@@ -199,7 +200,7 @@ describe('index.vue', () => {
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.system.error })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
@@ -207,7 +208,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
         viewTest(wrapper, values1to2, '3件中 1-2件を表示')
@@ -223,7 +224,7 @@ describe('index.vue', () => {
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.system.error })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation: null } }))
@@ -231,7 +232,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
         viewTest(wrapper, values1to2, '3件中 1-2件を表示')
@@ -248,7 +249,7 @@ describe('index.vue', () => {
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
@@ -256,7 +257,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
         viewTest(wrapper, values1to2, '3件中 1-2件を表示')
@@ -272,7 +273,7 @@ describe('index.vue', () => {
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -280,7 +281,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
         viewTest(wrapper, values1to2, '3件中 1-2件を表示')
@@ -296,7 +297,7 @@ describe('index.vue', () => {
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: locales.system.default })
+        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -304,7 +305,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
+        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 1, { query: null })
         viewTest(wrapper, values1to2, '3件中 1-2件を表示')
@@ -352,7 +353,7 @@ describe('index.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { query: null })
       viewTest(wrapper, data1, '3件中 1-2件を表示')
@@ -368,7 +369,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       helper.mockCalledTest(routerPushMock, 1, { query: null })
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
@@ -382,7 +383,7 @@ describe('index.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { query: null })
       viewTest(wrapper, data1, '3件中 1-2件を表示')

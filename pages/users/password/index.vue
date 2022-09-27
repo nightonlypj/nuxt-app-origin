@@ -8,7 +8,8 @@
         <v-form autocomplete="off">
           <v-card-title>パスワード再設定</v-card-title>
           <v-card-text
-            @keydown.enter="setKeyDownEnter"
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="postPasswordUpdate(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">

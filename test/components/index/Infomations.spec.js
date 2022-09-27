@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/index/Infomations.vue'
@@ -22,6 +21,7 @@ describe('Infomations.vue', () => {
       localVue,
       vuetify,
       stubs: {
+        Loading: true,
         InfomationsLabel: true
       },
       mocks: {
@@ -55,7 +55,7 @@ describe('Infomations.vue', () => {
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
       expect(links.includes('/infomations/' + infomation.id)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
-      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日時
+      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日
     }
   }
 
@@ -100,7 +100,7 @@ describe('Infomations.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest()
-      viewErrorTest(wrapper, 'system.error', locales.system.error_short)
+      viewErrorTest(wrapper, 'system.error', helper.locales.system.error_short)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -110,7 +110,7 @@ describe('Infomations.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest()
-      viewErrorTest(wrapper, 'network.failure', locales.network.failure_short)
+      viewErrorTest(wrapper, 'network.failure', helper.locales.network.failure_short)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -119,7 +119,7 @@ describe('Infomations.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest()
-      viewErrorTest(wrapper, 'network.error', locales.network.error_short)
+      viewErrorTest(wrapper, 'network.error', helper.locales.network.error_short)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -128,7 +128,7 @@ describe('Infomations.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest()
-      viewErrorTest(wrapper, 'system.default', locales.system.default_short)
+      viewErrorTest(wrapper, 'system.default', helper.locales.system.default_short)
     })
   })
 })

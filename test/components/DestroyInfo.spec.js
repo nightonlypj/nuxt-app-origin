@@ -27,14 +27,14 @@ describe('DestroyInfo.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, destroyScheduleDate) => {
+  const viewTest = (wrapper, user) => {
     const links = helper.getLinks(wrapper)
 
     // console.log(links)
     expect(links.includes('/users/undo_delete')).toBe(true) // アカウント削除取り消し
 
     // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(destroyScheduleDate) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(user.destroy_schedule_at, 'ja')) // 削除予定日
   }
 
   // テストケース
@@ -49,7 +49,7 @@ describe('DestroyInfo.vue', () => {
   it('[ログイン中（削除予約済み）]表示される', () => {
     const user = Object.freeze({ destroy_schedule_at: '2021-01-01T09:00:00+09:00' })
     const wrapper = mountFunction('/', true, user)
-    viewTest(wrapper, '2021/01/01')
+    viewTest(wrapper, user)
   })
 
   describe('アカウント削除取り消しページ', () => {

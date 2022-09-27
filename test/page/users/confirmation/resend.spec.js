@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -26,6 +25,12 @@ describe('resend.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true,
+        Message: true,
+        ActionLink: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -102,20 +107,14 @@ describe('resend.vue', () => {
       // 送信ボタン
       const button = wrapper.find('#confirmation_btn')
       expect(button.exists()).toBe(true)
-      for (let i = 0; i < 100; i++) {
-        await helper.sleep(1)
-        if (button.vm.disabled) { break }
-      }
+      await helper.waitChangeDisabled(button, true)
       expect(button.vm.disabled).toBe(true) // 無効
 
       // 入力
       wrapper.vm.$data.email = 'user1@example.com'
 
       // 送信ボタン
-      for (let i = 0; i < 100; i++) {
-        await helper.sleep(1)
-        if (!button.vm.disabled) { break }
-      }
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
     })
     it('[ログイン中]表示される', () => {
@@ -127,7 +126,7 @@ describe('resend.vue', () => {
   describe('メールアドレス確認', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com' })
-    it('[成功][未ログイン]ログインページにリダイレクトされる', async () => {
+    it('[成功][未ログイン][ボタンクリック]ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       const wrapper = mountFunction(false, {}, values)
 
@@ -140,6 +139,33 @@ describe('resend.vue', () => {
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
+    })
+    it('[成功][未ログイン][Enter送信]ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      const wrapper = mountFunction(false, {}, values)
+
+      await helper.sleep(1)
+      const inputArea = wrapper.find('#input_area')
+      inputArea.trigger('keydown.enter', { isComposing: false })
+      inputArea.trigger('keyup.enter')
+
+      await helper.sleep(1)
+      apiCalledTest(values)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
+    })
+    it('[成功][未ログイン][IME確定のEnter]APIリクエストされない', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      const wrapper = mountFunction(false, {}, values)
+
+      await helper.sleep(1)
+      const inputArea = wrapper.find('#input_area')
+      inputArea.trigger('keydown.enter', { isComposing: true })
+      inputArea.trigger('keyup.enter')
+
+      await helper.sleep(1)
+      expect(axiosPostMock).toBeCalledTimes(0)
     })
     it('[成功][ログイン中]トップページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
@@ -165,7 +191,7 @@ describe('resend.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -180,7 +206,7 @@ describe('resend.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -194,7 +220,7 @@ describe('resend.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -221,7 +247,7 @@ describe('resend.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.messageTest(wrapper, Message, { alert: locales.system.default })
+      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

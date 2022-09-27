@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -26,6 +25,12 @@ describe('sign_up.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true,
+        Message: true,
+        ActionLink: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -84,10 +89,7 @@ describe('sign_up.vue', () => {
     // 登録ボタン
     const button = wrapper.find('#sign_up_btn')
     expect(button.exists()).toBe(true)
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(1)
-      if (button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, true)
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
@@ -97,16 +99,13 @@ describe('sign_up.vue', () => {
     wrapper.vm.$data.password_confirmation = 'abc12345'
 
     // 登録ボタン
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(1)
-      if (!button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, false)
     expect(button.vm.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true)
     helper.mockCalledTest(toastedErrorMock, 0)
-    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.already_authenticated)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
 
@@ -133,7 +132,7 @@ describe('sign_up.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -146,7 +145,7 @@ describe('sign_up.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -158,7 +157,7 @@ describe('sign_up.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -181,7 +180,7 @@ describe('sign_up.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(values)
-      helper.messageTest(wrapper, Message, { alert: locales.system.default })
+      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })
