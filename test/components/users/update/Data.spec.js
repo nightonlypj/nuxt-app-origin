@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Processing from '~/components/Processing.vue'
 import Component from '~/components/users/update/Data.vue'
 
@@ -25,6 +24,9 @@ describe('Data.vue', () => {
     const wrapper = mount(Component, {
       localVue,
       vuetify,
+      stubs: {
+        Processing: true
+      },
       propsData: {
         user
       },
@@ -85,20 +87,14 @@ describe('Data.vue', () => {
     // 変更ボタン
     const button = wrapper.find('#user_update_btn')
     expect(button.exists()).toBe(true)
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(1)
-      if (button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, true)
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
     wrapper.vm.$data.current_password = 'abc12345'
 
     // 変更ボタン
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(1)
-      if (!button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, false)
     expect(button.vm.disabled).toBe(false) // 有効
   })
 
@@ -145,7 +141,7 @@ describe('Data.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -160,7 +156,7 @@ describe('Data.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -175,7 +171,7 @@ describe('Data.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -188,7 +184,7 @@ describe('Data.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -215,7 +211,7 @@ describe('Data.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, { alert: locales.system.default })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

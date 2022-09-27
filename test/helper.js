@@ -3,6 +3,7 @@ import { RouterLinkStub } from '@vue/test-utils'
 export class Helper {
   envConfig = require('~/config/test.js')
   commonConfig = require('~/config/common.js')
+  locales = require('~/locales/ja.js')
 
   // 一定時間停止
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -59,9 +60,18 @@ export class Helper {
     expect(wrapper.emitted().notice).toEqual([[data.notice]])
   }
 
-  disabledTest = (wrapper, Processing, button, disabled) => {
+  disabledTest = async (wrapper, Processing, button, disabled) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
+    await this.waitChangeDisabled(button, disabled)
     expect(button.vm.disabled).toBe(disabled)
+  }
+
+  // Tips: 待ち時間を増やさないと状態が変わらない場合に使用
+  waitChangeDisabled = async (button, disabled) => {
+    for (let i = 0; i < 100; i++) {
+      await this.sleep(1)
+      if (button.vm.disabled === disabled) { break }
+    }
   }
 }

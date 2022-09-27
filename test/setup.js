@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Vuetify from 'vuetify'
 import { config, RouterLinkStub } from '@vue/test-utils'
 import { TestPluginUtils } from '~/plugins/utils.js'
-import locales from '~/locales/ja.js'
 
 Vue.use(Vuetify)
 Vue.use(TestPluginUtils)
@@ -10,6 +9,7 @@ Vue.use(TestPluginUtils)
 // Mock Config/i18n
 const envConfig = require('~/config/test.js')
 const commonConfig = require('~/config/common.js')
+const locales = require('~/locales/ja.js')
 config.mocks = {
   $config: Object.assign(envConfig, commonConfig),
   $t: (key) => {

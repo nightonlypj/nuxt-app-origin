@@ -1,8 +1,8 @@
 export default {
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等でログインされないようにする
-    setKeyDownEnter ($event) {
-      this.keyDownEnter = $event.keyCode === 13 && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
+    // Tips: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
+    appSetKeyDownEnter ($event) {
+      this.keyDownEnter = !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
     },
 
     // レスポンスチェック
@@ -92,7 +92,7 @@ export default {
     appRedirectNotDestroyReserved () {
       this.appRedirectTop({ alert: this.$t('auth.not_destroy_reserved') })
     },
-    appRedirectTop (data = null, require = false) {
+    appRedirectTop (data, require = false) {
       this.appSetToastedMessage(data, require)
       this.$router.push({ path: '/' })
     },

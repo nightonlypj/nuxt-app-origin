@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/delete.vue'
@@ -28,6 +27,10 @@ describe('delete.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -81,7 +84,7 @@ describe('delete.vue', () => {
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 0)
-    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
   })
   it('[ログイン中]表示される', async () => {
@@ -119,7 +122,7 @@ describe('delete.vue', () => {
     await helper.sleep(1)
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
-    helper.mockCalledTest(toastedErrorMock, 1, locales.auth.destroy_reserved)
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
@@ -136,7 +139,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -147,7 +150,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
@@ -160,7 +163,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -172,7 +175,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: locales.system.default })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
     })
   })
 
@@ -213,7 +216,7 @@ describe('delete.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -233,7 +236,7 @@ describe('delete.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -253,7 +256,7 @@ describe('delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -271,7 +274,7 @@ describe('delete.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -290,7 +293,7 @@ describe('delete.vue', () => {
       await helper.sleep(1)
       apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })

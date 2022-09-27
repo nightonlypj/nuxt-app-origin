@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/undo_delete.vue'
@@ -29,6 +28,10 @@ describe('undo_delete.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -58,14 +61,14 @@ describe('undo_delete.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, destroyRequestedTime, destroyScheduleDate) => {
+  const viewTest = (wrapper, user) => {
     // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
     // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(destroyRequestedTime) // 削除依頼日時
-    expect(wrapper.text()).toMatch(destroyScheduleDate) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(user.destroy_requested_at, 'ja')) // 削除依頼日時
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(user.destroy_schedule_at, 'ja')) // 削除予定日
   }
 
   const apiCalledTest = () => {
@@ -82,7 +85,7 @@ describe('undo_delete.vue', () => {
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 0)
-    helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
   })
   it('[ログイン中]トップページにリダイレクトされる', async () => {
@@ -93,7 +96,7 @@ describe('undo_delete.vue', () => {
     await helper.sleep(1)
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
-    helper.mockCalledTest(toastedErrorMock, 1, locales.auth.not_destroy_reserved)
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.not_destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
@@ -105,7 +108,7 @@ describe('undo_delete.vue', () => {
     await helper.sleep(1)
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
-    viewTest(wrapper, '2021/01/01 09:00', '2021/01/08')
+    viewTest(wrapper, user)
 
     // 取り消しボタン
     const button = wrapper.find('#user_undo_delete_btn')
@@ -137,7 +140,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -148,7 +151,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
@@ -161,7 +164,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
     })
   })
 
@@ -225,7 +228,7 @@ describe('undo_delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -246,7 +249,7 @@ describe('undo_delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -267,7 +270,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -286,7 +289,7 @@ describe('undo_delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -306,7 +309,7 @@ describe('undo_delete.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.default)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })

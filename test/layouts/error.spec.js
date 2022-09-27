@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Layout from '~/layouts/error.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -38,11 +37,11 @@ describe('error.vue', () => {
   describe('alertなし', () => {
     it('[404]表示される', () => {
       const wrapper = mountFunction(404)
-      viewTest(wrapper, locales.system.notfound)
+      viewTest(wrapper, helper.locales.system.notfound)
     })
     it('[500]表示される', () => {
       const wrapper = mountFunction(500)
-      viewTest(wrapper, locales.system.default)
+      viewTest(wrapper, helper.locales.system.default)
     })
   })
   describe('alertあり', () => {

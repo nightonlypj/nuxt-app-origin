@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/_id.vue'
@@ -25,6 +24,7 @@ describe('_id.vue', () => {
       localVue,
       vuetify,
       stubs: {
+        Loading: true,
         InfomationsLabel: true
       },
       mocks: {
@@ -65,7 +65,7 @@ describe('_id.vue', () => {
 
     // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(data.infomation.title) // タイトル
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(data.infomation.started_at, 'ja')) // 開始日時
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(data.infomation.started_at, 'ja')) // 開始日
     if (data.infomation.body != null) {
       expect(wrapper.text()).toMatch(data.infomation.body) // 本文
       expect(wrapper.text()).not.toMatch(data.infomation.summary) // 概要
@@ -123,7 +123,7 @@ describe('_id.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.system.error })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -134,7 +134,7 @@ describe('_id.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: locales.network.failure })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
     })
     it('[存在しない]エラーページが表示される', async () => {
       const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
@@ -155,7 +155,7 @@ describe('_id.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: locales.network.error })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -165,7 +165,7 @@ describe('_id.vue', () => {
       await helper.sleep(1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: locales.system.default })
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
     })
   })
 })

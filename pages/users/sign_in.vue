@@ -8,7 +8,8 @@
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>
           <v-card-text
-            @keydown.enter="setKeyDownEnter"
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="signIn(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">

@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Processing from '~/components/Processing.vue'
 import Component from '~/components/users/update/Image.vue'
 
@@ -24,6 +23,9 @@ describe('Image.vue', () => {
     const wrapper = mount(Component, {
       localVue,
       vuetify,
+      stubs: {
+        Processing: true
+      },
       mocks: {
         $axios: {
           post: axiosPostMock
@@ -101,10 +103,7 @@ describe('Image.vue', () => {
     wrapper.vm.$data.image = {}
 
     // アップロードボタン
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(1)
-      if (!button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, false)
     expect(button.vm.disabled).toBe(false) // 有効
   })
   it('[アップロード画像]表示される', async () => {
@@ -157,7 +156,7 @@ describe('Image.vue', () => {
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -172,7 +171,7 @@ describe('Image.vue', () => {
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -187,7 +186,7 @@ describe('Image.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -200,7 +199,7 @@ describe('Image.vue', () => {
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -227,7 +226,7 @@ describe('Image.vue', () => {
       updateApiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, { alert: locales.system.default })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })
@@ -268,7 +267,7 @@ describe('Image.vue', () => {
       deleteApiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.system.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -287,7 +286,7 @@ describe('Image.vue', () => {
       deleteApiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.failure)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -306,7 +305,7 @@ describe('Image.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 1, locales.auth.unauthenticated)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -323,7 +322,7 @@ describe('Image.vue', () => {
       deleteApiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, locales.network.error)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
@@ -341,7 +340,7 @@ describe('Image.vue', () => {
       deleteApiCalledTest()
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, { alert: locales.system.default })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })
   })

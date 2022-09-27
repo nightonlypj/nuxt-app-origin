@@ -8,7 +8,8 @@
         <v-form autocomplete="off" @submit.prevent>
           <v-card-title>メールアドレス確認</v-card-title>
           <v-card-text
-            @keydown.enter="setKeyDownEnter"
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="postConfirmationNew(invalid, true)"
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
