@@ -1,76 +1,130 @@
 <template>
-  <v-simple-table v-if="members != null && members.length > 0" fixed-header :height="Math.max(200, $vuetify.breakpoint.height - 146) + 'px'">
-    <template #default>
-      <thead>
-        <tr class="text-no-wrap">
-          <th>ユーザー名</th>
-          <th v-if="currentMemberAdmin">
-            メールアドレス
-            <OnlyIcon power="admin" />
-          </th>
-          <th>権限</th>
-          <th v-if="currentMemberAdmin">
-            招待者
-            <OnlyIcon power="admin" />
-          </th>
-          <th>
-            招待日時
-            <v-icon>mdi-triangle-small-down</v-icon>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="member in members" :key="member.user.code">
-          <td class="px-1">
-            <div class="my-2">
-              <v-avatar v-if="member.user.image_url != null" size="32px">
-                <v-img :src="member.user.image_url.small" />
-              </v-avatar>
-              <span class="ml-1">{{ $textTruncate(member.user.name, 32) }}</span>
-            </div>
-          </td>
-          <td v-if="currentMemberAdmin" class="px-1">
-            {{ member.user.email }}
-          </td>
-          <td class="text-no-wrap px-1">
-            <v-icon dense>{{ $config.enum.member.powerIcon[member.power] || $config.enum.member.powerIcon.default }}</v-icon>
-            {{ member.power_i18n }}
-          </td>
-          <td v-if="currentMemberAdmin" class="px-1">
-            <div class="my-2">
-              <div v-if="member.invitation_user != null" class="my-2">
-                <v-avatar v-if="member.invitation_user.image_url != null" size="32px">
-                  <v-img :src="member.invitation_user.image_url.small" />
-                </v-avatar>
-                <span class="ml-1">{{ $textTruncate(member.invitation_user.name, 32) }}</span>
-              </div>
-            </div>
-          </td>
-          <td class="text-no-wrap px-1">
-            {{ $timeFormat(member.invitationed_at, 'ja') }}
-          </td>
-        </tr>
-      </tbody>
+  <v-data-table
+    v-if="members != null && members.length > 0"
+    :headers="headers"
+    :items="members"
+    item-key="user.code"
+    :items-per-page="-1"
+    hide-default-footer
+    mobile-breakpoint="600"
+    fixed-header
+    :height="appTableHeight"
+    must-sort
+    :sort-by.sync="syncSortBy"
+    :sort-desc.sync="syncSortDesc"
+    :custom-sort="disableSortItem"
+    no-data-text=""
+  >
+    <!-- メンバー -->
+    <template #[`item.user.name`]="{ item }">
+      <UsersAvatar :user="item.user" />
     </template>
-  </v-simple-table>
+    <!-- メールアドレス -->
+    <template #[`header.user.email`]="{ header }">
+      {{ header.text }}
+      <OnlyIcon power="admin" />
+    </template>
+    <!-- 権限 -->
+    <template #[`item.power`]="{ item }">
+      <a
+        v-if="currentMemberAdmin && item.user.code !== $auth.user.code"
+        :id="'member_update_link_' + item.user.code"
+        color="primary"
+        class="text-no-wrap"
+        @click="$emit('showUpdate', item)"
+      >
+        <v-icon dense>{{ appMemberPowerIcon(item.power) }}</v-icon>
+        {{ item.power_i18n }}
+      </a>
+      <div v-else class="text-no-wrap">
+        <v-icon dense>{{ appMemberPowerIcon(item.power) }}</v-icon>
+        {{ item.power_i18n }}
+      </div>
+    </template>
+    <!-- 招待者 -->
+    <template #[`header.invitation_user.name`]="{ header }">
+      {{ header.text }}
+      <OnlyIcon power="admin" />
+    </template>
+    <template #[`item.invitation_user.name`]="{ item }">
+      <UsersAvatar :user="item.invitation_user" />
+    </template>
+    <!-- 招待者日時 -->
+    <template #[`item.invitationed_at`]="{ item }">
+      <span class="text-no-wrap">{{ $timeFormat(item.invitationed_at, 'ja') }}</span>
+    </template>
+  </v-data-table>
 </template>
 
 <script>
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
+import UsersAvatar from '~/components/users/Avatar.vue'
+import Application from '~/plugins/application.js'
 
 export default {
   components: {
-    OnlyIcon
+    OnlyIcon,
+    UsersAvatar
   },
+  mixins: [Application],
 
   props: {
+    sortBy: {
+      type: String,
+      required: true
+    },
+    sortDesc: {
+      type: Boolean,
+      required: true
+    },
     members: {
+      type: Array,
+      default: null
+    },
+    showItems: {
       type: Array,
       default: null
     },
     currentMemberAdmin: {
       type: Boolean,
       default: null
+    }
+  },
+
+  computed: {
+    headers () {
+      const result = []
+      for (const item of this.$t('items.members')) {
+        if (item.disabled || this.showItems == null || this.showItems.includes(item.value)) {
+          if (!item.adminOnly || this.currentMemberAdmin) {
+            result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
+          }
+        }
+      }
+      return result
+    },
+
+    syncSortBy: {
+      get () {
+        return this.sortBy
+      },
+      set (value) {
+        this.$emit('reload', { sortBy: value })
+      }
+    },
+    syncSortDesc: {
+      get () {
+        return this.sortDesc
+      },
+      set (value) {
+        this.$emit('reload', { sortDesc: value })
+      }
+    }
+  },
+
+  methods: {
+    disableSortItem (item) {
+      return item
     }
   }
 }

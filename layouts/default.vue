@@ -157,4 +157,12 @@ export default {
   color: inherit !important;
   text-decoration: inherit;
 }
+.v-data-table__mobile-row {
+  padding-left: 0px !important;
+}
+.v-data-table__mobile-row__header {
+  padding-right: 8px !important;
+  white-space: nowrap;
+  font-size: 10px;
+}
 </style>

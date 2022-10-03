@@ -1,8 +1,34 @@
 export default {
+  computed: {
+    appTableHeight () {
+      return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
+    }
+  },
+
   methods: {
     // Tips: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
     appSetKeyDownEnter ($event) {
       this.keyDownEnter = !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
+    },
+
+    appMemberPowerIcon (power) {
+      return this.$config.enum.member.powerIcon[power] || this.$config.enum.member.powerIcon.default
+    },
+
+    appGetShowItems (showItems, items) {
+      if (showItems == null) {
+        const allValues = []
+        for (const item of items) {
+          allValues.push(item.value)
+        }
+        return allValues
+      }
+
+      const newShowItems = showItems
+      for (const item of items) {
+        if (item.disabled && !newShowItems.includes(item.value)) { newShowItems.push(item.value) }
+      }
+      return newShowItems
     },
 
     // レスポンスチェック

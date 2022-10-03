@@ -11,6 +11,20 @@ module.exports = {
       }
     }
   },
+  items: {
+    spaces: [
+      { text: '名称', value: 'name', disabled: true },
+      { text: '説明', value: 'description', disabled: false },
+      { text: 'アクション', value: 'action', disabled: true }
+    ],
+    members: [
+      { text: 'メンバー', value: 'user.name', disabled: true, adminOnly: false },
+      { text: 'メールアドレス', value: 'user.email', disabled: false, adminOnly: true },
+      { text: '権限', value: 'power', disabled: false, adminOnly: false },
+      { text: '招待者', value: 'invitation_user.name', disabled: false, adminOnly: true },
+      { text: '招待日時', value: 'invitationed_at', disabled: false, adminOnly: false }
+    ]
+  },
   network: {
     failure: '通信に失敗しました。しばらく時間をあけてから、やり直してください。',
     failure_short: '通信に失敗しました。',
@@ -22,7 +36,8 @@ module.exports = {
     error: 'システムエラーが発生しました。しばらく時間をあけてから、やり直してください。',
     error_short: 'システムエラーが発生しました。',
     default: 'エラーが発生しました。しばらく時間をあけてから、やり直してください。',
-    default_short: 'エラーが発生しました。'
+    default_short: 'エラーが発生しました。',
+    timeout: 'タイムアウトしました。しばらく時間をあけてから、やり直してください。'
   },
   auth: {
     signed_out: 'ログアウトしました。',

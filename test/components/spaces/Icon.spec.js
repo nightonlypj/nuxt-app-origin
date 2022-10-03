@@ -45,7 +45,7 @@ describe('Icon.vue', () => {
     const space = Object.freeze({
       code: 'code0001',
       private: true,
-      destroy_schedule_at: '2021-01-01T09:00:00+09:00',
+      destroy_schedule_at: '2000-01-01T12:34:56+09:00',
       current_member: {
         power: 'admin',
         power_i18n: '管理者'

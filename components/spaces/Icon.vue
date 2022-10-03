@@ -8,7 +8,7 @@
     </v-tooltip>
     <v-tooltip v-if="space.current_member != null" :id="'space_power_' + space.code" bottom>
       <template #activator="{ on, attrs }">
-        <v-icon dense v-bind="attrs" v-on="on">{{ $config.enum.member.powerIcon[space.current_member.power] || $config.enum.member.powerIcon.default }}</v-icon>
+        <v-icon dense v-bind="attrs" v-on="on">{{ appMemberPowerIcon(space.current_member.power) }}</v-icon>
       </template>
       あなたは「{{ space.current_member.power_i18n }}」です。
     </v-tooltip>
@@ -22,7 +22,11 @@
 </template>
 
 <script>
+import Application from '~/plugins/application.js'
+
 export default {
+  mixins: [Application],
+
   props: {
     space: {
       type: Object,

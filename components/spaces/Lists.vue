@@ -1,36 +1,45 @@
 <template>
-  <v-simple-table v-if="spaces != null && spaces.length > 0">
-    <template #default>
-      <tbody>
-        <tr v-for="space in spaces" :key="space.code">
-          <td class="px-1" style="width: 35%">
-            <div class="my-2">
-              <v-avatar v-if="space.image_url != null" :id="'space_image_' + space.code" size="32px">
-                <v-img :src="space.image_url.small" />
-              </v-avatar>
-              <NuxtLink :to="{ name: 'spaces-code___ja', params: { code: space.code }}" class="ml-1">{{ $textTruncate(space.name, 64) }}</NuxtLink>
-              <SpacesIcon :space="space" />
-            </div>
-          </td>
-          <td class="px-1">
-            <div class="my-2">
-              {{ $textTruncate(space.description, 128) }}
-            </div>
-          </td>
-          <td class="px-1">
-            <v-btn v-if="space.current_member != null" :to="'/members/' + space.code" fab small nuxt>
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-icon dense small v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
-                </template>
-                メンバー
-              </v-tooltip>
-            </v-btn>
-          </td>
-        </tr>
-      </tbody>
+  <v-data-table
+    v-if="spaces != null && spaces.length > 0"
+    :headers="headers"
+    :items="spaces"
+    item-key="code"
+    :items-per-page="-1"
+    hide-default-footer
+    mobile-breakpoint="600"
+    hide-default-header
+    disable-sort
+  >
+    <!-- 名称 -->
+    <template #[`item.name`]="{ item }">
+      <v-avatar v-if="item.image_url != null" :id="'space_image_' + item.code" size="32px">
+        <v-img :src="item.image_url.small" />
+      </v-avatar>
+      <NuxtLink :to="'/s/' + item.code" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
+      <SpacesIcon :space="item" />
     </template>
-  </v-simple-table>
+    <!-- 説明 -->
+    <template #[`item.description`]="{ item }">
+      {{ $textTruncate(item.description, 128) }}
+    </template>
+    <!-- アクション -->
+    <template #[`item.action`]="{ item }">
+      <v-btn
+        v-if="item.current_member != null"
+        :to="'/members/' + item.code"
+        color="secondary"
+        small
+        nuxt
+      >
+        <v-tooltip bottom>
+          <template #activator="{ on, attrs }">
+            <v-icon dense small v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
+          </template>
+          メンバー一覧
+        </v-tooltip>
+      </v-btn>
+    </template>
+  </v-data-table>
 </template>
 
 <script>
@@ -45,6 +54,22 @@ export default {
     spaces: {
       type: Array,
       default: null
+    },
+    showItems: {
+      type: Array,
+      default: null
+    }
+  },
+
+  computed: {
+    headers () {
+      const result = []
+      for (const item of this.$t('items.spaces')) {
+        if (item.disabled || this.showItems == null || this.showItems.includes(item.value)) {
+          result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
+        }
+      }
+      return result
     }
   }
 }

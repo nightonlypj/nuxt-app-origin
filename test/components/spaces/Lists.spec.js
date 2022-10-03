@@ -7,7 +7,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Lists.vue', () => {
-  const mountFunction = (spaces) => {
+  const mountFunction = (spaces, showItems = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -17,7 +17,8 @@ describe('Lists.vue', () => {
         SpacesIcon: true
       },
       propsData: {
-        spaces
+        spaces,
+        showItems
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -25,20 +26,24 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, spaces) => {
+  const viewTest = (wrapper, spaces, show) => {
     const links = helper.getLinks(wrapper)
-    const spacesIcon = wrapper.findAllComponents(SpacesIcon)
-
-    // console.log(links)
-    // console.log(wrapper.text())
+    const spacesIcons = wrapper.findAllComponents(SpacesIcon)
     for (const [index, space] of spaces.entries()) {
-      expect(wrapper.find('#space_image_' + space.code).exists()).toBe(space.image_url != null) // 画像
-      expect(links.includes('/spaces/' + space.code)).toBe(true) // スペース詳細
-      expect(wrapper.text()).toMatch(space.name) // 名称
-      expect(spacesIcon.at(index).exists()).toBe(true) // アイコン
-      expect(spacesIcon.at(index).vm.$props.space).toEqual(space)
-      expect(wrapper.text()).toMatch(space.description) // 説明
-      expect(links.includes('/members/' + space.code)).toBe(space.current_member != null) // メンバー一覧
+      // 名称
+      expect(wrapper.find('#space_image_' + space.code).exists()).toBe(space.image_url != null)
+      expect(links.includes('/s/' + space.code)).toBe(true) // スペース詳細
+      expect(wrapper.text()).toMatch(space.name)
+      expect(spacesIcons.at(index).exists()).toBe(true)
+      expect(spacesIcons.at(index).vm.$props.space).toEqual(space)
+      // 説明
+      if (show.optional) {
+        expect(wrapper.text()).toMatch(space.description)
+      } else {
+        expect(wrapper.text()).not.toMatch(space.description)
+      }
+      // メンバー一覧
+      expect(links.includes('/members/' + space.code)).toBe(space.current_member != null)
     }
   }
 
@@ -48,11 +53,10 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[0件]表示されない', () => {
-    const spaces = Object.freeze([])
-    const wrapper = mountFunction(spaces)
+    const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
-  it('[2件]表示される', () => {
+  describe('2件、表示項目', () => {
     const spaces = Object.freeze([
       {
         code: 'code0001',
@@ -62,7 +66,7 @@ describe('Lists.vue', () => {
         name: '非公開スペース1',
         description: '非公開スペース1の説明',
         private: true,
-        destroy_schedule_at: '2021-01-01T09:00:00+09:00',
+        destroy_schedule_at: '2000-01-01T12:34:56+09:00',
         current_member: {
           power: 'admin',
           power_i18n: '管理者'
@@ -75,7 +79,19 @@ describe('Lists.vue', () => {
         private: false
       }
     ])
-    const wrapper = mountFunction(spaces)
-    viewTest(wrapper, spaces)
+
+    it('[未設定]全て表示される', () => {
+      const wrapper = mountFunction(spaces, null)
+      viewTest(wrapper, spaces, { optional: true })
+    })
+    it('[全て選択]全て表示される', () => {
+      const showItems = Object.freeze(['name', 'description', 'action'])
+      const wrapper = mountFunction(spaces, showItems)
+      viewTest(wrapper, spaces, { optional: true })
+    })
+    it('[全て未選択]必須項目のみ表示される', () => {
+      const wrapper = mountFunction(spaces, [])
+      viewTest(wrapper, spaces, { optional: false })
+    })
   })
 })

@@ -60,14 +60,14 @@ describe('Lists.vue', () => {
         title: 'タイトル1',
         summary: '概要1',
         body_present: true,
-        started_at: '2021-01-01T09:00:00+09:00'
+        started_at: '2000-01-01T09:00:00+09:00'
       },
       {
         id: 2,
         title: 'タイトル2',
         summary: null,
         body_present: false,
-        started_at: '2021-01-02T09:00:00+09:00'
+        started_at: '2000-01-02T09:00:00+09:00'
       }
     ])
     const wrapper = mountFunction(infomations)

@@ -2,84 +2,49 @@
   <div>
     <Loading v-if="loading" />
     <v-card v-if="!loading">
-      <Processing v-if="processing" />
       <v-card-title>スペース</v-card-title>
-      <v-form autocomplete="on" @submit.prevent>
-        <v-card-text
-          @keydown.enter="onKeyDown"
-          @keyup.enter="onSpaces(true, true)"
-        >
-          <div class="d-flex">
-            <v-text-field
-              id="search_text"
-              v-model="text"
-              label="検索"
-              placeholder="名称や説明を入力"
-              autocomplete="on"
-              style="max-width: 400px"
-              dense
-              hide-details
-              @input="waiting = false"
-            />
-            <v-btn
-              id="search_btn"
-              color="primary"
-              class="ml-1"
-              :disabled="processing || waiting"
-              @click="onSpaces(true)"
-            >
-              <v-icon dense>mdi-magnify</v-icon>
-            </v-btn>
-            <v-btn
-              v-if="$auth.loggedIn"
-              id="option_btn"
-              class="ml-2"
-              rounded
-              @click="option = !option"
-            >
-              <v-icon>{{ option ? 'mdi-menu-up' : 'mdi-menu-down' }}</v-icon>
-              <span class="hidden-sm-and-down">検索オプション</span>
-            </v-btn>
-          </div>
-          <div v-if="$auth.loggedIn" v-show="option" id="option_item" class="mt-2">
-            <v-row>
-              <v-col>
-                <v-checkbox
-                  id="exclude_member_space_check"
-                  v-model="excludeMemberSpace"
-                  label="参加スペースを除く"
-                  dense
-                  hide-details
-                  @click="waiting = false"
-                />
-              </v-col>
-            </v-row>
-          </div>
-        </v-card-text>
-      </v-form>
+      <v-card-text>
+        <SpacesSearch
+          ref="search"
+          :processing="processing || reloading"
+          :query.sync="query"
+          @search="searchSpaces"
+        />
+      </v-card-text>
     </v-card>
 
     <v-card v-if="!loading" class="mt-2">
+      <Processing v-if="reloading" />
       <v-card-text>
-        <v-row v-if="existSpaces">
-          <v-col cols="auto" md="5" align-self="center">
-            {{ $localeString(space['total_count'], 'N/A') }}件
+        <v-row>
+          <v-col cols="2" class="d-flex align-self-center">
+            <div v-if="existSpaces">
+              {{ $localeString(space['total_count'], 'N/A') }}件
+            </div>
+          </v-col>
+          <v-col cols="10" class="d-flex justify-end">
+            <SapcesSetting
+              :show-items.sync="showItems"
+            />
           </v-col>
         </v-row>
 
-        <article v-if="!processing && !existSpaces">
+        <template v-if="!processing && !existSpaces">
           <v-divider class="my-4" />
           <span class="ml-1">スペースが見つかりません。</span>
           <v-divider class="my-4" />
-        </article>
+        </template>
         <template v-if="existSpaces">
           <v-divider class="my-2" />
-          <SpacesLists :spaces="spaces" />
+          <SpacesLists
+            :spaces="spaces"
+            :show-items="showItems"
+          />
           <v-divider class="my-2" />
         </template>
 
         <InfiniteLoading
-          v-if="space != null && space.current_page < space.total_pages"
+          v-if="!processing && !reloading && space != null && space.current_page < space.total_pages"
           :identifier="page"
           @infinite="getNextSpaces"
         >
@@ -97,28 +62,40 @@
 
 <script>
 import InfiniteLoading from 'vue-infinite-loading'
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import SpacesSearch from '~/components/spaces/Search.vue'
+import SapcesSetting from '~/components/spaces/Setting.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Application from '~/plugins/application.js'
 
 export default {
   components: {
     InfiniteLoading,
+    Loading,
+    Processing,
+    SpacesSearch,
+    SapcesSetting,
     SpacesLists
   },
   mixins: [Application],
 
   data () {
     return {
-      waiting: false,
-      text: this.$route?.query?.text || '',
-      option: this.$route?.query?.option === '1',
-      excludeMemberSpace: this.$route?.query?.exclude_member_space === '1',
-      keyDownEnter: false,
+      loading: true,
+      processing: true,
+      reloading: false,
+      query: {
+        text: this.$route?.query?.text || '',
+        option: this.$route?.query?.option === '1',
+        excludeMemberSpace: this.$route?.query?.exclude_member_space === '1'
+      },
       params: null,
       page: 1,
       space: null,
       spaces: null,
-      testState: null // Jest用
+      testState: null, // Jest用
+      showItems: localStorage.getItem('spaces.show-items')?.split(',') || null
     }
   },
 
@@ -135,22 +112,34 @@ export default {
   },
 
   async created () {
-    await this.onSpaces()
+    await this.getSpaces()
     this.loading = false
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等で検索されないようにする
-    onKeyDown (event) {
-      this.keyDownEnter = event.keyCode === 13 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+    // スペース一覧検索
+    async searchSpaces () {
+      // eslint-disable-next-line no-console
+      if (this.$config.debug) { console.log('searchSpaces', this.reloading) }
+
+      this.reloading = true
+      this.params = null
+      this.page = 1
+
+      if (!await this.getSpaces()) {
+        this.$refs.search.error()
+      }
+      this.$router.push({ query: { ...this.params, option: Number(this.query.option) } })
+      this.reloading = false
     },
 
-    // 次頁のスペースを取得
+    // 次頁のスペース一覧取得
     async getNextSpaces ($state) {
-      if (this.processing || this.space == null) { return }
+      // eslint-disable-next-line no-console
+      if (this.$config.debug) { console.log('getNextSpaces', this.page + 1) }
 
       this.page = this.space.current_page + 1
-      if (!await this.onSpaces()) {
+      if (!await this.getSpaces()) {
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
@@ -165,44 +154,24 @@ export default {
       }
     },
 
-    // スペース一覧
-    async onSpaces (search = false, keydown = false) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (search && (this.processing || this.waiting || (keydown && !enter))) { return }
-
-      this.processing = true
-      if (search || this.params == null) {
-        this.params = {
-          text: this.text,
-          exclude_member_space: Number(this.excludeMemberSpace)
-        }
-        this.page = 1
-        this.space = null
-        this.spaces = null
-        this.waiting = true
-      }
-
-      const result = await this.getSpaces()
-      if (search) {
-        this.$router.push({ query: { ...this.params, option: Number(this.option) } })
-      }
-
-      this.processing = false
-      return result
-    },
-
-    // スペース一覧API
+    // スペース一覧取得
     async getSpaces () {
+      this.processing = true
       let result = false
 
+      if (this.params == null) {
+        this.params = {
+          text: this.query.text,
+          exclude_member_space: Number(this.query.excludeMemberSpace)
+        }
+      }
       const redirect = this.space == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.spacesUrl, { params: { ...this.params, page: this.page } })
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space == null)) { return }
 
           this.space = response.data.space
-          if (this.spaces == null) {
+          if (this.reloading || this.spaces == null) {
             this.spaces = response.data.spaces
           } else {
             this.spaces.push(...response.data.spaces)
@@ -214,6 +183,7 @@ export default {
         })
 
       this.page = this.space?.current_page || 1
+      this.processing = false
       return result
     }
   }

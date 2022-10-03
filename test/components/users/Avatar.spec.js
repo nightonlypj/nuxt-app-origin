@@ -1,19 +1,19 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import Component from '~/components/members/OnlyIcon.vue'
+import Component from '~/components/users/Avatar.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('OnlyIcon.vue', () => {
-  const mountFunction = (power) => {
+describe('Avatar.vue', () => {
+  const mountFunction = (user) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
       localVue,
       vuetify,
       propsData: {
-        power
+        user
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -21,8 +21,8 @@ describe('OnlyIcon.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, power) => {
-    expect(wrapper.html()).toMatch(helper.commonConfig.enum.member.powerIcon[power]) // 権限
+  const viewTest = (wrapper, user) => {
+    expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
   }
 
   // テストケース
@@ -30,9 +30,14 @@ describe('OnlyIcon.vue', () => {
     const wrapper = mountFunction(null)
     helper.blankTest(wrapper)
   })
-  it('[admin]表示される', () => {
-    const power = 'admin'
-    const wrapper = mountFunction(power)
-    viewTest(wrapper, power)
+  it('[あり]表示される', () => {
+    const user = Object.freeze({
+      name: 'user1の氏名',
+      image_url: {
+        small: 'https://example.com/images/user/small_noimage.jpg'
+      }
+    })
+    const wrapper = mountFunction(user)
+    viewTest(wrapper, user)
   })
 })

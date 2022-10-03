@@ -3,6 +3,25 @@ import { createLocalVue, mount } from '@vue/test-utils'
 describe('utils.js', () => {
   const localVue = createLocalVue()
 
+  // 一定時間停止
+  describe('sleep', () => {
+    const mountFunction = (ms) => {
+      return mount({
+        mounted () {
+          this.sleep = this.$sleep(ms)
+        },
+        template: '<div />'
+      }, { localVue })
+    }
+
+    it('[10]10ミリ秒停止する', async () => {
+      const wrapper = mountFunction(10)
+      const now = new Date()
+      await wrapper.vm.sleep
+      expect(new Date() - now + 1).toBeGreaterThan(10)
+    })
+  })
+
   // 日付/時間を言語のフォーマットで返却
   describe('dateFormat/timeFormat', () => {
     const mountFunction = (value, locales, defaultValue = null) => {

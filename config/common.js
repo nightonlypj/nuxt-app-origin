@@ -1,10 +1,24 @@
 module.exports = {
+  reloading: {
+    maxCount: 50,
+    sleepMs: 100
+  },
   enum: {
     member: {
       powerIcon: {
         admin: 'mdi-account-cog',
         writer: 'mdi-account-edit',
         default: 'mdi-account'
+      },
+      createIcon: {
+        create: 'mdi-check-circle',
+        exist: 'mdi-information',
+        notfound: 'mdi-alert'
+      },
+      createColor: {
+        create: 'success',
+        exist: 'info',
+        notfound: 'error'
       }
     }
   },
@@ -48,9 +62,13 @@ module.exports = {
   // お知らせ一覧API
   infomationsUrl: '/infomations.json',
   // お知らせ詳細API
-  infomationDetailUrl: '/infomations/_id.json',
+  infomationDetailUrl: '/infomations/:id.json',
   // スペース一覧API
   spacesUrl: '/spaces.json',
   // メンバー一覧API
-  membersUrl: '/members/_code.json'
+  membersUrl: '/members/:code.json',
+  // メンバー招待API
+  membersCreateUrl: '/members/:code/create.json',
+  // メンバー情報変更API
+  membersUpdateUrl: '/members/:code/update/:user_code.json'
 }
