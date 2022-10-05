@@ -16,10 +16,11 @@
         <v-form autocomplete="off">
           <v-toolbar color="primary" dense dark>
             <v-icon dense>mdi-cog</v-icon>
-            <span class="ml-1">表示項目変更</span>
+            <span class="ml-1">設定変更</span>
           </v-toolbar>
-          <v-card-text class="pb-0">
-            <v-container>
+          <v-card-text>
+            <v-container class="py-0">
+              <h4>表示項目</h4>
               <template v-for="item in items">
                 <v-switch
                   v-if="!item.adminOnly || currentMemberAdmin"
@@ -32,12 +33,13 @@
                   :disabled="item.disabled"
                   hide-details
                   dense
+                  class="mt-1"
                   @change="waiting = false"
                 />
               </template>
             </v-container>
           </v-card-text>
-          <v-card-actions class="justify-end mt-4">
+          <v-card-actions class="justify-end">
             <v-btn
               id="member_setting_submit_btn"
               color="primary"

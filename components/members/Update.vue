@@ -5,18 +5,18 @@
         <Processing v-if="processing" />
         <v-form autocomplete="off">
           <v-toolbar color="primary" dense dark>メンバー情報変更</v-toolbar>
-          <v-card-text class="pb-0">
+          <v-card-text>
             <Message :alert="alert" :notice="notice" />
             <v-container>
               <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end align-self-center text-no-wrap pr-0 pb-0">
-                  メンバー:
+                  メンバー
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <UsersAvatar :user="member.user" />
                 </v-col>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                  権限:
+                  権限&nbsp;<span style="color: red">*</span>
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <validation-provider v-slot="{ errors }" name="power" rules="required_select">
@@ -42,7 +42,7 @@
               </v-row>
             </v-container>
           </v-card-text>
-          <v-card-actions class="justify-end mt-4">
+          <v-card-actions class="justify-end">
             <v-btn
               id="member_update_submit_btn"
               color="primary"

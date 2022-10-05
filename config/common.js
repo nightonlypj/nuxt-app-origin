@@ -70,5 +70,9 @@ module.exports = {
   // メンバー招待API
   membersCreateUrl: '/members/:code/create.json',
   // メンバー情報変更API
-  membersUpdateUrl: '/members/:code/update/:user_code.json'
+  membersUpdateUrl: '/members/:code/update/:user_code.json',
+  // メンバー解除API
+  membersDeleteUrl: '/members/:code/delete.json',
+  // メンバーダウンロードAPI
+  membersDownloadUrl: '/members/:code/download.json'
 }

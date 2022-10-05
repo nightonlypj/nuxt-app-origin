@@ -1,6 +1,7 @@
 <template>
   <v-data-table
     v-if="members != null && members.length > 0"
+    v-model="syncSelectedMembers"
     :headers="headers"
     :items="members"
     item-key="user.code"
@@ -13,8 +14,16 @@
     :sort-by.sync="syncSortBy"
     :sort-desc.sync="syncSortDesc"
     :custom-sort="disableSortItem"
-    no-data-text=""
+    :show-select="currentMemberAdmin"
+    @dblclick:row="showUpdate"
   >
+    <!-- (選択) -->
+    <template #[`item.data-table-select`]="{ isSelected, select }">
+      <v-simple-checkbox
+        :value="isSelected"
+        @input="select($event)"
+      />
+    </template>
     <!-- メンバー -->
     <template #[`item.user.name`]="{ item }">
       <UsersAvatar :user="item.user" />
@@ -81,6 +90,10 @@ export default {
       type: Array,
       default: null
     },
+    selectedMembers: {
+      type: Array,
+      required: true
+    },
     showItems: {
       type: Array,
       default: null
@@ -119,12 +132,26 @@ export default {
       set (value) {
         this.$emit('reload', { sortDesc: value })
       }
+    },
+    syncSelectedMembers: {
+      get () {
+        return this.selectedMembers
+      },
+      set (value) {
+        this.$emit('update:selectedMembers', value)
+      }
     }
   },
 
   methods: {
-    disableSortItem (item) {
-      return item
+    disableSortItem (items) {
+      return items
+    },
+
+    showUpdate (_event, { item }) {
+      if (!this.currentMemberAdmin || item.user.code === this.$auth.user.code) { return }
+
+      this.$emit('showUpdate', item)
     }
   }
 }

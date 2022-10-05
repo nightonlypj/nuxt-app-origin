@@ -8,7 +8,8 @@
         v-on="on"
         @click="initialize()"
       >
-        メンバー招待
+        <v-icon dense>mdi-account-plus</v-icon>
+        <span class="ml-1">メンバー招待</span>
       </v-btn>
     </template>
     <template #default="dialog">
@@ -16,13 +17,16 @@
         <validation-observer v-slot="{ invalid }" ref="observer">
           <Processing v-if="processing" />
           <v-form autocomplete="off">
-            <v-toolbar color="primary" dense dark>メンバー招待</v-toolbar>
-            <v-card-text class="pb-0">
+            <v-toolbar color="primary" dense dark>
+              <v-icon dense>mdi-account-plus</v-icon>
+              <span class="ml-1">メンバー招待</span>
+            </v-toolbar>
+            <v-card-text>
               <Message :alert="alert" :notice="notice" />
               <v-container>
                 <v-row>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                    メンバー:
+                    メンバー&nbsp;<span style="color: red">*</span>
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
                     <validation-provider v-slot="{ errors }" name="emails" rules="required">
@@ -38,7 +42,7 @@
                     </validation-provider>
                   </v-col>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                    権限:
+                    権限&nbsp;<span style="color: red">*</span>
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
                     <validation-provider v-slot="{ errors }" name="power" rules="required_select">
@@ -64,7 +68,7 @@
                 </v-row>
               </v-container>
             </v-card-text>
-            <v-card-actions class="justify-end mt-4">
+            <v-card-actions class="justify-end">
               <v-btn
                 id="member_create_submit_btn"
                 color="primary"

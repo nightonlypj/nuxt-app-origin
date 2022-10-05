@@ -17,12 +17,10 @@
       <Processing v-if="reloading" />
       <v-card-text>
         <v-row>
-          <v-col cols="2" class="d-flex align-self-center">
-            <div v-if="existSpaces">
-              {{ $localeString(space['total_count'], 'N/A') }}件
-            </div>
+          <v-col class="d-flex align-self-center text-no-wrap">
+            {{ $localeString(space['total_count'], 'N/A') }}件
           </v-col>
-          <v-col cols="10" class="d-flex justify-end">
+          <v-col class="d-flex justify-end">
             <SapcesSetting
               :show-items.sync="showItems"
             />
@@ -44,7 +42,7 @@
         </template>
 
         <InfiniteLoading
-          v-if="!processing && !reloading && space != null && space.current_page < space.total_pages"
+          v-if="!reloading && space != null && space.current_page < space.total_pages"
           :identifier="page"
           @infinite="getNextSpaces"
         >
@@ -87,8 +85,8 @@ export default {
       reloading: false,
       query: {
         text: this.$route?.query?.text || '',
-        option: this.$route?.query?.option === '1',
-        excludeMemberSpace: this.$route?.query?.exclude_member_space === '1'
+        excludeMemberSpace: this.$route?.query?.exclude_member_space === '1',
+        option: this.$route?.query?.option === '1'
       },
       params: null,
       page: 1,

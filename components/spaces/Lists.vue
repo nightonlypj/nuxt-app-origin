@@ -22,7 +22,7 @@
     <template #[`item.description`]="{ item }">
       {{ $textTruncate(item.description, 128) }}
     </template>
-    <!-- アクション -->
+    <!-- (アクション) -->
     <template #[`item.action`]="{ item }">
       <v-btn
         v-if="item.current_member != null"
@@ -69,6 +69,7 @@ export default {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
       }
+      result.push({ text: '', value: 'action' })
       return result
     }
   }

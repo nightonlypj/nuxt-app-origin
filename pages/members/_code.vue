@@ -46,15 +46,31 @@
       <Processing v-if="reloading" />
       <v-card-text>
         <v-row>
-          <v-col cols="2" class="d-flex align-self-center">
-            <div v-if="existMembers">
+          <v-col class="d-flex py-2">
+            <div class="align-self-center text-no-wrap">
               {{ $localeString(member['total_count'], 'N/A') }}名
             </div>
+            <div v-if="selectedMembers.length > 0" class="d-flex">
+              <div class="align-self-center text-no-wrap ml-4">
+                選択: {{ $localeString(selectedMembers.length) }}名
+              </div>
+              <div v-if="currentMemberAdmin" class="align-self-center ml-2">
+                <MembersDelete
+                  :space="space"
+                  :selected-members="selectedMembers"
+                  @reload="reloadMembers"
+                />
+              </div>
+            </div>
           </v-col>
-          <v-col cols="10" class="d-flex justify-end">
+          <v-col class="d-flex justify-end">
             <MembersDownload
+              v-if="currentMemberAdmin"
+              :space="space"
               :params="params"
-              :show-items.sync="showItems"
+              :members="members"
+              :selected-members="selectedMembers"
+              :show-items="showItems"
               :current-member-admin="currentMemberAdmin"
             />
             <div class="ml-1">
@@ -82,6 +98,7 @@
             :sort-by="query.sortBy"
             :sort-desc="query.sortDesc"
             :members="members"
+            :selected-members.sync="selectedMembers"
             :show-items="showItems"
             :current-member-admin="currentMemberAdmin"
             @reload="reloadMembers"
@@ -120,6 +137,7 @@ import Processing from '~/components/Processing.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
+import MembersDelete from '~/components/members/Delete.vue'
 import MembersDownload from '~/components/members/Download.vue'
 import MembersSetting from '~/components/members/Setting.vue'
 import MembersUpdate from '~/components/members/Update.vue'
@@ -135,6 +153,7 @@ export default {
     SpacesIcon,
     MembersSearch,
     MembersCreate,
+    MembersDelete,
     MembersDownload,
     MembersSetting,
     MembersUpdate,
@@ -166,6 +185,7 @@ export default {
       member: null,
       members: null,
       testState: null, // Jest用
+      selectedMembers: [],
       showItems: localStorage.getItem('members.show-items')?.split(',') || null,
       tabIndex: 0,
       createResult: null
