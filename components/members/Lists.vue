@@ -17,16 +17,11 @@
     :show-select="currentMemberAdmin"
     @dblclick:row="showUpdate"
   >
-    <!-- (選択) -->
-    <template #[`item.data-table-select`]="{ isSelected, select }">
-      <v-simple-checkbox
-        :value="isSelected"
-        @input="select($event)"
-      />
-    </template>
     <!-- メンバー -->
     <template #[`item.user.name`]="{ item }">
-      <UsersAvatar :user="item.user" />
+      <div class="ml-1">
+        <UsersAvatar :user="item.user" />
+      </div>
     </template>
     <!-- メールアドレス -->
     <template #[`header.user.email`]="{ header }">
@@ -94,7 +89,7 @@ export default {
       type: Array,
       required: true
     },
-    showItems: {
+    hiddenItems: {
       type: Array,
       default: null
     },
@@ -107,13 +102,15 @@ export default {
   computed: {
     headers () {
       const result = []
+      if (this.currentMemberAdmin) {
+        result.push({ value: 'data-table-select', class: 'pl-3 pr-0', cellClass: 'pl-3 pr-0 py-2' })
+      }
       for (const item of this.$t('items.members')) {
-        if (item.disabled || this.showItems == null || this.showItems.includes(item.value)) {
-          if (!item.adminOnly || this.currentMemberAdmin) {
-            result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
-          }
+        if ((item.required || !this.hiddenItems.includes(item.value)) && (!item.adminOnly || this.currentMemberAdmin)) {
+          result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
       }
+      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // Tips: スクロールバーに被らないようにする為
       return result
     },
 

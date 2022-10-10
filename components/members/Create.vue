@@ -1,18 +1,14 @@
 <template>
-  <v-dialog max-width="720px">
-    <template #activator="{ on, attrs }">
-      <v-btn
-        id="member_create_btn"
-        color="primary"
-        v-bind="attrs"
-        v-on="on"
-        @click="initialize()"
-      >
-        <v-icon dense>mdi-account-plus</v-icon>
-        <span class="ml-1">メンバー招待</span>
-      </v-btn>
-    </template>
-    <template #default="dialog">
+  <div>
+    <v-btn
+      id="member_create_btn"
+      color="primary"
+      @click="showDialog()"
+    >
+      <v-icon dense>mdi-account-plus</v-icon>
+      <span class="ml-1">メンバー招待</span>
+    </v-btn>
+    <v-dialog v-model="dialog" max-width="720px">
       <v-card id="member_create_dialog">
         <validation-observer v-slot="{ invalid }" ref="observer">
           <Processing v-if="processing" />
@@ -22,11 +18,11 @@
               <span class="ml-1">メンバー招待</span>
             </v-toolbar>
             <v-card-text>
-              <Message :alert="alert" :notice="notice" />
+              <Message :alert.sync="alert" :notice.sync="notice" />
               <v-container>
                 <v-row>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                    メンバー&nbsp;<span style="color: red">*</span>
+                    メンバー&nbsp;<span class="red--text">*</span>
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
                     <validation-provider v-slot="{ errors }" name="emails" rules="required">
@@ -42,7 +38,7 @@
                     </validation-provider>
                   </v-col>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                    権限&nbsp;<span style="color: red">*</span>
+                    権限&nbsp;<span class="red--text">*</span>
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
                     <validation-provider v-slot="{ errors }" name="power" rules="required_select">
@@ -73,14 +69,14 @@
                 id="member_create_submit_btn"
                 color="primary"
                 :disabled="invalid || processing || waiting"
-                @click="postMembersCreate(dialog)"
+                @click="postMembersCreate()"
               >
                 招待
               </v-btn>
               <v-btn
                 id="member_create_cancel_btn"
                 color="secondary"
-                @click="dialog.value = false"
+                @click="dialog = false"
               >
                 キャンセル
               </v-btn>
@@ -88,8 +84,8 @@
           </v-form>
         </validation-observer>
       </v-card>
-    </template>
-  </v-dialog>
+    </v-dialog>
+  </div>
 </template>
 
 <script>
@@ -125,6 +121,7 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
+      dialog: false,
       member: {
         emails: '',
         power: null
@@ -133,13 +130,20 @@ export default {
   },
 
   methods: {
-    initialize () {
+    showDialog () {
+      if (!this.$auth.loggedIn) {
+        return this.appRedirectAuth()
+      } else if (this.$auth.user.destroy_schedule_at != null) {
+        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
+      }
+
       this.alert = null
       this.notice = null
+      this.dialog = true
     },
 
     // メンバー招待
-    async postMembersCreate ($dialog) {
+    async postMembersCreate () {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.membersCreateUrl.replace(':code', this.space.code), {
@@ -151,7 +155,7 @@ export default {
           this.appSetToastedMessage(response.data, false)
           this.$emit('result', response.data)
           this.$emit('reload')
-          $dialog.value = false
+          this.dialog = false
           this.member = {
             emails: '',
             power: null
@@ -159,7 +163,7 @@ export default {
           this.$refs.observer.reset()
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, reserved: true })) { return }
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {

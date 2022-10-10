@@ -9,7 +9,7 @@ const helper = new Helper()
 
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members, currentMemberAdmin = false, showItems = null) => {
+  const mountFunction = (members, currentMemberAdmin = false, hiddenItems = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -23,7 +23,8 @@ describe('Lists.vue', () => {
         sortBy: 'invitationed_at',
         sortDesc: true,
         members,
-        showItems,
+        selectedMembers: [],
+        hiddenItems,
         currentMemberAdmin
       },
       mocks: {
@@ -38,7 +39,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, members, show) => {
+  const viewTest = (wrapper, members, show = { optional: null, admin: null }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('メンバー')
     if (show.optional && show.admin) {
@@ -119,7 +120,7 @@ describe('Lists.vue', () => {
     const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
-  describe('2件、表示項目', () => {
+  describe('2件', () => {
     const members = Object.freeze([
       {
         user: {
@@ -145,34 +146,27 @@ describe('Lists.vue', () => {
       }
     ])
 
-    describe('未設定', () => {
+    describe('非表示項目が空', () => {
       it('[管理者]全て表示される', () => {
-        const wrapper = mountFunction(members, true, null)
-        viewTest(wrapper, members, { optional: true, admin: true })
-      })
-      it('[管理者以外]管理者のみの項目以外が表示される', () => {
-        const wrapper = mountFunction(members, false, null)
-        viewTest(wrapper, members, { optional: true, admin: false })
-      })
-    })
-    describe('全て選択', () => {
-      const showItems = Object.freeze(['user.name', 'user.email', 'power', 'invitation_user.name', 'invitationed_at'])
-      it('[管理者]全て表示される', () => {
-        const wrapper = mountFunction(members, true, showItems)
-        viewTest(wrapper, members, { optional: true, admin: true })
-      })
-      it('[管理者以外]管理者のみの項目以外が表示される', () => {
-        const wrapper = mountFunction(members, false, showItems)
-        viewTest(wrapper, members, { optional: true, admin: false })
-      })
-    })
-    describe('全て未選択', () => {
-      it('[管理者]必須項目のみ表示される', () => {
         const wrapper = mountFunction(members, true, [])
+        viewTest(wrapper, members, { optional: true, admin: true })
+      })
+      it('[管理者以外]管理者のみの項目以外が表示される', () => {
+        const wrapper = mountFunction(members, false, [])
+        viewTest(wrapper, members, { optional: true, admin: false })
+      })
+    })
+    describe('非表示項目が全項目', () => {
+      const hiddenItems = []
+      for (const item of helper.locales.items.members) {
+        hiddenItems.push(item.value)
+      }
+      it('[管理者]必須項目のみ表示される', () => {
+        const wrapper = mountFunction(members, true, hiddenItems)
         viewTest(wrapper, members, { optional: false, admin: true })
       })
       it('[管理者以外]必須項目のみ表示される', () => {
-        const wrapper = mountFunction(members, false, [])
+        const wrapper = mountFunction(members, false, hiddenItems)
         viewTest(wrapper, members, { optional: false, admin: false })
       })
     })

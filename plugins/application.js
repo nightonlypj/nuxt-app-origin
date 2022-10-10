@@ -15,22 +15,6 @@ export default {
       return this.$config.enum.member.powerIcon[power] || this.$config.enum.member.powerIcon.default
     },
 
-    appGetShowItems (showItems, items) {
-      if (showItems == null) {
-        const allValues = []
-        for (const item of items) {
-          allValues.push(item.value)
-        }
-        return allValues
-      }
-
-      const newShowItems = showItems
-      for (const item of items) {
-        if (item.disabled && !newShowItems.includes(item.value)) { newShowItems.push(item.value) }
-      }
-      return newShowItems
-    },
-
     // レスポンスチェック
     appCheckResponse (response, action = { redirect: false, toasted: false, returnKey: false }, systemError = false) {
       if (response.data == null || systemError) {

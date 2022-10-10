@@ -4,9 +4,12 @@
       <validation-observer v-slot="{ invalid }" ref="observer">
         <Processing v-if="processing" />
         <v-form autocomplete="off">
-          <v-toolbar color="primary" dense dark>メンバー情報変更</v-toolbar>
+          <v-toolbar color="primary" dense dark>
+            <v-icon dense>mdi-arrow-up-bold</v-icon>
+            <span class="ml-1">メンバー情報変更</span>
+          </v-toolbar>
           <v-card-text>
-            <Message :alert="alert" :notice="notice" />
+            <Message :alert.sync="alert" :notice.sync="notice" />
             <v-container>
               <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end align-self-center text-no-wrap pr-0 pb-0">
@@ -16,7 +19,7 @@
                   <UsersAvatar :user="member.user" />
                 </v-col>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                  権限&nbsp;<span style="color: red">*</span>
+                  権限&nbsp;<span class="red--text">*</span>
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <validation-provider v-slot="{ errors }" name="power" rules="required_select">
@@ -103,6 +106,12 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('showDialog', space, member) }
 
+      if (!this.$auth.loggedIn) {
+        return this.appRedirectAuth()
+      } else if (this.$auth.user.destroy_schedule_at != null) {
+        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
+      }
+
       this.waiting = true
       this.alert = null
       this.notice = null
@@ -127,7 +136,7 @@ export default {
           this.dialog = false
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, reserved: true })) { return }
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {

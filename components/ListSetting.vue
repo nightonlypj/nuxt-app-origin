@@ -2,17 +2,22 @@
   <v-dialog max-width="480px">
     <template #activator="{ on, attrs }">
       <v-btn
-        id="member_setting_btn"
+        id="setting_btn"
         color="accent"
         v-bind="attrs"
         v-on="on"
         @click="initialize()"
       >
-        <v-icon dense>mdi-cog</v-icon>
+        <v-tooltip bottom>
+          <template #activator="{ on: tooltip }">
+            <v-icon dense small v-on="tooltip">mdi-cog</v-icon>
+          </template>
+          設定変更
+        </v-tooltip>
       </v-btn>
     </template>
     <template #default="dialog">
-      <v-card id="member_setting_dialog">
+      <v-card id="setting_dialog">
         <v-form autocomplete="off">
           <v-toolbar color="primary" dense dark>
             <v-icon dense>mdi-cog</v-icon>
@@ -23,14 +28,14 @@
               <h4>表示項目</h4>
               <template v-for="item in items">
                 <v-switch
-                  v-if="!item.adminOnly || currentMemberAdmin"
-                  :id="'show_item_' + item.value.replace('.', '_')"
+                  v-if="!item.adminOnly || admin"
+                  :id="'setting_show_item_' + item.value.replace('.', '_')"
                   :key="item.value"
-                  v-model="newShowItems"
+                  v-model="showItems"
                   color="primary"
                   :label="item.text"
                   :value="item.value"
-                  :disabled="item.disabled"
+                  :disabled="item.required"
                   hide-details
                   dense
                   class="mt-1"
@@ -41,15 +46,15 @@
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn
-              id="member_setting_submit_btn"
+              id="setting_submit_btn"
               color="primary"
-              :disabled="waiting || newShowItems.length === 0"
+              :disabled="waiting || showItems.length === 0"
               @click="change(dialog)"
             >
               変更
             </v-btn>
             <v-btn
-              id="member_setting_cancel_btn"
+              id="setting_cancel_btn"
               color="secondary"
               @click="dialog.value = false"
             >
@@ -69,11 +74,15 @@ export default {
   mixins: [Application],
 
   props: {
-    showItems: {
+    model: {
+      type: String,
+      required: true
+    },
+    hiddenItems: {
       type: Array,
       default: null
     },
-    currentMemberAdmin: {
+    admin: {
       type: Boolean,
       default: null
     }
@@ -82,25 +91,36 @@ export default {
   data () {
     return {
       waiting: true,
-      newShowItems: null
+      showItems: null
     }
   },
 
   computed: {
     items () {
-      return this.$t('items.members')
+      return this.$t('items.' + this.model)
     }
   },
 
   methods: {
     initialize () {
       this.waiting = true
-      this.newShowItems = this.appGetShowItems(this.showItems, this.items)
+      this.showItems = []
+      for (const item of this.items) {
+        if (item.required || !this.hiddenItems.includes(item.value)) {
+          this.showItems.push(item.value)
+        }
+      }
     },
 
     change ($dialog) {
-      localStorage.setItem('members.show-items', this.newShowItems.toString())
-      this.$emit('update:showItems', this.newShowItems)
+      const hiddenItems = []
+      for (const item of this.items) {
+        if (!this.showItems.includes(item.value)) {
+          hiddenItems.push(item.value)
+        }
+      }
+      localStorage.setItem(this.model + '.hidden-items', hiddenItems.toString())
+      this.$emit('update:hiddenItems', hiddenItems)
       $dialog.value = false
     }
   }

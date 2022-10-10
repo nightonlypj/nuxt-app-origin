@@ -1,53 +1,50 @@
 <template>
-  <v-dialog max-width="640px">
-    <template #activator="{ on, attrs }">
-      <v-btn
-        id="member_delete_btn"
-        fab
-        outlined
-        small
-        v-bind="attrs"
-        v-on="on"
-      >
-        <v-tooltip bottom>
-          <template #activator="{ on: tooltip }">
-            <v-icon dense small v-on="tooltip">mdi-delete</v-icon>
-          </template>
-          選択メンバー解除
-        </v-tooltip>
-      </v-btn>
-    </template>
-    <template #default="dialog">
+  <div>
+    <v-btn
+      id="member_delete_btn"
+      fab
+      outlined
+      small
+      @click="showDialog()"
+    >
+      <v-tooltip bottom>
+        <template #activator="{ on: tooltip }">
+          <v-icon dense small v-on="tooltip">mdi-delete</v-icon>
+        </template>
+        メンバー解除
+      </v-tooltip>
+    </v-btn>
+    <v-dialog v-model="dialog" max-width="640px">
       <v-card id="member_delete_dialog">
         <Processing v-if="processing" />
         <v-form autocomplete="off">
-          <v-toolbar color="warning" dense dark>
+          <v-toolbar color="secondary" dense dark>
             <v-icon dense>mdi-delete</v-icon>
             <span class="ml-1">メンバー解除</span>
           </v-toolbar>
           <v-card-text>
-            <div class="text-h6 pa-6">選択したメンバーを解除しますか？</div>
+            <div class="text-h6 pa-4">選択したメンバーを解除しますか？</div>
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn
               id="member_delete_no_btn"
               color="secondary"
-              @click="dialog.value = false"
+              @click="dialog = false"
             >
               いいえ
             </v-btn>
             <v-btn
               id="member_delete_yes_btn"
-              color="warning"
-              @click="postMembersDelete(dialog)"
+              color="primary"
+              @click="postMembersDelete()"
             >
               はい
             </v-btn>
           </v-card-actions>
         </v-form>
       </v-card>
-    </template>
-  </v-dialog>
+    </v-dialog>
+  </div>
 </template>
 
 <script>
@@ -73,13 +70,24 @@ export default {
 
   data () {
     return {
-      processing: false
+      processing: false,
+      dialog: false
     }
   },
 
   methods: {
-    // メンバー招待
-    async postMembersDelete ($dialog) {
+    showDialog () {
+      if (!this.$auth.loggedIn) {
+        return this.appRedirectAuth()
+      } else if (this.$auth.user.destroy_schedule_at != null) {
+        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
+      }
+
+      this.dialog = true
+    },
+
+    // メンバー解除
+    async postMembersDelete () {
       this.processing = true
 
       const codes = []
@@ -90,12 +98,13 @@ export default {
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appSetToastedMessage(response.data, false)
+          this.appSetEmitMessage(response.data, false)
+          this.$emit('clear')
           this.$emit('reload')
-          $dialog.value = false
+          this.dialog = false
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, reserved: true })) { return }
 
           this.appSetToastedMessage(error.response.data, true)
         })

@@ -73,7 +73,7 @@ export default {
       type: Object,
       required: true
     },
-    currentMemberAdmin: {
+    admin: {
       type: Boolean,
       default: null
     }
@@ -88,7 +88,7 @@ export default {
 
   computed: {
     textPlaceholder () {
-      return 'ユーザー名' + (this.currentMemberAdmin ? 'やメールアドレス' : '') + 'を入力'
+      return 'ユーザー名' + (this.admin ? 'やメールアドレス' : '') + 'を入力'
     },
 
     syncQuery: {

@@ -3,11 +3,12 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import ListSetting from '~/components/ListSetting.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
-import MembersSetting from '~/components/members/Setting.vue'
 import MembersUpdate from '~/components/members/Update.vue'
+import MembersDelete from '~/components/members/Delete.vue'
 import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
 import Page from '~/pages/members/_code.vue'
@@ -33,6 +34,12 @@ describe('index.vue', () => {
     },
     name: 'スペース1'
   })
+  const adminSpace = Object.freeze({
+    ...space,
+    current_member: {
+      power: 'admin'
+    }
+  })
 
   const mountFunction = (loggedIn, query = null) => {
     const localVue = createLocalVue()
@@ -43,10 +50,11 @@ describe('index.vue', () => {
       stubs: {
         InfiniteLoading: true,
         SpacesIcon: true,
+        ListSetting: true,
         MembersSearch: true,
         MembersCreate: true,
-        MembersSetting: true,
         MembersUpdate: true,
+        MembersDelete: true,
         MembersLists: true,
         MembersResult: true
       },
@@ -125,7 +133,7 @@ describe('index.vue', () => {
     expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + url, { params: { ...params, page } })
   }
 
-  const viewTest = (wrapper, params, data, countView, existInfinite, testState = null) => {
+  const viewTest = (wrapper, params, data, countView, admin = false, show = { existInfinite: false, testState: null }) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.query.text).toBe(params.text)
@@ -141,15 +149,37 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.space).toEqual(data.space)
     expect(wrapper.vm.$data.member).toEqual(data.member)
     expect(wrapper.vm.$data.members).toEqual(data.members)
-    expect(wrapper.vm.$data.testState).toBe(testState)
+    expect(wrapper.vm.$data.testState).toBe(show.testState)
 
+    const spacesIcon = wrapper.findComponent(SpacesIcon)
+    expect(spacesIcon.vm.space).toEqual(wrapper.vm.$data.space)
+
+    // 設定
+    const listSetting = wrapper.findComponent(ListSetting)
+    expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+    expect(listSetting.vm.admin).toBe(admin)
+
+    // 検索
     const membersSearch = wrapper.findComponent(MembersSearch)
     expect(membersSearch.vm.processing).toBe(false)
     expect(membersSearch.vm.query).toEqual(wrapper.vm.$data.query)
+    expect(membersSearch.vm.admin).toBe(admin)
 
-    const membersSetting = wrapper.findComponent(MembersSetting)
-    expect(membersSetting.vm.showItems).toBe(wrapper.vm.$data.showItems)
+    // 招待・変更・解除
+    const membersCreate = wrapper.findComponent(MembersCreate)
+    const membersUpdate = wrapper.findComponent(MembersUpdate)
+    if (admin) {
+      expect(membersCreate.exists()).toBe(true)
+      expect(membersCreate.vm.space).toEqual(wrapper.vm.$data.space)
+      expect(membersUpdate.exists()).toBe(true)
+    } else {
+      expect(membersCreate.exists()).toBe(false)
+      expect(membersUpdate.exists()).toBe(false)
+    }
+    expect(wrapper.findComponent(MembersDelete).exists()).toBe(false)
+    expect(wrapper.findComponent(MembersResult).exists()).toBe(false)
 
+    // 一覧
     if (data.members?.length === 0) {
       expect(wrapper.text()).toMatch('対象のメンバーが見つかりません。')
     }
@@ -157,7 +187,7 @@ describe('index.vue', () => {
     expect(wrapper.findComponent(MembersLists).exists()).toBe(data.members?.length > 0)
 
     const infiniteLoading = wrapper.findComponent(InfiniteLoading)
-    expect(infiniteLoading.exists()).toBe(existInfinite)
+    expect(infiniteLoading.exists()).toBe(show.existInfinite)
     return infiniteLoading
   }
 
@@ -181,73 +211,116 @@ describe('index.vue', () => {
       sort: 'invitationed_at',
       desc: 1
     })
-    it('[0件]表示される', async () => {
-      const data = Object.freeze({
-        space,
-        member: {
-          total_count: 0,
-          current_page: 1,
-          total_pages: 0,
-          limit_value: 2
-        }
+    describe('0件', () => {
+      const member = Object.freeze({
+        total_count: 0,
+        current_page: 1,
+        total_pages: 0,
+        limit_value: 2
       })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(true)
-      helper.loadingTest(wrapper, Loading)
+      it('[管理者]表示される（招待・変更も含む）', async () => {
+        const data = Object.freeze({ space: adminSpace, member })
+        axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+        const wrapper = mountFunction(true)
+        helper.loadingTest(wrapper, Loading)
 
-      await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '', false)
-    })
-    it('[1件]表示される', async () => {
-      const data = Object.freeze({
-        space,
-        member: {
-          total_count: 1,
-          current_page: 1,
-          total_pages: 1,
-          limit_value: 2
-        },
-        members: [
-          { user: { code: 'code000000000000000000001' } }
-        ]
+        await helper.sleep(1)
+        apiCalledTest(1, params)
+        viewTest(wrapper, params, data, '', true)
       })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(true)
-      helper.loadingTest(wrapper, Loading)
+      it('[管理者以外]表示される（招待・変更を除く）', async () => {
+        const data = Object.freeze({ space, member })
+        axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+        const wrapper = mountFunction(true)
+        helper.loadingTest(wrapper, Loading)
 
-      await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '1名', false)
+        await helper.sleep(1)
+        apiCalledTest(1, params)
+        viewTest(wrapper, params, data, '', false)
+      })
     })
-    it('[無限スクロール]表示される', async () => {
-      axiosGetMock = jest.fn()
-        .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
-        .mockImplementationOnce(() => Promise.resolve({ data: data2 }))
-        .mockImplementationOnce(() => Promise.resolve({ data: data3 }))
-      const wrapper = mountFunction(true)
-      helper.loadingTest(wrapper, Loading)
+    describe('1件', () => {
+      const member = Object.freeze({
+        total_count: 1,
+        current_page: 1,
+        total_pages: 1,
+        limit_value: 2
+      })
+      const members = Object.freeze([
+        { user: { code: 'code000000000000000000001' } }
+      ])
+      it('[管理者]表示される（招待・変更・削除・結果も含む）', async () => {
+        const data = Object.freeze({ space: adminSpace, member, members })
+        axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+        const wrapper = mountFunction(true)
+        helper.loadingTest(wrapper, Loading)
 
-      await helper.sleep(1)
-      apiCalledTest(1, params)
-      const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
-      const members = data1.members
+        await helper.sleep(1)
+        apiCalledTest(1, params)
+        viewTest(wrapper, params, data, '1名', true)
 
-      // スクロール（2頁目）
-      infiniteLoading.vm.$emit('infinite')
-      members.push(...data2.members)
+        // 選択
+        wrapper.vm.selectedMembers = [members[0].user.code]
 
-      await helper.sleep(1)
-      apiCalledTest(2, params)
-      viewTest(wrapper, params, { space: data2.space, member: data2.member, members }, '5名', true, 'loaded')
+        // 削除
+        await helper.sleep(1)
+        const membersDelete = wrapper.findComponent(MembersDelete)
+        expect(membersDelete.exists()).toBe(true)
+        expect(membersDelete.vm.space).toEqual(wrapper.vm.$data.space)
+        expect(membersDelete.vm.selectedMembers).toEqual(wrapper.vm.$data.selectedMembers)
 
-      // スクロール（3頁目）
-      infiniteLoading.vm.$emit('infinite')
-      members.push(...data3.members)
+        // 結果
+        wrapper.vm.createResult = {}
+        wrapper.vm.tabPage = 'result'
 
-      await helper.sleep(1)
-      apiCalledTest(3, params)
-      viewTest(wrapper, params, { space: data3.space, member: data3.member, members }, '5名', false, 'complete')
+        await helper.sleep(1)
+        const membersResult = wrapper.findComponent(MembersResult)
+        expect(membersResult.exists()).toBe(true)
+        expect(membersResult.vm.result).toEqual(wrapper.vm.$data.createResult)
+      })
+      it('[管理者以外]表示される（招待・変更を除く）', async () => {
+        const data = Object.freeze({ space, member, members })
+        axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+        const wrapper = mountFunction(true)
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        apiCalledTest(1, params)
+        viewTest(wrapper, params, data, '1名', false)
+      })
+    })
+    describe('無限スクロール', () => {
+      it('スクロールで最終頁まで表示される', async () => {
+        axiosGetMock = jest.fn()
+          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: data2 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: data3 }))
+        const wrapper = mountFunction(true)
+        helper.loadingTest(wrapper, Loading)
+
+        await helper.sleep(1)
+        apiCalledTest(1, params)
+        let infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
+        const members = data1.members
+
+        // スクロール（2頁目）
+        infiniteLoading.vm.$emit('infinite')
+        members.push(...data2.members)
+
+        await helper.sleep(1)
+        apiCalledTest(2, params)
+        const data12 = { space: data2.space, member: data2.member, members }
+        infiniteLoading = viewTest(wrapper, params, data12, '5名', false, { existInfinite: true, testState: 'loaded' })
+
+        // スクロール（3頁目）
+        infiniteLoading.vm.$emit('infinite')
+        members.push(...data3.members)
+
+        await helper.sleep(1)
+        apiCalledTest(3, params)
+        const data123 = { space: data3.space, member: data3.member, members }
+        viewTest(wrapper, params, data123, '5名', false, { existInfinite: false, testState: 'complete' })
+      })
     })
     describe('データなし', () => {
       it('[初期表示]エラーページが表示される', async () => {
@@ -270,16 +343,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
     describe('スペース情報なし', () => {
@@ -303,16 +377,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
     describe('ページ情報なし', () => {
@@ -336,16 +411,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
 
@@ -370,16 +446,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
     describe('レスポンスエラー', () => {
@@ -403,16 +480,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
     describe('その他エラー', () => {
@@ -436,16 +514,17 @@ describe('index.vue', () => {
 
         await helper.sleep(1)
         apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5名', true)
+        const infiniteLoading = viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5名', true, 'error')
+        viewTest(wrapper, params, data1, '5名', false, { existInfinite: true, testState: 'error' })
       })
     })
   })
@@ -488,7 +567,7 @@ describe('index.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '1名', false)
+      viewTest(wrapper, params, data, '1名')
     })
     it('[ログイン中]パラメータがセットされ、表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
@@ -497,52 +576,36 @@ describe('index.vue', () => {
 
       await helper.sleep(1)
       apiCalledTest(1, params)
-      viewTest(wrapper, { ...params, queryOption: true }, data, '1名', false)
+      viewTest(wrapper, { ...params, queryOption: true }, data, '1名')
     })
   })
 
   describe('表示項目', () => {
-    const data = Object.freeze({
-      space,
-      member: {
-        total_count: 1,
-        current_page: 1,
-        total_pages: 1,
-        limit_value: 2
-      },
-      members: [
-        { user: { code: 'code000000000000000000001' } }
-      ]
-    })
     it('null', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toBe(null)
+      expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('members.show-items', '')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      localStorage.setItem('members.hidden-items', '')
+      axiosGetMock = jest.fn(() => Promise.resolve({ data1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toEqual([''])
+      expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('members.show-items', 'test1,test2')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      localStorage.setItem('members.hidden-items', 'test1,test2')
+      axiosGetMock = jest.fn(() => Promise.resolve({ data1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
-  })
-
-  describe('メンバー招待（結果）', () => {
-    // TODO
   })
 })

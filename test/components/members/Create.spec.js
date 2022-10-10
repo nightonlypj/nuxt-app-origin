@@ -8,10 +8,11 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Create.vue', () => {
-  let axiosPostMock, authLogoutMock, toastedErrorMock, toastedInfoMock
+  let axiosPostMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock
 
   beforeEach(() => {
     axiosPostMock = null
+    authRedirectMock = jest.fn()
     authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
@@ -19,7 +20,7 @@ describe('Create.vue', () => {
 
   const space = Object.freeze({ code: 'code0001' })
 
-  const mountFunction = () => {
+  const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -37,7 +38,9 @@ describe('Create.vue', () => {
           post: axiosPostMock
         },
         $auth: {
-          loggedIn: true,
+          loggedIn,
+          user: { ...user },
+          redirect: authRedirectMock,
           logout: authLogoutMock
         },
         $toasted: {
@@ -52,6 +55,8 @@ describe('Create.vue', () => {
 
   // テスト内容
   const viewTest = async (wrapper) => {
+    expect(wrapper.findComponent(Processing).exists()).toBe(false)
+
     // 前回メッセージ
     wrapper.vm.$data.alert = 'alertメッセージ'
     wrapper.vm.$data.notice = 'noticeメッセージ'
@@ -103,9 +108,37 @@ describe('Create.vue', () => {
   }
 
   // テストケース
-  it('表示される', async () => {
-    const wrapper = mountFunction()
+  it('[未ログイン]ログインにリダイレクトされる', async () => {
+    const wrapper = mountFunction(false, null)
+
+    // メンバー招待ボタン
+    const button = wrapper.find('#member_create_btn')
+    expect(button.exists()).toBe(true)
+    button.trigger('click')
+
+    await helper.sleep(1)
+    helper.mockCalledTest(toastedErrorMock, 0)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
+    helper.mockCalledTest(authRedirectMock, 1, 'login')
+  })
+  it('[ログイン中]表示される', async () => {
+    const wrapper = mountFunction(true, {})
     await viewTest(wrapper)
+  })
+  it('[ログイン中（削除予約済み）]表示されない', async () => {
+    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+
+    // メンバー招待ボタン
+    const button = wrapper.find('#member_create_btn')
+    expect(button.exists()).toBe(true)
+    button.trigger('click')
+
+    await helper.sleep(1)
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
+    helper.mockCalledTest(toastedInfoMock, 0)
+
+    // メンバー招待ダイアログ
+    expect(wrapper.find('#member_create_dialog').exists()).toBe(false)
   })
 
   describe('メンバー招待', () => {
@@ -132,13 +165,13 @@ describe('Create.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
+      apiCalledTest(values)
     }
 
     it('[成功]メンバー招待結果が表示され、一覧が再取得される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -151,7 +184,6 @@ describe('Create.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -163,7 +195,6 @@ describe('Create.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -174,17 +205,25 @@ describe('Create.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
+    it('[削除予約済み]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
+      expect(dialog.isVisible()).toBe(true) // [メンバー招待ダイアログ]表示
+    })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -195,7 +234,6 @@ describe('Create.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
@@ -205,7 +243,6 @@ describe('Create.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
-      apiCalledTest(values)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)

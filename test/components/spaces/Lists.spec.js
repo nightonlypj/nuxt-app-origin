@@ -7,7 +7,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Lists.vue', () => {
-  const mountFunction = (spaces, showItems = null) => {
+  const mountFunction = (spaces, hiddenItems = []) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -18,7 +18,7 @@ describe('Lists.vue', () => {
       },
       propsData: {
         spaces,
-        showItems
+        hiddenItems
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -26,7 +26,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, spaces, show) => {
+  const viewTest = (wrapper, spaces, show = { optional: null }) => {
     const links = helper.getLinks(wrapper)
     const spacesIcons = wrapper.findAllComponents(SpacesIcon)
     for (const [index, space] of spaces.entries()) {
@@ -56,7 +56,7 @@ describe('Lists.vue', () => {
     const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
-  describe('2件、表示項目', () => {
+  describe('2件', () => {
     const spaces = Object.freeze([
       {
         code: 'code0001',
@@ -80,17 +80,16 @@ describe('Lists.vue', () => {
       }
     ])
 
-    it('[未設定]全て表示される', () => {
-      const wrapper = mountFunction(spaces, null)
-      viewTest(wrapper, spaces, { optional: true })
-    })
-    it('[全て選択]全て表示される', () => {
-      const showItems = Object.freeze(['name', 'description', 'action'])
-      const wrapper = mountFunction(spaces, showItems)
-      viewTest(wrapper, spaces, { optional: true })
-    })
-    it('[全て未選択]必須項目のみ表示される', () => {
+    it('[非表示項目が空]全て表示される', () => {
       const wrapper = mountFunction(spaces, [])
+      viewTest(wrapper, spaces, { optional: true })
+    })
+    it('[非表示項目が全項目]必須項目のみ表示される', () => {
+      const hiddenItems = []
+      for (const item of helper.locales.items.spaces) {
+        hiddenItems.push(item.value)
+      }
+      const wrapper = mountFunction(spaces, hiddenItems)
       viewTest(wrapper, spaces, { optional: false })
     })
   })

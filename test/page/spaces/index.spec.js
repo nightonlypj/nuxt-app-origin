@@ -3,8 +3,8 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import ListSetting from '~/components/ListSetting.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
-import SapcesSetting from '~/components/spaces/Setting.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Page from '~/pages/spaces/index.vue'
 
@@ -32,8 +32,8 @@ describe('index.vue', () => {
         InfiniteLoading: true,
         Loading: true,
         Processing: true,
+        ListSetting: true,
         SpacesSearch: true,
-        SapcesSetting: true,
         SpacesLists: true
       },
       mocks: {
@@ -115,13 +115,16 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
     expect(wrapper.vm.$data.testState).toBe(testState)
 
+    // 設定
+    const listSetting = wrapper.findComponent(ListSetting)
+    expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+
+    // 検索
     const spacesSearch = wrapper.findComponent(SpacesSearch)
     expect(spacesSearch.vm.processing).toBe(false)
     expect(spacesSearch.vm.query).toEqual(wrapper.vm.$data.query)
 
-    const sapcesSetting = wrapper.findComponent(SapcesSetting)
-    expect(sapcesSetting.vm.showItems).toBe(wrapper.vm.$data.showItems)
-
+    // 一覧
     if (data.spaces?.length === 0) {
       expect(wrapper.text()).toMatch('スペースが見つかりません。')
     }
@@ -176,7 +179,7 @@ describe('index.vue', () => {
       apiCalledTest(1, params)
       viewTest(wrapper, params, data, '1件', false)
     })
-    it('[無限スクロール]表示される', async () => {
+    it('[無限スクロール]スクロールで最終頁まで表示される', async () => {
       axiosGetMock = jest.fn()
         .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
         .mockImplementationOnce(() => Promise.resolve({ data: data2 }))
@@ -230,8 +233,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
@@ -263,8 +267,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
@@ -297,8 +302,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
@@ -330,8 +336,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
@@ -363,8 +370,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
 
+        await helper.sleep(1)
+        apiCalledTest(2, params)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(routerPushMock, 0)
@@ -431,25 +439,25 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toBe(null)
+      expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('spaces.show-items', '')
+      localStorage.setItem('spaces.hidden-items', '')
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toEqual([''])
+      expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('spaces.show-items', 'test1,test2')
+      localStorage.setItem('spaces.hidden-items', 'test1,test2')
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      expect(wrapper.vm.$data.showItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
 })

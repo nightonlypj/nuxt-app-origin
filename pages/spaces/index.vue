@@ -18,11 +18,12 @@
       <v-card-text>
         <v-row>
           <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString(space['total_count'], 'N/A') }}件
+            {{ $localeString(space.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
-            <SapcesSetting
-              :show-items.sync="showItems"
+            <ListSetting
+              model="spaces"
+              :hidden-items.sync="hiddenItems"
             />
           </v-col>
         </v-row>
@@ -36,7 +37,7 @@
           <v-divider class="my-2" />
           <SpacesLists
             :spaces="spaces"
-            :show-items="showItems"
+            :hidden-items="hiddenItems"
           />
           <v-divider class="my-2" />
         </template>
@@ -62,8 +63,8 @@
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import ListSetting from '~/components/ListSetting.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
-import SapcesSetting from '~/components/spaces/Setting.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Application from '~/plugins/application.js'
 
@@ -72,8 +73,8 @@ export default {
     InfiniteLoading,
     Loading,
     Processing,
+    ListSetting,
     SpacesSearch,
-    SapcesSetting,
     SpacesLists
   },
   mixins: [Application],
@@ -93,7 +94,7 @@ export default {
       space: null,
       spaces: null,
       testState: null, // Jest用
-      showItems: localStorage.getItem('spaces.show-items')?.split(',') || null
+      hiddenItems: localStorage.getItem('spaces.hidden-items')?.split(',') || []
     }
   },
 
@@ -110,7 +111,8 @@ export default {
   },
 
   async created () {
-    await this.getSpaces()
+    if (!await this.getSpaces()) { return }
+
     this.loading = false
   },
 

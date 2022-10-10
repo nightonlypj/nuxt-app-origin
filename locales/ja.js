@@ -13,16 +13,15 @@ module.exports = {
   },
   items: {
     spaces: [
-      { text: '名称', value: 'name', disabled: true },
-      { text: '説明', value: 'description', disabled: false },
-      { text: 'アクション', value: 'action', disabled: true }
+      { text: '名称', value: 'name', required: true },
+      { text: '説明', value: 'description', required: false }
     ],
     members: [
-      { text: 'メンバー', value: 'user.name', disabled: true, adminOnly: false },
-      { text: 'メールアドレス', value: 'user.email', disabled: false, adminOnly: true },
-      { text: '権限', value: 'power', disabled: false, adminOnly: false },
-      { text: '招待者', value: 'invitation_user.name', disabled: false, adminOnly: true },
-      { text: '招待日時', value: 'invitationed_at', disabled: false, adminOnly: false }
+      { text: 'メンバー', value: 'user.name', required: true, adminOnly: false },
+      { text: 'メールアドレス', value: 'user.email', required: false, adminOnly: true },
+      { text: '権限', value: 'power', required: false, adminOnly: false },
+      { text: '招待者', value: 'invitation_user.name', required: false, adminOnly: true },
+      { text: '招待日時', value: 'invitationed_at', required: false, adminOnly: false }
     ]
   },
   network: {

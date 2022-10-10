@@ -12,7 +12,7 @@ describe('Search.vue', () => {
   }
   const query = Object.freeze({ text: '', option: false, power })
 
-  const mountFunction = (currentMemberAdmin = false) => {
+  const mountFunction = (admin = false) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -21,7 +21,7 @@ describe('Search.vue', () => {
       propsData: {
         processing: false,
         query: { ...query },
-        currentMemberAdmin
+        admin
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -29,8 +29,8 @@ describe('Search.vue', () => {
   }
 
   // テスト内容
-  const viewTest = async (wrapper, currentMemberAdmin) => {
-    if (currentMemberAdmin) {
+  const viewTest = async (wrapper, admin) => {
+    if (admin) {
       expect(wrapper.vm.textPlaceholder).toMatch('メールアドレス')
     } else {
       expect(wrapper.vm.textPlaceholder).not.toMatch('メールアドレス')

@@ -9,14 +9,17 @@
     mobile-breakpoint="600"
     hide-default-header
     disable-sort
+    @dblclick:row="redirectSpace"
   >
     <!-- 名称 -->
     <template #[`item.name`]="{ item }">
-      <v-avatar v-if="item.image_url != null" :id="'space_image_' + item.code" size="32px">
-        <v-img :src="item.image_url.small" />
-      </v-avatar>
-      <NuxtLink :to="'/s/' + item.code" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
-      <SpacesIcon :space="item" />
+      <div class="ml-1">
+        <v-avatar v-if="item.image_url != null" :id="'space_image_' + item.code" size="32px">
+          <v-img :src="item.image_url.small" />
+        </v-avatar>
+        <NuxtLink :to="'/s/' + item.code" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
+        <SpacesIcon :space="item" />
+      </div>
     </template>
     <!-- 説明 -->
     <template #[`item.description`]="{ item }">
@@ -55,7 +58,7 @@ export default {
       type: Array,
       default: null
     },
-    showItems: {
+    hiddenItems: {
       type: Array,
       default: null
     }
@@ -65,12 +68,18 @@ export default {
     headers () {
       const result = []
       for (const item of this.$t('items.spaces')) {
-        if (item.disabled || this.showItems == null || this.showItems.includes(item.value)) {
+        if (item.required || !this.hiddenItems.includes(item.value)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
       }
-      result.push({ text: '', value: 'action' })
+      result.push({ value: 'action', cellClass: 'pl-1 pr-2 py-2' })
       return result
+    }
+  },
+
+  methods: {
+    redirectSpace (_event, { item }) {
+      this.$router.push('/s/' + item.code)
     }
   }
 }

@@ -1,13 +1,15 @@
 <template>
   <div>
+    <Loading v-if="loading" />
+    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
+
     <div v-if="createResult != null">
-      <v-tabs v-model="tabIndex">
-        <v-tab>メンバー一覧</v-tab>
-        <v-tab>メンバー招待（結果）</v-tab>
+      <v-tabs v-model="tabPage">
+        <v-tab href="#list">メンバー一覧</v-tab>
+        <v-tab href="#result">メンバー招待（結果）</v-tab>
       </v-tabs>
     </div>
 
-    <Loading v-if="loading" />
     <v-card v-if="!loading">
       <v-card-title>
         <div v-if="space != null">
@@ -22,16 +24,16 @@
       </v-card-title>
       <v-card-text>
         <v-row>
-          <v-col v-show="tabIndex === 0" cols="12" sm="9">
+          <v-col v-show="tabPage === 'list'" cols="12" sm="9">
             <MembersSearch
               ref="search"
               :processing="processing || reloading"
               :query.sync="query"
-              :current-member-admin="currentMemberAdmin"
+              :admin="currentMemberAdmin"
               @search="searchMembers"
             />
           </v-col>
-          <v-col v-if="currentMemberAdmin" cols="12" :sm="tabIndex === 0 ? 3 : 12" class="d-flex justify-end">
+          <v-col v-if="currentMemberAdmin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
             <MembersCreate
               :space="space"
               @result="resultMembers"
@@ -42,13 +44,13 @@
       </v-card-text>
     </v-card>
 
-    <v-card v-if="!loading" v-show="tabIndex === 0" class="mt-2">
+    <v-card v-if="!loading" v-show="tabPage === 'list'" class="mt-2">
       <Processing v-if="reloading" />
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
             <div class="align-self-center text-no-wrap">
-              {{ $localeString(member['total_count'], 'N/A') }}名
+              {{ $localeString(member.total_count, 'N/A') }}名
             </div>
             <div v-if="selectedMembers.length > 0" class="d-flex">
               <div class="align-self-center text-no-wrap ml-4">
@@ -58,25 +60,20 @@
                 <MembersDelete
                   :space="space"
                   :selected-members="selectedMembers"
+                  @alert="alert = $event"
+                  @notice="notice = $event"
+                  @clear="selectedMembers = []"
                   @reload="reloadMembers"
                 />
               </div>
             </div>
           </v-col>
           <v-col class="d-flex justify-end">
-            <MembersDownload
-              v-if="currentMemberAdmin"
-              :space="space"
-              :params="params"
-              :members="members"
-              :selected-members="selectedMembers"
-              :show-items="showItems"
-              :current-member-admin="currentMemberAdmin"
-            />
             <div class="ml-1">
-              <MembersSetting
-                :show-items.sync="showItems"
-                :current-member-admin="currentMemberAdmin"
+              <ListSetting
+                model="members"
+                :hidden-items.sync="hiddenItems"
+                :admin="currentMemberAdmin"
               />
             </div>
           </v-col>
@@ -99,7 +96,7 @@
             :sort-desc="query.sortDesc"
             :members="members"
             :selected-members.sync="selectedMembers"
-            :show-items="showItems"
+            :hidden-items="hiddenItems"
             :current-member-admin="currentMemberAdmin"
             @reload="reloadMembers"
             @showUpdate="$refs.update.showDialog(space, $event)"
@@ -122,7 +119,7 @@
       </v-card-text>
     </v-card>
 
-    <v-card v-if="createResult != null" v-show="tabIndex === 1" class="mt-2">
+    <v-card v-if="createResult != null" v-show="tabPage === 'result'" class="mt-2">
       <v-card-text>
         <MembersResult :result="createResult" />
       </v-card-text>
@@ -134,13 +131,13 @@
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
+import ListSetting from '~/components/ListSetting.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
-import MembersDelete from '~/components/members/Delete.vue'
-import MembersDownload from '~/components/members/Download.vue'
-import MembersSetting from '~/components/members/Setting.vue'
 import MembersUpdate from '~/components/members/Update.vue'
+import MembersDelete from '~/components/members/Delete.vue'
 import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
 import Application from '~/plugins/application.js'
@@ -150,13 +147,13 @@ export default {
     InfiniteLoading,
     Loading,
     Processing,
+    Message,
+    ListSetting,
     SpacesIcon,
     MembersSearch,
     MembersCreate,
-    MembersDelete,
-    MembersDownload,
-    MembersSetting,
     MembersUpdate,
+    MembersDelete,
     MembersLists,
     MembersResult
   },
@@ -172,6 +169,8 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
+      alert: null,
+      notice: null,
       query: {
         text: this.$route?.query?.text || '',
         power,
@@ -186,8 +185,8 @@ export default {
       members: null,
       testState: null, // Jest用
       selectedMembers: [],
-      showItems: localStorage.getItem('members.show-items')?.split(',') || null,
-      tabIndex: 0,
+      hiddenItems: localStorage.getItem('members.hidden-items')?.split(',') || [],
+      tabPage: 'list',
       createResult: null
     }
   },
@@ -209,8 +208,8 @@ export default {
 
   async created () {
     if (!this.$auth.loggedIn) { return } // Tips: Jestでmiddlewareが実行されない為
+    if (!await this.getMembers()) { return }
 
-    await this.getMembers()
     this.loading = false
   },
 
@@ -333,13 +332,13 @@ export default {
       return result
     },
 
-    // メンバー招待結果表示
+    // メンバー招待（結果）
     resultMembers (result) {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('resultMembers', result) }
 
       this.createResult = result
-      this.tabIndex = 1
+      this.tabPage = 'result'
     },
 
     // メンバー情報更新
