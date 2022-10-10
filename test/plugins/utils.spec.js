@@ -55,9 +55,9 @@ describe('utils.js', () => {
       expect(wrapper.vm.timeFormat).toBe('N/A')
     })
     it('[あり]日付が返却される', () => {
-      const wrapper = mountFunction('2021-01-01T09:00:00+09:00', 'ja')
-      expect(wrapper.vm.dateFormat).toBe('2021/01/01')
-      expect(wrapper.vm.timeFormat).toBe('2021/01/01 09:00')
+      const wrapper = mountFunction('2000-01-02T12:34:56+09:00', 'ja')
+      expect(wrapper.vm.dateFormat).toBe('2000/01/02')
+      expect(wrapper.vm.timeFormat).toBe('2000/01/02 12:34')
     })
   })
 

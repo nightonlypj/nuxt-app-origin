@@ -19,7 +19,7 @@ describe('sign_in.vue', () => {
     routerPushMock = jest.fn()
   })
 
-  const mountFunction = (loggedIn, query, values = null) => {
+  const mountFunction = (loggedIn, query = null, values = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -58,7 +58,6 @@ describe('sign_in.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, data) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -88,7 +87,7 @@ describe('sign_in.vue', () => {
 
   // テストケース
   it('[未ログイン]表示される', async () => {
-    const wrapper = mountFunction(false, {})
+    const wrapper = mountFunction(false)
     viewTest(wrapper, null)
 
     // ログインボタン
@@ -106,7 +105,7 @@ describe('sign_in.vue', () => {
     expect(button.vm.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
-    mountFunction(true, {})
+    mountFunction(true)
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -173,13 +172,26 @@ describe('sign_in.vue', () => {
   describe('ログイン', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
-    it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {
-      authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#sign_in_btn')
-      button.trigger('click')
+
+    let wrapper, button
+    const beforeAction = async (options = { keydown: false, isComposing: null }) => {
+      wrapper = mountFunction(false, null, values)
+      if (options.keydown) {
+        const inputArea = wrapper.find('#input_area')
+        inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
+        inputArea.trigger('keyup.enter')
+      } else {
+        button = wrapper.find('#sign_in_btn')
+        button.trigger('click')
+      }
 
       await helper.sleep(1)
+    }
+
+    it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {
+      authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -187,12 +199,8 @@ describe('sign_in.vue', () => {
     })
     it('[成功][Enter送信]ログイン状態になり、元のページにリダイレクトされる', async () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: false })
-      inputArea.trigger('keyup.enter')
+      await beforeAction({ keydown: true, isComposing: false })
 
-      await helper.sleep(1)
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -200,21 +208,14 @@ describe('sign_in.vue', () => {
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: true })
-      inputArea.trigger('keyup.enter')
+      await beforeAction({ keydown: true, isComposing: true })
 
-      await helper.sleep(1)
       expect(authLoginWithMock).toBeCalledTimes(0)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#sign_in_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -223,11 +224,8 @@ describe('sign_in.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#sign_in_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -235,11 +233,8 @@ describe('sign_in.vue', () => {
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#sign_in_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -247,11 +242,8 @@ describe('sign_in.vue', () => {
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#sign_in_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
       apiCalledTest(values)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, true)

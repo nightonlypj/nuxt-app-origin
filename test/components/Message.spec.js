@@ -20,7 +20,6 @@ describe('Message.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, message) => {
-    // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(message)
   }
 

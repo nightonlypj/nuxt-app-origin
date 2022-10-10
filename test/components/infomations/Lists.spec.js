@@ -28,9 +28,6 @@ describe('Lists.vue', () => {
   const viewTest = (wrapper, infomations) => {
     const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
-    // console.log(wrapper.text())
     for (const [index, infomation] of infomations.entries()) {
       expect(labels.at(index).exists()).toBe(true) // ラベル
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
@@ -49,8 +46,7 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[0件]表示されない', () => {
-    const infomations = Object.freeze([])
-    const wrapper = mountFunction(infomations)
+    const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
   it('[2件]表示される', () => {
@@ -60,14 +56,14 @@ describe('Lists.vue', () => {
         title: 'タイトル1',
         summary: '概要1',
         body_present: true,
-        started_at: '2000-01-01T09:00:00+09:00'
+        started_at: '2000-01-01T12:34:56+09:00'
       },
       {
         id: 2,
         title: 'タイトル2',
         summary: null,
         body_present: false,
-        started_at: '2000-01-02T09:00:00+09:00'
+        started_at: '2000-01-02T12:34:56+09:00'
       }
     ])
     const wrapper = mountFunction(infomations)

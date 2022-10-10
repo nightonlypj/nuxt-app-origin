@@ -60,10 +60,8 @@ describe('reset.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, data) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
@@ -76,12 +74,14 @@ describe('reset.vue', () => {
     expect(wrapper.vm.$data.email).toBe('')
   }
 
-  const apiCalledTest = (values) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUrl, {
-      email: values.email,
-      redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.passwordRedirectUrl
-    })
+  const apiCalledTest = (count, values) => {
+    expect(axiosPostMock).toBeCalledTimes(count)
+    if (count > 0) {
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUrl, {
+        email: values.email,
+        redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.passwordRedirectUrl
+      })
+    }
   }
 
   // テストケース
@@ -128,49 +128,54 @@ describe('reset.vue', () => {
   describe('パスワード再設定', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ email: 'user1@example.com' })
-    it('[成功][ボタンクリック]ログインページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+
+    let wrapper, button
+    const beforeAction = async (options = { keydown: false, isComposing: null }) => {
+      wrapper = mountFunction(false, null, values)
+      if (options.keydown) {
+        const inputArea = wrapper.find('#input_area')
+        inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
+        inputArea.trigger('keyup.enter')
+      } else {
+        button = wrapper.find('#password_btn')
+        button.trigger('click')
+      }
 
       await helper.sleep(1)
-      apiCalledTest(values)
+    }
+
+    it('[成功][ボタンクリック]ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
+      apiCalledTest(1, values)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[成功][Enter送信]ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: false })
-      inputArea.trigger('keyup.enter')
+      await beforeAction({ keydown: true, isComposing: false })
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, {}, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: true })
-      inputArea.trigger('keyup.enter')
+      await beforeAction({ keydown: true, isComposing: true })
 
-      await helper.sleep(1)
-      expect(axiosPostMock).toBeCalledTimes(0)
+      apiCalledTest(0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -178,47 +183,35 @@ describe('reset.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(false, {}, values)
-      const button = wrapper.find('#password_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })

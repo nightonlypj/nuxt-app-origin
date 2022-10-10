@@ -56,14 +56,12 @@ describe('_id.vue', () => {
   }
 
   const viewTest = (wrapper, data) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
 
     expect(wrapper.findComponent(InfomationsLabel).exists()).toBe(true) // ラベル
     expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(data.infomation)
 
-    // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(data.infomation.title) // タイトル
     expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(data.infomation.started_at, 'ja')) // 開始日
     if (data.infomation.body != null) {
@@ -74,8 +72,6 @@ describe('_id.vue', () => {
     }
 
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/infomations')).toBe(true) // お知らせ一覧
   }
 
@@ -87,7 +83,7 @@ describe('_id.vue', () => {
           title: 'タイトル1',
           summary: '概要1',
           body: '本文1',
-          started_at: '2021-01-01T09:00:00+09:00'
+          started_at: '2000-01-01T12:34:56+09:00'
         }
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
@@ -104,7 +100,7 @@ describe('_id.vue', () => {
           title: 'タイトル1',
           summary: '概要1',
           body: null,
-          started_at: '2021-01-01T09:00:00+09:00'
+          started_at: '2000-01-01T12:34:56+09:00'
         }
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
@@ -121,6 +117,7 @@ describe('_id.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -132,6 +129,7 @@ describe('_id.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
@@ -143,6 +141,7 @@ describe('_id.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: data.alert, notice: data.notice })
@@ -153,6 +152,7 @@ describe('_id.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
@@ -163,6 +163,7 @@ describe('_id.vue', () => {
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })

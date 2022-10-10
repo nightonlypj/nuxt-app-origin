@@ -41,15 +41,11 @@ describe('Infomations.vue', () => {
   }
 
   const viewTest = (wrapper, data) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
 
     const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
-    // console.log(wrapper.text())
     for (const [index, infomation] of data.infomations.entries()) {
       expect(labels.at(index).exists()).toBe(true) // ラベル
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
@@ -60,7 +56,6 @@ describe('Infomations.vue', () => {
   }
 
   const viewErrorTest = (wrapper, errorMessage, localesMessage) => {
-    // console.log(wrapper.text())
     expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
     expect(wrapper.text()).toMatch(localesMessage)
   }
@@ -79,10 +74,10 @@ describe('Infomations.vue', () => {
     it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
       const data = Object.freeze({
         infomations: [
-          { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2021-01-01T09:00:00+09:00' },
-          { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2021-01-02T09:00:00+09:00' },
-          { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2021-01-03T09:00:00+09:00' },
-          { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2021-01-04T09:00:00+09:00' }
+          { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2000-01-01T12:34:56+09:00' },
+          { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2000-01-02T12:34:56+09:00' },
+          { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2000-01-03T12:34:56+09:00' },
+          { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2000-01-04T12:34:56+09:00' }
         ]
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))

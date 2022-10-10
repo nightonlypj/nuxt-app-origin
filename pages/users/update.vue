@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
     <v-card v-if="!loading && user != null" max-width="850px">
       <v-card-title>ユーザー情報変更</v-card-title>
       <v-row>

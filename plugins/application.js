@@ -41,7 +41,7 @@ export default {
     },
 
     // エラーレスポンスチェック
-    appCheckErrorResponse (error, action = { redirect: false, toasted: false, returnKey: false, require: false }, check = { auth: false, forbidden: false, notfound: false }) {
+    appCheckErrorResponse (error, action = { redirect: false, toasted: false, returnKey: false, require: false }, check = { auth: false, forbidden: false, notfound: false, reserved: false }) {
       if (error.response == null) {
         return this.appReturnResponse(action, null, 'network.failure')
       } else if (check.auth && error.response.status === 401) {
@@ -51,6 +51,8 @@ export default {
         return this.appReturnResponse(action, error.response.status, 'auth.forbidden')
       } else if (check.notfound && error.response.status === 404) {
         return this.appReturnResponse(action, error.response.status, 'system.notfound', error.response.data)
+      } else if (check.reserved && error.response.status === 406) {
+        return this.appReturnResponse(action, error.response.status, 'auth.destroy_reserved', error.response.data)
       } else if (error.response.data == null) {
         return this.appReturnResponse(action, error.response.status, 'network.error')
       }

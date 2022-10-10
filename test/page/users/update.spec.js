@@ -23,7 +23,7 @@ describe('update.vue', () => {
     nuxtErrorMock = jest.fn()
   })
 
-  const mountFunction = (loggedIn, user) => {
+  const mountFunction = (loggedIn, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -69,7 +69,6 @@ describe('update.vue', () => {
   }
 
   const viewTest = (wrapper, user, unconfirmed) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Message).exists()).toBe(true)
     expect(wrapper.findComponent(Message).vm.$props.alert).toBeNull()
@@ -79,15 +78,13 @@ describe('update.vue', () => {
     expect(wrapper.findComponent(UpdateData).vm.$props.user).toBe(user)
 
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/users/confirmation/resend')).toBe(unconfirmed) // [メールアドレス変更中]メールアドレス確認
     expect(links.includes('/users/delete')).toBe(true) // アカウント削除
   }
 
   // テストケース
   it('[未ログイン]ログインにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false, {})
+    const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
 
     await helper.sleep(1)
@@ -122,7 +119,7 @@ describe('update.vue', () => {
     viewTest(wrapper, user, true)
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
+    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     helper.loadingTest(wrapper, Loading)
 
     await helper.sleep(1)

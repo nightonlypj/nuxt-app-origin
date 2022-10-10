@@ -12,20 +12,18 @@ export class Helper {
   getLinks = (wrapper) => {
     const links = []
     const routerlinks = wrapper.findAllComponents(RouterLinkStub)
-    for (let i = 0; i < routerlinks.length; i++) {
-      links.push(routerlinks.at(i).props().to)
+    for (let index = 0; index < routerlinks.length; index++) {
+      links.push(routerlinks.at(index).props().to)
     }
     return links
   }
 
   // テスト内容
   loadingTest = (wrapper, Loading) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(true)
   }
 
   blankTest = (wrapper, Loading = null) => {
-    // console.log(wrapper.html())
     if (Loading != null) {
       expect(wrapper.findComponent(Loading).exists()).toBe(false)
     }
@@ -33,7 +31,6 @@ export class Helper {
   }
 
   presentTest = (wrapper, Loading = null) => {
-    // console.log(wrapper.html())
     if (Loading != null) {
       expect(wrapper.findComponent(Loading).exists()).toBe(false)
     }
@@ -43,25 +40,22 @@ export class Helper {
   mockCalledTest = (mock, count, arg = null) => {
     expect(mock).toBeCalledTimes(count)
     if (arg != null) {
-      expect(mock).nthCalledWith(1, arg)
+      expect(mock).nthCalledWith(count, arg)
     }
   }
 
   messageTest = (wrapper, Message, data) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Message).exists()).toBe(true)
     expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null)
     expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null)
   }
 
   emitMessageTest = (wrapper, data) => {
-    // console.log(wrapper.emitted())
     expect(wrapper.emitted().alert).toEqual([[data.alert]])
     expect(wrapper.emitted().notice).toEqual([[data.notice]])
   }
 
   disabledTest = async (wrapper, Processing, button, disabled) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     await this.waitChangeDisabled(button, disabled)
     expect(button.vm.disabled).toBe(disabled)
@@ -69,7 +63,7 @@ export class Helper {
 
   // Tips: 待ち時間を増やさないと状態が変わらない場合に使用
   waitChangeDisabled = async (button, disabled) => {
-    for (let i = 0; i < 100; i++) {
+    for (let index = 0; index < 100; index++) {
       await this.sleep(1)
       if (button.vm.disabled === disabled) { break }
     }

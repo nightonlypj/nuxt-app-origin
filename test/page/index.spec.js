@@ -27,7 +27,6 @@ describe('index.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, loggedIn) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(IndexSignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
     expect(wrapper.findComponent(IndexInfomations).exists()).toBe(true) // 大切なお知らせ
   }
