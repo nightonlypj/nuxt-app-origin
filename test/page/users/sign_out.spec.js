@@ -47,7 +47,6 @@ describe('sign_out.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -58,8 +57,16 @@ describe('sign_out.vue', () => {
   }
 
   const updateViewTest = (wrapper) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(true)
+
+    // Devise Token Auth
+    expect(localStorage.getItem('token-type')).toBeNull()
+    expect(localStorage.getItem('uid')).toBeNull()
+    expect(localStorage.getItem('client')).toBeNull()
+    expect(localStorage.getItem('access-token')).toBeNull()
+    expect(localStorage.getItem('expiry')).toBeNull()
+
+    // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
   }
 
   // テストケース
@@ -75,10 +82,8 @@ describe('sign_out.vue', () => {
   })
 
   describe('ログアウト', () => {
-    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
-      authLogoutMock = jest.fn()
-      const wrapper = mountFunction(true)
-
+    let wrapper
+    const beforeAction = async () => {
       // Devise Token Auth
       localStorage.setItem('token-type', 'Bearer')
       localStorage.setItem('uid', '101')
@@ -86,62 +91,45 @@ describe('sign_out.vue', () => {
       localStorage.setItem('access-token', 'token')
       localStorage.setItem('expiry', '123')
 
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      wrapper = mountFunction(true)
+      wrapper.find('#sign_out_btn').trigger('click')
 
       await helper.sleep(1)
       updateViewTest(wrapper)
+    }
+
+    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      authLogoutMock = jest.fn()
+      await beforeAction()
+
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
-
-      // Devise Token Auth
-      expect(localStorage.getItem('token-type')).toBeNull()
-      expect(localStorage.getItem('uid')).toBeNull()
-      expect(localStorage.getItem('client')).toBeNull()
-      expect(localStorage.getItem('access-token')).toBeNull()
-      expect(localStorage.getItem('expiry')).toBeNull()
     })
 
     it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true)
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true)
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(true)
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      updateViewTest(wrapper)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
   })
 })

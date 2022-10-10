@@ -32,14 +32,11 @@ describe('default.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, loggedIn) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(GoTop).exists()).toBe(true) // 上に戻る
     expect(wrapper.findComponent(DestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.html()).toMatch('<nuxt-stub></nuxt-stub>')
 
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/')).toBe(true) // トップページ
     expect(links.includes('/users/sign_in')).toBe(!loggedIn) // [未ログイン]ログイン
     expect(links.includes('/users/sign_up')).toBe(!loggedIn) // [未ログイン]アカウント登録
@@ -47,7 +44,6 @@ describe('default.vue', () => {
     expect(links.includes('/users/update')).toBe(loggedIn) // [ログイン中]ユーザー情報変更
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
-    // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
       expect(wrapper.text()).toMatch('12345') // [ログイン中]お知らせの未読数
@@ -61,7 +57,7 @@ describe('default.vue', () => {
 
   // テストケース
   it('[未ログイン]表示される', () => {
-    const wrapper = mountFunction(false, {})
+    const wrapper = mountFunction(false, null)
     viewTest(wrapper, false)
   })
   it('[ログイン中]表示される', async () => {

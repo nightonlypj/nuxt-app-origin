@@ -25,7 +25,7 @@
             <v-card id="user_delete_dialog">
               <v-toolbar color="error" dense dark>アカウント削除</v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-6">本当に削除しますか？</div>
+                <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
                 <v-btn
@@ -115,7 +115,7 @@ export default {
           this.appSignOut(null, '/users/sign_in', response.data)
         },
         (error) => {
-          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
+          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true, reserved: true })
         })
 
       this.processing = false

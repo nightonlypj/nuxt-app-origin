@@ -11,7 +11,7 @@
         <article v-for="infomation in infomations" :key="infomation.id" class="mb-1">
           <InfomationsLabel :infomation="infomation" />
           <span class="ml-1">
-            <template v-if="infomation.body_present === true || infomation.summary !== null">
+            <template v-if="infomation.body_present || infomation.summary !== null">
               <NuxtLink :to="'/infomations/' + infomation.id">{{ infomation.title }}</NuxtLink>
             </template>
             <template v-else>

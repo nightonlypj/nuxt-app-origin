@@ -61,10 +61,8 @@ describe('index.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
@@ -73,13 +71,15 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.password_confirmation).toBe('')
   }
 
-  const apiCalledTest = (values) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
-      reset_password_token: values.reset_password_token,
-      password: values.password,
-      password_confirmation: values.password_confirmation
-    })
+  const apiCalledTest = (count, values) => {
+    expect(axiosPostMock).toBeCalledTimes(count)
+    if (count > 0) {
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
+        reset_password_token: values.reset_password_token,
+        password: values.password,
+        password_confirmation: values.password_confirmation
+      })
+    }
   }
 
   // テストケース
@@ -160,15 +160,28 @@ describe('index.vue', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const query = Object.freeze({ reset_password_token: 'token' })
     const values = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
-    it('[成功][ボタンクリック]ログイン状態になり、トップページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
-      wrapper.vm.$auth.loggedIn = true // Tips: 状態変更（Mockでは実行されない為）
+
+    let wrapper, button
+    const beforeAction = async (changeSignIn = false, options = { keydown: false, isComposing: null }) => {
+      wrapper = mountFunction(false, query, values)
+      if (options.keydown) {
+        const inputArea = wrapper.find('#input_area')
+        inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
+        inputArea.trigger('keyup.enter')
+      } else {
+        button = wrapper.find('#password_update_btn')
+        button.trigger('click')
+      }
+      if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // Tips: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
-      apiCalledTest(values)
+    }
+
+    it('[成功][ボタンクリック]ログイン状態になり、トップページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction(true)
+
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -176,14 +189,9 @@ describe('index.vue', () => {
     })
     it('[成功][Enter送信]ログイン状態になり、トップページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: false })
-      inputArea.trigger('keyup.enter')
-      wrapper.vm.$auth.loggedIn = true // Tips: 状態変更（Mockでは実行されない為）
+      await beforeAction(true, { keydown: true, isComposing: false })
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -191,22 +199,18 @@ describe('index.vue', () => {
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const inputArea = wrapper.find('#input_area')
-      inputArea.trigger('keydown.enter', { isComposing: true })
-      inputArea.trigger('keyup.enter')
+      await beforeAction(false, { keydown: true, isComposing: true })
 
-      await helper.sleep(1)
-      expect(axiosPostMock).toBeCalledTimes(0)
+      apiCalledTest(0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[成功]ログイン状態にならなかった場合は、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -214,12 +218,9 @@ describe('index.vue', () => {
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -228,12 +229,9 @@ describe('index.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -241,12 +239,9 @@ describe('index.vue', () => {
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -254,24 +249,18 @@ describe('index.vue', () => {
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]パスワード再設定（メールアドレス入力）にリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(1, values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)

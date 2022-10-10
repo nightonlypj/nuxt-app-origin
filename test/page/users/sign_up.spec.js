@@ -56,7 +56,6 @@ describe('sign_up.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -112,26 +111,29 @@ describe('sign_up.vue', () => {
   describe('アカウント登録', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
-    it('[成功]ログインページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
+
+    let wrapper, button
+    const beforeAction = async () => {
+      wrapper = mountFunction(false, values)
+      button = wrapper.find('#sign_up_btn')
       button.trigger('click')
 
       await helper.sleep(1)
       apiCalledTest(values)
+    }
+
+    it('[成功]ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -139,47 +141,31 @@ describe('sign_up.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(false, values)
-      const button = wrapper.find('#sign_up_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })

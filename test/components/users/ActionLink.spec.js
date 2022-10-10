@@ -23,8 +23,6 @@ describe('ActionLink.vue', () => {
   // テスト内容
   const viewTest = (wrapper, action) => {
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/users/sign_in')).toBe(action !== 'sign_in') // ログイン
     expect(links.includes('/users/sign_up')).toBe(action !== 'sign_up') // アカウント登録
     expect(links.includes('/users/password/reset')).toBe(action !== 'password') // パスワード再設定

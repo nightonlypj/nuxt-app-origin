@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert="alert" :notice="notice" />
+    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
     <v-card v-if="!loading" max-width="480px">
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }">

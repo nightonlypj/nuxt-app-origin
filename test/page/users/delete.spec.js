@@ -60,11 +60,8 @@ describe('delete.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, user) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-
-    // console.log(wrapper.text())
     expect(wrapper.text()).toMatch(String(user.destroy_schedule_days)) // アカウント削除の猶予期間
   }
 
@@ -77,7 +74,7 @@ describe('delete.vue', () => {
 
   // テストケース
   it('[未ログイン]ログインにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false, {})
+    const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, Loading)
 
     await helper.sleep(1)
@@ -107,15 +104,25 @@ describe('delete.vue', () => {
     await helper.sleep(1)
     const dialog = wrapper.find('#user_delete_dialog')
     expect(dialog.exists()).toBe(true)
+    expect(dialog.isVisible()).toBe(true) // 表示
+
+    // はいボタン
+    const yesButton = wrapper.find('#user_delete_yes_btn')
+    expect(yesButton.exists()).toBe(true)
+    expect(yesButton.vm.disabled).toBe(false) // 有効
 
     // いいえボタン
     const noButton = wrapper.find('#user_delete_no_btn')
     expect(noButton.exists()).toBe(true)
     expect(noButton.vm.disabled).toBe(false) // 有効
     noButton.trigger('click')
+
+    // 確認ダイアログ
+    await helper.sleep(1)
+    expect(dialog.isVisible()).toBe(false) // 非表示
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-    const user = Object.freeze({ destroy_schedule_at: '2021-01-08T09:00:00+09:00' })
+    const user = Object.freeze({ destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
 
@@ -182,20 +189,26 @@ describe('delete.vue', () => {
   describe('アカウント削除', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ destroy_schedule_at: null })
-    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(true, user)
+
+    let wrapper, button
+    const beforeAction = async () => {
+      wrapper = mountFunction(true, user)
 
       await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
+      button = wrapper.find('#user_delete_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
+      wrapper.find('#user_delete_yes_btn').trigger('click')
 
       await helper.sleep(1)
       apiCalledTest()
+    }
+
+    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -203,18 +216,8 @@ describe('delete.vue', () => {
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(true, user)
+      await beforeAction()
 
-      await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
-
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -223,18 +226,8 @@ describe('delete.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, user)
+      await beforeAction()
 
-      await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
-
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -242,37 +235,26 @@ describe('delete.vue', () => {
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, user)
+      await beforeAction()
 
-      await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
-
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
+    it('[削除予約済み]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
+    })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true, user)
+      await beforeAction()
 
-      await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
-
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -280,18 +262,8 @@ describe('delete.vue', () => {
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(true, user)
+      await beforeAction()
 
-      await helper.sleep(1)
-      const button = wrapper.find('#user_delete_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      const yesButton = wrapper.find('#user_delete_yes_btn')
-      yesButton.trigger('click')
-
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)

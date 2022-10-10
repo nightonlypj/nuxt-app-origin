@@ -22,8 +22,6 @@ describe('Label.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, color, infomation) => {
-    // console.log(wrapper.html())
-    // console.log(wrapper.text())
     expect(wrapper.html()).toMatch(color)
     expect(wrapper.text()).toMatch(infomation.label_i18n)
   }

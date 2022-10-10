@@ -26,10 +26,7 @@ describe('error.vue', () => {
   // テスト内容
   const viewTest = (wrapper, alertMessage) => {
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/')).toBe(true) // トップページ
-
     expect(wrapper.vm.alertMessage).toEqual(alertMessage)
   }
 

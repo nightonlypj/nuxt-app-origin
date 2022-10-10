@@ -6,10 +6,10 @@
       <v-card-title>お知らせ</v-card-title>
       <v-card-text>
         <v-row v-if="existInfomations">
-          <v-col cols="auto" md="5" align-self="center">
-            {{ $localeString(infomation['total_count'], 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString($pageFirstNumber(infomation), 'N/A') }}-{{ $localeString($pageLastNumber(infomation), 'N/A') }}件を表示</template>
+          <v-col class="align-self-center text-no-wrap">
+            {{ $localeString(infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString($pageFirstNumber(infomation), 'N/A') }}-{{ $localeString($pageLastNumber(infomation), 'N/A') }}件を表示</template>
           </v-col>
-          <v-col v-if="enablePagination" cols="12" md="7" class="px-0 py-0">
+          <v-col v-if="enablePagination" class="px-0 py-0">
             <div class="d-flex justify-end">
               <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomations()" />
             </div>
@@ -71,7 +71,9 @@ export default {
   },
 
   async created () {
-    if (await this.getInfomations() && this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
+    if (!await this.getInfomations()) { return }
+
+    if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
       // トークン検証
       try {
         await this.$auth.fetchUser() // Tips: お知らせ未読数をリセット

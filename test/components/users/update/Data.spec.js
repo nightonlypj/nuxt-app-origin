@@ -57,7 +57,6 @@ describe('Data.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, user) => {
-    // console.log(wrapper.html())
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.name).toBe(user.name)
     expect(wrapper.vm.$data.email).toBe(user.email)
@@ -102,14 +101,22 @@ describe('Data.vue', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     const values = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
-    it('[成功]トップページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
+
+    let wrapper, button
+    const beforeAction = async (changeSignOut = false) => {
+      wrapper = mountFunction(user, values)
+      button = wrapper.find('#user_update_btn')
       button.trigger('click')
+      if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // Tips: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
       apiCalledTest(values)
+    }
+
+    it('[成功]トップページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
@@ -118,13 +125,8 @@ describe('Data.vue', () => {
     })
     it('[成功]未ログイン状態になってしまった場合は、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
-      wrapper.vm.$auth.loggedIn = false // Tips: 状態変更（Mockでは実行されない為）
+      await beforeAction(true)
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
@@ -133,12 +135,8 @@ describe('Data.vue', () => {
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
@@ -148,12 +146,8 @@ describe('Data.vue', () => {
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
@@ -162,26 +156,27 @@ describe('Data.vue', () => {
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
+    it('[削除予約済み]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
+    })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
@@ -190,12 +185,8 @@ describe('Data.vue', () => {
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.emitMessageTest(wrapper, data)
@@ -203,12 +194,8 @@ describe('Data.vue', () => {
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(user, values)
-      const button = wrapper.find('#user_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest(values)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })

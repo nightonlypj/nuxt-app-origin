@@ -1,7 +1,7 @@
 <template>
   <validation-observer v-slot="{ invalid }" ref="observer">
     <Processing v-if="processing" />
-    <v-form>
+    <v-form autocomplete="off">
       <v-card-text>
         <v-avatar size="256px">
           <v-img :src="$auth.user.image_url.xlarge" />
@@ -43,7 +43,7 @@
             <v-card id="user_image_delete_dialog">
               <v-toolbar color="secondary" dense dark>画像削除</v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-6">本当に削除しますか？</div>
+                <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
                 <v-btn
@@ -108,7 +108,7 @@ export default {
           this.setUser(response)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {
@@ -132,7 +132,7 @@ export default {
           this.setUser(response)
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
         })

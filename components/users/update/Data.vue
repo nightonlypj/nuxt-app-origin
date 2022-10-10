@@ -146,7 +146,7 @@ export default {
           }
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {
