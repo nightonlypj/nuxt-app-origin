@@ -18,7 +18,6 @@
               <span class="ml-1">メンバー招待</span>
             </v-toolbar>
             <v-card-text>
-              <Message :alert.sync="alert" :notice.sync="notice" />
               <v-container>
                 <v-row>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
@@ -92,7 +91,6 @@
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required } from 'vee-validate/dist/rules'
 import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
@@ -103,8 +101,7 @@ export default {
   components: {
     ValidationObserver,
     ValidationProvider,
-    Processing,
-    Message
+    Processing
   },
   mixins: [Application],
 
@@ -119,8 +116,6 @@ export default {
     return {
       processing: false,
       waiting: false,
-      alert: null,
-      notice: null,
       dialog: false,
       member: {
         emails: '',
@@ -137,8 +132,6 @@ export default {
         return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
       }
 
-      this.alert = null
-      this.notice = null
       this.dialog = true
     },
 
@@ -165,7 +158,7 @@ export default {
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, reserved: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
+          this.appSetToastedMessage(error.response.data, true)
           if (error.response.data.errors != null) {
             this.$refs.observer.setErrors(error.response.data.errors)
             this.waiting = true

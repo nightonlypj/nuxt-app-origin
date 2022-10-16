@@ -9,7 +9,6 @@
             <span class="ml-1">メンバー情報変更</span>
           </v-toolbar>
           <v-card-text>
-            <Message :alert.sync="alert" :notice.sync="notice" />
             <v-container>
               <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end align-self-center text-no-wrap pr-0 pb-0">
@@ -72,7 +71,6 @@
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required } from 'vee-validate/dist/rules'
 import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Application from '~/plugins/application.js'
 
@@ -84,7 +82,6 @@ export default {
     ValidationObserver,
     ValidationProvider,
     Processing,
-    Message,
     UsersAvatar
   },
   mixins: [Application],
@@ -93,8 +90,6 @@ export default {
     return {
       processing: false,
       waiting: false,
-      alert: null,
-      notice: null,
       dialog: false,
       space: null,
       member: null
@@ -113,8 +108,6 @@ export default {
       }
 
       this.waiting = true
-      this.alert = null
-      this.notice = null
       this.space = space
       this.member = { ...member }
       this.dialog = true
@@ -138,7 +131,7 @@ export default {
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, reserved: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
+          this.appSetToastedMessage(error.response.data, true)
           if (error.response.data.errors != null) {
             this.$refs.observer.setErrors(error.response.data.errors)
             this.waiting = true

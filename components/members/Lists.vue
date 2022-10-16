@@ -105,7 +105,7 @@ export default {
       if (this.currentMemberAdmin) {
         result.push({ value: 'data-table-select', class: 'pl-3 pr-0', cellClass: 'pl-3 pr-0 py-2' })
       }
-      for (const item of this.$t('items.members')) {
+      for (const item of this.$t('items.member')) {
         if ((item.required || !this.hiddenItems.includes(item.value)) && (!item.adminOnly || this.currentMemberAdmin)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }

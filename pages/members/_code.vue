@@ -69,9 +69,18 @@
             </div>
           </v-col>
           <v-col class="d-flex justify-end">
+            <ListDownload
+              v-if="currentMemberAdmin"
+              model="member"
+              :space="space"
+              :search-params="$route.query"
+              :select-items="selectItems"
+              :hidden-items="hiddenItems"
+              :admin="currentMemberAdmin"
+            />
             <div class="ml-1">
               <ListSetting
-                model="members"
+                model="member"
                 :hidden-items.sync="hiddenItems"
                 :admin="currentMemberAdmin"
               />
@@ -133,6 +142,7 @@ import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ListSetting from '~/components/ListSetting.vue'
+import ListDownload from '~/components/ListDownload.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
@@ -149,6 +159,7 @@ export default {
     Processing,
     Message,
     ListSetting,
+    ListDownload,
     SpacesIcon,
     MembersSearch,
     MembersCreate,
@@ -203,6 +214,14 @@ export default {
     },
     existMembers () {
       return this.members?.length > 0
+    },
+
+    selectItems () {
+      const result = []
+      for (const member of this.selectedMembers) {
+        result.push(member.user.code)
+      }
+      return result
     }
   },
 

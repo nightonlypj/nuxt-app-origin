@@ -9,14 +9,34 @@ module.exports = {
         writer: '投稿者',
         reader: '閲覧者'
       }
+    },
+    download: {
+      target: {
+        select: '選択項目',
+        search: '検索',
+        all: '全て'
+      },
+      format: {
+        csv: 'CSV',
+        tsv: 'TSV'
+      },
+      char: {
+        sjis: 'ShiftJIS',
+        utf8: 'UTF-8'
+      },
+      newline: {
+        crlf: 'CR+LF',
+        lf: 'LF',
+        cr: 'CR'
+      }
     }
   },
   items: {
-    spaces: [
+    space: [
       { text: '名称', value: 'name', required: true },
       { text: '説明', value: 'description', required: false }
     ],
-    members: [
+    member: [
       { text: 'メンバー', value: 'user.name', required: true, adminOnly: false },
       { text: 'メールアドレス', value: 'user.email', required: false, adminOnly: true },
       { text: '権限', value: 'power', required: false, adminOnly: false },

@@ -22,7 +22,7 @@
           </v-col>
           <v-col class="d-flex justify-end">
             <ListSetting
-              model="spaces"
+              model="space"
               :hidden-items.sync="hiddenItems"
             />
           </v-col>

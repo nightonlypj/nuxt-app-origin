@@ -72,5 +72,7 @@ module.exports = {
   // メンバー情報変更API
   membersUpdateUrl: '/members/:code/update/:user_code.json',
   // メンバー解除API
-  membersDeleteUrl: '/members/:code/delete.json'
+  membersDeleteUrl: '/members/:code/delete.json',
+  // ダウンロード依頼API
+  downloadsCreateUrl: '/downloads/create.json'
 }

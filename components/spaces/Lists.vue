@@ -67,7 +67,7 @@ export default {
   computed: {
     headers () {
       const result = []
-      for (const item of this.$t('items.spaces')) {
+      for (const item of this.$t('items.space')) {
         if (item.required || !this.hiddenItems.includes(item.value)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
