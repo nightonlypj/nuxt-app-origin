@@ -94,7 +94,7 @@ export default {
       for (const member of this.selectedMembers) {
         codes.push(member.user.code)
       }
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.membersDeleteUrl.replace(':code', this.space.code), { codes })
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':code', this.space.code), { codes })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

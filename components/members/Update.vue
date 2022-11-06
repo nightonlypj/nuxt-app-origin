@@ -117,7 +117,7 @@ export default {
     async postMembersUpdate () {
       this.processing = true
 
-      const url = this.$config.membersUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code)
+      const url = this.$config.memberUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code)
       await this.$axios.post(this.$config.apiBaseURL + url, {
         member: { power: this.member.power }
       })

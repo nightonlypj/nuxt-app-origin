@@ -139,7 +139,7 @@ export default {
     async postMembersCreate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.membersCreateUrl.replace(':code', this.space.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberCreateUrl.replace(':code', this.space.code), {
         member: this.member
       })
         .then((response) => {

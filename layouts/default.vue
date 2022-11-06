@@ -103,6 +103,12 @@
             </v-badge>
             <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
           </v-list-item>
+          <v-list-item to="/downloads" nuxt>
+            <v-badge :content="$auth.user.undownloaded_count" :value="$auth.user.undownloaded_count" color="red" overlap>
+              <v-icon>mdi-download</v-icon>
+            </v-badge>
+            <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
+          </v-list-item>
         </template>
         <v-list-item to="/spaces" nuxt>
           <v-icon>mdi-format-list-bulleted</v-icon>

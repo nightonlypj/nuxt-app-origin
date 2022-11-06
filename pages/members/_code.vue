@@ -17,7 +17,7 @@
             <v-img :src="space.image_url.small" />
           </v-avatar>
           <span class="ml-1">
-            <a :href="'/s/' + space.code" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー一覧
+            <a :href="'/s/' + space.code" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
           </span>
           <SpacesIcon :space="space" />
         </div>
@@ -114,7 +114,7 @@
         </template>
 
         <InfiniteLoading
-          v-if="!processing && !reloading && member != null && member.current_page < member.total_pages"
+          v-if="!reloading && member != null && member.current_page < member.total_pages"
           :identifier="page"
           @infinite="getNextMembers"
         >
@@ -122,7 +122,7 @@
           <div slot="no-results" />
           <div slot="error" slot-scope="{ trigger }">
             取得できませんでした。
-            <v-btn @click="trigger">再取得</v-btn>
+            <v-btn @click="error = false; trigger()">再取得</v-btn>
           </div>
         </InfiniteLoading>
       </v-card-text>
@@ -180,6 +180,7 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
+      error: false,
       alert: null,
       notice: null,
       query: {
@@ -196,7 +197,7 @@ export default {
       members: null,
       testState: null, // Jest用
       selectedMembers: [],
-      hiddenItems: localStorage.getItem('members.hidden-items')?.split(',') || [],
+      hiddenItems: localStorage.getItem('member.hidden-items')?.split(',') || [],
       tabPage: 'list',
       createResult: null
     }
@@ -204,7 +205,7 @@ export default {
 
   head () {
     return {
-      title: this.$textTruncate(this.space?.name, 64) + 'のメンバー一覧'
+      title: this.$textTruncate(this.space?.name, 64) + 'のメンバー'
     }
   },
 
@@ -290,7 +291,8 @@ export default {
     // 次頁のメンバー一覧取得
     async getNextMembers ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextMembers', this.page + 1) }
+      if (this.$config.debug) { console.log('getNextMembers', this.page + 1, this.processing, this.error) }
+      if (this.processing || this.error) { return }
 
       this.page = this.member.current_page + 1
       if (!await this.getMembers()) {
@@ -323,6 +325,7 @@ export default {
       }
       this.params.sort = this.query.sortBy
       this.params.desc = Number(this.query.sortDesc)
+      const uid = localStorage.getItem('uid')
       const redirect = this.member == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':code', this.$route.params.code), {
         params: {
@@ -331,7 +334,12 @@ export default {
         }
       })
         .then((response) => {
-          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space == null || response.data?.member == null)) { return }
+          if (this.page > 1 && (response.headers?.uid || null) !== uid) {
+            location.reload()
+            return
+          }
+          this.error = !this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space == null || response.data?.member?.current_page !== this.page)
+          if (this.error) { return }
 
           this.space = response.data.space
           this.member = response.data.member
@@ -344,6 +352,7 @@ export default {
         },
         (error) => {
           this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true }, { auth: true, notfound: true })
+          this.error = true
         })
 
       this.page = this.member?.current_page || 1

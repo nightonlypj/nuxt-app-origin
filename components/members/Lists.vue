@@ -33,7 +33,6 @@
       <a
         v-if="currentMemberAdmin && item.user.code !== $auth.user.code"
         :id="'member_update_link_' + item.user.code"
-        color="primary"
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
       >

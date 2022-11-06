@@ -6,7 +6,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Setting.vue', () => {
-  const model = 'members'
+  const model = 'member'
   const mountFunction = (admin, hiddenItems = []) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()

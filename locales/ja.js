@@ -21,7 +21,8 @@ module.exports = {
         tsv: 'TSV'
       },
       char: {
-        sjis: 'ShiftJIS',
+        sjis: 'Shift_JIS',
+        eucjp: 'EUC-JP',
         utf8: 'UTF-8'
       },
       newline: {
@@ -32,6 +33,12 @@ module.exports = {
     }
   },
   items: {
+    download: [
+      { text: '依頼日時', value: 'requested_at' },
+      { text: 'ステータス', value: 'status' },
+      { text: 'ファイル', value: 'file' },
+      { text: '対象・形式等', value: 'target' }
+    ],
     space: [
       { text: '名称', value: 'name', required: true },
       { text: '説明', value: 'description', required: false }
@@ -67,5 +74,15 @@ module.exports = {
     destroy_reserved: 'アカウント削除予定の為、この操作はできません。',
     not_destroy_reserved: '既に取り消し済みか、アカウント削除されていません。',
     forbidden: 'アクセス権限がありません。'
+  },
+  notice: {
+    download: {
+      status: {
+        waiting: 'ダウンロードファイルの作成を開始しました。完了まで暫くお待ちください。',
+        processing: 'ダウンロードファイルの作成を開始しました。完了まで暫くお待ちください。',
+        success: 'ダウンロードファイルの作成が完了しました。ダウンロード結果からダウンロードしてください。',
+        failure: 'ダウンロードファイルの作成に失敗しました。お問い合わせ頂くか、やり直してください。'
+      }
+    }
   }
 }

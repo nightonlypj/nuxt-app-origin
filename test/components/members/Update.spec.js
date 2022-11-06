@@ -107,7 +107,7 @@ describe('Update.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    const url = helper.commonConfig.membersUpdateUrl.replace(':code', space.code).replace(':user_code', member.user.code)
+    const url = helper.commonConfig.memberUpdateUrl.replace(':code', space.code).replace(':user_code', member.user.code)
     expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
       member: values
     })

@@ -102,7 +102,7 @@ describe('Create.vue', () => {
 
   const apiCalledTest = (values) => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.membersCreateUrl.replace(':code', space.code), {
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':code', space.code), {
       member: values
     })
   }

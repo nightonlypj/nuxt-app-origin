@@ -3,7 +3,9 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import ListSetting from '~/components/ListSetting.vue'
+import ListDownload from '~/components/ListDownload.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
@@ -49,8 +51,12 @@ describe('index.vue', () => {
       vuetify,
       stubs: {
         InfiniteLoading: true,
-        SpacesIcon: true,
+        Loading: true,
+        Processing: true,
+        Message: true,
         ListSetting: true,
+        ListDownload: true,
+        SpacesIcon: true,
         MembersSearch: true,
         MembersCreate: true,
         MembersUpdate: true,
@@ -265,6 +271,7 @@ describe('index.vue', () => {
         // 削除
         await helper.sleep(1)
         const membersDelete = wrapper.findComponent(MembersDelete)
+        // TODO
         expect(membersDelete.exists()).toBe(true)
         expect(membersDelete.vm.space).toEqual(wrapper.vm.$data.space)
         expect(membersDelete.vm.selectedMembers).toEqual(wrapper.vm.$data.selectedMembers)
@@ -590,7 +597,7 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('members.hidden-items', '')
+      localStorage.setItem('member.hidden-items', '')
       axiosGetMock = jest.fn(() => Promise.resolve({ data1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
@@ -599,7 +606,7 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('members.hidden-items', 'test1,test2')
+      localStorage.setItem('member.hidden-items', 'test1,test2')
       axiosGetMock = jest.fn(() => Promise.resolve({ data1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)

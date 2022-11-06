@@ -91,7 +91,7 @@ describe('delete.vue', () => {
 
   const apiCalledTest = () => {
     expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.membersDeleteUrl.replace(':code', space.code), { codes })
+    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberDeleteUrl.replace(':code', space.code), { codes })
   }
 
   // テストケース

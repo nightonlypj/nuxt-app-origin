@@ -1,5 +1,5 @@
 <template>
-  <v-dialog max-width="640px">
+  <v-dialog max-width="720px">
     <template #activator="{ on, attrs }">
       <v-btn
         id="download_btn"
@@ -254,27 +254,27 @@ export default {
     async postDownloadsCreate ($dialog) {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.downloadsCreateUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.downloadCreateUrl, {
         download: {
           model: this.model,
           space_code: this.space?.code,
           ...this.query,
-          output_items: this.outputItems.toString(),
+          output_items: this.outputItems,
           search_params: this.searchParams,
-          select_items: this.selectItems.toString()
+          select_items: this.selectItems
         }
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appSetToastedMessage(response.data, false)
           localStorage.setItem('download.format', this.query.format)
           localStorage.setItem('download.char', this.query.char)
           localStorage.setItem('download.newline', this.query.newline)
           $dialog.value = false
+          this.$router.push({ path: '/downloads', query: { id: response.data.download?.id } })
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, notfound: true })) { return }
 
           this.appSetToastedMessage(error.response.data, true)
           if (error.response.data.errors != null) {

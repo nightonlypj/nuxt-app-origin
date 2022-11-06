@@ -158,7 +158,7 @@ describe('Lists.vue', () => {
     })
     describe('非表示項目が全項目', () => {
       const hiddenItems = []
-      for (const item of helper.locales.items.members) {
+      for (const item of helper.locales.items.member) {
         hiddenItems.push(item.value)
       }
       it('[管理者]必須項目のみ表示される', () => {

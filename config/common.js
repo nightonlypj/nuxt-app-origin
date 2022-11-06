@@ -63,16 +63,20 @@ module.exports = {
   infomationsUrl: '/infomations.json',
   // お知らせ詳細API
   infomationDetailUrl: '/infomations/:id.json',
+  // ダウンロード結果一覧API
+  downloadsUrl: '/downloads.json',
+  // ダウンロードAPI
+  downloadFileUrl: '/downloads/file/:id.json',
+  // ダウンロード依頼API
+  downloadCreateUrl: '/downloads/create.json',
   // スペース一覧API
   spacesUrl: '/spaces.json',
   // メンバー一覧API
   membersUrl: '/members/:code.json',
   // メンバー招待API
-  membersCreateUrl: '/members/:code/create.json',
+  memberCreateUrl: '/members/:code/create.json',
   // メンバー情報変更API
-  membersUpdateUrl: '/members/:code/update/:user_code.json',
+  memberUpdateUrl: '/members/:code/update/:user_code.json',
   // メンバー解除API
-  membersDeleteUrl: '/members/:code/delete.json',
-  // ダウンロード依頼API
-  downloadsCreateUrl: '/downloads/create.json'
+  memberDeleteUrl: '/members/:code/delete.json'
 }
