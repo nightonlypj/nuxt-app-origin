@@ -64,14 +64,17 @@ module.exports = {
   infomationsUrl: '/infomations.json',
   // お知らせ詳細API
   infomationDetailUrl: '/infomations/:id.json',
+
   // ダウンロード結果一覧API
   downloadsUrl: '/downloads.json',
   // ダウンロードAPI
   downloadFileUrl: '/downloads/file/:id.json',
   // ダウンロード依頼API
   downloadCreateUrl: '/downloads/create.json',
+
   // スペース一覧API
   spacesUrl: '/spaces.json',
+
   // メンバー一覧API
   membersUrl: '/members/:code.json',
   // メンバー招待API

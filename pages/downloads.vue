@@ -63,8 +63,8 @@
 <script>
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
 import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
 import DownloadsLists from '~/components/downloads/Lists.vue'
 import Application from '~/plugins/application.js'
 
@@ -84,12 +84,13 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
-      error: false,
       notice: null,
+      uid: null,
+      error: false,
+      testState: null, // Jest用
       page: 1,
       download: null,
-      downloads: null,
-      testState: null // Jest用
+      downloads: null
     }
   },
 
@@ -106,6 +107,7 @@ export default {
   },
 
   async created () {
+    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
     if (!await this.getDownloads()) { return }
 
     this.loading = false
@@ -151,7 +153,6 @@ export default {
       this.processing = true
       let result = false
 
-      const uid = localStorage.getItem('uid')
       const redirect = this.download == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.downloadsUrl, {
         params: {
@@ -159,31 +160,35 @@ export default {
         }
       })
         .then((response) => {
-          if (this.page > 1 && (response.headers?.uid || null) !== uid) {
+          if (this.page === 1) {
+            this.uid = response.headers?.uid || null
+          } else if (this.uid !== (response.headers?.uid || null)) {
+            this.error = true
             location.reload()
             return
           }
+
           this.error = !this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.download?.current_page !== this.page)
           if (this.error) { return }
 
           this.download = response.data.download
           if (this.reloading || this.downloads == null) {
-            this.downloads = response.data.downloads
+            this.downloads = response.data.downloads?.slice()
           } else {
             this.downloads.push(...response.data.downloads)
           }
 
-          if (this.$route.query.id != null) {
+          if (this.$route?.query?.id != null) {
             const id = Number(this.$route.query.id)
             for (const item of response.data.downloads) {
               if (item.id === id) {
-                this.notice = (item.last_downloaded_at == null) ? this.$t('notice.download.status.' + item.status) : null
+                this.notice = (item.last_downloaded_at == null && item.status != null) ? this.$t(`notice.download.status.${item.status}`) : null
                 break
               }
             }
           }
 
-          if (response.data.undownloaded_count !== this.$auth.user.undownloaded_count) {
+          if (response.data.undownloaded_count != null && response.data.undownloaded_count !== this.$auth.user.undownloaded_count) {
             this.$auth.setUser({ ...this.$auth.user, undownloaded_count: response.data.undownloaded_count })
           }
 
@@ -208,13 +213,15 @@ export default {
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          const contentDisposition = response.headers['content-disposition'].match(/filename="([^"]*)"/)
+          const contentDisposition = response.headers != null ? response.headers['content-disposition'].match(/filename="([^"]*)"/) : []
           const blob = new Blob([response.data], { type: response.data.type })
           const element = document.createElement('a')
           element.href = (window.URL || window.webkitURL).createObjectURL(blob)
           if (contentDisposition.length >= 2) { element.download = contentDisposition[1] }
           document.body.appendChild(element)
-          element.click()
+          if (process.env.NODE_ENV !== 'test') { // NOTE: Jest -> Error: Not implemented: navigation (except hash changes)
+            element.click()
+          }
           document.body.removeChild(element)
 
           if (item.last_downloaded_at == null) {
@@ -224,9 +231,9 @@ export default {
               this.downloads.splice(index, 1, item)
             }
 
-            if (item.id === Number(this.$route.query.id)) { this.notice = null }
+            if (item.id === Number(this.$route?.query?.id)) { this.notice = null }
 
-            if (this.$auth.user.undownloaded_count > 0) {
+            if (this.$auth.user?.undownloaded_count > 0) {
               this.$auth.setUser({ ...this.$auth.user, undownloaded_count: this.$auth.user.undownloaded_count - 1 })
             }
           }

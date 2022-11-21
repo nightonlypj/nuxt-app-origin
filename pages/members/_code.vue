@@ -17,7 +17,7 @@
             <v-img :src="space.image_url.small" />
           </v-avatar>
           <span class="ml-1">
-            <a :href="'/s/' + space.code" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
+            <a :href="`/s/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
           </span>
           <SpacesIcon :space="space" />
         </div>
@@ -71,18 +71,18 @@
           <v-col class="d-flex justify-end">
             <ListDownload
               v-if="currentMemberAdmin"
+              :admin="currentMemberAdmin"
               model="member"
               :space="space"
-              :search-params="$route.query"
-              :select-items="selectItems"
               :hidden-items="hiddenItems"
-              :admin="currentMemberAdmin"
+              :select-items="selectItems"
+              :search-params="$route.query"
             />
             <div class="ml-1">
               <ListSetting
+                :admin="currentMemberAdmin"
                 model="member"
                 :hidden-items.sync="hiddenItems"
-                :admin="currentMemberAdmin"
               />
             </div>
           </v-col>
@@ -106,6 +106,7 @@
             :members="members"
             :selected-members.sync="selectedMembers"
             :hidden-items="hiddenItems"
+            :active-user-codes="activeUserCodes"
             :current-member-admin="currentMemberAdmin"
             @reload="reloadMembers"
             @showUpdate="$refs.update.showDialog(space, $event)"
@@ -180,7 +181,6 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
-      error: false,
       alert: null,
       notice: null,
       query: {
@@ -191,21 +191,24 @@ export default {
         option: this.$route?.query?.option === '1'
       },
       params: null,
+      uid: null,
+      error: false,
+      testState: null, // Jest用
       page: 1,
       space: null,
       member: null,
       members: null,
-      testState: null, // Jest用
       selectedMembers: [],
       hiddenItems: localStorage.getItem('member.hidden-items')?.split(',') || [],
       tabPage: 'list',
-      createResult: null
+      createResult: null,
+      activeUserCodes: []
     }
   },
 
   head () {
     return {
-      title: this.$textTruncate(this.space?.name, 64) + 'のメンバー'
+      title: `${this.$textTruncate(this.space?.name, 64)}のメンバー`
     }
   },
 
@@ -227,7 +230,7 @@ export default {
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // Tips: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
     if (!await this.getMembers()) { return }
 
     this.loading = false
@@ -254,7 +257,7 @@ export default {
         if ($event.sortBy != null) { this.query.sortBy = $event.sortBy }
         if ($event.sortDesc != null) { this.query.sortDesc = $event.sortDesc }
 
-        // 連続再取得はスキップ  Tips: v-data-tableで降順から対象を変更すると、対象と昇順変更のイベントが連続で発生する為
+        // 連続再取得はスキップ  NOTE: v-data-tableで降順から対象を変更すると、対象と昇順変更のイベントが連続で発生する為
         if (!this.reloading) {
           await this.$sleep(10)
           if (this.reloading) {
@@ -266,7 +269,7 @@ export default {
         }
       }
 
-      // 再取得中は待機  Tips: 異なる条件のデータが混じらないようにする為
+      // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
       let count = 0
       while (count < this.$config.reloading.maxCount) {
         if (!this.reloading) { break }
@@ -275,6 +278,9 @@ export default {
         count++
       }
       if (count >= this.$config.reloading.maxCount) {
+        // eslint-disable-next-line no-console
+        if (this.$config.debug) { console.log('...Stop') }
+
         this.appSetToastedMessage({ alert: this.$t('system.timeout') }, true)
         return false
       }
@@ -325,7 +331,6 @@ export default {
       }
       this.params.sort = this.query.sortBy
       this.params.desc = Number(this.query.sortDesc)
-      const uid = localStorage.getItem('uid')
       const redirect = this.member == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':code', this.$route.params.code), {
         params: {
@@ -334,24 +339,28 @@ export default {
         }
       })
         .then((response) => {
-          if (this.page > 1 && (response.headers?.uid || null) !== uid) {
+          if (this.page === 1) {
+            this.uid = response.headers?.uid || null
+          } else if (this.uid !== (response.headers?.uid || null)) {
+            this.error = true
             location.reload()
             return
           }
+
           this.error = !this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space == null || response.data?.member?.current_page !== this.page)
           if (this.error) { return }
 
           this.space = response.data.space
           this.member = response.data.member
           if (this.reloading || this.members == null) {
-            this.members = response.data.members
+            this.members = response.data.members?.slice()
           } else {
             this.members.push(...response.data.members)
           }
           result = true
         },
         (error) => {
-          this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true }, { auth: true, notfound: true })
+          this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true }, { auth: true, forbidden: true, notfound: true })
           this.error = true
         })
 
@@ -366,6 +375,7 @@ export default {
       if (this.$config.debug) { console.log('resultMembers', result) }
 
       this.createResult = result
+      this.activeUserCodes = result?.user_codes
       this.tabPage = 'result'
     },
 
@@ -374,6 +384,7 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('updateMember', member) }
 
+      this.activeUserCodes = [member.user.code]
       const index = this.members.findIndex(item => item.user.code === member.user.code)
       if (index < 0) { return }
 

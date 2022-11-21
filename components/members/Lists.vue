@@ -5,6 +5,7 @@
     :headers="headers"
     :items="members"
     item-key="user.code"
+    :item-class="itemClass"
     :items-per-page="-1"
     hide-default-footer
     mobile-breakpoint="600"
@@ -92,6 +93,10 @@ export default {
       type: Array,
       default: null
     },
+    activeUserCodes: {
+      type: Array,
+      required: true
+    },
     currentMemberAdmin: {
       type: Boolean,
       default: null
@@ -109,8 +114,14 @@ export default {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
       }
-      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // Tips: スクロールバーに被らないようにする為
+      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
+    },
+
+    itemClass () {
+      return (item) => {
+        return this.activeUserCodes.includes(item.user?.code) ? 'row_active' : null
+      }
     },
 
     syncSortBy: {
@@ -144,11 +155,34 @@ export default {
       return items
     },
 
-    showUpdate (_event, { item }) {
+    showUpdate (event, { item }) {
+      // eslint-disable-next-line no-console
+      if (this.$config.debug) { console.log('showUpdate', event.target.innerHTML) }
       if (!this.currentMemberAdmin || item.user.code === this.$auth.user.code) { return }
+
+      if (event.target.innerHTML.match(/v-ripple__animation--visible/) || event.target.innerHTML.match(/v-simple-checkbox/)) {
+        // eslint-disable-next-line no-console
+        if (this.$config.debug) { console.log('...Skip') }
+        return
+      }
 
       this.$emit('showUpdate', item)
     }
   }
 }
 </script>
+
+<style scoped>
+.v-data-table.theme--dark >>> tr.row_active {
+  background-color: #1A237E; /* indigo darken-4 */
+}
+.v-data-table.theme--light >>> tr.row_active {
+  background-color: #E8EAF6; /* indigo lighten-5 */
+}
+.v-data-table.theme--dark >>> tr:hover.row_active {
+  background-color: #283593 !important; /* indigo darken-3 */
+}
+.v-data-table.theme--light >>> tr:hover.row_active {
+  background-color: #C5CAE9 !important; /* indigo lighten-4 */
+}
+</style>

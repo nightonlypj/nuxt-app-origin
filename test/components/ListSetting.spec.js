@@ -5,7 +5,7 @@ import Component from '~/components/ListSetting.vue'
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('Setting.vue', () => {
+describe('ListSetting.vue', () => {
   const model = 'member'
   const mountFunction = (admin, hiddenItems = []) => {
     const localVue = createLocalVue()
@@ -14,9 +14,9 @@ describe('Setting.vue', () => {
       localVue,
       vuetify,
       propsData: {
+        admin,
         model,
-        hiddenItems,
-        admin
+        hiddenItems
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -25,12 +25,12 @@ describe('Setting.vue', () => {
 
   // テスト内容
   const viewTest = async (wrapper, admin) => {
-    // 表示項目変更ボタン
+    // 表示ボタン
     const button = wrapper.find('#setting_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
 
-    // 表示項目変更ダイアログ
+    // ダイアログ
     await helper.sleep(1)
     const dialog = wrapper.find('#setting_dialog')
     expect(dialog.exists()).toBe(true)
@@ -38,7 +38,7 @@ describe('Setting.vue', () => {
 
     // 表示項目
     for (const item of helper.locales.items[model]) {
-      const showItem = wrapper.find('#setting_show_item_' + item.value.replace('.', '_'))
+      const showItem = wrapper.find(`#setting_show_item_${item.value.replace('.', '_')}`)
       if (!item.adminOnly || admin) {
         expect(showItem.exists()).toBe(true)
         expect(showItem.element.disabled).toBe(item.required)
@@ -60,7 +60,7 @@ describe('Setting.vue', () => {
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
 
-    // 表示項目変更ダイアログ
+    // ダイアログ
     await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
@@ -68,7 +68,7 @@ describe('Setting.vue', () => {
   const updateViewTest = async (wrapper, dialog, hiddenItems) => {
     // 変更
     for (const item of helper.locales.items[model]) {
-      const showItem = wrapper.find('#setting_show_item_' + item.value.replace('.', '_'))
+      const showItem = wrapper.find(`#setting_show_item_${item.value.replace('.', '_')}`)
       showItem.trigger('change')
       await helper.sleep(1)
     }
@@ -80,11 +80,11 @@ describe('Setting.vue', () => {
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
 
-    // 表示項目変更ダイアログ
+    // ダイアログ
     await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
 
-    expect(localStorage.getItem(model + '.hidden-items')).toEqual(hiddenItems.toString())
+    expect(localStorage.getItem(`${model}.hidden-items`)).toEqual(hiddenItems.toString())
     expect(wrapper.emitted()['update:hiddenItems']).toEqual([[hiddenItems]])
   }
 
@@ -99,11 +99,11 @@ describe('Setting.vue', () => {
   })
 
   describe('変更', () => {
-    const showItems = []
+    const allItems = []
     const requiredItems = []
     const optionalItems = []
     for (const item of helper.locales.items[model]) {
-      showItems.push(item.value)
+      allItems.push(item.value)
       if (item.required) {
         requiredItems.push(item.value)
       } else {
@@ -119,18 +119,18 @@ describe('Setting.vue', () => {
       // 表示項目
       expect(wrapper.vm.$data.showItems).toEqual(showItems)
 
-      // 表示項目変更ダイアログ
+      // ダイアログ
       await helper.sleep(1)
       dialog = wrapper.find('#setting_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
     }
 
     it('[全て選択→全て未選択]非表示項目が任意項目のみに変更される', async () => {
-      await beforeAction([], showItems)
+      await beforeAction([], allItems)
       await updateViewTest(wrapper, dialog, optionalItems)
     })
     it('[全て未選択→全て選択]非表示項目が空に変更される', async () => {
-      await beforeAction(showItems, requiredItems)
+      await beforeAction(allItems, requiredItems)
       await updateViewTest(wrapper, dialog, [])
     })
   })

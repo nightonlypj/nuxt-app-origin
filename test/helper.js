@@ -44,10 +44,10 @@ export class Helper {
     }
   }
 
-  messageTest = (wrapper, Message, data) => {
+  messageTest = (wrapper, Message, data, check = { alert: true, notice: true }) => {
     expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null)
+    if (check.alert) { expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null) }
+    if (check.notice) { expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null) }
   }
 
   emitMessageTest = (wrapper, data) => {

@@ -92,6 +92,10 @@ describe('Search.vue', () => {
 
       expect(wrapper.vm.$data.waiting).toBe(true)
       expect(wrapper.emitted().search).toEqual([[]]) // 検索
+
+      // $refsで受け取り
+      wrapper.vm.error()
+      expect(wrapper.vm.$data.waiting).toBe(false)
     })
     it('[Enter送信]検索される', async () => {
       await beforeAction({ keydown: true, isComposing: false })

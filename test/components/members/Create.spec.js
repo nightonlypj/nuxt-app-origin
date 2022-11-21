@@ -1,7 +1,6 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
 import Component from '~/components/members/Create.vue'
 
 import { Helper } from '~/test/helper.js'
@@ -27,8 +26,7 @@ describe('Create.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Processing: true,
-        Message: true
+        Processing: true
       },
       propsData: {
         space
@@ -57,18 +55,10 @@ describe('Create.vue', () => {
   const viewTest = async (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // 前回メッセージ
-    wrapper.vm.$data.alert = 'alertメッセージ'
-    wrapper.vm.$data.notice = 'noticeメッセージ'
-
     // メンバー招待ボタン
     const button = wrapper.find('#member_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
-    // 初期化
-    expect(wrapper.vm.$data.alert).toBeNull()
-    expect(wrapper.vm.$data.notice).toBeNull()
 
     // メンバー招待ダイアログ
     await helper.sleep(1)
@@ -78,7 +68,7 @@ describe('Create.vue', () => {
 
     // 権限
     for (const key in helper.locales.enums.member.power) {
-      const power = wrapper.find('#power_' + key)
+      const power = wrapper.find(`#power_${key}`)
       expect(power.exists()).toBe(true)
       expect(power.element.checked).toBe(false) // 未選択
     }
@@ -208,7 +198,17 @@ describe('Create.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
+      expect(dialog.isVisible()).toBe(true) // [メンバー招待ダイアログ]表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
@@ -235,7 +235,8 @@ describe('Create.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.messageTest(wrapper, Message, data)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.disabledTest(wrapper, Processing, button, true)
       expect(dialog.isVisible()).toBe(true) // [メンバー招待ダイアログ]表示
     })
@@ -244,7 +245,8 @@ describe('Create.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
+      helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
       expect(dialog.isVisible()).toBe(true) // [メンバー招待ダイアログ]表示
     })

@@ -9,7 +9,7 @@ const helper = new Helper()
 
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members, currentMemberAdmin = false, hiddenItems = null) => {
+  const mountFunction = (members, currentMemberAdmin = false, hiddenItems = null, activeUserCodes = []) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -25,6 +25,7 @@ describe('Lists.vue', () => {
         members,
         selectedMembers: [],
         hiddenItems,
+        activeUserCodes,
         currentMemberAdmin
       },
       mocks: {
@@ -88,10 +89,10 @@ describe('Lists.vue', () => {
       }
       // 権限
       if (show.optional) {
-        expect(wrapper.find('#member_update_link_' + member.user.code).exists()).toBe(show.admin && member.user.code !== user.code)
+        expect(wrapper.find(`#member_update_link_${member.user.code}`).exists()).toBe(show.admin && member.user.code !== user.code)
         expect(wrapper.text()).toMatch(member.power_i18n)
       } else {
-        expect(wrapper.find('#member_update_link_' + member.user.code).exists()).toBe(false)
+        expect(wrapper.find(`#member_update_link_${member.user.code}`).exists()).toBe(false)
         expect(wrapper.text()).not.toMatch(member.power_i18n)
       }
       // 招待者
@@ -148,7 +149,7 @@ describe('Lists.vue', () => {
 
     describe('非表示項目が空', () => {
       it('[管理者]全て表示される', () => {
-        const wrapper = mountFunction(members, true, [])
+        const wrapper = mountFunction(members, true, [], [members[0].user.code])
         viewTest(wrapper, members, { optional: true, admin: true })
       })
       it('[管理者以外]管理者のみの項目以外が表示される', () => {

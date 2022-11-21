@@ -6,7 +6,7 @@ import Component from '~/components/members/Delete.vue'
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('delete.vue', () => {
+describe('Delete.vue', () => {
   let axiosPostMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock
 
   beforeEach(() => {
@@ -187,7 +187,16 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))

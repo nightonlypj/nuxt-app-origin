@@ -51,7 +51,7 @@
           <div slot="no-results" />
           <div slot="error" slot-scope="{ trigger }">
             取得できませんでした。
-            <v-btn @click="trigger">再取得</v-btn>
+            <v-btn @click="error = false; trigger()">再取得</v-btn>
           </div>
         </InfiniteLoading>
       </v-card-text>
@@ -90,11 +90,13 @@ export default {
         option: this.$route?.query?.option === '1'
       },
       params: null,
+      uid: null,
+      error: false,
+      testState: null, // Jest用
       page: 1,
       space: null,
       spaces: null,
-      testState: null, // Jest用
-      hiddenItems: localStorage.getItem('spaces.hidden-items')?.split(',') || []
+      hiddenItems: localStorage.getItem('space.hidden-items')?.split(',') || []
     }
   },
 
@@ -136,7 +138,8 @@ export default {
     // 次頁のスペース一覧取得
     async getNextSpaces ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextSpaces', this.page + 1) }
+      if (this.$config.debug) { console.log('getNextSpaces', this.page + 1, this.processing, this.error) }
+      if (this.processing || this.error) { return }
 
       this.page = this.space.current_page + 1
       if (!await this.getSpaces()) {
@@ -168,11 +171,20 @@ export default {
       const redirect = this.space == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.spacesUrl, { params: { ...this.params, page: this.page } })
         .then((response) => {
-          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space == null)) { return }
+          if (this.page === 1) {
+            this.uid = response.headers?.uid || null
+          } else if (this.uid !== (response.headers?.uid || null)) {
+            this.error = true
+            location.reload()
+            return
+          }
+
+          this.error = !this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space?.current_page !== this.page)
+          if (this.error) { return }
 
           this.space = response.data.space
           if (this.reloading || this.spaces == null) {
-            this.spaces = response.data.spaces
+            this.spaces = response.data.spaces?.slice()
           } else {
             this.spaces.push(...response.data.spaces)
           }
@@ -180,6 +192,7 @@ export default {
         },
         (error) => {
           this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true })
+          this.error = true
         })
 
       this.page = this.space?.current_page || 1

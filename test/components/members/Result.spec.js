@@ -19,10 +19,10 @@ describe('Result.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, result) => {
-    expect(wrapper.text()).toMatch(result.email.count + '名中')
-    expect(wrapper.text()).toMatch(result.email.create_count + '名')
-    expect(wrapper.text()).toMatch(result.email.exist_count + '名')
-    expect(wrapper.text()).toMatch(result.email.notfound_count + '名')
+    expect(wrapper.text()).toMatch(`${result.email.count}名中`)
+    expect(wrapper.text()).toMatch(`${result.email.create_count}名`)
+    expect(wrapper.text()).toMatch(`${result.email.exist_count}名`)
+    expect(wrapper.text()).toMatch(`${result.email.notfound_count}名`)
 
     for (const email of result.emails) {
       expect(wrapper.text()).toMatch(email.email) // メールアドレス

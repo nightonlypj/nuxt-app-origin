@@ -1,7 +1,6 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/members/Update.vue'
 
@@ -30,7 +29,6 @@ describe('Update.vue', () => {
       vuetify,
       stubs: {
         Processing: true,
-        Message: true,
         UsersAvatar: true
       },
       mocks: {
@@ -57,19 +55,11 @@ describe('Update.vue', () => {
   const viewTest = async (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // 前回メッセージ
-    wrapper.vm.$data.alert = 'alertメッセージ'
-    wrapper.vm.$data.notice = 'noticeメッセージ'
-
     // メンバー情報変更ダイアログ
     expect(wrapper.find('#member_update_dialog').exists()).toBe(false)
 
     // ダイアログ表示
     wrapper.vm.showDialog(space, member)
-
-    // 初期化
-    expect(wrapper.vm.$data.alert).toBeNull()
-    expect(wrapper.vm.$data.notice).toBeNull()
 
     // メンバー情報変更ダイアログ
     await helper.sleep(1)
@@ -84,7 +74,7 @@ describe('Update.vue', () => {
 
     // 権限
     for (const key in helper.locales.enums.member.power) {
-      const power = wrapper.find('#power_' + key)
+      const power = wrapper.find(`#power_${key}`)
       expect(power.exists()).toBe(true)
       expect(power.element.checked).toBe(key === member.power) // [現在の権限]選択
     }
@@ -158,7 +148,7 @@ describe('Update.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 変更
-      wrapper.find('#power_' + values.power).trigger('change')
+      wrapper.find(`#power_${values.power}`).trigger('change')
 
       // 変更ボタン
       button = wrapper.find('#member_update_submit_btn')
@@ -208,7 +198,17 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false)
+      expect(dialog.isVisible()).toBe(true) // [メンバー情報変更ダイアログ]表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
@@ -235,7 +235,8 @@ describe('Update.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.messageTest(wrapper, Message, data)
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.disabledTest(wrapper, Processing, button, true)
       expect(dialog.isVisible()).toBe(true) // [メンバー情報変更ダイアログ]表示
     })
@@ -244,7 +245,8 @@ describe('Update.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
+      helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
       expect(dialog.isVisible()).toBe(true) // [メンバー情報変更ダイアログ]表示
     })

@@ -4,6 +4,7 @@
     :headers="headers"
     :items="downloads"
     item-key="id"
+    :item-class="itemClass"
     :items-per-page="-1"
     hide-default-footer
     mobile-breakpoint="600"
@@ -16,44 +17,39 @@
       {{ header.text }}
       <v-icon dense>mdi-arrow-down</v-icon>
     </template>
-    <template #item="{ item }">
-      <tr :class="rowClass(item)">
-        <!-- 依頼日時 -->
-        <td class="px-1 py-2">
-          <span class="text-no-wrap">{{ $timeFormat(item.requested_at, 'ja') }}</span>
-        </td>
-        <!-- ステータス -->
-        <td class="px-1 py-2">
-          <v-icon v-if="item.status === 'success'" color="success" dense>mdi-check-circle</v-icon>
-          <v-icon v-else-if="item.status === 'failure'" color="error" dense>mdi-alert</v-icon>
-          <v-icon v-else color="info" dense>mdi-information</v-icon>
-          {{ item.status_i18n }}
-        </td>
-        <!-- ファイル -->
-        <td class="px-1 py-2">
-          <template v-if="item.status === 'success'">
-            <a
-              :id="'download_link_' + item.id"
-              class="text-no-wrap"
-              @click="$emit('downloadFile', item)"
-            >
-              <v-icon dense>mdi-download</v-icon>
-              ダウンロード
-            </a>
-            <div v-if="item.last_downloaded_at">（済み）</div>
-          </template>
-        </td>
-        <!-- 対象・形式等 -->
-        <td class="pl-1 pr-4 py-2">
-          <template v-if="item.model === 'member'">
-            {{ $textTruncate(item.space.name, 64) }}のメンバー
-          </template>
-          <template v-else>
-            {{ item.model_i18n }}
-          </template>
-          <div>{{ item.target_i18n }}, {{ item.format_i18n }}, {{ item.char_i18n }}, {{ item.newline_i18n }}</div>
-        </td>
-      </tr>
+    <template #[`item.requested_at`]="{ item }">
+      <span class="text-no-wrap">{{ $timeFormat(item.requested_at, 'ja') }}</span>
+    </template>
+    <!-- ステータス -->
+    <template #[`item.status`]="{ item }">
+      <v-icon v-if="item.status === 'success'" :id="`icon_success_${item.id}`" color="success" dense>mdi-check-circle</v-icon>
+      <v-icon v-else-if="item.status === 'failure'" :id="`icon_failure_${item.id}`" color="error" dense>mdi-alert</v-icon>
+      <v-icon v-else :id="`icon_info_${item.id}`" color="info" dense>mdi-information</v-icon>
+      {{ item.status_i18n }}
+    </template>
+    <!-- ファイル -->
+    <template #[`item.file`]="{ item }">
+      <template v-if="item.status === 'success'">
+        <a
+          :id="`download_link_${item.id}`"
+          class="text-no-wrap"
+          @click="$emit('downloadFile', item)"
+        >
+          <v-icon dense>mdi-download</v-icon>
+          ダウンロード
+        </a>
+        <div v-if="item.last_downloaded_at" :id="`download_done_${item.id}`">（済み）</div>
+      </template>
+    </template>
+    <!-- 対象・形式等 -->
+    <template #[`item.target`]="{ item }">
+      <template v-if="item.model === 'member' && item.space != null && item.space.name != null">
+        {{ $textTruncate(item.space.name, 64) }}のメンバー
+      </template>
+      <template v-else>
+        {{ item.model_i18n }}
+      </template>
+      <div>{{ item.target_i18n }}, {{ item.format_i18n }}, {{ item.char_i18n }}, {{ item.newline_i18n }}</div>
     </template>
   </v-data-table>
 </template>
@@ -75,12 +71,13 @@ export default {
     headers () {
       const result = []
       for (const item of this.$t('items.download')) {
-        result.push({ text: item.text, value: item.value, class: 'text-no-wrap' })
+        result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
       }
+      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
     },
 
-    rowClass () {
+    itemClass () {
       return (item) => {
         if (item.status === 'success') {
           return item.last_downloaded_at ? 'row_inactive' : 'row_active'
@@ -95,29 +92,29 @@ export default {
 </script>
 
 <style scoped>
-.v-data-table.theme--dark tr.row_active {
+.v-data-table.theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }
-.v-data-table.theme--light tr.row_active {
+.v-data-table.theme--light >>> tr.row_active {
   background-color: #E8EAF6; /* indigo lighten-5 */
 }
-.v-data-table.theme--dark tr:hover.row_active {
+.v-data-table.theme--dark >>> tr:hover.row_active {
   background-color: #283593 !important; /* indigo darken-3 */
 }
-.v-data-table.theme--light tr:hover.row_active {
+.v-data-table.theme--light >>> tr:hover.row_active {
   background-color: #C5CAE9 !important; /* indigo lighten-4 */
 }
 
-.v-data-table.theme--dark tr.row_inactive {
+.v-data-table.theme--dark >>> tr.row_inactive {
   background-color: #424242; /* grey darken-3 */
 }
-.v-data-table.theme--light tr.row_inactive {
+.v-data-table.theme--light >>> tr.row_inactive {
   background-color: #F5F5F5; /* grey lighten-4 */
 }
-.v-data-table.theme--dark tr:hover.row_inactive {
+.v-data-table.theme--dark >>> tr:hover.row_inactive {
   background-color: #616161 !important; /* grey darken-2 */
 }
-.v-data-table.theme--light tr:hover.row_inactive {
+.v-data-table.theme--light >>> tr:hover.row_inactive {
   background-color: #E0E0E0 !important; /* grey lighten-2 */
 }
 </style>

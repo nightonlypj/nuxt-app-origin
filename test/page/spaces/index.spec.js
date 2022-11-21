@@ -12,14 +12,22 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('index.vue', () => {
-  let axiosGetMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
+  let axiosGetMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock, routerPushMock
 
   beforeEach(() => {
     axiosGetMock = null
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
-    routerPushMock = jest.fn()
     nuxtErrorMock = jest.fn()
+    routerPushMock = jest.fn()
+  })
+
+  const beforeLocation = window.location
+  beforeAll(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: { reload: jest.fn() } })
+  })
+  afterAll(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: beforeLocation })
   })
 
   const mountFunction = (loggedIn = false, query = null) => {
@@ -50,11 +58,11 @@ describe('index.vue', () => {
           error: toastedErrorMock,
           info: toastedInfoMock
         },
-        $router: {
-          push: routerPushMock
-        },
         $nuxt: {
           error: nuxtErrorMock
+        },
+        $router: {
+          push: routerPushMock
         }
       }
     })
@@ -62,7 +70,41 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  const data1 = Object.freeze({
+  const defaultParams = Object.freeze({
+    text: '',
+    exclude_member_space: 0
+  })
+
+  const findParams = Object.freeze({
+    text: 'test',
+    exclude_member_space: 1
+  })
+  const findQuery = Object.freeze({
+    text: findParams.text,
+    exclude_member_space: String(findParams.exclude_member_space)
+  })
+
+  const dataCount0 = Object.freeze({
+    space: {
+      total_count: 0,
+      current_page: 1,
+      total_pages: 0,
+      limit_value: 2
+    }
+  })
+  const dataCount1 = Object.freeze({
+    space: {
+      total_count: 1,
+      current_page: 1,
+      total_pages: 1,
+      limit_value: 2
+    },
+    spaces: [
+      { code: 'code0001' }
+    ]
+  })
+
+  const dataPage1 = Object.freeze({
     space: {
       total_count: 5,
       current_page: 1,
@@ -74,7 +116,7 @@ describe('index.vue', () => {
       { code: 'code0002' }
     ]
   })
-  const data2 = Object.freeze({
+  const dataPage2 = Object.freeze({
     space: {
       total_count: 5,
       current_page: 2,
@@ -86,7 +128,7 @@ describe('index.vue', () => {
       { code: 'code0004' }
     ]
   })
-  const data3 = Object.freeze({
+  const dataPage3 = Object.freeze({
     space: {
       total_count: 5,
       current_page: 3,
@@ -104,16 +146,17 @@ describe('index.vue', () => {
     expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.spacesUrl, { params: { ...params, page } })
   }
 
-  const viewTest = (wrapper, params, data, countView, existInfinite, testState = null) => {
+  const viewTest = (wrapper, params, data, countView, show = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.query.text).toBe(params.text)
     expect(wrapper.vm.$data.query.excludeMemberSpace).toBe(params.exclude_member_space === 1)
     expect(wrapper.vm.$data.query.option).toBe(params.queryOption === true)
+    expect(wrapper.vm.$data.error).toBe(error)
+    expect(wrapper.vm.$data.testState).toBe(show.testState)
     expect(wrapper.vm.$data.page).toBe(data.space.current_page)
     expect(wrapper.vm.$data.space).toEqual(data.space)
     expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
-    expect(wrapper.vm.$data.testState).toBe(testState)
 
     // 設定
     const listSetting = wrapper.findComponent(ListSetting)
@@ -125,316 +168,292 @@ describe('index.vue', () => {
     expect(spacesSearch.vm.query).toEqual(wrapper.vm.$data.query)
 
     // 一覧
-    if (data.spaces?.length === 0) {
+    const spacesLists = wrapper.findComponent(SpacesLists)
+    if (data.spaces == null || data.spaces.length === 0) {
       expect(wrapper.text()).toMatch('スペースが見つかりません。')
+      expect(spacesLists.exists()).toBe(false)
+    } else {
+      expect(spacesLists.vm.spaces).toBe(wrapper.vm.$data.spaces)
+      expect(spacesLists.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数
-    expect(wrapper.findComponent(SpacesLists).exists()).toBe(data.spaces?.length > 0)
 
     const infiniteLoading = wrapper.findComponent(InfiniteLoading)
-    expect(infiniteLoading.exists()).toBe(existInfinite)
+    expect(infiniteLoading.exists()).toBe(show.existInfinite)
     return infiniteLoading
   }
 
   // テストケース
   describe('スペース一覧', () => {
-    const params = Object.freeze({
-      text: '',
-      exclude_member_space: 0
-    })
     it('[0件]表示される', async () => {
-      const data = Object.freeze({
-        space: {
-          total_count: 0,
-          current_page: 1,
-          total_pages: 0,
-          limit_value: 2
-        }
-      })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false)
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
+      const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '', false)
+      apiCalledTest(1, defaultParams)
+      viewTest(wrapper, defaultParams, dataCount0, '')
     })
     it('[1件]表示される', async () => {
-      const data = Object.freeze({
-        space: {
-          total_count: 1,
-          current_page: 1,
-          total_pages: 1,
-          limit_value: 2
-        },
-        spaces: [
-          { code: 'code0001' }
-        ]
-      })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false)
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
+      const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '1件', false)
+      apiCalledTest(1, defaultParams)
+      viewTest(wrapper, defaultParams, dataCount1, '1件')
     })
-    it('[無限スクロール]スクロールで最終頁まで表示される', async () => {
-      axiosGetMock = jest.fn()
-        .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
-        .mockImplementationOnce(() => Promise.resolve({ data: data2 }))
-        .mockImplementationOnce(() => Promise.resolve({ data: data3 }))
-      const wrapper = mountFunction(false)
-      helper.loadingTest(wrapper, Loading)
+    describe('無限スクロール', () => {
+      let wrapper, infiniteLoading
+      const beforeAction = async (loggedIn, uid1, uid2, uid3 = null) => {
+        axiosGetMock = jest.fn()
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1, headers: { uid: uid1 } }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage2, headers: { uid: uid2 } }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage3, headers: { uid: uid3 } }))
+        wrapper = mountFunction(loggedIn)
+        helper.loadingTest(wrapper, Loading)
 
-      await helper.sleep(1)
-      apiCalledTest(1, params)
-      const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
-      const spaces = data1.spaces
+        await helper.sleep(1)
+        apiCalledTest(1, defaultParams)
+        infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
+      }
+      const completeTestAction = async () => {
+        // スクロール（2頁目）
+        infiniteLoading.vm.$emit('infinite')
 
-      // スクロール（2頁目）
-      infiniteLoading.vm.$emit('infinite')
-      spaces.push(...data2.spaces)
+        await helper.sleep(1)
+        apiCalledTest(2, defaultParams)
+        const spaces = dataPage1.spaces.concat(dataPage2.spaces)
+        viewTest(wrapper, defaultParams, { ...dataPage2, spaces }, '5件', { existInfinite: true, testState: 'loaded' })
 
-      await helper.sleep(1)
-      apiCalledTest(2, params)
-      viewTest(wrapper, params, { space: data2.space, spaces }, '5件', true, 'loaded')
+        // スクロール（3頁目）
+        infiniteLoading.vm.$emit('infinite')
 
-      // スクロール（3頁目）
-      infiniteLoading.vm.$emit('infinite')
-      spaces.push(...data3.spaces)
+        await helper.sleep(1)
+        apiCalledTest(3, defaultParams)
+        viewTest(wrapper, defaultParams, { ...dataPage3, spaces: spaces.concat(dataPage3.spaces) }, '5件', { existInfinite: false, testState: 'complete' })
+      }
+      const reloadTestAction = async () => {
+        const count = window.location.reload.mock.calls.length
 
-      await helper.sleep(1)
-      apiCalledTest(3, params)
-      viewTest(wrapper, params, { space: data3.space, spaces }, '5件', false, 'complete')
+        // スクロール（2頁目）
+        infiniteLoading.vm.$emit('infinite')
+
+        await helper.sleep(1)
+        helper.mockCalledTest(window.location.reload, count + 1)
+
+        apiCalledTest(2, defaultParams)
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
+      }
+
+      it('[未ログイン]スクロールで最終頁まで表示される', async () => {
+        await beforeAction(false, null, null)
+        await completeTestAction()
+      })
+      it('[未ログイン→ログイン中]リロードされる', async () => {
+        await beforeAction(false, null, '1')
+        await reloadTestAction()
+      })
+      it('[ログイン中]スクロールで最終頁まで表示される', async () => {
+        await beforeAction(true, '1', '1', '1')
+        await completeTestAction()
+      })
+      it('[ログイン中→未ログイン]リロードされる', async () => {
+        await beforeAction(true, '1', null)
+        await reloadTestAction()
+      })
+      it('[ログイン中→別ユーザー]リロードされる', async () => {
+        await beforeAction(true, '1', '2')
+        await reloadTestAction()
+      })
     })
     describe('データなし', () => {
       it('[初期表示]エラーページが表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.resolve({ data: null }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
+        apiCalledTest(1, defaultParams)
+        const infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
 
         await helper.sleep(1)
-        apiCalledTest(2, params)
+        apiCalledTest(2, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5件', true, 'error')
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       })
     })
-    describe('ページ情報なし', () => {
+    describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...data1, space: null } }))
-        const wrapper = mountFunction(false)
+        axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, space: { ...dataPage1.space, current_page: 9 } } }))
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
-          .mockImplementationOnce(() => Promise.resolve({ data: { ...data2, space: null } }))
-        const wrapper = mountFunction(false)
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: { ...dataPage2, space: { ...dataPage2.space, current_page: 9 } } }))
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
+        apiCalledTest(1, defaultParams)
+        const infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
 
         await helper.sleep(1)
-        apiCalledTest(2, params)
+        apiCalledTest(2, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5件', true, 'error')
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       })
     })
 
     describe('接続エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: null }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
+        apiCalledTest(1, defaultParams)
+        const infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
 
         await helper.sleep(1)
-        apiCalledTest(2, params)
+        apiCalledTest(2, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5件', true, 'error')
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       })
     })
     describe('レスポンスエラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: { status: 500 } }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
+        apiCalledTest(1, defaultParams)
+        const infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
 
         await helper.sleep(1)
-        apiCalledTest(2, params)
+        apiCalledTest(2, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5件', true, 'error')
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       })
     })
     describe('その他エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: data1 }))
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: { status: 400, data: {} } }))
-        const wrapper = mountFunction(false)
+        const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
-        apiCalledTest(1, params)
-        const infiniteLoading = viewTest(wrapper, params, data1, '5件', true)
+        apiCalledTest(1, defaultParams)
+        const infiniteLoading = viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
 
         await helper.sleep(1)
-        apiCalledTest(2, params)
+        apiCalledTest(2, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
         helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(routerPushMock, 0)
-        viewTest(wrapper, params, data1, '5件', true, 'error')
+        viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       })
     })
   })
 
   describe('パラメータあり', () => {
-    const query = Object.freeze({
-      text: 'test',
-      exclude_member_space: '1'
-    })
-    const params = Object.freeze({
-      text: 'test',
-      exclude_member_space: 1
-    })
-    const data = Object.freeze({
-      space: {
-        total_count: 1,
-        current_page: 1,
-        total_pages: 1,
-        limit_value: 2
-      },
-      spaces: [
-        { code: 'code0001' }
-      ]
-    })
     it('[未ログイン]パラメータがセットされ、表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query)
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
+      const wrapper = mountFunction(false, findQuery)
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, params, data, '1件', false)
+      apiCalledTest(1, findParams)
+      viewTest(wrapper, findParams, dataCount1, '1件')
     })
     it('[ログイン中]パラメータがセットされ、表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(true, { ...query, option: '1' })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
+      const wrapper = mountFunction(true, { ...findQuery, option: '1' })
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
-      apiCalledTest(1, params)
-      viewTest(wrapper, { ...params, queryOption: true }, data, '1件', false)
+      apiCalledTest(1, findParams)
+      viewTest(wrapper, { ...findParams, queryOption: true }, dataCount1, '1件')
     })
   })
 
   describe('表示項目', () => {
-    const data = Object.freeze({
-      space: {
-        total_count: 1,
-        current_page: 1,
-        total_pages: 1,
-        limit_value: 2
-      },
-      spaces: [
-        { code: 'code0001' }
-      ]
-    })
     it('null', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
@@ -442,8 +461,8 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('spaces.hidden-items', '')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      localStorage.setItem('space.hidden-items', '')
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
@@ -451,13 +470,62 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('spaces.hidden-items', 'test1,test2')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      localStorage.setItem('space.hidden-items', 'test1,test2')
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
+    })
+  })
+
+  describe('スペース一覧検索', () => {
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction()
+      helper.loadingTest(wrapper, Loading)
+
+      await helper.sleep(1)
+      apiCalledTest(1, defaultParams)
+      viewTest(wrapper, defaultParams, dataPage1, '5件', { existInfinite: true, testState: null })
+
+      // スペース一覧検索
+      wrapper.vm.$refs.search.error = jest.fn()
+      wrapper.vm.$data.query = {
+        text: findQuery.text,
+        excludeMemberSpace: findQuery.exclude_member_space === '1',
+        option: false
+      }
+      await wrapper.vm.searchSpaces()
+
+      await helper.sleep(1)
+      apiCalledTest(2, findParams, 1)
+    }
+
+    it('[正常]検索結果が更新され、URLが変更される', async () => {
+      axiosGetMock = jest.fn()
+        .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
+        .mockImplementationOnce(() => Promise.resolve({ data: dataCount1 }))
+      await beforeAction()
+
+      viewTest(wrapper, findParams, dataCount1, '1件')
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(wrapper.vm.$refs.search.error, 0)
+      helper.mockCalledTest(routerPushMock, 1, { query: { ...findParams, option: 0 } })
+    })
+    it('[エラー]エラーメッセージが表示される', async () => {
+      axiosGetMock = jest.fn()
+        .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
+        .mockImplementationOnce(() => Promise.reject({ response: null }))
+      await beforeAction()
+
+      viewTest(wrapper, findParams, dataPage1, '5件', { existInfinite: true, testState: null }, true)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
+      helper.mockCalledTest(routerPushMock, 1, { query: { ...findParams, option: 0 } })
     })
   })
 })

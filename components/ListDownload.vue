@@ -43,6 +43,7 @@
                       >
                         <v-radio
                           v-for="(label, key) in targets"
+                          :id="`download_target_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
@@ -62,6 +63,7 @@
                       >
                         <v-radio
                           v-for="(label, key) in formats"
+                          :id="`download_format_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
@@ -80,6 +82,7 @@
                       >
                         <v-radio
                           v-for="(label, key) in chars"
+                          :id="`download_char_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
@@ -98,6 +101,7 @@
                       >
                         <v-radio
                           v-for="(label, key) in newlines"
+                          :id="`download_newline_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
@@ -112,7 +116,7 @@
                       <template v-for="(item, index) in items">
                         <v-switch
                           v-if="!item.adminOnly || admin"
-                          :id="'download_item_' + item.value.replace('.', '_')"
+                          :id="`download_output_item_${item.value.replace('.', '_')}`"
                           :key="item.value"
                           v-model="outputItems"
                           color="primary"
@@ -134,7 +138,7 @@
                 id="download_submit_btn"
                 color="primary"
                 :disabled="processing || invalid || outputItems.length === 0"
-                @click="postDownloadsCreate(dialog)"
+                @click="postDownloadCreate(dialog)"
               >
                 ダウンロード
               </v-btn>
@@ -171,6 +175,10 @@ export default {
   mixins: [Application],
 
   props: {
+    admin: {
+      type: Boolean,
+      default: null
+    },
     model: {
       type: String,
       required: true
@@ -179,20 +187,16 @@ export default {
       type: Object,
       default: null
     },
-    searchParams: {
-      type: Object,
-      default: null
+    hiddenItems: {
+      type: Array,
+      required: true
     },
     selectItems: {
       type: Array,
       default: null
     },
-    hiddenItems: {
-      type: Array,
-      default: null
-    },
-    admin: {
-      type: Boolean,
+    searchParams: {
+      type: Object,
       default: null
     }
   },
@@ -251,17 +255,17 @@ export default {
     },
 
     // ダウンロード依頼
-    async postDownloadsCreate ($dialog) {
+    async postDownloadCreate ($dialog) {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.downloadCreateUrl, {
         download: {
           model: this.model,
-          space_code: this.space?.code,
+          space_code: this.space?.code || null,
           ...this.query,
           output_items: this.outputItems,
-          search_params: this.searchParams,
-          select_items: this.selectItems
+          select_items: this.selectItems,
+          search_params: this.searchParams
         }
       })
         .then((response) => {
@@ -271,10 +275,10 @@ export default {
           localStorage.setItem('download.char', this.query.char)
           localStorage.setItem('download.newline', this.query.newline)
           $dialog.value = false
-          this.$router.push({ path: '/downloads', query: { id: response.data.download?.id } })
+          this.$router.push({ path: '/downloads', query: { id: response.data.download?.id || null } })
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, notfound: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { forbidden: true, notfound: true })) { return }
 
           this.appSetToastedMessage(error.response.data, true)
           if (error.response.data.errors != null) {

@@ -31,8 +31,8 @@ describe('Lists.vue', () => {
     const spacesIcons = wrapper.findAllComponents(SpacesIcon)
     for (const [index, space] of spaces.entries()) {
       // 名称
-      expect(wrapper.find('#space_image_' + space.code).exists()).toBe(space.image_url != null)
-      expect(links.includes('/s/' + space.code)).toBe(true) // スペース詳細
+      expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
+      expect(links.includes(`/s/${space.code}`)).toBe(true) // スペース詳細
       expect(wrapper.text()).toMatch(space.name)
       expect(spacesIcons.at(index).exists()).toBe(true)
       expect(spacesIcons.at(index).vm.$props.space).toEqual(space)
@@ -43,7 +43,7 @@ describe('Lists.vue', () => {
         expect(wrapper.text()).not.toMatch(space.description)
       }
       // メンバー一覧
-      expect(links.includes('/members/' + space.code)).toBe(space.current_member != null)
+      expect(links.includes(`/members/${space.code}`)).toBe(space.current_member != null)
     }
   }
 
@@ -86,7 +86,7 @@ describe('Lists.vue', () => {
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
       const hiddenItems = []
-      for (const item of helper.locales.items.spaces) {
+      for (const item of helper.locales.items.space) {
         hiddenItems.push(item.value)
       }
       const wrapper = mountFunction(spaces, hiddenItems)

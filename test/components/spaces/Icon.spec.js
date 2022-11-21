@@ -23,9 +23,9 @@ describe('Icon.vue', () => {
   // テスト内容
   const viewTest = (wrapper, space, visible) => {
     // console.log(wrapper.html())
-    expect(wrapper.find('#space_private_' + space.code).exists()).toBe(visible) // 非公開
-    expect(wrapper.find('#space_power_' + space.code).exists()).toBe(visible) // 権限
-    expect(wrapper.find('#space_destroy_schedule_' + space.code).exists()).toBe(visible) // 削除予定
+    expect(wrapper.find(`#space_private_${space.code}`).exists()).toBe(visible) // 非公開
+    expect(wrapper.find(`#space_power_${space.code}`).exists()).toBe(visible) // 権限
+    expect(wrapper.find(`#space_destroy_schedule_${space.code}`).exists()).toBe(visible) // 削除予定
   }
 
   // テストケース

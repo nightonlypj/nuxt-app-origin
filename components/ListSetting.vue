@@ -29,7 +29,7 @@
               <template v-for="item in items">
                 <v-switch
                   v-if="!item.adminOnly || admin"
-                  :id="'setting_show_item_' + item.value.replace('.', '_')"
+                  :id="`setting_show_item_${item.value.replace('.', '_')}`"
                   :key="item.value"
                   v-model="showItems"
                   color="primary"
@@ -74,17 +74,17 @@ export default {
   mixins: [Application],
 
   props: {
+    admin: {
+      type: Boolean,
+      default: null
+    },
     model: {
       type: String,
       required: true
     },
     hiddenItems: {
       type: Array,
-      default: null
-    },
-    admin: {
-      type: Boolean,
-      default: null
+      required: true
     }
   },
 
