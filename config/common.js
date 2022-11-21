@@ -57,6 +57,7 @@ module.exports = {
   userSendUndoDeleteUrl: '/users/undo_delete',
   // アカウント削除取り消しAPI
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
+
   // 大切なお知らせ一覧API
   importantInfomationsUrl: '/infomations/important.json',
   // お知らせ一覧API

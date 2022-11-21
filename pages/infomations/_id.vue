@@ -58,7 +58,7 @@ export default {
     title () {
       let label = ''
       if (this.infomation?.label_i18n != null && this.infomation?.label_i18n !== '') {
-        label = '[' + this.infomation.label_i18n + ']'
+        label = `[${this.infomation.label_i18n}]`
       }
       return label + (this.infomation?.title || '')
     }

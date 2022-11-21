@@ -49,7 +49,7 @@ describe('Infomations.vue', () => {
     for (const [index, infomation] of data.infomations.entries()) {
       expect(labels.at(index).exists()).toBe(true) // ラベル
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
-      expect(links.includes('/infomations/' + infomation.id)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
+      expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
       expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日
     }

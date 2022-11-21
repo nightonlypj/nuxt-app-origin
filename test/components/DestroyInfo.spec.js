@@ -6,7 +6,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('DestroyInfo.vue', () => {
-  const mountFunction = (path, loggedIn, user) => {
+  const mountFunction = (path, loggedIn, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -35,11 +35,11 @@ describe('DestroyInfo.vue', () => {
 
   // テストケース
   it('[未ログイン]表示されない', () => {
-    const wrapper = mountFunction('/', false, {})
+    const wrapper = mountFunction('/', false)
     helper.blankTest(wrapper)
   })
   it('[ログイン中]表示されない', () => {
-    const wrapper = mountFunction('/', true, {})
+    const wrapper = mountFunction('/', true)
     helper.blankTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
@@ -51,11 +51,11 @@ describe('DestroyInfo.vue', () => {
   describe('アカウント削除取り消しページ', () => {
     const path = '/users/undo_delete'
     it('[未ログイン]表示されない', () => {
-      const wrapper = mountFunction(path, false, {})
+      const wrapper = mountFunction(path, false)
       helper.blankTest(wrapper)
     })
     it('[ログイン中]表示されない', () => {
-      const wrapper = mountFunction(path, true, {})
+      const wrapper = mountFunction(path, true)
       helper.blankTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {

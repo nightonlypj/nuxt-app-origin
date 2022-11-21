@@ -66,7 +66,7 @@ describe('sign_out.vue', () => {
     expect(localStorage.getItem('access-token')).toBeNull()
     expect(localStorage.getItem('expiry')).toBeNull()
 
-    // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
   }
 
   // テストケース
@@ -107,7 +107,7 @@ describe('sign_out.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
 
-    it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+    it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
@@ -115,7 +115,7 @@ describe('sign_out.vue', () => {
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
-    it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+    it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
@@ -123,7 +123,7 @@ describe('sign_out.vue', () => {
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
-    it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+    it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 

@@ -159,7 +159,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -188,7 +188,7 @@ describe('undo_delete.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // Tips: 状態変更（Mockでは実行されない為）
+      if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
       wrapper.find('#user_undo_delete_yes_btn').trigger('click')
 
       await helper.sleep(1)
@@ -244,7 +244,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))

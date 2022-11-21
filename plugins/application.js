@@ -6,7 +6,7 @@ export default {
   },
 
   methods: {
-    // Tips: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
+    // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
     appSetKeyDownEnter ($event) {
       this.keyDownEnter = !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
     },
@@ -81,7 +81,7 @@ export default {
 
       this.alert = this.$route.query.alert
       this.notice = this.$route.query.notice
-      this.$router.push({ path: this.$route.path }) // Tips: URLパラメータを消す為
+      this.$router.push({ path: this.$route.path }) // NOTE: URLパラメータを消す為
     },
     appGetAlertMessage (data, require, defaultKey = 'system.default') {
       return (require && data?.alert == null) ? this.$t(defaultKey) : data?.alert
@@ -90,7 +90,7 @@ export default {
     // リダイレクト
     appRedirectAuth () {
       this.$toasted.info(this.$t('auth.unauthenticated'))
-      this.$auth.redirect('login') // Tips: ログイン後、元のページに戻す
+      this.$auth.redirect('login') // NOTE: ログイン後、元のページに戻す
     },
     appRedirectAlreadyAuth () {
       this.appRedirectTop({ notice: this.$t('auth.already_authenticated') })
@@ -133,7 +133,7 @@ export default {
       }
 
       if (message != null) {
-        this.$toasted.info(this.$t(message)) // Tips: メッセージを上書き
+        this.$toasted.info(this.$t(message)) // NOTE: メッセージを上書き
       }
       if (path != null) {
         this.$router.push({ path, query: { alert: data.alert, notice: data.notice } })

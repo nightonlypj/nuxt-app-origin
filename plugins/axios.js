@@ -9,13 +9,20 @@ export default ({ $axios }) => {
   })
 
   $axios.onResponse((response) => {
-    // Devise Token Auth
-    if (response.headers['token-type'] === 'Bearer' && response.headers['access-token']) {
-      localStorage.setItem('token-type', response.headers['token-type'])
-      localStorage.setItem('uid', response.headers.uid)
-      localStorage.setItem('client', response.headers.client)
-      localStorage.setItem('access-token', response.headers['access-token'])
-      localStorage.setItem('expiry', response.headers.expiry)
-    }
+    setDeviseTokenAuth(response.headers)
   })
+
+  $axios.onError((error) => {
+    setDeviseTokenAuth(error.response.headers)
+  })
+}
+
+const setDeviseTokenAuth = (headers) => {
+  if (headers['token-type'] === 'Bearer' && headers['access-token']) {
+    localStorage.setItem('token-type', headers['token-type'])
+    localStorage.setItem('uid', headers.uid)
+    localStorage.setItem('client', headers.client)
+    localStorage.setItem('access-token', headers['access-token'])
+    localStorage.setItem('expiry', headers.expiry)
+  }
 }

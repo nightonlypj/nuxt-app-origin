@@ -146,7 +146,7 @@ export default {
       this.appSetToastedMessage(response.data, false)
       this.image = null
 
-      this.appSetEmitMessage(null) // Tips: Data.vueのalertを消す為
+      this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }
   }
 }

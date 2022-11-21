@@ -8,7 +8,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('default.vue', () => {
-  const mountFunction = (loggedIn, user) => {
+  const mountFunction = (loggedIn, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Layout, {
@@ -57,7 +57,7 @@ describe('default.vue', () => {
 
   // テストケース
   it('[未ログイン]表示される', () => {
-    const wrapper = mountFunction(false, null)
+    const wrapper = mountFunction(false)
     viewTest(wrapper, false)
   })
   it('[ログイン中]表示される', async () => {

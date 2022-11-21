@@ -31,7 +31,7 @@ describe('Lists.vue', () => {
     for (const [index, infomation] of infomations.entries()) {
       expect(labels.at(index).exists()).toBe(true) // ラベル
       expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
-      expect(links.includes('/infomations/' + infomation.id)).toBe(infomation.body_present) // [本文あり]お知らせ詳細
+      expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present) // [本文あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
       if (infomation.summary != null) {
         expect(wrapper.text()).toMatch(infomation.summary) // 概要
