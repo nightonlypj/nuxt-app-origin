@@ -84,7 +84,7 @@ describe('Image.vue', () => {
   const updateViewTest = (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.image).toBeNull()
-    // Tips: 画像変更のテストは省略（Mockでは実行されない為）
+    // NOTE: 画像変更のテストは省略（Mockでは実行されない為）
   }
 
   // テストケース
@@ -190,7 +190,7 @@ describe('Image.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
@@ -242,7 +242,7 @@ describe('Image.vue', () => {
 
       await helper.sleep(1)
       wrapper.find('#user_image_delete_yes_btn').trigger('click')
-      if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // Tips: 状態変更（Mockでは実行されない為）
+      if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // NOTE: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
       deleteApiCalledTest()
@@ -288,7 +288,7 @@ describe('Image.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))

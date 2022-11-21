@@ -5,7 +5,7 @@
         <InfomationsLabel :infomation="infomation" />
         <span class="ml-1 font-weight-bold">
           <template v-if="infomation.body_present">
-            <NuxtLink :to="'/infomations/' + infomation.id">{{ infomation.title }}</NuxtLink>
+            <NuxtLink :to="`/infomations/${infomation.id}`">{{ infomation.title }}</NuxtLink>
           </template>
           <template v-else>
             {{ infomation.title }}
@@ -41,7 +41,7 @@ export default {
     redirectInfomation (infomation) {
       if (!infomation.body_present) { return }
 
-      this.$router.push('/infomations/' + infomation.id)
+      this.$router.push(`/infomations/${infomation.id}`)
     }
   }
 }

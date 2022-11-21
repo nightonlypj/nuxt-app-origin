@@ -21,7 +21,7 @@ describe('delete.vue', () => {
     nuxtErrorMock = jest.fn()
   })
 
-  const mountFunction = (loggedIn, user) => {
+  const mountFunction = (loggedIn, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -74,7 +74,7 @@ describe('delete.vue', () => {
 
   // テストケース
   it('[未ログイン]ログインにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false, null)
+    const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
 
     await helper.sleep(1)
@@ -158,7 +158,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -240,7 +240,7 @@ describe('delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))

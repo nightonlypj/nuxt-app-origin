@@ -128,7 +128,7 @@ describe('utils.js', () => {
     })
     it('[数値]値が返却される', () => {
       const wrapper = mountFunction('1000')
-      expect(wrapper.vm.localeString).toBe('1000') // Tips: Jestだとカンマ区切りにならない
+      expect(wrapper.vm.localeString).toBe('1000') // NOTE: Jestだとカンマ区切りにならない
     })
   })
 })

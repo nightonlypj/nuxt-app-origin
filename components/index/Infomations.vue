@@ -5,14 +5,14 @@
       <v-card-title>大切なお知らせ</v-card-title>
       <v-card-text v-if="errorMessage != null">
         <v-icon color="warning">mdi-alert</v-icon>
-        {{ $t(errorMessage + '_short') }}
+        {{ $t(`${errorMessage}_short`) }}
       </v-card-text>
       <v-card-text v-else>
         <article v-for="infomation in infomations" :key="infomation.id" class="mb-1">
           <InfomationsLabel :infomation="infomation" />
           <span class="ml-1">
             <template v-if="infomation.body_present || infomation.summary !== null">
-              <NuxtLink :to="'/infomations/' + infomation.id">{{ infomation.title }}</NuxtLink>
+              <NuxtLink :to="`/infomations/${infomation.id}`">{{ infomation.title }}</NuxtLink>
             </template>
             <template v-else>
               {{ infomation.title }}

@@ -195,7 +195,7 @@ describe('sign_in.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[成功][Enter送信]ログイン状態になり、元のページにリダイレクトされる', async () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
@@ -204,7 +204,7 @@ describe('sign_in.vue', () => {
       apiCalledTest(values)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))

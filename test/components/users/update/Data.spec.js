@@ -107,7 +107,7 @@ describe('Data.vue', () => {
       wrapper = mountFunction(user, values)
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
-      if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // Tips: 状態変更（Mockでは実行されない為）
+      if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
       apiCalledTest(values)
@@ -162,7 +162,7 @@ describe('Data.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))

@@ -69,7 +69,7 @@ describe('resend.vue', () => {
     if (data == null) {
       helper.mockCalledTest(routerPushMock, 0)
     } else {
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/unlock/resend' }) // Tips: URLパラメータを消す為
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/unlock/resend' }) // NOTE: URLパラメータを消す為
     }
     expect(wrapper.vm.$data.email).toBe('')
   }

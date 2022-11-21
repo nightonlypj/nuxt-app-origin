@@ -19,7 +19,7 @@ config.mocks = {
       locale = locale[part]
     }
     // eslint-disable-next-line no-throw-literal
-    if (locale == null) { throw 'Not found: i18n(' + key + ')' }
+    if (locale == null) { throw `Not found: i18n(${key})` }
     return locale
   }
 }
@@ -27,7 +27,7 @@ config.mocks = {
 // Stub NuxtLink
 config.stubs.NuxtLink = RouterLinkStub
 
-// Tips: v-dialogのwarn対応: [Vuetify] Unable to locate target [data-app]
+// NOTE: v-dialogのwarn対応: [Vuetify] Unable to locate target [data-app]
 const app = document.createElement('div')
 app.setAttribute('data-app', true)
 document.body.append(app)

@@ -172,7 +172,7 @@ describe('index.vue', () => {
         button = wrapper.find('#password_update_btn')
         button.trigger('click')
       }
-      if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // Tips: 状態変更（Mockでは実行されない為）
+      if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // NOTE: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
     }

@@ -74,12 +74,7 @@ export default {
     if (!await this.getInfomations()) { return }
 
     if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
-      // トークン検証
-      try {
-        await this.$auth.fetchUser() // Tips: お知らせ未読数をリセット
-      } catch (error) {
-        this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
-      }
+      this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
     }
 
     this.loading = false
@@ -94,7 +89,7 @@ export default {
       const redirect = this.infomation == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationsUrl, { params: { page: this.page } })
         .then((response) => {
-          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation == null)) { return }
+          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation?.current_page !== this.page)) { return }
 
           this.infomation = response.data.infomation
           this.infomations = response.data.infomations
