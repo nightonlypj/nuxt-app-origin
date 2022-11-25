@@ -70,16 +70,14 @@ describe('sign_in.vue', () => {
     } else {
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in' })
     }
-    expect(wrapper.vm.$data.email).toBe('')
-    expect(wrapper.vm.$data.password).toBe('')
+    expect(wrapper.vm.$data.query).toEqual({ email: '', password: '' })
   }
 
-  const apiCalledTest = (values) => {
+  const apiCalledTest = (params) => {
     expect(authLoginWithMock).toBeCalledTimes(1)
     expect(authLoginWithMock).nthCalledWith(1, 'local', {
       data: {
-        email: values.email,
-        password: values.password,
+        ...params,
         unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
       }
     })
@@ -97,8 +95,7 @@ describe('sign_in.vue', () => {
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.vm.$data.email = 'user1@example.com'
-    wrapper.vm.$data.password = 'abc12345'
+    wrapper.vm.$data.query = { email: 'user1@example.com', password: 'abc12345' }
 
     // ログインボタン
     await helper.waitChangeDisabled(button, false)
@@ -171,11 +168,11 @@ describe('sign_in.vue', () => {
 
   describe('ログイン', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const values = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
+    const params = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
 
     let wrapper, button
     const beforeAction = async (options = { keydown: false, isComposing: null }) => {
-      wrapper = mountFunction(false, null, values)
+      wrapper = mountFunction(false, null, { query: params })
       if (options.keydown) {
         const inputArea = wrapper.find('#input_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
@@ -192,7 +189,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
@@ -201,7 +198,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction({ keydown: true, isComposing: false })
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
@@ -216,7 +213,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data: null }))
       await beforeAction()
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -226,7 +223,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -235,7 +232,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -244,7 +241,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
-      apiCalledTest(values)
+      apiCalledTest(params)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, true)
     })

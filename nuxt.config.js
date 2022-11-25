@@ -37,7 +37,7 @@ export default defineNuxtConfig({
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
-  components: false, // Tips: testの為
+  components: false, // NOTE: Jestでは明示的にimportする必要がある為、揃えておく
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
@@ -116,22 +116,22 @@ export default defineNuxtConfig({
       dark: true,
       themes: {
         dark: {
-          primary: colors.blue.darken2,
-          accent: colors.grey.darken3,
-          secondary: colors.amber.darken3,
-          info: colors.teal.lighten1,
-          warning: colors.amber.base,
-          error: colors.deepOrange.accent4,
-          success: colors.green.accent3
+          primary: colors.blue.darken2, // <- blue
+          secondary: colors.grey.darken3, // <- amber.darken3 <- grey.darken3
+          accent: colors.amber.darken3, // <- grey.darken3 <- pink.accent2
+          info: colors.teal.lighten1, // <- blue
+          warning: colors.amber.base, // <- orange.darken1
+          error: colors.deepOrange.accent4, // <- red.accent2
+          success: colors.green.accent3 // <- green
         },
         light: {
-          primary: colors.blue.lighten2,
-          accent: colors.grey.lighten3,
-          secondary: colors.amber.lighten3,
-          info: colors.teal.lighten1,
-          warning: colors.amber.base,
-          error: colors.deepOrange.accent4,
-          success: colors.green.accent3
+          // primary: colors.blue.darken2,
+          // secondary: colors.grey.darken3,
+          // accent: colors.blue.accent1,
+          // info: colors.blue,
+          // warning: colors.orange.darken1,
+          // error: colors.red.accent2,
+          // success: colors.green
         }
       }
     }

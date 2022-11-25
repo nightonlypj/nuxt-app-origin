@@ -14,26 +14,30 @@
           >
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
-                v-model="password"
-                type="password"
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード [8文字以上]"
                 prepend-icon="mdi-lock"
-                append-icon="mdi-eye-off"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
+                counter
                 :error-messages="errors"
                 @input="waiting = false"
+                @click:append="showPassword = !showPassword"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
               <v-text-field
-                v-model="password_confirmation"
-                type="password"
+                v-model="query.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード(確認)"
                 prepend-icon="mdi-lock"
-                append-icon="mdi-eye-off"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
+                counter
                 :error-messages="errors"
                 @input="waiting = false"
+                @click:append="showPassword = !showPassword"
               />
             </validation-provider>
             <v-btn
@@ -88,8 +92,11 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
-      password: '',
-      password_confirmation: '',
+      query: {
+        password: '',
+        password_confirmation: ''
+      },
+      showPassword: false,
       keyDownEnter: false
     }
   },
@@ -125,8 +132,7 @@ export default {
       this.processing = true
       await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
-        password: this.password,
-        password_confirmation: this.password_confirmation
+        ...this.query
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }

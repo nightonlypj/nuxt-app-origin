@@ -69,9 +69,9 @@ describe('Image.vue', () => {
     expect(deleteButton.vm.disabled).toBe(!uploadImage) // [アップロード画像]有効
   }
 
-  const updateApiCalledTest = (values) => {
+  const updateApiCalledTest = (image) => {
     const params = new FormData()
-    params.append('image', values.image)
+    params.append('image', image)
     expect(axiosPostMock).toBeCalledTimes(1)
     expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, params)
   }
@@ -138,16 +138,16 @@ describe('Image.vue', () => {
 
   describe('画像変更', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const values = Object.freeze({ image: {} })
+    const image = Object.freeze({})
 
     let wrapper, button
     const beforeAction = async () => {
-      wrapper = mountFunction(true, values)
+      wrapper = mountFunction(true, { image })
       button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      updateApiCalledTest(values)
+      updateApiCalledTest(image)
     }
 
     it('[成功]変更後の画像が表示される', async () => {

@@ -67,17 +67,14 @@ describe('index.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
     helper.messageTest(wrapper, Message, null)
-    expect(wrapper.vm.$data.password).toBe('')
-    expect(wrapper.vm.$data.password_confirmation).toBe('')
+    expect(wrapper.vm.$data.query).toEqual({ password: '', password_confirmation: '' })
   }
 
-  const apiCalledTest = (count, values) => {
+  const apiCalledTest = (count, params) => {
     expect(axiosPostMock).toBeCalledTimes(count)
     if (count > 0) {
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
-        reset_password_token: values.reset_password_token,
-        password: values.password,
-        password_confirmation: values.password_confirmation
+        ...params
       })
     }
   }
@@ -95,8 +92,7 @@ describe('index.vue', () => {
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.vm.$data.password = 'abc12345'
-    wrapper.vm.$data.password_confirmation = 'abc12345'
+    wrapper.vm.$data.query = { password: 'abc12345', password_confirmation: 'abc12345' }
 
     // 変更ボタン
     await helper.waitChangeDisabled(button, false)
@@ -158,12 +154,11 @@ describe('index.vue', () => {
 
   describe('パスワード再設定', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const query = Object.freeze({ reset_password_token: 'token' })
-    const values = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
+    const params = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
 
     let wrapper, button
     const beforeAction = async (changeSignIn = false, options = { keydown: false, isComposing: null }) => {
-      wrapper = mountFunction(false, query, values)
+      wrapper = mountFunction(false, { reset_password_token: params.reset_password_token }, { query: params })
       if (options.keydown) {
         const inputArea = wrapper.find('#input_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
@@ -181,7 +176,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true)
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -191,7 +186,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true, { keydown: true, isComposing: false })
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -210,7 +205,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -220,7 +215,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -231,7 +226,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -241,7 +236,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -251,7 +246,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
@@ -260,7 +255,7 @@ describe('index.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)

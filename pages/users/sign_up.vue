@@ -8,19 +8,20 @@
         <v-form autocomplete="on">
           <v-card-title>アカウント登録</v-card-title>
           <v-card-text>
-            <validation-provider v-slot="{ errors }" name="name" rules="required">
+            <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
               <v-text-field
-                v-model="name"
+                v-model="query.name"
                 label="氏名"
                 prepend-icon="mdi-account"
                 autocomplete="name"
+                counter="32"
                 :error-messages="errors"
                 @input="waiting = false"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
-                v-model="email"
+                v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
                 autocomplete="email"
@@ -30,26 +31,30 @@
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
-                v-model="password"
-                type="password"
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
                 label="パスワード [8文字以上]"
                 prepend-icon="mdi-lock"
-                append-icon="mdi-eye-off"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
+                counter
                 :error-messages="errors"
                 @input="waiting = false"
+                @click:append="showPassword = !showPassword"
               />
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
               <v-text-field
-                v-model="password_confirmation"
-                type="password"
+                v-model="query.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
                 label="パスワード(確認)"
                 prepend-icon="mdi-lock"
-                append-icon="mdi-eye-off"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
+                counter
                 :error-messages="errors"
                 @input="waiting = false"
+                @click:append="showPassword = !showPassword"
               />
             </validation-provider>
             <v-btn
@@ -74,7 +79,7 @@
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import { required, email, max, min, confirmed } from 'vee-validate/dist/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -83,6 +88,7 @@ import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
+extend('max', max)
 extend('min', min)
 extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
@@ -105,10 +111,13 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
-      name: '',
-      email: '',
-      password: '',
-      password_confirmation: ''
+      query: {
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: ''
+      },
+      showPassword: false
     }
   },
 
@@ -133,10 +142,7 @@ export default {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
-        name: this.name,
-        email: this.email,
-        password: this.password,
-        password_confirmation: this.password_confirmation,
+        ...this.query,
         confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
       })
         .then((response) => {
