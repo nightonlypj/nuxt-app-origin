@@ -63,19 +63,13 @@ describe('sign_up.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_up')
 
     helper.messageTest(wrapper, Message, null)
-    expect(wrapper.vm.$data.name).toBe('')
-    expect(wrapper.vm.$data.email).toBe('')
-    expect(wrapper.vm.$data.password).toBe('')
-    expect(wrapper.vm.$data.password_confirmation).toBe('')
+    expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '' })
   }
 
-  const apiCalledTest = (values) => {
+  const apiCalledTest = (params) => {
     expect(axiosPostMock).toBeCalledTimes(1)
     expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.singUpUrl, {
-      name: values.name,
-      email: values.email,
-      password: values.password,
-      password_confirmation: values.password_confirmation,
+      ...params,
       confirm_success_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
     })
   }
@@ -92,10 +86,7 @@ describe('sign_up.vue', () => {
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.vm.$data.name = 'user1の氏名'
-    wrapper.vm.$data.email = 'user1@example.com'
-    wrapper.vm.$data.password = 'abc12345'
-    wrapper.vm.$data.password_confirmation = 'abc12345'
+    wrapper.vm.$data.query = { name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' }
 
     // 登録ボタン
     await helper.waitChangeDisabled(button, false)
@@ -110,16 +101,16 @@ describe('sign_up.vue', () => {
 
   describe('アカウント登録', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const values = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
+    const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
 
     let wrapper, button
     const beforeAction = async () => {
-      wrapper = mountFunction(false, values)
+      wrapper = mountFunction(false, { query: params })
       button = wrapper.find('#sign_up_btn')
       button.trigger('click')
 
       await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(params)
     }
 
     it('[成功]ログインページにリダイレクトされる', async () => {

@@ -3,12 +3,13 @@
     <Processing v-if="processing" />
     <v-form autocomplete="off">
       <v-card-text>
-        <validation-provider v-slot="{ errors }" name="name" rules="required">
+        <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
           <v-text-field
-            v-model="name"
+            v-model="query.name"
             label="氏名"
             prepend-icon="mdi-account"
             autocomplete="off"
+            counter="32"
             :error-messages="errors"
             @input="waiting = false"
           />
@@ -19,7 +20,7 @@
         </v-alert>
         <validation-provider v-slot="{ errors }" name="email" rules="required|email">
           <v-text-field
-            v-model="email"
+            v-model="query.email"
             label="メールアドレス"
             prepend-icon="mdi-email"
             autocomplete="off"
@@ -29,38 +30,44 @@
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password" rules="min:8">
           <v-text-field
-            v-model="password"
-            type="password"
+            v-model="query.password"
+            :type="showPassword ? 'text' : 'password'"
             label="パスワード [8文字以上] (変更する場合のみ)"
             prepend-icon="mdi-lock"
-            append-icon="mdi-eye-off"
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             autocomplete="new-password"
+            counter
             :error-messages="errors"
             @input="waiting = false"
+            @click:append="showPassword = !showPassword"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
           <v-text-field
-            v-model="password_confirmation"
-            type="password"
+            v-model="query.password_confirmation"
+            :type="showPassword ? 'text' : 'password'"
             label="パスワード(確認) (変更する場合のみ)"
             prepend-icon="mdi-lock"
-            append-icon="mdi-eye-off"
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             autocomplete="new-password"
+            counter
             :error-messages="errors"
             @input="waiting = false"
+            @click:append="showPassword = !showPassword"
           />
         </validation-provider>
         <validation-provider v-slot="{ errors }" name="current_password" rules="required">
           <v-text-field
-            v-model="current_password"
-            type="password"
+            v-model="query.current_password"
+            :type="showPassword ? 'text' : 'password'"
             label="現在のパスワード"
             prepend-icon="mdi-lock"
-            append-icon="mdi-eye-off"
+            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             autocomplete="new-password"
+            counter
             :error-messages="errors"
             @input="waiting = false"
+            @click:append="showPassword = !showPassword"
           />
         </validation-provider>
         <v-btn
@@ -79,12 +86,13 @@
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, confirmed } from 'vee-validate/dist/rules'
+import { required, email, max, min, confirmed } from 'vee-validate/dist/rules'
 import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
+extend('max', max)
 extend('min', min)
 extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
@@ -106,20 +114,17 @@ export default {
 
   data () {
     return {
-      processing: true,
+      processing: false,
       waiting: false,
-      name: '',
-      email: '',
-      password: '',
-      password_confirmation: '',
-      current_password: ''
+      query: {
+        name: this.user.name,
+        email: this.user.email,
+        password: '',
+        password_confirmation: '',
+        current_password: ''
+      },
+      showPassword: false
     }
-  },
-
-  created () {
-    this.name ||= this.user.name
-    this.email ||= this.user.email
-    this.processing = false
   },
 
   methods: {
@@ -128,11 +133,7 @@ export default {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
-        name: this.name,
-        email: this.email,
-        password: this.password,
-        password_confirmation: this.password_confirmation,
-        current_password: this.current_password,
+        ...this.query,
         confirm_redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
       })
         .then((response) => {

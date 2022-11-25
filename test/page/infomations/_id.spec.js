@@ -30,7 +30,7 @@ describe('_id.vue', () => {
       mocks: {
         $route: {
           params: {
-            id: 1
+            id: '1'
           }
         },
         $axios: {

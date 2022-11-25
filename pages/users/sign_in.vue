@@ -14,7 +14,7 @@
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
-                v-model="email"
+                v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
                 autocomplete="email"
@@ -24,14 +24,16 @@
             </validation-provider>
             <validation-provider v-slot="{ errors }" name="password" rules="required">
               <v-text-field
-                v-model="password"
-                type="password"
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
                 label="パスワード"
                 prepend-icon="mdi-lock"
-                append-icon="mdi-eye-off"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="current-password"
+                counter
                 :error-messages="errors"
                 @input="waiting = false"
+                @click:append="showPassword = !showPassword"
               />
             </validation-provider>
             <v-btn
@@ -85,8 +87,11 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
-      email: '',
-      password: '',
+      query: {
+        email: '',
+        password: ''
+      },
+      showPassword: false,
       keyDownEnter: false
     }
   },
@@ -137,8 +142,7 @@ export default {
       this.processing = true
       await this.$auth.loginWith('local', {
         data: {
-          email: this.email,
-          password: this.password,
+          ...this.query,
           unlock_redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
         }
       })

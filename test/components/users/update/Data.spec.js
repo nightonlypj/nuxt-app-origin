@@ -58,21 +58,13 @@ describe('Data.vue', () => {
   // テスト内容
   const viewTest = (wrapper, user) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.vm.$data.name).toBe(user.name)
-    expect(wrapper.vm.$data.email).toBe(user.email)
-    expect(wrapper.vm.$data.password).toBe('')
-    expect(wrapper.vm.$data.password_confirmation).toBe('')
-    expect(wrapper.vm.$data.current_password).toBe('')
+    expect(wrapper.vm.$data.query).toEqual({ name: user.name, email: user.email, password: '', password_confirmation: '', current_password: '' })
   }
 
-  const apiCalledTest = (values) => {
+  const apiCalledTest = (params) => {
     expect(axiosPostMock).toBeCalledTimes(1)
     expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUpdateUrl, {
-      name: values.name,
-      email: values.email,
-      password: values.password,
-      password_confirmation: values.password_confirmation,
-      current_password: values.current_password,
+      ...params,
       confirm_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
     })
   }
@@ -90,7 +82,7 @@ describe('Data.vue', () => {
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.vm.$data.current_password = 'abc12345'
+    wrapper.vm.$data.query.current_password = 'abc12345'
 
     // 変更ボタン
     await helper.waitChangeDisabled(button, false)
@@ -100,17 +92,17 @@ describe('Data.vue', () => {
   describe('ユーザー情報変更', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
-    const values = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
+    const params = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
 
     let wrapper, button
     const beforeAction = async (changeSignOut = false) => {
-      wrapper = mountFunction(user, values)
+      wrapper = mountFunction(user, { query: params })
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
       if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest(params)
     }
 
     it('[成功]トップページにリダイレクトされる', async () => {

@@ -14,7 +14,7 @@
           >
             <validation-provider v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
-                v-model="email"
+                v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
                 autocomplete="off"
@@ -73,7 +73,9 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
-      email: '',
+      query: {
+        email: ''
+      },
       keyDownEnter: false
     }
   },
@@ -103,7 +105,7 @@ export default {
 
       this.processing = true
       await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUrl, {
-        email: this.email,
+        ...this.query,
         redirect_url: this.$config.frontBaseURL + this.$config.passwordRedirectUrl
       })
         .then((response) => {

@@ -73,14 +73,14 @@ describe('resend.vue', () => {
     } else {
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/resend' }) // NOTE: URLパラメータを消す為
     }
-    expect(wrapper.vm.$data.email).toBe('')
+    expect(wrapper.vm.$data.query).toEqual({ email: '' })
   }
 
-  const apiCalledTest = (count, values) => {
+  const apiCalledTest = (count, params) => {
     expect(axiosPostMock).toBeCalledTimes(count)
     if (count > 0) {
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.confirmationUrl, {
-        email: values.email,
+        ...params,
         redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
       })
     }
@@ -111,7 +111,7 @@ describe('resend.vue', () => {
       expect(button.vm.disabled).toBe(true) // 無効
 
       // 入力
-      wrapper.vm.$data.email = 'user1@example.com'
+      wrapper.vm.$data.query = { email: 'user1@example.com' }
 
       // 送信ボタン
       await helper.waitChangeDisabled(button, false)
@@ -125,11 +125,11 @@ describe('resend.vue', () => {
 
   describe('メールアドレス確認', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const values = Object.freeze({ email: 'user1@example.com' })
+    const params = Object.freeze({ email: 'user1@example.com' })
 
     let wrapper, button
     const beforeAction = async (loggedIn = false, options = { keydown: false, isComposing: null }) => {
-      wrapper = mountFunction(loggedIn, {}, values)
+      wrapper = mountFunction(loggedIn, {}, { query: params })
 
       await helper.sleep(1)
       if (options.keydown) {
@@ -148,7 +148,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(false)
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
@@ -157,7 +157,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(false, { keydown: true, isComposing: false })
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
@@ -175,7 +175,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true)
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -184,7 +184,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -194,7 +194,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -203,7 +203,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -212,7 +212,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
     })
@@ -220,7 +220,7 @@ describe('resend.vue', () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
-      apiCalledTest(1, values)
+      apiCalledTest(1, params)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
     })

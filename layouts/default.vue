@@ -142,7 +142,7 @@ export default {
 
   head () {
     return {
-      titleTemplate: '%s - ' + this.$t('app_name') + this.$config.envName
+      titleTemplate: `%s - ${this.$t('app_name')}${this.$config.envName}`
     }
   }
 }
