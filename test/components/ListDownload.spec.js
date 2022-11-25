@@ -53,7 +53,7 @@ describe('ListDownload.vue', () => {
   }
 
   // テスト内容
-  const defaultChecked = { target: 'all', format: 'csv', char: 'sjis', newline: 'crlf' }
+  const defaultChecked = { target: 'all', format: 'csv', charCode: 'sjis', newlineCode: 'crlf' }
   const defaultDisabled = { select: true, search: true, all: false, submit: false }
   const viewTest = async (wrapper, admin, checked = defaultChecked, disabled = defaultDisabled, hiddenItems = []) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
@@ -85,17 +85,17 @@ describe('ListDownload.vue', () => {
     }
 
     // 文字コード
-    for (const key in helper.locales.enums.download.char) {
-      const char = wrapper.find(`#download_char_${key}`)
-      expect(char.exists()).toBe(true)
-      expect(char.element.checked).toBe(key === checked.char)
+    for (const key in helper.locales.enums.download.charCode) {
+      const charCode = wrapper.find(`#download_char_code_${key}`)
+      expect(charCode.exists()).toBe(true)
+      expect(charCode.element.checked).toBe(key === checked.charCode)
     }
 
     // 改行コード
-    for (const key in helper.locales.enums.download.newline) {
-      const newline = wrapper.find(`#download_newline_${key}`)
-      expect(newline.exists()).toBe(true)
-      expect(newline.element.checked).toBe(key === checked.newline)
+    for (const key in helper.locales.enums.download.newlineCode) {
+      const newlineCode = wrapper.find(`#download_newline_code_${key}`)
+      expect(newlineCode.exists()).toBe(true)
+      expect(newlineCode.element.checked).toBe(key === checked.newlineCode)
     }
 
     // 出力項目
@@ -155,49 +155,43 @@ describe('ListDownload.vue', () => {
   })
   it('[存在する形式・文字コード・改行コードがlocalStorageにある]localStorageの値が選択される', async () => {
     localStorage.setItem('download.format', 'tsv')
-    localStorage.setItem('download.char', 'utf8')
-    localStorage.setItem('download.newline', 'lf')
+    localStorage.setItem('download.char_code', 'utf8')
+    localStorage.setItem('download.newline_code', 'lf')
     const wrapper = mountFunction(false)
-    await viewTest(wrapper, false, { ...defaultChecked, format: 'tsv', char: 'utf8', newline: 'lf' })
+    await viewTest(wrapper, false, { ...defaultChecked, format: 'tsv', charCode: 'utf8', newlineCode: 'lf' })
   })
   it('[存在しない形式・文字コード・改行コードがlocalStorageにある]デフォルトが選択される', async () => {
     localStorage.setItem('download.format', 'not')
-    localStorage.setItem('download.char', 'not')
-    localStorage.setItem('download.newline', 'not')
+    localStorage.setItem('download.char_code', 'not')
+    localStorage.setItem('download.newline_code', 'not')
     const wrapper = mountFunction(false)
     await viewTest(wrapper, false)
   })
   it('[出力項目なし]ダウンロードボタンが押せない', async () => {
-    const hiddenItems = []
-    for (const item of helper.locales.items[model]) {
-      hiddenItems.push(item.value)
-    }
+    const hiddenItems = helper.locales.items[model].map(item => item.value)
     const wrapper = mountFunction(false, hiddenItems)
     await viewTest(wrapper, false, defaultChecked, { ...defaultDisabled, submit: true }, hiddenItems)
   })
 
   describe('ダウンロード依頼', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', download: { id: 1 } })
-    const outputItems = []
-    for (const item of helper.locales.items[model]) {
-      outputItems.push(item.value)
-    }
+    const outputItems = helper.locales.items[model].map(item => item.value)
     const selectItems = Object.freeze(['code000000000000000000001'])
     const searchParams = Object.freeze({ text: 'test' })
 
-    const format = 'csv'
-    const char = 'sjis'
-    const newline = 'crlf'
+    const query = {
+      target: 'select',
+      format: 'csv',
+      char_code: 'sjis',
+      newline_code: 'crlf'
+    }
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloadCreateUrl, {
         download: {
           model,
           space_code: space.code || null,
-          target: 'select',
-          format,
-          char,
-          newline,
+          ...query,
           output_items: outputItems,
           select_items: selectItems,
           search_params: searchParams
@@ -231,9 +225,9 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      expect(localStorage.getItem('download.format')).toBe(format)
-      expect(localStorage.getItem('download.char')).toBe(char)
-      expect(localStorage.getItem('download.newline')).toBe(newline)
+      expect(localStorage.getItem('download.format')).toBe(query.format)
+      expect(localStorage.getItem('download.char_code')).toBe(query.char_code)
+      expect(localStorage.getItem('download.newline_code')).toBe(query.newline_code)
       expect(dialog.isVisible()).toBe(false) // 非表示
       helper.mockCalledTest(routerPushMock, 1, { path: '/downloads', query: { id: data.download.id } })
     })

@@ -15,13 +15,13 @@
           <v-col class="d-flex justify-end">
             <v-btn
               id="downloads_reload_btn"
-              color="accent"
+              color="secondary"
               :disabled="processing || reloading"
               @click="reloadDownloads()"
             >
               <v-tooltip bottom>
                 <template #activator="{ on: tooltip }">
-                  <v-icon dense small v-on="tooltip">mdi-sync</v-icon>
+                  <v-icon small v-on="tooltip">mdi-sync</v-icon>
                 </template>
                 更新
               </v-tooltip>
@@ -154,11 +154,7 @@ export default {
       let result = false
 
       const redirect = this.download == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloadsUrl, {
-        params: {
-          page: this.page
-        }
-      })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloadsUrl, { params: { page: this.page } })
         .then((response) => {
           if (this.page === 1) {
             this.uid = response.headers?.uid || null

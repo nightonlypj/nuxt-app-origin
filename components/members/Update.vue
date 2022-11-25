@@ -32,7 +32,7 @@
                     >
                       <v-radio
                         v-for="(value, key) in $t('enums.member.power')"
-                        :id="'power_' + key"
+                        :id="`power_${key}`"
                         :key="key"
                         :label="value"
                         :value="key"
@@ -117,8 +117,7 @@ export default {
     async postMembersUpdate () {
       this.processing = true
 
-      const url = this.$config.memberUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code)
-      await this.$axios.post(this.$config.apiBaseURL + url, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code), {
         member: { power: this.member.power }
       })
         .then((response) => {

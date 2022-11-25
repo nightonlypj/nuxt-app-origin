@@ -86,7 +86,7 @@ export default {
       reloading: false,
       query: {
         text: this.$route?.query?.text || '',
-        excludeMemberSpace: this.$route?.query?.exclude_member_space === '1',
+        exclude: this.$route?.query?.exclude === '1',
         option: this.$route?.query?.option === '1'
       },
       params: null,
@@ -131,7 +131,8 @@ export default {
       if (!await this.getSpaces()) {
         this.$refs.search.error()
       }
-      this.$router.push({ query: { ...this.params, option: Number(this.query.option) } })
+
+      this.$router.push({ query: { ...this.params, exclude: String(this.params.exclude), option: String(Number(this.query.option)) } })
       this.reloading = false
     },
 
@@ -163,13 +164,17 @@ export default {
       let result = false
 
       if (this.params == null) {
-        this.params = {
-          text: this.query.text,
-          exclude_member_space: Number(this.query.excludeMemberSpace)
-        }
+        this.params = { ...this.query, exclude: Number(this.query.exclude) }
+        delete this.params.option
       }
+
       const redirect = this.space == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spacesUrl, { params: { ...this.params, page: this.page } })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.spacesUrl, {
+        params: {
+          ...this.params,
+          page: this.page
+        }
+      })
         .then((response) => {
           if (this.page === 1) {
             this.uid = response.headers?.uid || null
@@ -188,6 +193,8 @@ export default {
           } else {
             this.spaces.push(...response.data.spaces)
           }
+
+          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
           result = true
         },
         (error) => {
@@ -198,6 +205,11 @@ export default {
       this.page = this.space?.current_page || 1
       this.processing = false
       return result
+    },
+
+    check_search_params (responseParams) {
+      // eslint-disable-next-line no-console
+      console.log('response params: ' + (String(this.params) === String(responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     }
   }
 }

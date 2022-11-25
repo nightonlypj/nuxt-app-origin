@@ -15,6 +15,8 @@
           style="max-width: 400px"
           dense
           hide-details
+          maxlength="255"
+          clearable
           @input="waiting = false"
         />
         <v-btn
@@ -43,7 +45,7 @@
           </div>
           <v-checkbox
             v-for="(value, key) in $t('enums.member.power')"
-            :id="key + '_check'"
+            :id="`${key}_check`"
             :key="key"
             v-model="syncQuery.power[key]"
             :label="value"
@@ -88,7 +90,7 @@ export default {
 
   computed: {
     textPlaceholder () {
-      return 'ユーザー名' + (this.admin ? 'やメールアドレス' : '') + 'を入力'
+      return `ユーザー名${this.admin ? 'やメールアドレス' : ''}を入力`
     },
 
     syncQuery: {

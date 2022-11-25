@@ -14,10 +14,10 @@
     <!-- 名称 -->
     <template #[`item.name`]="{ item }">
       <div class="ml-1">
-        <v-avatar v-if="item.image_url != null" :id="'space_image_' + item.code" size="32px">
+        <v-avatar v-if="item.image_url != null" :id="`space_image_${item.code}`" size="32px">
           <v-img :src="item.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="'/s/' + item.code" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
+        <NuxtLink :to="`/s/${item.code}`" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
         <SpacesIcon :space="item" />
       </div>
     </template>
@@ -29,14 +29,14 @@
     <template #[`item.action`]="{ item }">
       <v-btn
         v-if="item.current_member != null"
-        :to="'/members/' + item.code"
-        color="secondary"
+        :to="`/members/${item.code}`"
+        color="accent"
         small
         nuxt
       >
         <v-tooltip bottom>
           <template #activator="{ on, attrs }">
-            <v-icon dense small v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
+            <v-icon small v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
           </template>
           メンバー一覧
         </v-tooltip>
@@ -79,7 +79,7 @@ export default {
 
   methods: {
     redirectSpace (_event, { item }) {
-      this.$router.push('/s/' + item.code)
+      this.$router.push(`/s/${item.code}`)
     }
   }
 }

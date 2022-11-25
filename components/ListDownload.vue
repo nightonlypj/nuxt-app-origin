@@ -3,14 +3,14 @@
     <template #activator="{ on, attrs }">
       <v-btn
         id="download_btn"
-        color="accent"
+        color="secondary"
         v-bind="attrs"
         v-on="on"
         @click="initialize()"
       >
         <v-tooltip bottom :disabled="$vuetify.breakpoint.width >= 960">
           <template #activator="{ on: tooltip }">
-            <v-icon dense small v-on="tooltip">mdi-download</v-icon>
+            <v-icon small v-on="tooltip">mdi-download</v-icon>
             <span class="hidden-sm-and-down ml-1">ダウンロード</span>
           </template>
           ダウンロード
@@ -48,6 +48,7 @@
                           :label="label"
                           :value="key"
                           :disabled="!enableTarget.includes(key)"
+                          @change="waiting = false"
                         />
                       </v-radio-group>
                     </validation-provider>
@@ -67,13 +68,14 @@
                           :key="key"
                           :label="label"
                           :value="key"
+                          @change="waiting = false"
                         />
                       </v-radio-group>
                     </validation-provider>
                     <h4 class="pt-3">文字コード</h4>
-                    <validation-provider v-slot="{ errors }" name="char" rules="required_select">
+                    <validation-provider v-slot="{ errors }" name="char_code" rules="required_select">
                       <v-radio-group
-                        v-model="query.char"
+                        v-model="query.char_code"
                         class="mt-1"
                         dense
                         row
@@ -81,18 +83,19 @@
                         :error-messages="errors"
                       >
                         <v-radio
-                          v-for="(label, key) in chars"
-                          :id="`download_char_${key}`"
+                          v-for="(label, key) in charCodes"
+                          :id="`download_char_code_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
+                          @change="waiting = false"
                         />
                       </v-radio-group>
                     </validation-provider>
                     <h4 class="pt-3">改行コード</h4>
-                    <validation-provider v-slot="{ errors }" name="newline" rules="required_select">
+                    <validation-provider v-slot="{ errors }" name="newline_code" rules="required_select">
                       <v-radio-group
-                        v-model="query.newline"
+                        v-model="query.newline_code"
                         class="mt-1"
                         dense
                         row
@@ -100,22 +103,26 @@
                         :error-messages="errors"
                       >
                         <v-radio
-                          v-for="(label, key) in newlines"
-                          :id="`download_newline_${key}`"
+                          v-for="(label, key) in newlineCodes"
+                          :id="`download_newline_code_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
+                          @change="waiting = false"
                         />
                       </v-radio-group>
                     </validation-provider>
                   </v-col>
                   <!-- 右側 -->
                   <v-col cols="12" sm="6" class="pb-0">
-                    <h4>出力項目</h4>
+                    <h4>
+                      出力項目
+                      <v-btn small :disabled="outputItems.length >= items.length" class="ml-4" @click="setAllOutputItems()">全選択</v-btn>
+                      <v-btn small :disabled="outputItems.length === 0" @click="clearOutputItems()">全解除</v-btn>
+                    </h4>
                     <validation-provider v-slot="{ errors }" name="output_items" rules="required_select">
                       <template v-for="(item, index) in items">
                         <v-switch
-                          v-if="!item.adminOnly || admin"
                           :id="`download_output_item_${item.value.replace('.', '_')}`"
                           :key="item.value"
                           v-model="outputItems"
@@ -126,6 +133,7 @@
                           :error-messages="errors"
                           dense
                           class="mt-1"
+                          @change="waiting = false"
                         />
                       </template>
                     </validation-provider>
@@ -137,7 +145,7 @@
               <v-btn
                 id="download_submit_btn"
                 color="primary"
-                :disabled="processing || invalid || outputItems.length === 0"
+                :disabled="processing || invalid || waiting"
                 @click="postDownloadCreate(dialog)"
               >
                 ダウンロード
@@ -204,6 +212,7 @@ export default {
   data () {
     return {
       processing: false,
+      waiting: null,
       query: null,
       outputItems: null,
       enableTarget: null
@@ -212,7 +221,7 @@ export default {
 
   computed: {
     items () {
-      return this.$t('items.' + this.model)
+      return this.$t(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
     },
     targets () {
       return this.$t('enums.download.target')
@@ -220,28 +229,24 @@ export default {
     formats () {
       return this.$t('enums.download.format')
     },
-    chars () {
-      return this.$t('enums.download.char')
+    charCodes () {
+      return this.$t('enums.download.char_code')
     },
-    newlines () {
-      return this.$t('enums.download.newline')
+    newlineCodes () {
+      return this.$t('enums.download.newline_code')
     }
   },
 
   methods: {
     initialize () {
+      this.waiting = false
       this.query = {
         target: null,
         format: localStorage.getItem('download.format'),
-        char: localStorage.getItem('download.char'),
-        newline: localStorage.getItem('download.newline')
+        char_code: localStorage.getItem('download.char_code'),
+        newline_code: localStorage.getItem('download.newline_code')
       }
-      this.outputItems = []
-      for (const item of this.items) {
-        if ((!item.adminOnly || this.admin) && !this.hiddenItems.includes(item.value)) {
-          this.outputItems.push(item.value)
-        }
-      }
+      this.outputItems = this.items.filter(item => !this.hiddenItems.includes(item.value)).map(item => item.value)
 
       this.enableTarget = []
       if (this.selectItems != null && this.selectItems.length > 0) { this.enableTarget.push('select') }
@@ -250,8 +255,20 @@ export default {
 
       if (!this.enableTarget.includes(this.query.target)) { this.query.target = this.enableTarget[0] }
       if (this.formats[this.query.format] == null) { this.query.format = 'csv' }
-      if (this.chars[this.query.char] == null) { this.query.char = 'sjis' }
-      if (this.newlines[this.query.newline] == null) { this.query.newline = 'crlf' }
+      if (this.charCodes[this.query.char_code] == null) { this.query.char_code = 'sjis' }
+      if (this.newlineCodes[this.query.newline_code] == null) { this.query.newline_code = 'crlf' }
+
+      this.$refs.observer?.reset()
+    },
+
+    setAllOutputItems () {
+      this.outputItems = this.items.map(item => item.value)
+      this.waiting = false
+    },
+    clearOutputItems () {
+      this.outputItems = []
+      this.waiting = false
+      this.$refs.observer.setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
     },
 
     // ダウンロード依頼
@@ -263,7 +280,7 @@ export default {
           model: this.model,
           space_code: this.space?.code || null,
           ...this.query,
-          output_items: this.outputItems,
+          output_items: this.items.filter(item => this.outputItems.includes(item.value)).map(item => item.value),
           select_items: this.selectItems,
           search_params: this.searchParams
         }
@@ -272,8 +289,8 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           localStorage.setItem('download.format', this.query.format)
-          localStorage.setItem('download.char', this.query.char)
-          localStorage.setItem('download.newline', this.query.newline)
+          localStorage.setItem('download.char_code', this.query.char_code)
+          localStorage.setItem('download.newline_code', this.query.newline_code)
           $dialog.value = false
           this.$router.push({ path: '/downloads', query: { id: response.data.download?.id || null } })
         },

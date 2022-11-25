@@ -9,7 +9,7 @@
     >
       <v-tooltip bottom>
         <template #activator="{ on: tooltip }">
-          <v-icon dense small v-on="tooltip">mdi-delete</v-icon>
+          <v-icon small v-on="tooltip">mdi-delete</v-icon>
         </template>
         メンバー解除
       </v-tooltip>
@@ -90,11 +90,9 @@ export default {
     async postMembersDelete () {
       this.processing = true
 
-      const codes = []
-      for (const member of this.selectedMembers) {
-        codes.push(member.user.code)
-      }
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':code', this.space.code), { codes })
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':code', this.space.code), {
+        codes: this.selectedMembers.map(member => member.user.code)
+      })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

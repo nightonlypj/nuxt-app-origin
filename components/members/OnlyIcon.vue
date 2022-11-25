@@ -3,7 +3,7 @@
     <template #activator="{ on, attrs }">
       <v-icon dense v-bind="attrs" v-on="on">{{ $config.enum.member.powerIcon[power] }}</v-icon>
     </template>
-    「{{ $t('enums.member.power.' + power) }}」のみ表示
+    「{{ $t(`enums.member.power.${power}`) }}」のみ表示
   </v-tooltip>
 </template>
 

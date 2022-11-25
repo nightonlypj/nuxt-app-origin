@@ -12,8 +12,8 @@
     fixed-header
     :height="appTableHeight"
     must-sort
-    :sort-by.sync="syncSortBy"
-    :sort-desc.sync="syncSortDesc"
+    :sort-by.sync="syncSort"
+    :sort-desc.sync="syncDesc"
     :custom-sort="disableSortItem"
     :show-select="currentMemberAdmin"
     @dblclick:row="showUpdate"
@@ -33,7 +33,7 @@
     <template #[`item.power`]="{ item }">
       <a
         v-if="currentMemberAdmin && item.user.code !== $auth.user.code"
-        :id="'member_update_link_' + item.user.code"
+        :id="`member_update_link_${item.user.code}`"
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
       >
@@ -73,11 +73,11 @@ export default {
   mixins: [Application],
 
   props: {
-    sortBy: {
+    sort: {
       type: String,
       required: true
     },
-    sortDesc: {
+    desc: {
       type: Boolean,
       required: true
     },
@@ -124,20 +124,20 @@ export default {
       }
     },
 
-    syncSortBy: {
+    syncSort: {
       get () {
-        return this.sortBy
+        return this.sort
       },
       set (value) {
-        this.$emit('reload', { sortBy: value })
+        this.$emit('reload', { sort: value })
       }
     },
-    syncSortDesc: {
+    syncDesc: {
       get () {
-        return this.sortDesc
+        return this.desc
       },
       set (value) {
-        this.$emit('reload', { sortDesc: value })
+        this.$emit('reload', { desc: value })
       }
     },
     syncSelectedMembers: {

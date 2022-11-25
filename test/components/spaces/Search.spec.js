@@ -6,7 +6,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Search.vue', () => {
-  const query = Object.freeze({ text: '', option: false, excludeMemberSpace: false })
+  const query = Object.freeze({ text: '', option: false, exclude: false })
 
   const mountFunction = (loggedIn = false) => {
     const localVue = createLocalVue()

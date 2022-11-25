@@ -53,8 +53,8 @@ describe('Lists.vue', () => {
       }
       expect(wrapper.text()).toMatch(download.target_i18n || '')
       expect(wrapper.text()).toMatch(download.format_i18n || '')
-      expect(wrapper.text()).toMatch(download.char_i18n || '')
-      expect(wrapper.text()).toMatch(download.newline_i18n || '')
+      expect(wrapper.text()).toMatch(download.char_code_i18n || '')
+      expect(wrapper.text()).toMatch(download.newline_code_i18n || '')
     }
   }
 
@@ -81,8 +81,8 @@ describe('Lists.vue', () => {
         },
         target_i18n: '全て',
         format_i18n: 'CSV',
-        char_i18n: 'Shift_JIS',
-        newline_i18n: 'CR+LF'
+        char_code_i18n: 'Shift_JIS',
+        newline_code_i18n: 'CR+LF'
       },
       {
         id: 4,

@@ -51,7 +51,7 @@
                       >
                         <v-radio
                           v-for="(value, key) in $t('enums.member.power')"
-                          :id="'power_' + key"
+                          :id="`power_${key}`"
                           :key="key"
                           :label="value"
                           :value="key"

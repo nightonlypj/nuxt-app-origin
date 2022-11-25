@@ -101,8 +101,8 @@
         <template v-if="existMembers">
           <v-divider class="my-2" />
           <MembersLists
-            :sort-by="query.sortBy"
-            :sort-desc="query.sortDesc"
+            :sort="query.sort"
+            :desc="query.desc"
             :members="members"
             :selected-members.sync="selectedMembers"
             :hidden-items="hiddenItems"
@@ -174,9 +174,13 @@ export default {
 
   data () {
     const power = {}
+    const queryPower = this.$route?.query?.power
+    let index = 0
     for (const key in this.$t('enums.member.power')) {
-      power[key] = this.$route?.query[key] !== '0'
+      power[key] = queryPower == null || queryPower[index] === '1'
+      index++
     }
+
     return {
       loading: true,
       processing: true,
@@ -186,8 +190,8 @@ export default {
       query: {
         text: this.$route?.query?.text || '',
         power,
-        sortBy: this.$route?.query?.sort || 'invitationed_at',
-        sortDesc: this.$route?.query?.desc !== '0',
+        sort: this.$route?.query?.sort || 'invitationed_at',
+        desc: this.$route?.query?.desc !== '0',
         option: this.$route?.query?.option === '1'
       },
       params: null,
@@ -221,11 +225,7 @@ export default {
     },
 
     selectItems () {
-      const result = []
-      for (const member of this.selectedMembers) {
-        result.push(member.user.code)
-      }
-      return result
+      return this.selectedMembers.map(member => member.user.code)
     }
   },
 
@@ -254,8 +254,8 @@ export default {
       if (this.$config.debug) { console.log('reloadMembers', $event, this.reloading) }
 
       if (Object.keys($event).length >= 0) {
-        if ($event.sortBy != null) { this.query.sortBy = $event.sortBy }
-        if ($event.sortDesc != null) { this.query.sortDesc = $event.sortDesc }
+        if ($event.sort != null) { this.query.sort = $event.sort }
+        if ($event.desc != null) { this.query.desc = $event.desc }
 
         // 連続再取得はスキップ  NOTE: v-data-tableで降順から対象を変更すると、対象と昇順変更のイベントが連続で発生する為
         if (!this.reloading) {
@@ -289,7 +289,11 @@ export default {
       this.page = 1
       const result = await this.getMembers()
 
-      this.$router.push({ query: { ...this.params, option: Number(this.query.option) } })
+      let power = ''
+      for (const key in this.query.power) {
+        power += Number(this.query.power[key])
+      }
+      this.$router.push({ query: { ...this.params, power, desc: String(this.params.desc), option: String(Number(this.query.option)) } })
       this.reloading = false
       return result
     },
@@ -322,15 +326,17 @@ export default {
       let result = false
 
       if (this.params == null) {
-        this.params = {
-          text: this.query.text
-        }
+        const power = []
         for (const key in this.query.power) {
-          this.params[key] = Number(this.query.power[key])
+          if (this.query.power[key]) { power.push(key) }
         }
+        this.params = { ...this.query, power: power.join(), desc: Number(this.query.desc) }
+        delete this.params.option
+      } else {
+        this.params.sort = this.query.sort
+        this.params.desc = Number(this.query.desc)
       }
-      this.params.sort = this.query.sortBy
-      this.params.desc = Number(this.query.sortDesc)
+
       const redirect = this.member == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':code', this.$route.params.code), {
         params: {
@@ -357,6 +363,8 @@ export default {
           } else {
             this.members.push(...response.data.members)
           }
+
+          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
           result = true
         },
         (error) => {
@@ -367,6 +375,11 @@ export default {
       this.page = this.member?.current_page || 1
       this.processing = false
       return result
+    },
+
+    check_search_params (responseParams) {
+      // eslint-disable-next-line no-console
+      console.log('response params: ' + (String(this.params) === String(responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     },
 
     // メンバー招待（結果）

@@ -49,7 +49,7 @@
       <template v-else>
         {{ item.model_i18n }}
       </template>
-      <div>{{ item.target_i18n }}, {{ item.format_i18n }}, {{ item.char_i18n }}, {{ item.newline_i18n }}</div>
+      <div>{{ item.target_i18n }}, {{ item.format_i18n }}, {{ item.char_code_i18n }}, {{ item.newline_code_i18n }}</div>
     </template>
   </v-data-table>
 </template>

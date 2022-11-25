@@ -99,17 +99,9 @@ describe('ListSetting.vue', () => {
   })
 
   describe('変更', () => {
-    const allItems = []
-    const requiredItems = []
-    const optionalItems = []
-    for (const item of helper.locales.items[model]) {
-      allItems.push(item.value)
-      if (item.required) {
-        requiredItems.push(item.value)
-      } else {
-        optionalItems.push(item.value)
-      }
-    }
+    const allItems = helper.locales.items[model].map(item => item.value)
+    const requiredItems = helper.locales.items[model].filter(item => item.required).map(item => item.value)
+    const optionalItems = helper.locales.items[model].filter(item => !item.required).map(item => item.value)
 
     let wrapper, dialog
     const beforeAction = async (hiddenItems, showItems) => {

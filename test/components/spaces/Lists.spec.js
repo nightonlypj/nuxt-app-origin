@@ -85,10 +85,7 @@ describe('Lists.vue', () => {
       viewTest(wrapper, spaces, { optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
-      const hiddenItems = []
-      for (const item of helper.locales.items.space) {
-        hiddenItems.push(item.value)
-      }
+      const hiddenItems = helper.locales.items.space.map(item => item.value)
       const wrapper = mountFunction(spaces, hiddenItems)
       viewTest(wrapper, spaces, { optional: false })
     })

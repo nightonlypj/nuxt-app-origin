@@ -20,8 +20,8 @@ describe('Lists.vue', () => {
         UsersAvatar: true
       },
       propsData: {
-        sortBy: 'invitationed_at',
-        sortDesc: true,
+        sort: 'invitationed_at',
+        desc: true,
         members,
         selectedMembers: [],
         hiddenItems,
@@ -158,10 +158,7 @@ describe('Lists.vue', () => {
       })
     })
     describe('非表示項目が全項目', () => {
-      const hiddenItems = []
-      for (const item of helper.locales.items.member) {
-        hiddenItems.push(item.value)
-      }
+      const hiddenItems = helper.locales.items.member.map(item => item.value)
       it('[管理者]必須項目のみ表示される', () => {
         const wrapper = mountFunction(members, true, hiddenItems)
         viewTest(wrapper, members, { optional: false, admin: true })

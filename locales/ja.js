@@ -20,12 +20,12 @@ module.exports = {
         csv: 'CSV',
         tsv: 'TSV'
       },
-      char: {
+      char_code: {
         sjis: 'Shift_JIS',
         eucjp: 'EUC-JP',
         utf8: 'UTF-8'
       },
-      newline: {
+      newline_code: {
         crlf: 'CR+LF',
         lf: 'LF',
         cr: 'CR'

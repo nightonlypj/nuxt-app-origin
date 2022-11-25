@@ -3,14 +3,14 @@
     <template #activator="{ on, attrs }">
       <v-btn
         id="setting_btn"
-        color="accent"
+        color="secondary"
         v-bind="attrs"
         v-on="on"
         @click="initialize()"
       >
         <v-tooltip bottom>
           <template #activator="{ on: tooltip }">
-            <v-icon dense small v-on="tooltip">mdi-cog</v-icon>
+            <v-icon small v-on="tooltip">mdi-cog</v-icon>
           </template>
           設定変更
         </v-tooltip>
@@ -25,10 +25,13 @@
           </v-toolbar>
           <v-card-text>
             <v-container class="py-0">
-              <h4>表示項目</h4>
+              <h4>
+                表示項目
+                <v-btn small :disabled="showItems.length >= items.length" class="ml-4" @click="setAllShowItems()">全選択</v-btn>
+                <v-btn small :disabled="showItems.length <= requiredShowItems.length" @click="clearShowItems()">全解除</v-btn>
+              </h4>
               <template v-for="item in items">
                 <v-switch
-                  v-if="!item.adminOnly || admin"
                   :id="`setting_show_item_${item.value.replace('.', '_')}`"
                   :key="item.value"
                   v-model="showItems"
@@ -48,7 +51,7 @@
             <v-btn
               id="setting_submit_btn"
               color="primary"
-              :disabled="waiting || showItems.length === 0"
+              :disabled="waiting"
               @click="change(dialog)"
             >
               変更
@@ -90,36 +93,38 @@ export default {
 
   data () {
     return {
-      waiting: true,
+      waiting: null,
       showItems: null
     }
   },
 
   computed: {
     items () {
-      return this.$t('items.' + this.model)
+      return this.$t(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
+    },
+    requiredShowItems () {
+      return this.items.filter(item => item.required).map(item => item.value)
     }
   },
 
   methods: {
     initialize () {
       this.waiting = true
-      this.showItems = []
-      for (const item of this.items) {
-        if (item.required || !this.hiddenItems.includes(item.value)) {
-          this.showItems.push(item.value)
-        }
-      }
+      this.showItems = this.items.filter(item => item.required || !this.hiddenItems.includes(item.value)).map(item => item.value)
+    },
+
+    setAllShowItems () {
+      this.showItems = this.items.map(item => item.value)
+      this.waiting = false
+    },
+    clearShowItems () {
+      this.showItems = this.requiredShowItems
+      this.waiting = false
     },
 
     change ($dialog) {
-      const hiddenItems = []
-      for (const item of this.items) {
-        if (!this.showItems.includes(item.value)) {
-          hiddenItems.push(item.value)
-        }
-      }
-      localStorage.setItem(this.model + '.hidden-items', hiddenItems.toString())
+      const hiddenItems = this.items.filter(item => !this.showItems.includes(item.value)).map(item => item.value)
+      localStorage.setItem(`${this.model}.hidden-items`, hiddenItems.toString())
       this.$emit('update:hiddenItems', hiddenItems)
       $dialog.value = false
     }

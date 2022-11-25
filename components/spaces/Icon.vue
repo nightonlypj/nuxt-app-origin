@@ -1,18 +1,18 @@
 <template>
   <span v-if="space != null">
-    <v-tooltip v-if="space.private" :id="'space_private_' + space.code" bottom>
+    <v-tooltip v-if="space.private" :id="`space_private_${space.code}`" bottom>
       <template #activator="{ on, attrs }">
         <v-icon dense v-bind="attrs" v-on="on">mdi-lock</v-icon>
       </template>
       非公開
     </v-tooltip>
-    <v-tooltip v-if="space.current_member != null" :id="'space_power_' + space.code" bottom>
+    <v-tooltip v-if="space.current_member != null" :id="`space_power_${space.code}`" bottom>
       <template #activator="{ on, attrs }">
         <v-icon dense v-bind="attrs" v-on="on">{{ appMemberPowerIcon(space.current_member.power) }}</v-icon>
       </template>
       あなたは「{{ space.current_member.power_i18n }}」です。
     </v-tooltip>
-    <v-tooltip v-if="space.destroy_schedule_at != null" :id="'space_destroy_schedule_' + space.code" bottom>
+    <v-tooltip v-if="space.destroy_schedule_at != null" :id="`space_destroy_schedule_${space.code}`" bottom>
       <template #activator="{ on, attrs }">
         <v-icon dense v-bind="attrs" v-on="on">mdi-delete-clock</v-icon>
       </template>

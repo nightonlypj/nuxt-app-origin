@@ -15,6 +15,8 @@
           style="max-width: 400px"
           dense
           hide-details
+          maxlength="255"
+          clearable
           @input="waiting = false"
         />
         <v-btn
@@ -40,7 +42,7 @@
       <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="option_item">
         <v-col>
           <v-checkbox
-            v-model="syncQuery.excludeMemberSpace"
+            v-model="syncQuery.exclude"
             label="参加スペースを除く"
             dense
             hide-details
