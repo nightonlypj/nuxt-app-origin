@@ -30,7 +30,6 @@
               id="user_menu_btn"
               class="d-inline-block"
               max-width="400px"
-              style="text-transform: none"
               text
               v-bind="attrs"
               v-on="on"
@@ -152,5 +151,10 @@ export default {
 .toolbar-title {
   color: inherit !important;
   text-decoration: inherit;
+}
+</style>
+<style>
+.v-btn {
+  text-transform: none;
 }
 </style>

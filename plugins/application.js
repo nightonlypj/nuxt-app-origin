@@ -19,7 +19,12 @@ export default {
       if (error.response == null) {
         return this.appReturnResponse(action, null, 'network.failure')
       } else if (check.auth && error.response.status === 401) {
-        this.appSignOut()
+        if (this.$auth.loggedIn) {
+          this.appSignOut()
+        } else {
+          this.appSetToastedMessage(error.response.data, true, 'auth.unauthenticated')
+          this.appRedirectSignIn({})
+        }
         return (action.returnKey) ? 'auth.unauthenticated' : false
       } else if (check.forbidden && error.response.status === 403) {
         return this.appReturnResponse(action, error.response.status, 'auth.forbidden')
@@ -43,28 +48,24 @@ export default {
       if (action.redirect) {
         this.appRedirectError(status, { alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice })
       } else if (action.toasted) {
-        this.appSetToastedMessage({ alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice }, false)
+        this.appSetToastedMessage(data, true, alertKey)
       }
       return (action.returnKey) ? alertKey : false
     },
 
     // メッセージ表示
-    appSetMessage (data, require) {
-      this.alert = this.appGetAlertMessage(data, require)
+    appSetMessage (data, require, defaultKey = 'system.default') {
+      this.alert = this.appGetAlertMessage(data, require, defaultKey)
       this.notice = data.notice
     },
-    appSetEmitMessage (data, require) {
-      this.$emit('alert', this.appGetAlertMessage(data, require))
+    appSetEmitMessage (data, require, defaultKey = 'system.default') {
+      this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))
       this.$emit('notice', data?.notice)
     },
-    appSetToastedMessage (data, require) {
-      const alert = this.appGetAlertMessage(data, require)
-      if (alert != null) {
-        this.$toasted.error(alert)
-      }
-      if (data?.notice != null) {
-        this.$toasted.info(data.notice)
-      }
+    appSetToastedMessage (data, require, defaultKey = 'system.default') {
+      const alert = this.appGetAlertMessage(data, require, defaultKey)
+      if (alert != null) { this.$toasted.error(alert) }
+      if (data?.notice != null) { this.$toasted.info(data.notice) }
     },
     appSetQueryMessage () {
       if (Object.keys(this.$route.query).length === 0) { return }
@@ -99,6 +100,7 @@ export default {
       this.$router.push({ path: '/' })
     },
     appRedirectSignIn (data) {
+      this.$auth.$storage.setUniversal('redirect', this.$route?.fullPath)
       this.$router.push({ path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     },
     appRedirectError (statusCode, data) {

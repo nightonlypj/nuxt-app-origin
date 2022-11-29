@@ -30,18 +30,18 @@
               </v-card-text>
               <v-card-actions class="justify-end">
                 <v-btn
-                  id="user_undo_delete_no_btn"
-                  color="secondary"
-                  @click="dialog.value = false"
-                >
-                  いいえ
-                </v-btn>
-                <v-btn
                   id="user_undo_delete_yes_btn"
                   color="primary"
                   @click="postUserUndoDelete(dialog)"
                 >
                   はい
+                </v-btn>
+                <v-btn
+                  id="user_undo_delete_no_btn"
+                  color="secondary"
+                  @click="dialog.value = false"
+                >
+                  いいえ
                 </v-btn>
               </v-card-actions>
             </v-card>
