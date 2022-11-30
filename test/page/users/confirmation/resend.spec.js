@@ -11,15 +11,18 @@ const helper = new Helper()
 
 describe('resend.vue', () => {
   const localVue = createLocalVue()
-  let axiosPostMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     axiosPostMock = null
+    setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
+  const path = '/users/confirmation/resend'
+  const fullPath = `${path}?full`
   const mountFunction = (loggedIn, query, values = null) => {
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -36,10 +39,14 @@ describe('resend.vue', () => {
           post: axiosPostMock
         },
         $auth: {
-          loggedIn
+          loggedIn,
+          $storage: {
+            setUniversal: setUniversalMock
+          }
         },
         $route: {
-          path: '/users/confirmation/resend',
+          path,
+          fullPath,
           query: { ...query }
         },
         $toasted: {
@@ -71,7 +78,7 @@ describe('resend.vue', () => {
     if (data == null) {
       helper.mockCalledTest(routerPushMock, 0)
     } else {
-      helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/resend' }) // NOTE: URLパラメータを消す為
+      helper.mockCalledTest(routerPushMock, 1, { path }) // NOTE: URLパラメータを消す為
     }
     expect(wrapper.vm.$data.query).toEqual({ email: '' })
   }
@@ -151,6 +158,7 @@ describe('resend.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
     })
     it('[成功][未ログイン][Enter送信]ログインページにリダイレクトされる', async () => {
@@ -160,6 +168,7 @@ describe('resend.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: data })
     })
     it('[成功][未ログイン][IME確定のEnter]APIリクエストされない', async () => {

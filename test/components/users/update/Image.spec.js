@@ -31,6 +31,7 @@ describe('Image.vue', () => {
           post: axiosPostMock
         },
         $auth: {
+          loggedIn: true,
           user: {
             image_url: {
               xlarge: 'https://example.com/images/user/xlarge_noimage.jpg'

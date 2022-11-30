@@ -30,7 +30,6 @@
               id="user_menu_btn"
               class="d-inline-block"
               max-width="400px"
-              style="text-transform: none"
               text
               v-bind="attrs"
               v-on="on"
@@ -170,5 +169,10 @@ export default {
   padding-right: 8px !important;
   white-space: nowrap;
   font-size: 10px;
+}
+</style>
+<style>
+.v-btn {
+  text-transform: none;
 }
 </style>

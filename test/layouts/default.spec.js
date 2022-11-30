@@ -46,11 +46,11 @@ describe('default.vue', () => {
 
     expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
-      expect(wrapper.text()).toMatch('12345') // [ログイン中]お知らせの未読数
-      expect(wrapper.text()).toMatch('user1の氏名') // [ログイン中]ユーザーの氏名
+      expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
+      expect(wrapper.text()).toMatch('12345') // お知らせの未読数
     } else {
-      expect(wrapper.text()).not.toMatch('12345')
       expect(wrapper.text()).not.toMatch('user1の氏名')
+      expect(wrapper.text()).not.toMatch('12345')
     }
     expect(wrapper.find('#user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
   }

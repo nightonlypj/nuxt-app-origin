@@ -10,16 +10,18 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('index.vue', () => {
-  let axiosPostMock, authSetUserMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, authSetUserMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     axiosPostMock = null
     authSetUserMock = jest.fn()
+    setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
+  const fullPath = '/users/password'
   const mountFunction = (loggedIn, query, values = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -38,9 +40,13 @@ describe('index.vue', () => {
         },
         $auth: {
           loggedIn,
-          setUser: authSetUserMock
+          setUser: authSetUserMock,
+          $storage: {
+            setUniversal: setUniversalMock
+          }
         },
         $route: {
+          fullPath,
           query: { ...query }
         },
         $toasted: {
@@ -209,6 +215,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {

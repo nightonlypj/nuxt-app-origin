@@ -10,15 +10,17 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('sign_up.vue', () => {
-  let axiosPostMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     axiosPostMock = null
+    setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
+  const fullPath = '/users/sign_up'
   const mountFunction = (loggedIn, values = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -36,7 +38,13 @@ describe('sign_up.vue', () => {
           post: axiosPostMock
         },
         $auth: {
-          loggedIn
+          loggedIn,
+          $storage: {
+            setUniversal: setUniversalMock
+          }
+        },
+        $route: {
+          fullPath
         },
         $toasted: {
           error: toastedErrorMock,
@@ -119,6 +127,7 @@ describe('sign_up.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {

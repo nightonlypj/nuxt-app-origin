@@ -8,7 +8,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('undo_delete.vue', () => {
-  let axiosPostMock, authFetchUserMock, authSetUserMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
+  let axiosPostMock, authFetchUserMock, authSetUserMock, authRedirectMock, authLogoutMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
 
   beforeEach(() => {
     axiosPostMock = null
@@ -16,12 +16,14 @@ describe('undo_delete.vue', () => {
     authSetUserMock = jest.fn()
     authRedirectMock = jest.fn()
     authLogoutMock = jest.fn()
+    setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
     nuxtErrorMock = jest.fn()
   })
 
+  const fullPath = '/users/undo_delete'
   const mountFunction = (loggedIn, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -42,7 +44,13 @@ describe('undo_delete.vue', () => {
           fetchUser: authFetchUserMock,
           setUser: authSetUserMock,
           redirect: authRedirectMock,
-          logout: authLogoutMock
+          logout: authLogoutMock,
+          $storage: {
+            setUniversal: setUniversalMock
+          }
+        },
+        $route: {
+          fullPath
         },
         $toasted: {
           error: toastedErrorMock,
@@ -213,6 +221,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {

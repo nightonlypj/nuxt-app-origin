@@ -37,10 +37,10 @@ export class Helper {
     expect(wrapper.html()).not.toBe('')
   }
 
-  mockCalledTest = (mock, count, arg = null) => {
+  mockCalledTest = (mock, count, ...args) => {
     expect(mock).toBeCalledTimes(count)
-    if (arg != null) {
-      expect(mock).nthCalledWith(count, arg)
+    if (args.length !== 0) {
+      expect(mock).nthCalledWith(count, ...args)
     }
   }
 
