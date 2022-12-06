@@ -31,9 +31,10 @@ export default {
       } else if (check.auth && error.response.status === 401) {
         if (this.$auth.loggedIn) {
           this.appSignOut()
-        } else {
-          this.appSetToastedMessage(error.response.data, true, 'auth.unauthenticated')
-          this.appRedirectSignIn({})
+        } else if (action.redirect) {
+          this.appRedirectSignIn({ alert: this.appGetAlertMessage(error.response.data, action.require, 'auth.unauthenticated'), notice: error.response.data?.notice })
+        } else if (action.toasted) {
+          this.appSetToastedMessage(error.response.data, action.require, 'auth.unauthenticated')
         }
         return (action.returnKey) ? 'auth.unauthenticated' : false
       } else if (check.forbidden && error.response.status === 403) {

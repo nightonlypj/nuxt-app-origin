@@ -124,13 +124,13 @@ describe('sign_in.vue', () => {
 
   describe('メールアドレス確認失敗', () => {
     const query = Object.freeze({ account_confirmation_success: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    it('[未ログイン]メールアドレス確認にリダイレクトされる', () => {
+    it('[未ログイン]メールアドレス確認ページにリダイレクトされる', () => {
       mountFunction(false, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(routerPushMock, 1, { path: '/users/confirmation/resend', query: { alert: query.alert, notice: query.notice } })
     })
-    it('[ログイン中]メールアドレス確認にリダイレクトされる', () => {
+    it('[ログイン中]メールアドレス確認ページにリダイレクトされる', () => {
       mountFunction(true, query)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)

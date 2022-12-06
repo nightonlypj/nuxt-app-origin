@@ -258,7 +258,7 @@ describe('index.vue', () => {
       helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
     })
-    it('[その他エラー]パスワード再設定（メールアドレス入力）にリダイレクトされる', async () => {
+    it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
