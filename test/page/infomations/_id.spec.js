@@ -17,6 +17,7 @@ describe('_id.vue', () => {
     nuxtErrorMock = jest.fn()
   })
 
+  const params = { id: '1' }
   const mountFunction = () => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -28,13 +29,11 @@ describe('_id.vue', () => {
         InfomationsLabel: true
       },
       mocks: {
-        $route: {
-          params: {
-            id: '1'
-          }
-        },
         $axios: {
           get: axiosGetMock
+        },
+        $route: {
+          params
         },
         $toasted: {
           error: toastedErrorMock,
@@ -52,7 +51,7 @@ describe('_id.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', 1))
+    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', params.id))
   }
 
   const viewTest = (wrapper, data) => {

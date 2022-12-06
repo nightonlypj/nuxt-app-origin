@@ -6,19 +6,19 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('DestroyInfo.vue', () => {
-  const mountFunction = (path, loggedIn, user = null) => {
+  const mountFunction = (loggedIn, path = '/', user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
       localVue,
       vuetify,
       mocks: {
-        $route: {
-          path
-        },
         $auth: {
           loggedIn,
           user: { ...user }
+        },
+        $route: {
+          path
         }
       }
     })
@@ -35,32 +35,32 @@ describe('DestroyInfo.vue', () => {
 
   // テストケース
   it('[未ログイン]表示されない', () => {
-    const wrapper = mountFunction('/', false)
+    const wrapper = mountFunction(false)
     helper.blankTest(wrapper)
   })
   it('[ログイン中]表示されない', () => {
-    const wrapper = mountFunction('/', true)
+    const wrapper = mountFunction(true)
     helper.blankTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
     const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-    const wrapper = mountFunction('/', true, user)
+    const wrapper = mountFunction(true, '/', user)
     viewTest(wrapper, user)
   })
 
   describe('アカウント削除取り消しページ', () => {
     const path = '/users/undo_delete'
     it('[未ログイン]表示されない', () => {
-      const wrapper = mountFunction(path, false)
+      const wrapper = mountFunction(false, path)
       helper.blankTest(wrapper)
     })
     it('[ログイン中]表示されない', () => {
-      const wrapper = mountFunction(path, true)
+      const wrapper = mountFunction(true, path)
       helper.blankTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {
       const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-      const wrapper = mountFunction(path, true, user)
+      const wrapper = mountFunction(true, path, user)
       helper.blankTest(wrapper)
     })
   })

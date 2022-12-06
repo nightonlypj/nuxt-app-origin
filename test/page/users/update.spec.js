@@ -83,7 +83,7 @@ describe('update.vue', () => {
   }
 
   // テストケース
-  it('[未ログイン]ログインにリダイレクトされる', async () => {
+  it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
 
