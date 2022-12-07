@@ -6,9 +6,8 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Search.vue', () => {
-  const query = Object.freeze({ text: '', option: false, exclude: false })
-
-  const mountFunction = (loggedIn = false) => {
+  const defaultQuery = Object.freeze({ text: '', option: false, public: true, private: true, join: true, nojoin: true, active: true, destroy: false })
+  const mountFunction = (loggedIn = false, query = defaultQuery) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -69,7 +68,7 @@ describe('Search.vue', () => {
 
       // 検索ボタン
       button = wrapper.find('#search_btn')
-      await helper.waitChangeDisabled(button, false)
+      await helper.sleep(1)
       expect(button.vm.disabled).toBe(false) // 有効
 
       if (options.keydown) {
@@ -103,6 +102,55 @@ describe('Search.vue', () => {
       await beforeAction({ keydown: true, isComposing: true })
 
       expect(wrapper.vm.$data.waiting).toBe(false)
+    })
+  })
+
+  describe('オプション', () => {
+    let wrapper, button
+    const beforeAction = async () => {
+      wrapper = mountFunction(true)
+
+      // 入力
+      wrapper.find('#search_text').trigger('input')
+
+      // 検索ボタン
+      button = wrapper.find('#search_btn')
+      await helper.sleep(1)
+      expect(button.vm.disabled).toBe(false) // 有効
+    }
+
+    it('[公開・非公開]検索ボタンが無効になる', async () => {
+      await beforeAction()
+
+      // 公開・非公開
+      wrapper.vm.syncQuery.public = false
+      wrapper.vm.syncQuery.private = false
+
+      // 検索ボタン
+      await helper.sleep(1)
+      expect(button.vm.disabled).toBe(true) // 無効
+    })
+    it('[参加・未参加]検索ボタンが無効になる', async () => {
+      await beforeAction()
+
+      // 参加・未参加
+      wrapper.vm.syncQuery.join = false
+      wrapper.vm.syncQuery.nojoin = false
+
+      // 検索ボタン
+      await helper.sleep(1)
+      expect(button.vm.disabled).toBe(true) // 無効
+    })
+    it('[有効・削除予定]検索ボタンが無効になる', async () => {
+      await beforeAction()
+
+      // 有効・削除予定
+      wrapper.vm.syncQuery.active = false
+      wrapper.vm.syncQuery.destroy = false
+
+      // 検索ボタン
+      await helper.sleep(1)
+      expect(button.vm.disabled).toBe(true) // 無効
     })
   })
 })

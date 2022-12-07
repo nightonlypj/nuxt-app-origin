@@ -23,7 +23,7 @@
           id="search_btn"
           color="primary"
           class="ml-1"
-          :disabled="processing || waiting"
+          :disabled="processing || waiting || powerBlank()"
           @click="search(false)"
         >
           <v-icon dense>mdi-magnify</v-icon>
@@ -39,7 +39,7 @@
         </v-btn>
       </div>
       <v-row v-show="syncQuery.option" id="option_item">
-        <v-col class="d-flex">
+        <v-col cols="auto" class="d-flex">
           <div class="mt-2">
             権限:
           </div>
@@ -48,10 +48,12 @@
             :id="`${key}_check`"
             :key="key"
             v-model="syncQuery.power[key]"
+            input-value="1"
             :label="value"
             class="ml-2"
             dense
             hide-details
+            :error="powerBlank()"
             @change="waiting = false"
           />
         </v-col>
@@ -104,10 +106,17 @@ export default {
   },
 
   methods: {
+    powerBlank () {
+      for (const key in this.query.power) {
+        if (this.query.power[key]) { return false }
+      }
+      return true
+    },
+
     search (keydown) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
-      if (this.processing || this.waiting || (keydown && !enter)) { return }
+      if (this.processing || this.waiting || this.powerBlank() || (keydown && !enter)) { return }
 
       this.waiting = true
       this.$emit('search')

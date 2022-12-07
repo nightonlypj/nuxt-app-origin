@@ -31,7 +31,7 @@ describe('default.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, loggedIn) => {
+  const viewTest = (wrapper, loggedIn, user = {}) => {
     expect(wrapper.findComponent(GoTop).exists()).toBe(true) // 上に戻る
     expect(wrapper.findComponent(DestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.html()).toMatch('<nuxt-stub></nuxt-stub>')
@@ -48,9 +48,16 @@ describe('default.vue', () => {
     if (loggedIn) {
       expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
       expect(wrapper.text()).toMatch('12345') // お知らせの未読数
+      expect(wrapper.text()).toMatch('67890') // 未ダウンロード数
+      for (const space of user.spaces) { // 参加スペース
+        expect(wrapper.find(`#space_link_${space.code}`).exists()).toBe(true)
+        expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
+        expect(wrapper.html()).toMatch(space.name)
+      }
     } else {
       expect(wrapper.text()).not.toMatch('user1の氏名')
       expect(wrapper.text()).not.toMatch('12345')
+      expect(wrapper.text()).not.toMatch('67890')
     }
     expect(wrapper.find('#user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
   }
@@ -66,7 +73,21 @@ describe('default.vue', () => {
       image_url: {
         small: 'https://example.com/images/user/small_noimage.jpg'
       },
-      infomation_unread_count: 12345
+      infomation_unread_count: 12345,
+      undownloaded_count: 67890,
+      spaces: [
+        {
+          code: 'code0001',
+          image_url: {
+            mini: 'https://example.com/images/space/mini_noimage.jpg'
+          },
+          name: 'スペース1'
+        },
+        {
+          code: 'code0002',
+          name: 'スペース2'
+        }
+      ]
     })
     const wrapper = mountFunction(true, user)
 
@@ -76,6 +97,6 @@ describe('default.vue', () => {
     button.trigger('click')
 
     await helper.sleep(1)
-    viewTest(wrapper, true)
+    viewTest(wrapper, true, user)
   })
 })

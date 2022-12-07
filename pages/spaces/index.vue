@@ -60,6 +60,7 @@
 </template>
 
 <script>
+import lodash from 'lodash'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -86,7 +87,12 @@ export default {
       reloading: false,
       query: {
         text: this.$route?.query?.text || '',
-        exclude: this.$route?.query?.exclude === '1',
+        public: this.$route?.query?.public !== '0',
+        private: this.$route?.query?.private !== '0',
+        join: this.$route?.query?.join !== '0',
+        nojoin: this.$route?.query?.nojoin !== '0',
+        active: this.$route?.query?.active !== '0',
+        destroy: this.$route?.query?.destroy === '1',
         option: this.$route?.query?.option === '1'
       },
       params: null,
@@ -132,7 +138,18 @@ export default {
         this.$refs.search.error()
       }
 
-      this.$router.push({ query: { ...this.params, exclude: String(this.params.exclude), option: String(Number(this.query.option)) } })
+      this.$router.push({
+        query: {
+          ...this.params,
+          public: String(this.params.public),
+          private: String(this.params.private),
+          join: String(this.params.join),
+          nojoin: String(this.params.nojoin),
+          active: String(this.params.active),
+          destroy: String(this.params.destroy),
+          option: String(Number(this.query.option))
+        }
+      })
       this.reloading = false
     },
 
@@ -164,7 +181,15 @@ export default {
       let result = false
 
       if (this.params == null) {
-        this.params = { ...this.query, exclude: Number(this.query.exclude) }
+        this.params = {
+          ...this.query,
+          public: Number(this.query.public),
+          private: Number(this.query.private),
+          join: Number(this.query.join),
+          nojoin: Number(this.query.nojoin),
+          active: Number(this.query.active),
+          destroy: Number(this.query.destroy)
+        }
         delete this.params.option
       }
 
@@ -209,7 +234,7 @@ export default {
 
     check_search_params (responseParams) {
       // eslint-disable-next-line no-console
-      console.log('response params: ' + (String(this.params) === String(responseParams) ? 'OK' : 'NG'), this.params, responseParams)
+      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     }
   }
 }

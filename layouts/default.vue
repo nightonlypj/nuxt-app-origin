@@ -113,6 +113,14 @@
           <v-icon>mdi-format-list-bulleted</v-icon>
           <v-list-item-title class="ml-2">スペース</v-list-item-title>
         </v-list-item>
+        <template v-if="$auth.loggedIn">
+          <v-list-item v-for="space in $auth.user.spaces" :id="`space_link_${space.code}`" :key="space.code" :to="`/-/${space.code}`" nuxt>
+            <v-avatar v-if="space.image_url != null" size="24px">
+              <v-img :id="`space_image_${space.code}`" :src="space.image_url.mini" />
+            </v-avatar>
+            <v-list-item-title class="text-overline ml-2">{{ space.name }}</v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-navigation-drawer>
 
@@ -174,5 +182,8 @@ export default {
 <style>
 .v-btn {
   text-transform: none;
+}
+.v-application .text-overline {
+  text-transform: none !important;
 }
 </style>

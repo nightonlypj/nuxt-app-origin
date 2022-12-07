@@ -4,12 +4,12 @@
     :headers="headers"
     :items="spaces"
     item-key="code"
+    :item-class="itemClass"
     :items-per-page="-1"
     hide-default-footer
     mobile-breakpoint="600"
     hide-default-header
     disable-sort
-    @dblclick:row="redirectSpace"
   >
     <!-- 名称 -->
     <template #[`item.name`]="{ item }">
@@ -17,7 +17,7 @@
         <v-avatar v-if="item.image_url != null" :id="`space_image_${item.code}`" size="32px">
           <v-img :src="item.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="`/s/${item.code}`" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
+        <NuxtLink :to="`/-/${item.code}`" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
         <SpacesIcon :space="item" />
       </div>
     </template>
@@ -30,7 +30,7 @@
       <v-btn
         v-if="item.current_member != null"
         :to="`/members/${item.code}`"
-        color="accent"
+        color="primary"
         small
         nuxt
       >
@@ -74,13 +74,29 @@ export default {
       }
       result.push({ value: 'action', cellClass: 'pl-1 pr-2 py-2' })
       return result
-    }
-  },
+    },
 
-  methods: {
-    redirectSpace (_event, { item }) {
-      this.$router.push(`/s/${item.code}`)
+    itemClass () {
+      return (item) => {
+        if (item.destroy_requested_at != null && item.destroy_requested_at !== '') { return 'row_inactive' }
+        return null
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+.v-data-table.theme--dark >>> tr.row_inactive {
+  background-color: #424242; /* grey darken-3 */
+}
+.v-data-table.theme--light >>> tr.row_inactive {
+  background-color: #F5F5F5; /* grey lighten-4 */
+}
+.v-data-table.theme--dark >>> tr:hover.row_inactive {
+  background-color: #616161 !important; /* grey darken-2 */
+}
+.v-data-table.theme--light >>> tr:hover.row_inactive {
+  background-color: #E0E0E0 !important; /* grey lighten-2 */
+}
+</style>

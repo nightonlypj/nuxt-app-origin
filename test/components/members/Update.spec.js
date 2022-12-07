@@ -20,7 +20,6 @@ describe('Update.vue', () => {
 
   const space = Object.freeze({ code: 'code0001' })
   const member = Object.freeze({ user: { code: 'code000000000000000000001' }, power: 'admin' })
-
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -104,7 +103,7 @@ describe('Update.vue', () => {
   }
 
   // テストケース
-  it('[未ログイン]ログインにリダイレクトされる', async () => {
+  it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
     // ダイアログ表示

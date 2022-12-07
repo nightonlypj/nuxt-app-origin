@@ -74,6 +74,8 @@ module.exports = {
 
   // スペース一覧API
   spacesUrl: '/spaces.json',
+  // スペース詳細API
+  spaceDetailUrl: '/-/:code.json',
 
   // メンバー一覧API
   membersUrl: '/members/:code.json',

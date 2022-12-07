@@ -257,12 +257,11 @@ describe('ListDownload.vue', () => {
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[存在しない]エラーページが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.notfound)
+      helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {

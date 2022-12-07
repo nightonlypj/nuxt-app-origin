@@ -17,7 +17,7 @@
             <v-img :src="space.image_url.small" />
           </v-avatar>
           <span class="ml-1">
-            <a :href="`/s/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
+            <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
           </span>
           <SpacesIcon :space="space" />
         </div>
@@ -138,6 +138,7 @@
 </template>
 
 <script>
+import lodash from 'lodash'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -379,7 +380,7 @@ export default {
 
     check_search_params (responseParams) {
       // eslint-disable-next-line no-console
-      console.log('response params: ' + (String(this.params) === String(responseParams) ? 'OK' : 'NG'), this.params, responseParams)
+      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     },
 
     // メンバー招待（結果）

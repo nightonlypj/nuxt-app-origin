@@ -18,7 +18,6 @@ describe('Create.vue', () => {
   })
 
   const space = Object.freeze({ code: 'code0001' })
-
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -98,7 +97,7 @@ describe('Create.vue', () => {
   }
 
   // テストケース
-  it('[未ログイン]ログインにリダイレクトされる', async () => {
+  it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
     // メンバー招待ボタン

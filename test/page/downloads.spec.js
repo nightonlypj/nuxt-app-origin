@@ -145,6 +145,32 @@ describe('downloads.vue', () => {
     return infiniteLoading
   }
 
+  const infiniteErrorTest = async (alert, notice) => {
+    const wrapper = mountFunction(true)
+    helper.loadingTest(wrapper, Loading)
+
+    await helper.sleep(1)
+    apiCalledTest(1)
+    const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
+
+    // スクロール（2頁目）
+    infiniteLoading.vm.$emit('infinite')
+
+    await helper.sleep(1)
+    apiCalledTest(2)
+    if (alert != null) {
+      helper.mockCalledTest(toastedErrorMock, 1, alert)
+    } else {
+      helper.mockCalledTest(toastedErrorMock, 0)
+    }
+    if (notice != null) {
+      helper.mockCalledTest(toastedInfoMock, 1, notice)
+    } else {
+      helper.mockCalledTest(toastedInfoMock, 0)
+    }
+    viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+  }
+
   // テストケース
   describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', () => {
@@ -259,6 +285,7 @@ describe('downloads.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
+        apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -267,21 +294,7 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn()
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.resolve({ data: null }))
-        const wrapper = mountFunction(true)
-        helper.loadingTest(wrapper, Loading)
-
-        await helper.sleep(1)
-        apiCalledTest(1)
-        const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
-
-        // スクロール（2頁目）
-        infiniteLoading.vm.$emit('infinite')
-
-        await helper.sleep(1)
-        apiCalledTest(2)
-        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+        await infiniteErrorTest(helper.locales.system.error, null)
       })
     })
     describe('現在ページが異なる', () => {
@@ -291,6 +304,7 @@ describe('downloads.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
+        apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -299,21 +313,7 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn()
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.resolve({ data: { ...dataPage2, download: { ...dataPage2.download, current_page: 9 } } }))
-        const wrapper = mountFunction(true)
-        helper.loadingTest(wrapper, Loading)
-
-        await helper.sleep(1)
-        apiCalledTest(1)
-        const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
-
-        // スクロール（2頁目）
-        infiniteLoading.vm.$emit('infinite')
-
-        await helper.sleep(1)
-        apiCalledTest(2)
-        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+        await infiniteErrorTest(helper.locales.system.error, null)
       })
     })
 
@@ -324,6 +324,7 @@ describe('downloads.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
+        apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
@@ -332,21 +333,27 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn()
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: null }))
+        await infiniteErrorTest(helper.locales.network.failure, null)
+      })
+    })
+    describe('認証エラー', () => {
+      it('[初期表示]ログインページにリダイレクトされる', async () => {
+        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         apiCalledTest(1)
-        const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
-
-        // スクロール（2頁目）
-        infiniteLoading.vm.$emit('infinite')
-
-        await helper.sleep(1)
-        apiCalledTest(2)
-        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+        helper.mockCalledTest(authLogoutMock, 1)
+        helper.mockCalledTest(toastedErrorMock, 0)
+        helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
+        // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      })
+      it('[無限スクロール]エラーメッセージが表示される', async () => {
+        axiosGetMock = jest.fn()
+          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
+          .mockImplementationOnce(() => Promise.reject({ response: { status: 401 } }))
+        await infiniteErrorTest(null, helper.locales.auth.unauthenticated)
       })
     })
     describe('レスポンスエラー', () => {
@@ -356,6 +363,7 @@ describe('downloads.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
+        apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
@@ -364,21 +372,7 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn()
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: { status: 500 } }))
-        const wrapper = mountFunction(true)
-        helper.loadingTest(wrapper, Loading)
-
-        await helper.sleep(1)
-        apiCalledTest(1)
-        const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
-
-        // スクロール（2頁目）
-        infiniteLoading.vm.$emit('infinite')
-
-        await helper.sleep(1)
-        apiCalledTest(2)
-        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+        await infiniteErrorTest(helper.locales.network.error, null)
       })
     })
     describe('その他エラー', () => {
@@ -388,6 +382,7 @@ describe('downloads.vue', () => {
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
+        apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
@@ -396,21 +391,7 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn()
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
           .mockImplementationOnce(() => Promise.reject({ response: { status: 400, data: {} } }))
-        const wrapper = mountFunction(true)
-        helper.loadingTest(wrapper, Loading)
-
-        await helper.sleep(1)
-        apiCalledTest(1)
-        const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
-
-        // スクロール（2頁目）
-        infiniteLoading.vm.$emit('infinite')
-
-        await helper.sleep(1)
-        apiCalledTest(2)
-        helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
+        await infiniteErrorTest(helper.locales.system.default, null)
       })
     })
   })
@@ -497,6 +478,7 @@ describe('downloads.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 0)
     })
     it('[認証エラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn()
@@ -518,6 +500,17 @@ describe('downloads.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 0)
+    })
+    it('[存在しない]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn()
+        .mockImplementationOnce(() => Promise.resolve({ data }))
+        .mockImplementationOnce(() => Promise.reject({ response: { status: 404 } }))
+      await beforeAction(null, data.downloads[0])
+
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.notfound)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 0)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn()
@@ -528,6 +521,7 @@ describe('downloads.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 0)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosGetMock = jest.fn()
@@ -538,6 +532,7 @@ describe('downloads.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 0)
     })
   })
 })

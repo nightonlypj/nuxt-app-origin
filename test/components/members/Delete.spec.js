@@ -95,7 +95,7 @@ describe('Delete.vue', () => {
   }
 
   // テストケース
-  it('[未ログイン]ログインにリダイレクトされる', async () => {
+  it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
     // メンバー解除ボタン
