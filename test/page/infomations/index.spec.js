@@ -112,7 +112,7 @@ describe('index.vue', () => {
   }
 
   // テストケース
-  describe('お知らせ一覧', () => {
+  describe('お知らせ一覧取得', () => {
     it('[0件]表示される', async () => {
       const data = Object.freeze({
         infomation: {

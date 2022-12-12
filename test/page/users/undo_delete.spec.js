@@ -76,11 +76,6 @@ describe('undo_delete.vue', () => {
     expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(user.destroy_schedule_at, 'ja')) // 削除予定日
   }
 
-  const apiCalledTest = () => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl)
-  }
-
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
@@ -186,6 +181,10 @@ describe('undo_delete.vue', () => {
   describe('アカウント削除取り消し', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ destroy_requested_at: '2000-01-01T12:34:56+09:00', destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl)
+    }
 
     let wrapper, button
     const beforeAction = async (changeSignOut = false) => {

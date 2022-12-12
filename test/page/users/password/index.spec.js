@@ -76,15 +76,6 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.query).toEqual({ password: '', password_confirmation: '' })
   }
 
-  const apiCalledTest = (count, params) => {
-    expect(axiosPostMock).toBeCalledTimes(count)
-    if (count > 0) {
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
-        ...params
-      })
-    }
-  }
-
   // テストケース
   it('[未ログイン]表示される', async () => {
     const query = Object.freeze({ reset_password_token: 'token' })
@@ -161,6 +152,14 @@ describe('index.vue', () => {
   describe('パスワード再設定', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
+    const apiCalledTest = (count, params = null) => {
+      expect(axiosPostMock).toBeCalledTimes(count)
+      if (count > 0) {
+        expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
+          ...params
+        })
+      }
+    }
 
     let wrapper, button
     const beforeAction = async (changeSignIn = false, options = { keydown: false, isComposing: null }) => {

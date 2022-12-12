@@ -74,14 +74,6 @@ describe('sign_up.vue', () => {
     expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '' })
   }
 
-  const apiCalledTest = (params) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.singUpUrl, {
-      ...params,
-      confirm_success_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
-    })
-  }
-
   // テストケース
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
@@ -110,6 +102,13 @@ describe('sign_up.vue', () => {
   describe('アカウント登録', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.singUpUrl, {
+        ...params,
+        confirm_success_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+      })
+    }
 
     let wrapper, button
     const beforeAction = async () => {
@@ -118,7 +117,7 @@ describe('sign_up.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      apiCalledTest(params)
+      apiCalledTest()
     }
 
     it('[成功]ログインページにリダイレクトされる', async () => {

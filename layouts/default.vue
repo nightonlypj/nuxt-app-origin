@@ -70,11 +70,6 @@
             <v-icon>mdi-account-plus</v-icon>
             <v-list-item-title class="ml-2">アカウント登録</v-list-item-title>
           </v-list-item>
-          <v-divider />
-          <v-list-item to="/infomations" nuxt>
-            <v-icon>mdi-bell</v-icon>
-            <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
-          </v-list-item>
         </template>
         <template v-else>
           <v-list-group>
@@ -95,20 +90,21 @@
               <v-list-item-title class="ml-2">ログアウト</v-list-item-title>
             </v-list-item>
           </v-list-group>
-          <v-divider />
-          <v-list-item to="/infomations" nuxt>
-            <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
-              <v-icon>mdi-bell</v-icon>
-            </v-badge>
-            <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
-          </v-list-item>
-          <v-list-item to="/downloads" nuxt>
-            <v-badge :content="$auth.user.undownloaded_count" :value="$auth.user.undownloaded_count" color="red" overlap>
-              <v-icon>mdi-download</v-icon>
-            </v-badge>
-            <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
-          </v-list-item>
         </template>
+        <v-divider />
+        <v-list-item to="/infomations" nuxt>
+          <v-badge v-if="$auth.loggedIn" :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
+            <v-icon>mdi-bell</v-icon>
+          </v-badge>
+          <v-icon v-else>mdi-bell</v-icon>
+          <v-list-item-title class="ml-2">お知らせ</v-list-item-title>
+        </v-list-item>
+        <v-list-item v-if="$auth.loggedIn" to="/downloads" nuxt>
+          <v-badge :content="$auth.user.undownloaded_count" :value="$auth.user.undownloaded_count" color="red" overlap>
+            <v-icon>mdi-download</v-icon>
+          </v-badge>
+          <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
+        </v-list-item>
         <v-list-item to="/spaces" nuxt>
           <v-icon>mdi-format-list-bulleted</v-icon>
           <v-list-item-title class="ml-2">スペース</v-list-item-title>
