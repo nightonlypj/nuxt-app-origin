@@ -79,7 +79,7 @@
 
 <script>
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, max, min, confirmed } from 'vee-validate/dist/rules'
+import { required, email, min, max, confirmed } from 'vee-validate/dist/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -88,8 +88,8 @@ import Application from '~/plugins/application.js'
 
 extend('required', required)
 extend('email', email)
-extend('max', max)
 extend('min', min)
+extend('max', max)
 extend('confirmed_password', confirmed)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
 

@@ -70,18 +70,6 @@ describe('Image.vue', () => {
     expect(deleteButton.vm.disabled).toBe(!uploadImage) // [アップロード画像]有効
   }
 
-  const updateApiCalledTest = (image) => {
-    const params = new FormData()
-    params.append('image', image)
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, params)
-  }
-
-  const deleteApiCalledTest = () => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl)
-  }
-
   const updateViewTest = (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     expect(wrapper.vm.$data.image).toBeNull()
@@ -140,6 +128,12 @@ describe('Image.vue', () => {
   describe('画像変更', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const image = Object.freeze({})
+    const apiCalledTest = () => {
+      const params = new FormData()
+      params.append('image', image)
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, params)
+    }
 
     let wrapper, button
     const beforeAction = async () => {
@@ -148,7 +142,7 @@ describe('Image.vue', () => {
       button.trigger('click')
 
       await helper.sleep(1)
-      updateApiCalledTest(image)
+      apiCalledTest()
     }
 
     it('[成功]変更後の画像が表示される', async () => {
@@ -234,6 +228,10 @@ describe('Image.vue', () => {
 
   describe('画像削除', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl)
+    }
 
     let wrapper, button
     const beforeAction = async (changeDefault = false) => {
@@ -246,7 +244,7 @@ describe('Image.vue', () => {
       if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // NOTE: 状態変更（Mockでは実行されない為）
 
       await helper.sleep(1)
-      deleteApiCalledTest()
+      apiCalledTest()
     }
 
     it('[成功]デフォルト画像が表示される', async () => {

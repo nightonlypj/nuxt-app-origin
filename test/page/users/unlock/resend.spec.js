@@ -81,16 +81,6 @@ describe('resend.vue', () => {
     expect(wrapper.vm.$data.query).toEqual({ email: '' })
   }
 
-  const apiCalledTest = (count, params) => {
-    expect(axiosPostMock).toBeCalledTimes(count)
-    if (count > 0) {
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.unlockUrl, {
-        ...params,
-        redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
-      })
-    }
-  }
-
   // テストケース
   describe('パラメータなし', () => {
     const query = Object.freeze({})
@@ -135,6 +125,15 @@ describe('resend.vue', () => {
   describe('アカウントロック解除', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com' })
+    const apiCalledTest = (count, params = null) => {
+      expect(axiosPostMock).toBeCalledTimes(count)
+      if (count > 0) {
+        expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.unlockUrl, {
+          ...params,
+          redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+        })
+      }
+    }
 
     let wrapper, button
     const beforeAction = async (options = { keydown: false, isComposing: null }) => {

@@ -73,16 +73,6 @@ describe('sign_in.vue', () => {
     expect(wrapper.vm.$data.query).toEqual({ email: '', password: '' })
   }
 
-  const apiCalledTest = (params) => {
-    expect(authLoginWithMock).toBeCalledTimes(1)
-    expect(authLoginWithMock).nthCalledWith(1, 'local', {
-      data: {
-        ...params,
-        unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
-      }
-    })
-  }
-
   // テストケース
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
@@ -169,6 +159,15 @@ describe('sign_in.vue', () => {
   describe('ログイン', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
+    const apiCalledTest = () => {
+      expect(authLoginWithMock).toBeCalledTimes(1)
+      expect(authLoginWithMock).nthCalledWith(1, 'local', {
+        data: {
+          ...params,
+          unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+        }
+      })
+    }
 
     let wrapper, button
     const beforeAction = async (options = { keydown: false, isComposing: null }) => {
@@ -189,7 +188,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
@@ -198,7 +197,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction({ keydown: true, isComposing: false })
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
@@ -213,7 +212,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.resolve({ data: null }))
       await beforeAction()
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -223,7 +222,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -232,7 +231,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.disabledTest(wrapper, Processing, button, false)
@@ -241,7 +240,7 @@ describe('sign_in.vue', () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
       await beforeAction()
 
-      apiCalledTest(params)
+      apiCalledTest()
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, true)
     })

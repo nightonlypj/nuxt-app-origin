@@ -35,11 +35,6 @@ describe('Infomations.vue', () => {
   }
 
   // テスト内容
-  const apiCalledTest = () => {
-    expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.importantInfomationsUrl)
-  }
-
   const viewTest = (wrapper, data) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
@@ -62,6 +57,11 @@ describe('Infomations.vue', () => {
 
   // テストケース
   describe('大切なお知らせ', () => {
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.importantInfomationsUrl)
+    }
+
     it('[0件]表示されない', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations: [] } }))
       const wrapper = mountFunction()

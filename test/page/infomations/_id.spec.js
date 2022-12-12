@@ -49,11 +49,6 @@ describe('_id.vue', () => {
   }
 
   // テスト内容
-  const apiCalledTest = () => {
-    expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', params.id))
-  }
-
   const viewTest = (wrapper, data) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
@@ -75,7 +70,12 @@ describe('_id.vue', () => {
   }
 
   // テストケース
-  describe('お知らせ詳細', () => {
+  describe('お知らせ詳細取得', () => {
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', params.id))
+    }
+
     it('[本文あり]表示される', async () => {
       const data = Object.freeze({
         infomation: {

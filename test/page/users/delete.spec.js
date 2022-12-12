@@ -65,13 +65,6 @@ describe('delete.vue', () => {
     expect(wrapper.text()).toMatch(String(user.destroy_schedule_days)) // アカウント削除の猶予期間
   }
 
-  const apiCalledTest = () => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDeleteUrl, {
-      undo_delete_url: helper.envConfig.frontBaseURL + helper.commonConfig.userSendUndoDeleteUrl
-    })
-  }
-
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
@@ -189,6 +182,12 @@ describe('delete.vue', () => {
   describe('アカウント削除', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const user = Object.freeze({ destroy_schedule_at: null })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDeleteUrl, {
+        undo_delete_url: helper.envConfig.frontBaseURL + helper.commonConfig.userSendUndoDeleteUrl
+      })
+    }
 
     let wrapper, button
     const beforeAction = async () => {
