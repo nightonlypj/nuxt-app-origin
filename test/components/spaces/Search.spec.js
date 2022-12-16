@@ -6,7 +6,11 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Search.vue', () => {
-  const defaultQuery = Object.freeze({ text: '', option: false, public: true, private: true, join: true, nojoin: true, active: true, destroy: false })
+  let optionQuery = {}
+  if (helper.commonConfig.enablePublicSpace) {
+    optionQuery = { public: true, private: true, join: true, nojoin: true }
+  }
+  const defaultQuery = Object.freeze({ text: '', ...optionQuery, active: true, destroy: false, option: false })
   const mountFunction = (loggedIn = false, query = defaultQuery) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -120,6 +124,7 @@ describe('Search.vue', () => {
     }
 
     it('[公開・非公開]検索ボタンが無効になる', async () => {
+      if (!helper.commonConfig.enablePublicSpace) { return }
       await beforeAction()
 
       // 公開・非公開
@@ -131,6 +136,7 @@ describe('Search.vue', () => {
       expect(button.vm.disabled).toBe(true) // 無効
     })
     it('[参加・未参加]検索ボタンが無効になる', async () => {
+      if (!helper.commonConfig.enablePublicSpace) { return }
       await beforeAction()
 
       // 参加・未参加

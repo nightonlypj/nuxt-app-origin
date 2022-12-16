@@ -73,11 +73,6 @@ describe('_code.vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = () => {
-    expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', params.code))
-  }
-
   const viewTest = (wrapper, data) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.space).toEqual(data.space)
@@ -92,6 +87,11 @@ describe('_code.vue', () => {
 
   // テストケース
   describe('スペース情報取得', () => {
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', params.code))
+    }
+
     it('[管理者]表示される（メンバー一覧・設定変更も表示）', async () => {
       const data = Object.freeze({
         space: {

@@ -21,6 +21,9 @@
             {{ $localeString(space.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
+            <div v-if="$auth.loggedIn" class="mr-1">
+              <SpacesCreate />
+            </div>
             <ListSetting
               model="space"
               :hidden-items.sync="hiddenItems"
@@ -66,6 +69,7 @@ import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import ListSetting from '~/components/ListSetting.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
+import SpacesCreate from '~/components/spaces/Create.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Application from '~/plugins/application.js'
 
@@ -76,21 +80,28 @@ export default {
     Processing,
     ListSetting,
     SpacesSearch,
+    SpacesCreate,
     SpacesLists
   },
   mixins: [Application],
 
   data () {
+    let publicQuery = {}
+    if (this.$config.enablePublicSpace) {
+      publicQuery = {
+        public: this.$route?.query?.public !== '0',
+        private: this.$route?.query?.private !== '0',
+        join: this.$route?.query?.join !== '0',
+        nojoin: this.$route?.query?.nojoin !== '0'
+      }
+    }
     return {
       loading: true,
       processing: true,
       reloading: false,
       query: {
         text: this.$route?.query?.text || '',
-        public: this.$route?.query?.public !== '0',
-        private: this.$route?.query?.private !== '0',
-        join: this.$route?.query?.join !== '0',
-        nojoin: this.$route?.query?.nojoin !== '0',
+        ...publicQuery,
         active: this.$route?.query?.active !== '0',
         destroy: this.$route?.query?.destroy === '1',
         option: this.$route?.query?.option === '1'
@@ -128,29 +139,59 @@ export default {
     // スペース一覧検索
     async searchSpaces () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('searchSpaces', this.reloading) }
+      if (this.$config.debug) { console.log('searchSpaces') }
 
-      this.reloading = true
       this.params = null
-      this.page = 1
-
-      if (!await this.getSpaces()) {
+      if (!await this.reloadSpaces()) {
         this.$refs.search.error()
       }
+    },
 
-      this.$router.push({
-        query: {
-          ...this.params,
+    // スペース一覧再取得
+    async reloadSpaces () {
+      // eslint-disable-next-line no-console
+      if (this.$config.debug) { console.log('reloadSpaces', this.reloading) }
+
+      // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
+      let count = 0
+      while (count < this.$config.reloading.maxCount) {
+        if (!this.reloading) { break }
+
+        await this.$sleep(this.$config.reloading.sleepMs)
+        count++
+      }
+      if (count >= this.$config.reloading.maxCount) {
+        // eslint-disable-next-line no-console
+        if (this.$config.debug) { console.log('...Stop') }
+
+        this.appSetToastedMessage({ alert: this.$t('system.timeout') }, true)
+        return false
+      }
+      this.reloading = true
+
+      this.page = 1
+      const result = await this.getSpaces()
+
+      let publicQuery = {}
+      if (this.$config.enablePublicSpace) {
+        publicQuery = {
           public: String(this.params.public),
           private: String(this.params.private),
           join: String(this.params.join),
-          nojoin: String(this.params.nojoin),
+          nojoin: String(this.params.nojoin)
+        }
+      }
+      this.$router.push({
+        query: {
+          ...this.params,
+          ...publicQuery,
           active: String(this.params.active),
           destroy: String(this.params.destroy),
           option: String(Number(this.query.option))
         }
       })
       this.reloading = false
+      return result
     },
 
     // 次頁のスペース一覧取得
@@ -181,12 +222,18 @@ export default {
       let result = false
 
       if (this.params == null) {
+        let publicParams = {}
+        if (this.$config.enablePublicSpace) {
+          publicParams = {
+            public: Number(this.query.public),
+            private: Number(this.query.private),
+            join: Number(this.query.join),
+            nojoin: Number(this.query.nojoin)
+          }
+        }
         this.params = {
           ...this.query,
-          public: Number(this.query.public),
-          private: Number(this.query.private),
-          join: Number(this.query.join),
-          nojoin: Number(this.query.nojoin),
+          ...publicParams,
           active: Number(this.query.active),
           destroy: Number(this.query.destroy)
         }

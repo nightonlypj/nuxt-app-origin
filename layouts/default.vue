@@ -106,7 +106,7 @@
           <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
         </v-list-item>
         <v-list-item to="/spaces" nuxt>
-          <v-icon>mdi-format-list-bulleted</v-icon>
+          <v-icon>mdi-folder-open</v-icon>
           <v-list-item-title class="ml-2">スペース</v-list-item-title>
         </v-list-item>
         <template v-if="$auth.loggedIn">

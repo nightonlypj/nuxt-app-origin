@@ -1,4 +1,8 @@
 module.exports = {
+  // 公開スペース使用可否  ※後からfalseに変更しても作成済みの公開スペースは表示されます。
+  enablePublicSpace: true,
+  defaultPrivateSpace: true,
+
   reloading: {
     maxCount: 50,
     sleepMs: 100
@@ -22,6 +26,7 @@ module.exports = {
       }
     }
   },
+
   // ログインAPI
   authSignInURL: '/users/auth/sign_in.json',
   authRedirectSignInURL: '/users/sign_in',
@@ -76,9 +81,15 @@ module.exports = {
   spacesUrl: '/spaces.json',
   // スペース詳細API
   spaceDetailUrl: '/-/:code.json',
+  // スペース作成API
+  spaceCreateUrl: '/spaces/create.json',
+  // スペース設定変更API
+  spaceUpdateUrl: '/spaces/:code/update.json',
 
   // メンバー一覧API
   membersUrl: '/members/:code.json',
+  // メンバー詳細API
+  memberDetailUrl: '/members/:code/detail/:user_code.json',
   // メンバー招待API
   memberCreateUrl: '/members/:code/create.json',
   // メンバー情報変更API

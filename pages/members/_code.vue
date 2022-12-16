@@ -16,9 +16,7 @@
           <v-avatar v-if="space.image_url != null" size="32px">
             <v-img :src="space.image_url.small" />
           </v-avatar>
-          <span class="ml-1">
-            <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
-          </span>
+          <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
           <SpacesIcon :space="space" />
         </div>
       </v-card-title>
@@ -96,6 +94,7 @@
         <MembersUpdate
           v-if="currentMemberAdmin"
           ref="update"
+          :space="space"
           @update="updateMember"
         />
         <template v-if="existMembers">
@@ -109,7 +108,7 @@
             :active-user-codes="activeUserCodes"
             :current-member-admin="currentMemberAdmin"
             @reload="reloadMembers"
-            @showUpdate="$refs.update.showDialog(space, $event)"
+            @showUpdate="$refs.update.showDialog($event)"
           />
           <v-divider class="my-2" />
         </template>
@@ -191,7 +190,7 @@ export default {
       query: {
         text: this.$route?.query?.text || '',
         power,
-        sort: this.$route?.query?.sort || 'invitationed_at',
+        sort: this.$route?.query?.sort || 'created_at',
         desc: this.$route?.query?.desc !== '0',
         option: this.$route?.query?.option === '1'
       },

@@ -17,7 +17,7 @@
         <v-avatar v-if="item.image_url != null" :id="`space_image_${item.code}`" size="32px">
           <v-img :src="item.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="`/-/${item.code}`" class="ml-1">{{ $textTruncate(item.name, 64) }}</NuxtLink>
+        <NuxtLink :to="`/-/${item.code}`">{{ $textTruncate(item.name, 64) }}</NuxtLink>
         <SpacesIcon :space="item" />
       </div>
     </template>

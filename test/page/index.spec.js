@@ -1,6 +1,7 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import IndexSignUp from '~/components/index/SignUp.vue'
+import IndexCreateSpace from '~/components/index/CreateSpace.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 import Page from '~/pages/index.vue'
 
@@ -13,6 +14,7 @@ describe('index.vue', () => {
       vuetify,
       stubs: {
         IndexSignUp: true,
+        IndexCreateSpace: true,
         IndexInfomations: true
       },
       mocks: {
@@ -28,6 +30,7 @@ describe('index.vue', () => {
   // テスト内容
   const viewTest = (wrapper, loggedIn) => {
     expect(wrapper.findComponent(IndexSignUp).exists()).toBe(!loggedIn) // [未ログイン]アカウント登録
+    expect(wrapper.findComponent(IndexCreateSpace).exists()).toBe(loggedIn) // [ログイン中]スペース作成
     expect(wrapper.findComponent(IndexInfomations).exists()).toBe(true) // 大切なお知らせ
   }
 

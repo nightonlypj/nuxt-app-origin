@@ -8,12 +8,10 @@
             <v-avatar v-if="space.image_url != null" size="32px">
               <v-img id="space_image" :src="space.image_url.small" />
             </v-avatar>
-            <span class="ml-1">
-              {{ space.name }}
-            </span>
+            {{ space.name }}
             <SpacesIcon :space="space" />
           </v-col>
-          <v-col cols="auto" class="pl-0">
+          <v-col cols="auto" class="d-flex pl-0">
             <v-btn
               v-if="space.current_member != null"
               id="members_btn"
@@ -31,21 +29,26 @@
                 メンバー一覧
               </v-tooltip>
             </v-btn>
-            <!-- TODO: 実装 -->
-            <v-btn
-              v-if="currentMemberAdmin"
-              id="space_update_btn"
-              color="secondary"
-              dense
-              nuxt
-            >
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
-                </template>
-                設定変更
-              </v-tooltip>
-            </v-btn>
+            <template v-if="currentMemberAdmin">
+              <SpacesUpdate
+                ref="update"
+                @space="space = $event"
+              />
+              <v-btn
+                id="space_update_btn"
+                color="secondary"
+                class="ml-1"
+                dense
+                @click="$refs.update.showDialog(space)"
+              >
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
+                  </template>
+                  設定変更
+                </v-tooltip>
+              </v-btn>
+            </template>
           </v-col>
         </v-row>
       </v-card-title>
@@ -61,12 +64,14 @@
 <script>
 import Loading from '~/components/Loading.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
+import SpacesUpdate from '~/components/spaces/Update.vue'
 import Application from '~/plugins/application.js'
 
 export default {
   components: {
     Loading,
-    SpacesIcon
+    SpacesIcon,
+    SpacesUpdate
   },
   mixins: [Application],
 

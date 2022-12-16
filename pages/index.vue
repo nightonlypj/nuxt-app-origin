@@ -3,6 +3,9 @@
     <v-col v-if="!$auth.loggedIn" cols="12" md="6">
       <IndexSignUp />
     </v-col>
+    <v-col v-if="$auth.loggedIn" cols="12" md="6">
+      <IndexCreateSpace />
+    </v-col>
     <v-col cols="12" md="6">
       <IndexInfomations />
     </v-col>
@@ -11,11 +14,13 @@
 
 <script>
 import IndexSignUp from '~/components/index/SignUp.vue'
+import IndexCreateSpace from '~/components/index/CreateSpace.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
 export default {
   components: {
     IndexSignUp,
+    IndexCreateSpace,
     IndexInfomations
   },
 

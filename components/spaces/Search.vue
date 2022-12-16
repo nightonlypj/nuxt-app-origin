@@ -40,7 +40,7 @@
         </v-btn>
       </div>
       <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="option_item" class="py-4">
-        <v-col cols="auto" class="d-flex py-0">
+        <v-col v-if="$config.enablePublicSpace" cols="auto" class="d-flex py-0">
           <v-checkbox
             v-model="syncQuery.public"
             label="公開"
@@ -59,7 +59,7 @@
             @click="waiting = false"
           />
         </v-col>
-        <v-col cols="auto" class="d-flex py-0">
+        <v-col v-if="$config.enablePublicSpace" cols="auto" class="d-flex py-0">
           <v-checkbox
             v-model="syncQuery.join"
             label="参加"
@@ -139,7 +139,11 @@ export default {
 
   methods: {
     blank () {
-      return this.privateBlank() || this.joinBlank() || this.activeBlank()
+      if (this.$config.enablePublicSpace) {
+        return this.privateBlank() || this.joinBlank() || this.activeBlank()
+      } else {
+        return this.activeBlank()
+      }
     },
     privateBlank () {
       return !this.query.public && !this.query.private

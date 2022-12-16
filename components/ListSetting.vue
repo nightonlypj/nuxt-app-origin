@@ -39,8 +39,8 @@
                   :label="item.text"
                   :value="item.value"
                   :disabled="item.required"
-                  hide-details
                   dense
+                  hide-details
                   class="mt-1"
                   @change="waiting = false"
                 />

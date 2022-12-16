@@ -70,41 +70,59 @@ describe('index.vue', () => {
     return wrapper
   }
 
+  let optionParams = {}
+  let optionQuery = {}
+  if (helper.commonConfig.enablePublicSpace) {
+    optionParams = {
+      public: 1,
+      private: 1,
+      join: 1,
+      nojoin: 1
+    }
+    optionQuery = {
+      public: String(optionParams.public),
+      private: String(optionParams.private),
+      join: String(optionParams.join),
+      nojoin: String(optionParams.nojoin)
+    }
+  }
   const defaultParams = Object.freeze({
     text: '',
-    public: 1,
-    private: 1,
-    join: 1,
-    nojoin: 1,
+    ...optionParams,
     active: 1,
     destroy: 0
   })
   const defaultQuery = Object.freeze({
     ...defaultParams,
-    public: String(defaultParams.public),
-    private: String(defaultParams.private),
-    join: String(defaultParams.join),
-    nojoin: String(defaultParams.nojoin),
+    ...optionQuery,
     active: String(defaultParams.active),
     destroy: String(defaultParams.destroy),
     option: '0'
   })
 
+  if (helper.commonConfig.enablePublicSpace) {
+    optionParams = {
+      public: 1,
+      private: 0,
+      join: 1,
+      nojoin: 0
+    }
+    optionQuery = {
+      public: String(optionParams.public),
+      private: String(optionParams.private),
+      join: String(optionParams.join),
+      nojoin: String(optionParams.nojoin),
+    }
+  }
   const findParams = Object.freeze({
     text: 'test',
-    public: 1,
-    private: 0,
-    join: 1,
-    nojoin: 0,
+    ...optionParams,
     active: 1,
     destroy: 0
   })
   const findQuery = Object.freeze({
     ...findParams,
-    public: String(findParams.public),
-    private: String(findParams.private),
-    join: String(findParams.join),
-    nojoin: String(findParams.nojoin),
+    ...optionQuery,
     active: String(findParams.active),
     destroy: String(findParams.destroy),
     option: '1'
@@ -180,12 +198,18 @@ describe('index.vue', () => {
   const viewTest = (wrapper, params, query, data, countView, show = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
+    let optionQuery = {}
+    if (helper.commonConfig.enablePublicSpace) {
+      optionQuery = {
+        public: params.public === 1,
+        private: params.private === 1,
+        join: params.join === 1,
+        nojoin: params.nojoin === 1
+      }
+    }
     expect(wrapper.vm.$data.query).toEqual({
       ...params,
-      public: params.public === 1,
-      private: params.private === 1,
-      join: params.join === 1,
-      nojoin: params.nojoin === 1,
+      ...optionQuery,
       active: params.active === 1,
       destroy: params.destroy === 1,
       option: query.option === '1'
@@ -248,7 +272,7 @@ describe('index.vue', () => {
   }
 
   // テストケース
-  describe('スペース一覧', () => {
+  describe('スペース一覧取得', () => {
     it('[0件]表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
       const wrapper = mountFunction()
@@ -486,12 +510,18 @@ describe('index.vue', () => {
 
       // スペース一覧検索
       wrapper.vm.$refs.search.error = jest.fn()
+      let optionQuery = {}
+      if (helper.commonConfig.enablePublicSpace) {
+        optionQuery = {
+          public: findParams.public === 1,
+          private: findParams.private === 1,
+          join: findParams.join === 1,
+          nojoin: findParams.nojoin === 1
+        }
+      }
       wrapper.vm.$data.query = {
         ...findParams,
-        public: findParams.public === 1,
-        private: findParams.private === 1,
-        join: findParams.join === 1,
-        nojoin: findParams.nojoin === 1,
+        ...optionQuery,
         active: findParams.active === 1,
         destroy: findParams.destroy === 1,
         option: findQuery.option === '1'
