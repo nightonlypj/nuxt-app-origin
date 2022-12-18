@@ -180,7 +180,7 @@ describe('downloads.vue', () => {
     })
   })
 
-  describe('ダウンロード結果一覧', () => {
+  describe('ダウンロード結果一覧取得', () => {
     describe('0件', () => {
       const data = Object.freeze({
         download: {

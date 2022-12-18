@@ -89,11 +89,6 @@ describe('Delete.vue', () => {
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
-  const apiCalledTest = () => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberDeleteUrl.replace(':code', space.code), { codes })
-  }
-
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
@@ -129,6 +124,11 @@ describe('Delete.vue', () => {
   })
 
   describe('メンバー解除', () => {
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberDeleteUrl.replace(':code', space.code), { codes })
+    }
+
     let wrapper, dialog, button
     const beforeAction = async () => {
       wrapper = mountFunction()
@@ -141,7 +141,6 @@ describe('Delete.vue', () => {
 
       // はいボタン
       button = wrapper.find('#member_delete_yes_btn')
-      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
 

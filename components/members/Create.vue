@@ -20,7 +20,7 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
+                  <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
                     メンバー&nbsp;<span class="red--text">*</span>
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
@@ -36,6 +36,8 @@
                       />
                     </validation-provider>
                   </v-col>
+                </v-row>
+                <v-row>
                   <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
                     権限&nbsp;<span class="red--text">*</span>
                   </v-col>
@@ -117,14 +119,17 @@ export default {
       processing: false,
       waiting: false,
       dialog: false,
-      member: {
-        emails: '',
-        power: null
-      }
+      member: this.initialMember()
     }
   },
 
   methods: {
+    // 初期値
+    initialMember () {
+      return {}
+    },
+
+    // ダイアログ表示
     showDialog () {
       if (!this.$auth.loggedIn) {
         return this.appRedirectAuth()
@@ -149,10 +154,7 @@ export default {
           this.$emit('result', response.data)
           this.$emit('reload')
           this.dialog = false
-          this.member = {
-            emails: '',
-            power: null
-          }
+          this.member = this.initialMember()
           this.$refs.observer.reset()
         },
         (error) => {

@@ -211,7 +211,6 @@ describe('ListDownload.vue', () => {
 
       // ダウンロードボタン
       button = wrapper.find('#download_submit_btn')
-      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
 

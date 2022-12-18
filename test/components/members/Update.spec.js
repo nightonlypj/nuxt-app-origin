@@ -8,18 +8,34 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Update.vue', () => {
-  let axiosPostMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock
+  let axiosGetMock, axiosPostMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock
 
   beforeEach(() => {
+    axiosGetMock = null
     axiosPostMock = null
     authRedirectMock = jest.fn()
     authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
+    nuxtErrorMock = jest.fn()
   })
 
   const space = Object.freeze({ code: 'code0001' })
-  const member = Object.freeze({ user: { code: 'code000000000000000000001' }, power: 'admin' })
+  const member = Object.freeze({
+    user: {
+      code: 'code000000000000000000001',
+      email: 'user1@example.com'
+    },
+    power: 'admin',
+    invitationed_user: {
+      code: 'code000000000000000000001'
+    },
+    last_updated_user: {
+      code: 'code000000000000000000002'
+    },
+    invitationed_at: '2000-01-01T12:34:56+09:00',
+    last_updated_at: '2000-02-01T12:34:56+09:00'
+  })
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -30,8 +46,12 @@ describe('Update.vue', () => {
         Processing: true,
         UsersAvatar: true
       },
+      propsData: {
+        space
+      },
       mocks: {
         $axios: {
+          get: axiosGetMock,
           post: axiosPostMock
         },
         $auth: {
@@ -43,6 +63,9 @@ describe('Update.vue', () => {
         $toasted: {
           error: toastedErrorMock,
           info: toastedInfoMock
+        },
+        $nuxt: {
+          error: nuxtErrorMock
         }
       }
     })
@@ -58,7 +81,7 @@ describe('Update.vue', () => {
     expect(wrapper.find('#member_update_dialog').exists()).toBe(false)
 
     // ダイアログ表示
-    wrapper.vm.showDialog(space, member)
+    wrapper.vm.showDialog(member)
 
     // メンバー情報変更ダイアログ
     await helper.sleep(1)
@@ -67,9 +90,16 @@ describe('Update.vue', () => {
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // メンバー
-    const avatar = wrapper.findComponent(UsersAvatar)
-    expect(avatar.exists()).toBe(true)
-    expect(avatar.vm.user).toEqual(member.user) // 表示
+    const usersAvatars = wrapper.findAllComponents(UsersAvatar)
+    expect(usersAvatars.at(0).exists()).toBe(true)
+    expect(usersAvatars.at(0).vm.user).toEqual(member.user) // 表示
+    expect(dialog.text()).toMatch(member.user.email) // メールアドレス
+
+    // 招待、最終更新
+    expect(usersAvatars.at(1).vm.$props.user).toBe(member.invitationed_user)
+    expect(usersAvatars.at(2).vm.$props.user).toBe(member.last_updated_user)
+    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
+    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
 
     // 権限
     for (const key in helper.locales.enums.member.power) {
@@ -94,20 +124,12 @@ describe('Update.vue', () => {
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
-  const apiCalledTest = (values) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    const url = helper.commonConfig.memberUpdateUrl.replace(':code', space.code).replace(':user_code', member.user.code)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
-      member: values
-    })
-  }
-
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false, null)
+    const wrapper = mountFunction(false)
 
     // ダイアログ表示
-    wrapper.vm.showDialog(space, member)
+    wrapper.vm.showDialog(member)
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 0)
@@ -115,14 +137,16 @@ describe('Update.vue', () => {
     helper.mockCalledTest(authRedirectMock, 1, 'login')
   })
   it('[ログイン中]表示される', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { member } }))
     const wrapper = mountFunction(true, {})
     await viewTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { member } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
     // ダイアログ表示
-    wrapper.vm.showDialog(space, member)
+    wrapper.vm.showDialog(member)
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
@@ -132,14 +156,86 @@ describe('Update.vue', () => {
     expect(wrapper.find('#member_update_dialog').exists()).toBe(false)
   })
 
+  describe('メンバー詳細取得', () => {
+    const beforeAction = async () => {
+      const wrapper = mountFunction()
+
+      // ダイアログ表示
+      wrapper.vm.showDialog(member)
+
+      await helper.sleep(1)
+      apiCalledTest()
+    }
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      const url = helper.commonConfig.memberDetailUrl.replace(':code', space.code).replace(':user_code', member.user.code)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
+    }
+
+    it('[データなし]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+    })
+
+    it('[接続エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
+    })
+    it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+    })
+    it('[レスポンスエラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
+    })
+    it('[その他エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
+    })
+  })
+
   describe('メンバー情報変更', () => {
     const data = Object.freeze({ member, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ power: 'writer' })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      const url = helper.commonConfig.memberUpdateUrl.replace(':code', space.code).replace(':user_code', member.user.code)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
+        member: values
+      })
+    }
 
     let wrapper, dialog, button
     const beforeAction = async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: { ...member } } }))
       wrapper = mountFunction()
-      wrapper.vm.showDialog(space, member)
+      wrapper.vm.showDialog(member)
 
       // メンバー情報変更ダイアログ
       await helper.sleep(1)
@@ -150,13 +246,13 @@ describe('Update.vue', () => {
       wrapper.find(`#power_${values.power}`).trigger('change')
 
       // 変更ボタン
+      await helper.sleep(1)
       button = wrapper.find('#member_update_submit_btn')
-      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
 
       await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest()
     }
 
     it('[成功]一覧の対象データが更新される', async () => {

@@ -5,7 +5,7 @@
         <Processing v-if="processing" />
         <v-form autocomplete="off">
           <v-toolbar color="primary" dense dark>
-            <v-icon dense>mdi-arrow-up-bold</v-icon>
+            <v-icon dense>mdi-account-edit</v-icon>
             <span class="ml-1">メンバー情報変更</span>
           </v-toolbar>
           <v-card-text>
@@ -16,7 +16,35 @@
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <UsersAvatar :user="member.user" />
+                  <div class="mt-1">
+                    {{ member.user.email }}
+                  </div>
                 </v-col>
+              </v-row>
+              <v-row v-if="member.invitationed_at || member.invitationed_user">
+                <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
+                  招待
+                </v-col>
+                <v-col cols="12" md="10" class="d-flex pb-0">
+                  <span class="align-self-center mr-3">{{ $timeFormat(member.invitationed_at, 'ja', 'N/A') }}</span>
+                  <UsersAvatar :user="member.invitationed_user" />
+                </v-col>
+              </v-row>
+              <v-row v-if="member.last_updated_at || member.last_updated_user">
+                <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
+                  最終更新
+                </v-col>
+                <v-col cols="12" md="10" class="d-flex pb-0">
+                  <span class="align-self-center mr-3">{{ $timeFormat(member.last_updated_at, 'ja', 'N/A') }}</span>
+                  <UsersAvatar :user="member.last_updated_user" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <v-divider />
+                </v-col>
+              </v-row>
+              <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
                   権限&nbsp;<span class="red--text">*</span>
                 </v-col>
@@ -49,7 +77,7 @@
               id="member_update_submit_btn"
               color="primary"
               :disabled="invalid || processing || waiting"
-              @click="postMembersUpdate()"
+              @click="postMemberUpdate()"
             >
               変更
             </v-btn>
@@ -86,20 +114,27 @@ export default {
   },
   mixins: [Application],
 
+  props: {
+    space: {
+      type: Object,
+      required: true
+    }
+  },
+
   data () {
     return {
       processing: false,
       waiting: false,
       dialog: false,
-      space: null,
       member: null
     }
   },
 
   methods: {
-    showDialog (space, member) {
+    // ダイアログ表示
+    async showDialog (member) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('showDialog', space, member) }
+      if (this.$config.debug) { console.log('showDialog', member) }
 
       if (!this.$auth.loggedIn) {
         return this.appRedirectAuth()
@@ -107,14 +142,32 @@ export default {
         return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
       }
 
+      if (!await this.getMember(member)) { return }
+
       this.waiting = true
-      this.space = space
-      this.member = { ...member }
       this.dialog = true
     },
 
+    // メンバー詳細取得
+    async getMember (member) {
+      let result = false
+
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.memberDetailUrl.replace(':code', this.space.code).replace(':user_code', member.user.code))
+        .then((response) => {
+          if (!this.appCheckResponse(response, { redirect: true }, response.data?.member == null)) { return }
+
+          this.member = response.data.member
+          result = true
+        },
+        (error) => {
+          this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true, forbidden: true, notfound: true })
+        })
+
+      return result
+    },
+
     // メンバー情報変更
-    async postMembersUpdate () {
+    async postMemberUpdate () {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.memberUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code), {

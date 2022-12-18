@@ -46,16 +46,32 @@
       </div>
     </template>
     <!-- 招待者 -->
-    <template #[`header.invitation_user.name`]="{ header }">
+    <template #[`header.invitationed_user.name`]="{ header }">
       {{ header.text }}
       <OnlyIcon power="admin" />
     </template>
-    <template #[`item.invitation_user.name`]="{ item }">
-      <UsersAvatar :user="item.invitation_user" />
+    <template #[`item.invitationed_user.name`]="{ item }">
+      <UsersAvatar :user="item.invitationed_user" />
     </template>
-    <!-- 招待者日時 -->
+    <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }">
       <span class="text-no-wrap">{{ $timeFormat(item.invitationed_at, 'ja') }}</span>
+    </template>
+    <!-- 最終更新者 -->
+    <template #[`header.last_updated_user.name`]="{ header }">
+      {{ header.text }}
+      <OnlyIcon power="admin" />
+    </template>
+    <template #[`item.last_updated_user.name`]="{ item }">
+      <UsersAvatar :user="item.last_updated_user" />
+    </template>
+    <!-- 最終更新日時 -->
+    <template #[`header.last_updated_at`]="{ header }">
+      {{ header.text }}
+      <OnlyIcon power="admin" />
+    </template>
+    <template #[`item.last_updated_at`]="{ item }">
+      <span class="text-no-wrap">{{ $timeFormat(item.last_updated_at, 'ja') }}</span>
     </template>
   </v-data-table>
 </template>

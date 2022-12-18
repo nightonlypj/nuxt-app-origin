@@ -111,7 +111,7 @@ describe('index.vue', () => {
       public: String(optionParams.public),
       private: String(optionParams.private),
       join: String(optionParams.join),
-      nojoin: String(optionParams.nojoin),
+      nojoin: String(optionParams.nojoin)
     }
   }
   const findParams = Object.freeze({

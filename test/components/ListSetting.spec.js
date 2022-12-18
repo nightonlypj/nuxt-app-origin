@@ -75,8 +75,6 @@ describe('ListSetting.vue', () => {
 
     // 変更ボタン
     const button = wrapper.find('#setting_submit_btn')
-    expect(button.exists()).toBe(true)
-    await helper.waitChangeDisabled(button, false)
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
 

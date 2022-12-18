@@ -76,6 +76,7 @@ export default {
   },
 
   methods: {
+    // ダイアログ表示
     showDialog () {
       if (!this.$auth.loggedIn) {
         return this.appRedirectAuth()

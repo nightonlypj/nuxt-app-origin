@@ -47,8 +47,10 @@ module.exports = {
       { text: 'メンバー', value: 'user.name', required: true, adminOnly: false },
       { text: 'メールアドレス', value: 'user.email', required: false, adminOnly: true },
       { text: '権限', value: 'power', required: false, adminOnly: false },
-      { text: '招待者', value: 'invitation_user.name', required: false, adminOnly: true },
-      { text: '招待日時', value: 'invitationed_at', required: false, adminOnly: false }
+      { text: '招待者', value: 'invitationed_user.name', required: false, adminOnly: true },
+      { text: '招待日時', value: 'invitationed_at', required: false, adminOnly: false },
+      { text: '最終更新者', value: 'last_updated_user.name', required: false, adminOnly: true },
+      { text: '最終更新日時', value: 'last_updated_at', required: false, adminOnly: true }
     ]
   },
   network: {

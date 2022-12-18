@@ -24,7 +24,7 @@
                   最終更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat(space.last_updated_at, 'ja') }}</span>
+                  <span class="align-self-center mr-3">{{ $timeFormat(space.last_updated_at, 'ja', 'N/A') }}</span>
                   <UsersAvatar :user="space.last_updated_user" />
                 </v-col>
               </v-row>
@@ -80,11 +80,13 @@
                       :error-messages="errors"
                     >
                       <v-radio
+                        id="private_false"
                         label="誰でも表示できる（公開）"
                         :value="false"
                         @change="waiting = false"
                       />
                       <v-radio
+                        id="private_true"
                         label="メンバーのみ表示できる（非公開）"
                         :value="true"
                         @change="waiting = false"
@@ -104,12 +106,13 @@
                     </v-avatar>
                     <v-checkbox
                       v-if="space.upload_image"
+                      id="image_delete"
                       v-model="space.image_delete"
                       label="削除（初期画像に戻す）"
                       class="mt-4 ml-4"
                       dense
                       hide-details
-                      @click="waiting = false"
+                      @change="waiting = false"
                     />
                   </div>
                   <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
@@ -120,7 +123,7 @@
                       :prepend-icon="null"
                       show-size
                       :error-messages="errors"
-                      @click="waiting = false"
+                      @change="waiting = false"
                     />
                   </validation-provider>
                 </v-col>
@@ -234,7 +237,7 @@ export default {
       }
       await this.$axios.post(this.$config.apiBaseURL + this.$config.spaceUpdateUrl.replace(':code', this.space.code), params)
         .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true }, response.data.space == null)) { return }
+          if (!this.appCheckResponse(response, { toasted: true }, response.data?.space == null)) { return }
 
           this.appSetToastedMessage(response.data, false)
           this.$emit('space', response.data.space)

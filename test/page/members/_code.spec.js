@@ -127,7 +127,7 @@ describe('_code.vue', () => {
   const defaultParams = Object.freeze({
     text: '',
     power: defaultPowers.join(),
-    sort: 'invitationed_at',
+    sort: 'created_at',
     desc: 1
   })
   const defaultQuery = Object.freeze({
@@ -329,7 +329,7 @@ describe('_code.vue', () => {
     })
   })
 
-  describe('メンバー一覧', () => {
+  describe('メンバー一覧取得', () => {
     describe('0件', () => {
       it('[管理者]表示される（招待・変更・ダウンロードも含む）', async () => {
         const data = Object.freeze({ ...dataCount0, space: adminSpace })

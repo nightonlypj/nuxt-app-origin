@@ -63,10 +63,17 @@ describe('Lists.vue', () => {
     } else {
       expect(wrapper.text()).not.toMatch('招待日時')
     }
+    if (show.optional && show.admin) {
+      expect(wrapper.text()).toMatch('最終更新者')
+      expect(wrapper.text()).toMatch('更新日時')
+    } else {
+      expect(wrapper.text()).not.toMatch('最終更新者')
+      expect(wrapper.text()).not.toMatch('更新日時')
+    }
 
     const onlyIcons = wrapper.findAllComponents(OnlyIcon)
     if (show.optional && show.admin) {
-      expect(onlyIcons.length).toBe(2)
+      expect(onlyIcons.length).toBe(4)
       for (let index = 0; index < onlyIcons.length; index++) {
         expect(onlyIcons.at(index).vm.$props.power).toBe('admin')
       }
@@ -98,7 +105,7 @@ describe('Lists.vue', () => {
       // 招待者
       if (show.optional && show.admin) {
         expect(usersAvatars.at(index).exists()).toBe(true)
-        expect(usersAvatars.at(index).vm.$props.user).toEqual(member.invitation_user || null)
+        expect(usersAvatars.at(index).vm.$props.user).toEqual(member.invitationed_user || null)
         index += 1
       }
       // 招待日時
@@ -107,6 +114,20 @@ describe('Lists.vue', () => {
           expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
         } else {
           expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
+        }
+      }
+      // 最終更新者
+      if (show.optional && show.admin) {
+        expect(usersAvatars.at(index).exists()).toBe(true)
+        expect(usersAvatars.at(index).vm.$props.user).toEqual(member.last_updated_user || null)
+        index += 1
+      }
+      // 最終更新日時
+      if (member.last_updated_at != null) {
+        if (show.optional && show.admin) {
+          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
+        } else {
+          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
         }
       }
     }
@@ -131,10 +152,14 @@ describe('Lists.vue', () => {
         },
         power: 'writer',
         power_i18n: '投稿者',
-        invitation_user: {
+        invitationed_user: {
           name: 'user1の氏名'
         },
-        invitationed_at: '2000-01-02T12:34:56+09:00'
+        invitationed_at: '2000-01-02T12:34:56+09:00',
+        last_updated_user: {
+          name: 'user2の氏名'
+        },
+        last_updated_at: '2000-01-03T12:34:56+09:00'
       },
       {
         user: {

@@ -71,11 +71,13 @@
                         :error-messages="errors"
                       >
                         <v-radio
+                          id="private_false"
                           label="誰でも表示できる（公開）"
                           :value="false"
                           @change="waiting = false"
                         />
                         <v-radio
+                          id="private_true"
                           label="メンバーのみ表示できる（非公開）"
                           :value="true"
                           @change="waiting = false"
@@ -201,7 +203,7 @@ export default {
 
           this.appSetToastedMessage(response.data, false)
           this.$auth.fetchUser() // NOTE: 左メニューの参加スペース更新の為
-          if (response.data.space.code != null) {
+          if (response.data.space?.code != null) {
             this.$router.push({ path: `/-/${response.data.space.code}` })
           } else {
             this.dialog = false

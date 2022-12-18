@@ -89,13 +89,6 @@ describe('Create.vue', () => {
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
-  const apiCalledTest = (values) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':code', space.code), {
-      member: values
-    })
-  }
-
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
@@ -133,6 +126,12 @@ describe('Create.vue', () => {
   describe('メンバー招待', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ emails: 'user1@example.com', power: 'admin' })
+    const apiCalledTest = () => {
+      expect(axiosPostMock).toBeCalledTimes(1)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':code', space.code), {
+        member: values
+      })
+    }
 
     let wrapper, dialog, button
     const beforeAction = async () => {
@@ -148,13 +147,13 @@ describe('Create.vue', () => {
       wrapper.vm.$data.member = values
 
       // 招待ボタン
+      await helper.sleep(1)
       button = wrapper.find('#member_create_submit_btn')
-      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
 
       await helper.sleep(1)
-      apiCalledTest(values)
+      apiCalledTest()
     }
 
     it('[成功]メンバー招待結果が表示され、一覧が再取得される', async () => {
@@ -166,8 +165,8 @@ describe('Create.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       expect(wrapper.emitted().result).toEqual([[data]]) // メンバー招待結果表示
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
-      expect(wrapper.vm.$data.member).toEqual({ emails: '', power: null }) // 初期化
       expect(dialog.isVisible()).toBe(false) // [メンバー招待ダイアログ]非表示
+      expect(wrapper.vm.$data.member).toEqual({}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
