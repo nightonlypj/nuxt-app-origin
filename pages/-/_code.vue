@@ -1,6 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
+    <SpacesDestroyInfo v-if="!loading" :space="space" />
     <v-card v-if="!loading">
       <v-card-title>
         <v-row>
@@ -29,26 +30,22 @@
                 メンバー一覧
               </v-tooltip>
             </v-btn>
-            <template v-if="currentMemberAdmin">
-              <SpacesUpdate
-                ref="update"
-                @space="space = $event"
-              />
-              <v-btn
-                id="space_update_btn"
-                color="secondary"
-                class="ml-1"
-                dense
-                @click="$refs.update.showDialog(space)"
-              >
-                <v-tooltip bottom>
-                  <template #activator="{ on, attrs }">
-                    <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
-                  </template>
-                  設定変更
-                </v-tooltip>
-              </v-btn>
-            </template>
+            <v-btn
+              v-if="currentMemberAdmin"
+              id="space_update_btn"
+              :to="`/spaces/update/${space.code}`"
+              color="secondary"
+              class="ml-1"
+              dense
+              nuxt
+            >
+              <v-tooltip bottom>
+                <template #activator="{ on, attrs }">
+                  <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
+                </template>
+                設定変更
+              </v-tooltip>
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-title>
@@ -63,15 +60,15 @@
 
 <script>
 import Loading from '~/components/Loading.vue'
+import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
-import SpacesUpdate from '~/components/spaces/Update.vue'
 import Application from '~/plugins/application.js'
 
 export default {
   components: {
     Loading,
-    SpacesIcon,
-    SpacesUpdate
+    SpacesDestroyInfo,
+    SpacesIcon
   },
   mixins: [Application],
 

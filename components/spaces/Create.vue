@@ -10,8 +10,8 @@
     </v-btn>
     <v-dialog v-model="dialog" max-width="850px">
       <v-card id="space_create_dialog">
+        <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
-          <Processing v-if="processing" />
           <v-form autocomplete="off">
             <v-toolbar color="primary" dense dark>
               <v-icon dense>mdi-folder-plus</v-icon>
@@ -98,6 +98,7 @@
                         placeholder="ファイルを選択"
                         :prepend-icon="null"
                         show-size
+                        hide-details="auto"
                         :error-messages="errors"
                         @click="waiting = false"
                       />

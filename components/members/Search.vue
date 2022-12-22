@@ -45,7 +45,6 @@
           </div>
           <v-checkbox
             v-for="(value, key) in $t('enums.member.power')"
-            :id="`${key}_check`"
             :key="key"
             v-model="syncQuery.power[key]"
             input-value="1"

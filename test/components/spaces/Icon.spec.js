@@ -2,9 +2,6 @@ import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/spaces/Icon.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Icon.vue', () => {
   const mountFunction = (space) => {
     const localVue = createLocalVue()
@@ -22,18 +19,13 @@ describe('Icon.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, space, visible) => {
-    // console.log(wrapper.html())
     expect(wrapper.find(`#space_private_${space.code}`).exists()).toBe(visible) // 非公開
     expect(wrapper.find(`#space_power_${space.code}`).exists()).toBe(visible) // 権限
     expect(wrapper.find(`#space_destroy_schedule_${space.code}`).exists()).toBe(visible) // 削除予定
   }
 
   // テストケース
-  it('[null]表示されない', () => {
-    const wrapper = mountFunction(null)
-    helper.blankTest(wrapper)
-  })
-  it('[なし]表示されない', () => {
+  it('[未参加スペース]表示されない', () => {
     const space = Object.freeze({
       code: 'code0001',
       private: false
@@ -41,7 +33,7 @@ describe('Icon.vue', () => {
     const wrapper = mountFunction(space)
     viewTest(wrapper, space, false)
   })
-  it('[あり]表示される', () => {
+  it('[参加スペース]表示される', () => {
     const space = Object.freeze({
       code: 'code0001',
       private: true,

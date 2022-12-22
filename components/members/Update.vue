@@ -1,8 +1,8 @@
 <template>
   <v-dialog v-model="dialog" max-width="720px">
     <v-card id="member_update_dialog">
+      <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
-        <Processing v-if="processing" />
         <v-form autocomplete="off">
           <v-toolbar color="primary" dense dark>
             <v-icon dense>mdi-account-edit</v-icon>

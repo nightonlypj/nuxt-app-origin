@@ -77,6 +77,12 @@ module.exports = {
     not_destroy_reserved: '既に取り消し済みか、アカウント削除されていません。',
     forbidden: 'アクセス権限がありません。'
   },
+  alert: {
+    space: {
+      destroy_reserved: 'スペース削除予定の為、この操作はできません。',
+      not_destroy_reserved: '既に取り消し済みか、スペース削除されていません。'
+    }
+  },
   notice: {
     download: {
       status: {

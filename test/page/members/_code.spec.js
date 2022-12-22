@@ -6,7 +6,8 @@ import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ListSetting from '~/components/ListSetting.vue'
 import ListDownload from '~/components/ListDownload.vue'
-import SpacesIcon from '~/components/spaces/Icon.vue'
+import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
+import SpacesTitle from '~/components/spaces/Title.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
 import MembersUpdate from '~/components/members/Update.vue'
@@ -66,7 +67,8 @@ describe('_code.vue', () => {
         Message: true,
         ListSetting: true,
         ListDownload: true,
-        SpacesIcon: true,
+        SpacesDestroyInfo: true,
+        SpacesTitle: true,
         MembersSearch: true,
         MembersCreate: true,
         MembersUpdate: true,
@@ -127,7 +129,7 @@ describe('_code.vue', () => {
   const defaultParams = Object.freeze({
     text: '',
     power: defaultPowers.join(),
-    sort: 'created_at',
+    sort: 'invitationed_at',
     desc: 1
   })
   const defaultQuery = Object.freeze({
@@ -228,6 +230,9 @@ describe('_code.vue', () => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     helper.messageTest(wrapper, Message, values)
 
+    const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
+    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
+
     expect(wrapper.vm.$data.query).toEqual({ ...params, power, desc: params.desc === 1, option: query.option === '1' })
     expect(wrapper.vm.$data.error).toBe(error)
     expect(wrapper.vm.$data.testState).toBe(show.testState)
@@ -236,8 +241,9 @@ describe('_code.vue', () => {
     expect(wrapper.vm.$data.member).toEqual(data.member)
     expect(wrapper.vm.$data.members).toEqual(data.members)
 
-    const spacesIcon = wrapper.findComponent(SpacesIcon)
-    expect(spacesIcon.vm.space).toEqual(wrapper.vm.$data.space)
+    const spacesTitle = wrapper.findComponent(SpacesTitle)
+    expect(spacesTitle.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(spacesTitle.vm.suffixTitle).toEqual('のメンバー')
 
     // 設定
     const listSetting = wrapper.findComponent(ListSetting)

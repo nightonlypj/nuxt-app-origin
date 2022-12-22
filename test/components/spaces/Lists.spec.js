@@ -32,7 +32,7 @@ describe('Lists.vue', () => {
     for (const [index, space] of spaces.entries()) {
       // 名称
       expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
-      expect(links.includes(`/-/${space.code}`)).toBe(true) // スペース詳細
+      expect(links.includes(`/-/${space.code}`)).toBe(true) // スペーストップ
       expect(wrapper.text()).toMatch(space.name)
       expect(spacesIcons.at(index).exists()).toBe(true)
       expect(spacesIcons.at(index).vm.$props.space).toEqual(space)

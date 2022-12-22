@@ -1,5 +1,5 @@
 <template>
-  <span v-if="space != null">
+  <span>
     <v-tooltip v-if="space.private" :id="`space_private_${space.code}`" bottom>
       <template #activator="{ on, attrs }">
         <v-icon dense v-bind="attrs" v-on="on">mdi-lock</v-icon>
@@ -30,7 +30,7 @@ export default {
   props: {
     space: {
       type: Object,
-      default: null
+      required: true
     }
   }
 }

@@ -1,24 +1,27 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
+import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
+import Message from '~/components/Message.vue'
+import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Component from '~/components/spaces/Update.vue'
+import Page from '~/pages/spaces/update/_code.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('Update.vue', () => {
-  let axiosGetMock, authFetchUserMock, axiosPostMock, authRedirectMock, authLogoutMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock
+describe('_code.vue', () => {
+  let axiosGetMock, authFetchUserMock, axiosPostMock, authLogoutMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock, routerPushMock
 
   beforeEach(() => {
     axiosGetMock = null
     axiosPostMock = null
     authFetchUserMock = jest.fn()
-    authRedirectMock = jest.fn()
     authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     nuxtErrorMock = jest.fn()
+    routerPushMock = jest.fn()
   })
 
   const space = Object.freeze({
@@ -40,14 +43,23 @@ describe('Update.vue', () => {
     created_at: '2000-01-01T12:34:56+09:00',
     last_updated_at: '2000-02-01T12:34:56+09:00'
   })
+  const spaceAdmin = Object.freeze({
+    ...space,
+    current_member: {
+      power: 'admin'
+    }
+  })
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
-    const wrapper = mount(Component, {
+    const wrapper = mount(Page, {
       localVue,
       vuetify,
       stubs: {
+        Loading: true,
         Processing: true,
+        Message: true,
+        SpacesDestroyInfo: true,
         UsersAvatar: true
       },
       mocks: {
@@ -59,8 +71,12 @@ describe('Update.vue', () => {
           loggedIn,
           user: { ...user },
           fetchUser: authFetchUserMock,
-          redirect: authRedirectMock,
           logout: authLogoutMock
+        },
+        $route: {
+          params: {
+            code: space.code
+          }
         },
         $toasted: {
           error: toastedErrorMock,
@@ -68,6 +84,9 @@ describe('Update.vue', () => {
         },
         $nuxt: {
           error: nuxtErrorMock
+        },
+        $router: {
+          push: routerPushMock
         }
       }
     })
@@ -76,27 +95,19 @@ describe('Update.vue', () => {
   }
 
   // テスト内容
-  const viewTest = async (wrapper) => {
+  const viewTest = (wrapper) => {
+    expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // スペース設定変更ダイアログ
-    expect(wrapper.find('#space_update_dialog').exists()).toBe(false)
-
-    // ダイアログ表示
-    wrapper.vm.showDialog(space)
-
-    // スペース設定変更ダイアログ
-    await helper.sleep(1)
-    const dialog = wrapper.find('#space_update_dialog')
-    expect(dialog.exists()).toBe(true)
-    expect(dialog.isVisible()).toBe(true) // 表示
+    const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
+    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
 
     // 作成、最終更新
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     expect(usersAvatars.at(0).vm.$props.user).toBe(space.created_user)
     expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(space.created_at, 'ja'))
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(space.last_updated_at, 'ja'))
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(space.created_at, 'ja'))
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(space.last_updated_at, 'ja'))
 
     // 表示
     const privateFalse = wrapper.find('#private_false')
@@ -114,67 +125,56 @@ describe('Update.vue', () => {
     expect(imageDelete.element.checked).toBe(false) // 未選択
 
     // 変更ボタン
-    const submitButton = wrapper.find('#space_update_submit_btn')
+    const submitButton = wrapper.find('#space_update_btn')
     expect(submitButton.exists()).toBe(true)
     expect(submitButton.vm.disabled).toBe(true) // 無効
 
-    // キャンセルボタン
-    const cancelButton = wrapper.find('#space_update_cancel_btn')
-    expect(cancelButton.exists()).toBe(true)
-    expect(cancelButton.vm.disabled).toBe(false) // 有効
-    cancelButton.trigger('click')
-
-    // スペース設定変更ダイアログ
-    await helper.sleep(1)
-    expect(dialog.isVisible()).toBe(false) // 非表示
+    const links = helper.getLinks(wrapper)
+    expect(links.includes(`/spaces/delete/${space.code}`)).toBe(true) // スペース削除
   }
 
   // テストケース
-  it('[未ログイン]ログインページにリダイレクトされる', async () => {
+  it('[未ログイン]ログインページにリダイレクトされる', () => {
     const wrapper = mountFunction(false)
-
-    // ダイアログ表示
-    wrapper.vm.showDialog(space)
+    helper.loadingTest(wrapper, Loading)
+    expect(wrapper.findComponent(Loading).exists()).toBe(true) // NOTE: Jestでmiddlewareが実行されない為
+  })
+  it('[ログイン中（管理者）]表示される', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
+    const wrapper = mountFunction(true, {})
 
     await helper.sleep(1)
-    helper.mockCalledTest(toastedErrorMock, 0)
-    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-    helper.mockCalledTest(authRedirectMock, 1, 'login')
+    viewTest(wrapper)
   })
-  it('[ログイン中]表示される', async () => {
+  it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { space } }))
-    const wrapper = mountFunction(true, {})
-    await viewTest(wrapper)
-  })
-  it('[ログイン中（削除予約済み）]表示されない', async () => {
-    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space } }))
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    mountFunction(true, {})
 
-    // ダイアログ表示
-    wrapper.vm.showDialog(space)
+    await helper.sleep(1)
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
+    helper.mockCalledTest(toastedInfoMock, 0)
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
+  })
+  it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
+    mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
-
-    // スペース設定変更ダイアログ
-    expect(wrapper.find('#space_update_dialog').exists()).toBe(false)
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
   })
 
   describe('スペース詳細取得', () => {
     const beforeAction = async () => {
-      const wrapper = mountFunction()
-
-      // ダイアログ表示
-      wrapper.vm.showDialog(space)
+      mountFunction()
 
       await helper.sleep(1)
       apiCalledTest()
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.spaceDetailUrl.replace(':code', space.code)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', space.code))
     }
 
     it('[データなし]エラーページが表示される', async () => {
@@ -241,24 +241,19 @@ describe('Update.vue', () => {
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceUpdateUrl.replace(':code', space.code), params)
     }
 
-    let wrapper, dialog, button
+    let wrapper, button
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...space } } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...spaceAdmin } } }))
       wrapper = mountFunction()
-      wrapper.vm.showDialog(space)
-
-      // スペース設定変更ダイアログ
-      await helper.sleep(1)
-      dialog = wrapper.find('#space_update_dialog')
-      expect(dialog.isVisible()).toBe(true) // 表示
 
       // 変更
+      await helper.sleep(1)
       wrapper.find('#image_delete').trigger('change')
       wrapper.vm.$data.space = values
 
       // 変更ボタン
       await helper.sleep(1)
-      button = wrapper.find('#space_update_submit_btn')
+      button = wrapper.find('#space_update_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
 
@@ -266,7 +261,7 @@ describe('Update.vue', () => {
       apiCalledTest()
     }
 
-    it('[成功]スペーストップのデータが更新される', async () => {
+    it('[成功]スペーストップにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
@@ -274,8 +269,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      expect(wrapper.emitted().space).toEqual([[data.space]]) // スペース情報更新
-      expect(dialog.isVisible()).toBe(false) // [スペース設定変更ダイアログ]非表示
+      helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
+      helper.messageTest(wrapper, Message, null)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
@@ -285,8 +280,9 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, null)
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -297,8 +293,9 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, null)
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -308,6 +305,7 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
+      helper.messageTest(wrapper, Message, null)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
@@ -318,8 +316,9 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, null)
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
@@ -329,8 +328,9 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, null)
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -340,8 +340,9 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, null)
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
@@ -349,10 +350,11 @@ describe('Update.vue', () => {
 
       helper.mockCalledTest(authFetchUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
-      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, data)
       helper.disabledTest(wrapper, Processing, button, true)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -360,10 +362,11 @@ describe('Update.vue', () => {
 
       helper.mockCalledTest(authFetchUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
+      helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 0)
+      helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [スペース設定変更ダイアログ]表示
     })
   })
 })

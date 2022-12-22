@@ -19,8 +19,8 @@
     </template>
     <template #default="dialog">
       <v-card id="download_dialog">
+        <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
-          <Processing v-if="processing" />
           <v-form autocomplete="off">
             <v-toolbar color="primary" dense dark>
               <v-icon dense>mdi-download</v-icon>

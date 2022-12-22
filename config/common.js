@@ -84,7 +84,11 @@ module.exports = {
   // スペース作成API
   spaceCreateUrl: '/spaces/create.json',
   // スペース設定変更API
-  spaceUpdateUrl: '/spaces/:code/update.json',
+  spaceUpdateUrl: '/spaces/update/:code.json',
+  // スペース削除API
+  spaceDeleteUrl: '/spaces/delete/:code.json',
+  // スペース削除取り消しAPI
+  spaceUndoDeleteUrl: '/spaces/undo_delete/:code.json',
 
   // メンバー一覧API
   membersUrl: '/members/:code.json',

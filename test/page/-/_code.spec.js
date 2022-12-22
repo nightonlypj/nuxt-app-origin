@@ -1,6 +1,7 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Loading from '~/components/Loading.vue'
+import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Page from '~/pages/-/_code.vue'
 
@@ -30,6 +31,7 @@ describe('_code.vue', () => {
       vuetify,
       stubs: {
         Loading: true,
+        SpacesDestroyInfo: true,
         SpacesIcon: true
       },
       mocks: {
@@ -77,6 +79,9 @@ describe('_code.vue', () => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.vm.$data.space).toEqual(data.space)
 
+    const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
+    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
+
     expect(wrapper.find('#space_image').exists()).toBe(true)
     expect(wrapper.text()).toMatch(data.space.name)
 
@@ -92,6 +97,15 @@ describe('_code.vue', () => {
       expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', params.code))
     }
 
+    let wrapper
+    const beforeAction = async (loggedIn = true) => {
+      wrapper = mountFunction(loggedIn)
+      helper.loadingTest(wrapper, Loading)
+
+      await helper.sleep(1)
+      apiCalledTest()
+    }
+
     it('[管理者]表示される（メンバー一覧・設定変更も表示）', async () => {
       const data = Object.freeze({
         space: {
@@ -102,11 +116,8 @@ describe('_code.vue', () => {
         }
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction(true)
 
-      await helper.sleep(1)
-      apiCalledTest()
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(true) // 表示
@@ -121,11 +132,8 @@ describe('_code.vue', () => {
         }
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction(true)
 
-      await helper.sleep(1)
-      apiCalledTest()
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
@@ -133,22 +141,16 @@ describe('_code.vue', () => {
     it('[未参加]表示される（メンバー一覧・設定変更は非表示）', async () => {
       const data = Object.freeze({ space })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction(true)
 
-      await helper.sleep(1)
-      apiCalledTest()
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(false) // 非表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
     })
     it('[データなし]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -156,22 +158,16 @@ describe('_code.vue', () => {
 
     it('[接続エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
     })
     it('[認証エラー][未ログイン]ログインページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(false)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction(false)
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -180,11 +176,8 @@ describe('_code.vue', () => {
     })
     it('[認証エラー][ログイン中]ログインページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction(true)
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
@@ -192,11 +185,8 @@ describe('_code.vue', () => {
     })
     it('[権限エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
-      const wrapper = mountFunction(true)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -204,33 +194,24 @@ describe('_code.vue', () => {
     })
     it('[存在しない]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: helper.locales.system.notfound })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })

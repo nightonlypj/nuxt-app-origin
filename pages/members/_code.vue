@@ -2,23 +2,17 @@
   <div>
     <Loading v-if="loading" />
     <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
+    <SpacesDestroyInfo v-if="!loading" :space="space" />
 
-    <div v-if="createResult != null">
-      <v-tabs v-model="tabPage">
-        <v-tab href="#list">メンバー一覧</v-tab>
-        <v-tab href="#result">メンバー招待（結果）</v-tab>
-      </v-tabs>
-    </div>
+    <v-tabs v-if="!loading" v-model="tabPage">
+      <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
+      <v-tab href="#list">メンバー一覧</v-tab>
+      <v-tab v-if="createResult != null" href="#result">メンバー招待（結果）</v-tab>
+    </v-tabs>
 
     <v-card v-if="!loading">
       <v-card-title>
-        <div v-if="space != null">
-          <v-avatar v-if="space.image_url != null" size="32px">
-            <v-img :src="space.image_url.small" />
-          </v-avatar>
-          <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>のメンバー
-          <SpacesIcon :space="space" />
-        </div>
+        <SpacesTitle :space="space" suffix-title="のメンバー" />
       </v-card-title>
       <v-card-text>
         <v-row>
@@ -144,7 +138,8 @@ import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ListSetting from '~/components/ListSetting.vue'
 import ListDownload from '~/components/ListDownload.vue'
-import SpacesIcon from '~/components/spaces/Icon.vue'
+import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
+import SpacesTitle from '~/components/spaces/Title.vue'
 import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
 import MembersUpdate from '~/components/members/Update.vue'
@@ -161,7 +156,8 @@ export default {
     Message,
     ListSetting,
     ListDownload,
-    SpacesIcon,
+    SpacesDestroyInfo,
+    SpacesTitle,
     MembersSearch,
     MembersCreate,
     MembersUpdate,
@@ -187,10 +183,11 @@ export default {
       reloading: false,
       alert: null,
       notice: null,
+      tabPage: 'list',
       query: {
         text: this.$route?.query?.text || '',
         power,
-        sort: this.$route?.query?.sort || 'created_at',
+        sort: this.$route?.query?.sort || 'invitationed_at',
         desc: this.$route?.query?.desc !== '0',
         option: this.$route?.query?.option === '1'
       },
@@ -204,7 +201,6 @@ export default {
       members: null,
       selectedMembers: [],
       hiddenItems: localStorage.getItem('member.hidden-items')?.split(',') || [],
-      tabPage: 'list',
       createResult: null,
       activeUserCodes: []
     }
