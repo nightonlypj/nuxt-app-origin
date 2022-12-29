@@ -5,11 +5,12 @@
       <Processing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
-        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja', 'N/A') }}以降に削除されます。それまでは取り消し可能です。
-        <div v-if="$auth.user.destroy_requested_at != null">
-          ※{{ $timeFormat($auth.user.destroy_requested_at, 'ja', 'N/A') }}にアカウント削除依頼を受け付けています。
-        </div>
-        <br>
+        <p>
+          このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+          <template v-if="$auth.user.destroy_requested_at != null">
+            （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+          </template>
+        </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
             <v-btn

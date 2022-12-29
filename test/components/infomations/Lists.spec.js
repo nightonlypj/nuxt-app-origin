@@ -36,7 +36,7 @@ describe('Lists.vue', () => {
       if (infomation.summary != null) {
         expect(wrapper.text()).toMatch(infomation.summary) // 概要
       }
-      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(infomation.started_at, 'ja')) // 開始日
+      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', infomation.started_at)) // 開始日
     }
   }
 

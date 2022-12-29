@@ -68,12 +68,17 @@ describe('undo_delete.vue', () => {
     return wrapper
   }
 
+  const userDestroy = Object.freeze({
+    destroy_requested_at: '2000-01-01T12:34:56+09:00',
+    destroy_schedule_at: '2000-01-08T12:34:56+09:00'
+  })
+
   // テスト内容
   const viewTest = (wrapper, user) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(user.destroy_requested_at, 'ja')) // 削除依頼日時
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(user.destroy_schedule_at, 'ja')) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', user.destroy_requested_at)) // 削除依頼日時
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
   }
 
   // テストケース
@@ -101,14 +106,13 @@ describe('undo_delete.vue', () => {
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
   it('[ログイン中（削除予約済み）]表示される', async () => {
-    const user = Object.freeze({ destroy_requested_at: '2000-01-01T12:34:56+09:00', destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
-    const wrapper = mountFunction(true, user)
+    const wrapper = mountFunction(true, userDestroy)
     helper.loadingTest(wrapper, Loading)
 
     await helper.sleep(1)
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
-    viewTest(wrapper, user)
+    viewTest(wrapper, userDestroy)
 
     // 取り消しボタン
     const button = wrapper.find('#user_undo_delete_btn')
@@ -139,14 +143,19 @@ describe('undo_delete.vue', () => {
   })
 
   describe('トークン検証', () => {
-    const user = Object.freeze({ destroy_requested_at: '2000-01-01T12:34:56+09:00', destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
-    it('[接続エラー]エラーページが表示される', async () => {
-      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, user)
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction(true, userDestroy)
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
+    }
+
+    it('[接続エラー]エラーページが表示される', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      await beforeAction()
+
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -154,11 +163,8 @@ describe('undo_delete.vue', () => {
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
@@ -166,11 +172,8 @@ describe('undo_delete.vue', () => {
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -180,7 +183,6 @@ describe('undo_delete.vue', () => {
 
   describe('アカウント削除取り消し', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const user = Object.freeze({ destroy_requested_at: '2000-01-01T12:34:56+09:00', destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl)
@@ -188,12 +190,14 @@ describe('undo_delete.vue', () => {
 
     let wrapper, button
     const beforeAction = async (changeSignOut = false) => {
-      wrapper = mountFunction(true, user)
+      wrapper = mountFunction(true, userDestroy)
 
+      // 取り消しボタン
       await helper.sleep(1)
       button = wrapper.find('#user_undo_delete_btn')
       button.trigger('click')
 
+      // はいボタン
       await helper.sleep(1)
       if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
       wrapper.find('#user_undo_delete_yes_btn').trigger('click')

@@ -2,19 +2,17 @@
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 // 日付を言語のフォーマットで返却
-const dateFormat = (value, locales, defaultValue = null) => {
+const dateFormat = (locales, value, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
-  const dtf = new Intl.DateTimeFormat(locales, { year: 'numeric', month: '2-digit', day: '2-digit' })
-  return dtf.format(new Date(value))
+  return new Date(value).toLocaleString(locales, { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
 // 時間を言語のフォーマットで返却
-const timeFormat = (value, locales, defaultValue = null) => {
+const timeFormat = (locales, value, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
-  const dtf = new Intl.DateTimeFormat(locales, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-  return dtf.format(new Date(value))
+  return new Date(value).toLocaleString(locales, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
 // ページの最初の番号を返却
@@ -32,10 +30,10 @@ const pageLastNumber = (info) => {
 }
 
 // 数値を言語のフォーマットで返却
-const localeString = (value, defaultValue = null) => {
+const localeString = (locales, value, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
 
-  return value.toLocaleString()
+  return value.toLocaleString(locales)
 }
 
 const textTruncate = (text, length) => {
