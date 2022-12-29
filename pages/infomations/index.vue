@@ -7,7 +7,7 @@
       <v-card-text>
         <v-row v-if="existInfomations">
           <v-col class="align-self-center text-no-wrap">
-            {{ $localeString(infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString($pageFirstNumber(infomation), 'N/A') }}-{{ $localeString($pageLastNumber(infomation), 'N/A') }}件を表示</template>
+            {{ $localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString('ja', $pageFirstNumber(infomation), 'N/A') }}-{{ $localeString('ja', $pageLastNumber(infomation), 'N/A') }}件を表示</template>
           </v-col>
           <v-col v-if="enablePagination" class="px-0 py-0">
             <div class="d-flex justify-end">

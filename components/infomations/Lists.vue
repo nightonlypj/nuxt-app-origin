@@ -12,7 +12,7 @@
           </template>
         </span>
         <span class="ml-1">
-          ({{ $dateFormat(infomation.started_at, 'ja', 'N/A') }})
+          ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
         </span>
       </div>
       <!-- eslint-disable-next-line vue/no-v-html -->

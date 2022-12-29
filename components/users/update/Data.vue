@@ -1,87 +1,89 @@
 <template>
-  <validation-observer v-slot="{ invalid }" ref="observer">
+  <div>
     <Processing v-if="processing" />
-    <v-form autocomplete="off">
-      <v-card-text>
-        <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
-          <v-text-field
-            v-model="query.name"
-            label="氏名"
-            prepend-icon="mdi-account"
-            autocomplete="off"
-            counter="32"
-            :error-messages="errors"
-            @input="waiting = false"
-          />
-        </validation-provider>
-        <v-alert v-if="user.unconfirmed_email != null" color="info">
-          確認待ち: {{ user.unconfirmed_email }}<br>
-          <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
-        </v-alert>
-        <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-          <v-text-field
-            v-model="query.email"
-            label="メールアドレス"
-            prepend-icon="mdi-email"
-            autocomplete="off"
-            :error-messages="errors"
-            @input="waiting = false"
-          />
-        </validation-provider>
-        <validation-provider v-slot="{ errors }" name="password" rules="min:8">
-          <v-text-field
-            v-model="query.password"
-            :type="showPassword ? 'text' : 'password'"
-            label="パスワード [8文字以上] (変更する場合のみ)"
-            prepend-icon="mdi-lock"
-            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            autocomplete="new-password"
-            counter
-            :error-messages="errors"
-            @input="waiting = false"
-            @click:append="showPassword = !showPassword"
-          />
-        </validation-provider>
-        <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
-          <v-text-field
-            v-model="query.password_confirmation"
-            :type="showPassword ? 'text' : 'password'"
-            label="パスワード(確認) (変更する場合のみ)"
-            prepend-icon="mdi-lock"
-            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            autocomplete="new-password"
-            counter
-            :error-messages="errors"
-            @input="waiting = false"
-            @click:append="showPassword = !showPassword"
-          />
-        </validation-provider>
-        <validation-provider v-slot="{ errors }" name="current_password" rules="required">
-          <v-text-field
-            v-model="query.current_password"
-            :type="showPassword ? 'text' : 'password'"
-            label="現在のパスワード"
-            prepend-icon="mdi-lock"
-            :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            autocomplete="new-password"
-            counter
-            :error-messages="errors"
-            @input="waiting = false"
-            @click:append="showPassword = !showPassword"
-          />
-        </validation-provider>
-        <v-btn
-          id="user_update_btn"
-          color="primary"
-          class="mt-4"
-          :disabled="invalid || processing || waiting"
-          @click="postUserUpdate()"
-        >
-          変更
-        </v-btn>
-      </v-card-text>
-    </v-form>
-  </validation-observer>
+    <validation-observer v-slot="{ invalid }" ref="observer">
+      <v-form autocomplete="off">
+        <v-card-text>
+          <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
+            <v-text-field
+              v-model="query.name"
+              label="氏名"
+              prepend-icon="mdi-account"
+              autocomplete="off"
+              counter="32"
+              :error-messages="errors"
+              @input="waiting = false"
+            />
+          </validation-provider>
+          <v-alert v-if="user.unconfirmed_email != null" color="info">
+            確認待ち: {{ user.unconfirmed_email }}<br>
+            <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
+          </v-alert>
+          <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+            <v-text-field
+              v-model="query.email"
+              label="メールアドレス"
+              prepend-icon="mdi-email"
+              autocomplete="off"
+              :error-messages="errors"
+              @input="waiting = false"
+            />
+          </validation-provider>
+          <validation-provider v-slot="{ errors }" name="password" rules="min:8">
+            <v-text-field
+              v-model="query.password"
+              :type="showPassword ? 'text' : 'password'"
+              label="パスワード [8文字以上] (変更する場合のみ)"
+              prepend-icon="mdi-lock"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              autocomplete="new-password"
+              counter
+              :error-messages="errors"
+              @input="waiting = false"
+              @click:append="showPassword = !showPassword"
+            />
+          </validation-provider>
+          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
+            <v-text-field
+              v-model="query.password_confirmation"
+              :type="showPassword ? 'text' : 'password'"
+              label="パスワード(確認) (変更する場合のみ)"
+              prepend-icon="mdi-lock"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              autocomplete="new-password"
+              counter
+              :error-messages="errors"
+              @input="waiting = false"
+              @click:append="showPassword = !showPassword"
+            />
+          </validation-provider>
+          <validation-provider v-slot="{ errors }" name="current_password" rules="required">
+            <v-text-field
+              v-model="query.current_password"
+              :type="showPassword ? 'text' : 'password'"
+              label="現在のパスワード"
+              prepend-icon="mdi-lock"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              autocomplete="new-password"
+              counter
+              :error-messages="errors"
+              @input="waiting = false"
+              @click:append="showPassword = !showPassword"
+            />
+          </validation-provider>
+          <v-btn
+            id="user_update_btn"
+            color="primary"
+            class="mt-4"
+            :disabled="invalid || processing || waiting"
+            @click="postUserUpdate()"
+          >
+            変更
+          </v-btn>
+        </v-card-text>
+      </v-form>
+    </validation-observer>
+  </div>
 </template>
 
 <script>

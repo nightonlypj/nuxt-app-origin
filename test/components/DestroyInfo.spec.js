@@ -28,9 +28,9 @@ describe('DestroyInfo.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, user) => {
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes('/users/undo_delete')).toBe(true) // アカウント削除取り消し
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(user.destroy_schedule_at, 'ja')) // 削除予定日
   }
 
   // テストケース

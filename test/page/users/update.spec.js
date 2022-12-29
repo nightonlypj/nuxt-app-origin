@@ -23,7 +23,7 @@ describe('update.vue', () => {
     nuxtErrorMock = jest.fn()
   })
 
-  const mountFunction = (loggedIn, user = null) => {
+  const mountFunction = (loggedIn = true, user = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -70,9 +70,7 @@ describe('update.vue', () => {
 
   const viewTest = (wrapper, user, unconfirmed) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBeNull()
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBeNull()
+    helper.messageTest(wrapper, Message, null)
     expect(wrapper.findComponent(UpdateImage).exists()).toBe(true)
     expect(wrapper.findComponent(UpdateData).exists()).toBe(true)
     expect(wrapper.findComponent(UpdateData).vm.$props.user).toBe(user)
@@ -131,14 +129,19 @@ describe('update.vue', () => {
   })
 
   describe('トークン検証', () => {
-    const user = Object.freeze({ destroy_schedule_at: null })
-    it('[接続エラー]エラーページが表示される', async () => {
-      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, user)
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       helper.mockCalledTest(authFetchUserMock, 1)
+    }
+
+    it('[接続エラー]エラーページが表示される', async () => {
+      authFetchUserMock = jest.fn(() => Promise.reject({ response: null }))
+      await beforeAction()
+
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -146,11 +149,8 @@ describe('update.vue', () => {
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
@@ -158,11 +158,8 @@ describe('update.vue', () => {
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -170,11 +167,8 @@ describe('update.vue', () => {
     })
     it('[その他エラー]エラーページが表示される', async () => {
       authFetchUserMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      helper.mockCalledTest(authFetchUserMock, 1)
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -183,14 +177,19 @@ describe('update.vue', () => {
   })
 
   describe('ユーザー情報詳細取得', () => {
-    const user = Object.freeze({ destroy_schedule_at: null })
-    it('[データなし]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(true, user)
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
 
       await helper.sleep(1)
       apiCalledTest()
+    }
+
+    it('[データなし]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      await beforeAction()
+
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -199,11 +198,8 @@ describe('update.vue', () => {
 
     it('[接続エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -211,11 +207,8 @@ describe('update.vue', () => {
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 1)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
@@ -223,11 +216,8 @@ describe('update.vue', () => {
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -235,11 +225,8 @@ describe('update.vue', () => {
     })
     it('[その他エラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
-      const wrapper = mountFunction(true, user)
-      helper.loadingTest(wrapper, Loading)
+      await beforeAction()
 
-      await helper.sleep(1)
-      apiCalledTest()
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
