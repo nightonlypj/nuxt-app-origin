@@ -32,7 +32,7 @@
               </v-row>
               <v-row v-if="member.last_updated_at || member.last_updated_user">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                  最終更新
+                  更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
                   <span class="align-self-center mr-3">{{ $timeFormat(member.last_updated_at, 'ja', 'N/A') }}</span>
@@ -152,7 +152,7 @@ export default {
     async getMember (member) {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.memberDetailUrl.replace(':code', this.space.code).replace(':user_code', member.user.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.memberDetailUrl.replace(':space_code', this.space.code).replace(':user_code', member.user.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.member == null)) { return }
 
@@ -170,7 +170,7 @@ export default {
     async postMemberUpdate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberUpdateUrl.replace(':code', this.space.code).replace(':user_code', this.member.user.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberUpdateUrl.replace(':space_code', this.space.code).replace(':user_code', this.member.user.code), {
         member: { power: this.member.power }
       })
         .then((response) => {

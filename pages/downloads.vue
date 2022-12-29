@@ -6,7 +6,7 @@
       <v-card-title>ダウンロード結果</v-card-title>
     </v-card>
     <v-card v-if="!loading">
-      <v-card-text>
+      <v-card-text class="pt-0">
         <Processing v-if="reloading" />
         <v-row>
           <v-col class="d-flex align-self-center text-no-wrap">

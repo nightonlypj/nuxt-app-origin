@@ -90,14 +90,23 @@ module.exports = {
   // スペース削除取り消しAPI
   spaceUndoDeleteUrl: '/spaces/undo_delete/:code.json',
 
+  // 招待URL一覧API
+  invitationsUrl: '/invitations/:space_code.json',
+  // 招待URL詳細API
+  invitationDetailUrl: '/invitations/:space_code/detail/:code.json',
+  // 招待URL作成API
+  invitationCreateUrl: '/invitations/:space_code/create.json',
+  // 招待URL設定変更API
+  invitationUpdateUrl: '/invitations/:space_code/update/:code.json',
+
   // メンバー一覧API
-  membersUrl: '/members/:code.json',
+  membersUrl: '/members/:space_code.json',
   // メンバー詳細API
-  memberDetailUrl: '/members/:code/detail/:user_code.json',
+  memberDetailUrl: '/members/:space_code/detail/:user_code.json',
   // メンバー招待API
-  memberCreateUrl: '/members/:code/create.json',
+  memberCreateUrl: '/members/:space_code/create.json',
   // メンバー情報変更API
-  memberUpdateUrl: '/members/:code/update/:user_code.json',
+  memberUpdateUrl: '/members/:space_code/update/:user_code.json',
   // メンバー解除API
-  memberDeleteUrl: '/members/:code/delete.json'
+  memberDeleteUrl: '/members/:space_code/delete.json'
 }

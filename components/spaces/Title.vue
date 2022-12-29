@@ -3,7 +3,7 @@
     <v-avatar v-if="space.image_url != null" :id="`space_image_${space.code}`" size="32px">
       <v-img :src="space.image_url.small" />
     </v-avatar>
-    <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>{{ suffixTitle }}
+    <a :href="`/-/${space.code}`" class="text-decoration-none" style="color: inherit" target="_blank" rel="noopener noreferrer">{{ $textTruncate(space.name, 64) }}</a>
     <SpacesIcon :space="space" />
   </div>
 </template>
@@ -20,10 +20,6 @@ export default {
     space: {
       type: Object,
       required: true
-    },
-    suffixTitle: {
-      type: String,
-      default: null
     }
   }
 }

@@ -4,7 +4,7 @@ import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Title.vue'
 
 describe('Title.vue', () => {
-  const mountFunction = (space, suffixTitle = null) => {
+  const mountFunction = (space) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -14,8 +14,7 @@ describe('Title.vue', () => {
         SpacesIcon: true
       },
       propsData: {
-        space,
-        suffixTitle
+        space
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -23,10 +22,10 @@ describe('Title.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, space, suffixTitle) => {
+  const viewTest = (wrapper, space) => {
     expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
     expect(wrapper.html()).toMatch(`"/-/${space.code}"`) // スペーストップ
-    expect(wrapper.text()).toMatch(space.name + suffixTitle)
+    expect(wrapper.text()).toMatch(space.name)
 
     const spacesIcon = wrapper.findComponent(SpacesIcon)
     expect(spacesIcon.vm.space).toEqual(space)
@@ -41,8 +40,7 @@ describe('Title.vue', () => {
         small: 'https://example.com/images/space/small_noimage.jpg'
       }
     })
-    const suffixTitle = 'のメンバー'
-    const wrapper = mountFunction(space, suffixTitle)
-    viewTest(wrapper, space, suffixTitle)
+    const wrapper = mountFunction(space)
+    viewTest(wrapper, space)
   })
 })

@@ -58,9 +58,11 @@
     </template>
     <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }">
-      <span class="text-no-wrap">{{ $timeFormat(item.invitationed_at, 'ja') }}</span>
+      <div class="text-center">
+        {{ $timeFormat(item.invitationed_at, 'ja') }}
+      </div>
     </template>
-    <!-- 最終更新者 -->
+    <!-- 更新者 -->
     <template #[`header.last_updated_user.name`]="{ header }">
       {{ header.text }}
       <OnlyIcon power="admin" />
@@ -71,13 +73,15 @@
       </div>
       <UsersAvatar v-else :user="item.last_updated_user" />
     </template>
-    <!-- 最終更新日時 -->
+    <!-- 更新日時 -->
     <template #[`header.last_updated_at`]="{ header }">
       {{ header.text }}
       <OnlyIcon power="admin" />
     </template>
     <template #[`item.last_updated_at`]="{ item }">
-      <span class="text-no-wrap">{{ $timeFormat(item.last_updated_at, 'ja') }}</span>
+      <div class="text-center">
+        {{ $timeFormat(item.last_updated_at, 'ja') }}
+      </div>
     </template>
   </v-data-table>
 </template>

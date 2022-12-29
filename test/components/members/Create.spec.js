@@ -128,7 +128,7 @@ describe('Create.vue', () => {
     const values = Object.freeze({ emails: 'user1@example.com', power: 'admin' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':code', space.code), {
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':space_code', space.code), {
         member: values
       })
     }

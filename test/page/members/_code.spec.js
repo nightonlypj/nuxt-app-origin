@@ -216,7 +216,7 @@ describe('_code.vue', () => {
   // テスト内容
   const apiCalledTest = (count, params, page = count) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    const url = helper.commonConfig.membersUrl.replace(':code', space.code)
+    const url = helper.commonConfig.membersUrl.replace(':space_code', space.code)
     expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + url, {
       params: {
         ...params,
@@ -243,7 +243,6 @@ describe('_code.vue', () => {
 
     const spacesTitle = wrapper.findComponent(SpacesTitle)
     expect(spacesTitle.vm.space).toEqual(wrapper.vm.$data.space)
-    expect(spacesTitle.vm.suffixTitle).toEqual('のメンバー')
 
     // 設定
     const listSetting = wrapper.findComponent(ListSetting)

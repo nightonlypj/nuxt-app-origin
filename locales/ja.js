@@ -33,15 +33,21 @@ module.exports = {
     }
   },
   items: {
-    download: [
-      { text: '依頼日時', value: 'requested_at' },
-      { text: 'ステータス', value: 'status' },
-      { text: 'ファイル', value: 'file' },
-      { text: '対象・形式等', value: 'target' }
-    ],
     space: [
       { text: '名称', value: 'name', required: true },
       { text: '説明', value: 'description', required: false }
+    ],
+    invitation: [
+      { text: 'メールアドレス', value: 'email', required: true },
+      { text: '権限', value: 'power', required: false },
+      { text: '期限', value: 'ended_at', required: false },
+      { text: 'ステータス', value: 'status', required: true },
+      { text: '招待URL', value: 'code', required: true },
+      { text: 'メモ', value: 'memo', required: false },
+      { text: '作成者', value: 'created_user.name', required: false },
+      { text: '作成日時', value: 'created_at', required: false },
+      { text: '更新者', value: 'last_updated_user.name', required: false },
+      { text: '更新日時', value: 'last_updated_at', required: false }
     ],
     member: [
       { text: 'メンバー', value: 'user.name', required: true, adminOnly: false },
@@ -49,8 +55,14 @@ module.exports = {
       { text: '権限', value: 'power', required: false, adminOnly: false },
       { text: '招待者', value: 'invitationed_user.name', required: false, adminOnly: true },
       { text: '招待日時', value: 'invitationed_at', required: false, adminOnly: false },
-      { text: '最終更新者', value: 'last_updated_user.name', required: false, adminOnly: true },
-      { text: '最終更新日時', value: 'last_updated_at', required: false, adminOnly: true }
+      { text: '更新者', value: 'last_updated_user.name', required: false, adminOnly: true },
+      { text: '更新日時', value: 'last_updated_at', required: false, adminOnly: true }
+    ],
+    download: [
+      { text: '依頼日時', value: 'requested_at' },
+      { text: 'ステータス', value: 'status' },
+      { text: 'ファイル', value: 'file' },
+      { text: '対象・形式等', value: 'target' }
     ]
   },
   network: {
@@ -84,6 +96,9 @@ module.exports = {
     }
   },
   notice: {
+    invitation: {
+      copy: 'クリップボードにコピーしました。'
+    },
     download: {
       status: {
         waiting: 'ダウンロードファイルの作成を開始しました。完了まで暫くお待ちください。',

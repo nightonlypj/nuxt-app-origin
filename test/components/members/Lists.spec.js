@@ -64,10 +64,10 @@ describe('Lists.vue', () => {
       expect(wrapper.text()).not.toMatch('招待日時')
     }
     if (show.optional && show.admin) {
-      expect(wrapper.text()).toMatch('最終更新者')
+      expect(wrapper.text()).toMatch('更新者')
       expect(wrapper.text()).toMatch('更新日時')
     } else {
-      expect(wrapper.text()).not.toMatch('最終更新者')
+      expect(wrapper.text()).not.toMatch('更新者')
       expect(wrapper.text()).not.toMatch('更新日時')
     }
 
@@ -116,13 +116,13 @@ describe('Lists.vue', () => {
           expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
         }
       }
-      // 最終更新者
+      // 更新者
       if (show.optional && show.admin) {
         expect(usersAvatars.at(index).exists()).toBe(true)
         expect(usersAvatars.at(index).vm.$props.user).toEqual(member.last_updated_user || null)
         index += 1
       }
-      // 最終更新日時
+      // 更新日時
       if (member.last_updated_at != null) {
         if (show.optional && show.admin) {
           expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))

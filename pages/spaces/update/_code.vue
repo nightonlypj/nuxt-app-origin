@@ -23,7 +23,7 @@
             </v-row>
             <v-row v-if="space.last_updated_at || space.last_updated_user">
               <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                最終更新
+                更新
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
                 <span class="align-self-center mr-3">{{ $timeFormat(space.last_updated_at, 'ja', 'N/A') }}</span>

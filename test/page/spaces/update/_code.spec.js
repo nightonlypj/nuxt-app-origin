@@ -102,7 +102,7 @@ describe('_code.vue', () => {
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
 
-    // 作成、最終更新
+    // 作成、更新
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     expect(usersAvatars.at(0).vm.$props.user).toBe(space.created_user)
     expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)

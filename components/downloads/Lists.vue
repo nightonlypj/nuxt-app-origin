@@ -18,7 +18,9 @@
       <v-icon dense>mdi-arrow-down</v-icon>
     </template>
     <template #[`item.requested_at`]="{ item }">
-      <span class="text-no-wrap">{{ $timeFormat(item.requested_at, 'ja') }}</span>
+      <div class="text-no-wrap">
+        {{ $timeFormat(item.requested_at, 'ja') }}
+      </div>
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
@@ -28,8 +30,13 @@
       {{ item.status_i18n }}
     </template>
     <!-- ファイル -->
+    <template #[`header.file`]="{ header }">
+      <div class="text-center">
+        {{ header.text }}
+      </div>
+    </template>
     <template #[`item.file`]="{ item }">
-      <template v-if="item.status === 'success'">
+      <div v-if="item.status === 'success'" class="text-center">
         <a
           :id="`download_link_${item.id}`"
           class="text-no-wrap"
@@ -39,12 +46,12 @@
           ダウンロード
         </a>
         <div v-if="item.last_downloaded_at" :id="`download_done_${item.id}`">（済み）</div>
-      </template>
+      </div>
     </template>
     <!-- 対象・形式等 -->
     <template #[`item.target`]="{ item }">
       <template v-if="item.model === 'member' && item.space != null && item.space.name != null">
-        {{ $textTruncate(item.space.name, 64) }}のメンバー
+        メンバー: {{ $textTruncate(item.space.name, 64) }}
       </template>
       <template v-else>
         {{ item.model_i18n }}

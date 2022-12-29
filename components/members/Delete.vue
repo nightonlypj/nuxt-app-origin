@@ -91,7 +91,7 @@ export default {
     async postMembersDelete () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':code', this.space.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':space_code', this.space.code), {
         codes: this.selectedMembers.map(member => member.user.code)
       })
         .then((response) => {

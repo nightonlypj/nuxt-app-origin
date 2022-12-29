@@ -12,7 +12,7 @@
 
     <v-card v-if="!loading">
       <v-card-title>
-        <SpacesTitle :space="space" suffix-title="のメンバー" />
+        <SpacesTitle :space="space" />
       </v-card-title>
       <v-card-text>
         <v-row>
@@ -31,6 +31,10 @@
               @result="resultMembers"
               @reload="reloadMembers"
             />
+            <v-btn color="primary" :to="`/invitations/${$route.params.code}`" class="ml-1" nuxt>
+              <v-icon dense>mdi-clipboard-check</v-icon>
+              <span class="ml-1">招待URL</span>
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -208,7 +212,7 @@ export default {
 
   head () {
     return {
-      title: `${this.$textTruncate(this.space?.name, 64)}のメンバー`
+      title: `メンバー: ${this.$textTruncate(this.space?.name, 64)}`
     }
   },
 
@@ -334,7 +338,7 @@ export default {
       }
 
       const redirect = this.member == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':code', this.$route.params.code), {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':space_code', this.$route.params.code), {
         params: {
           ...this.params,
           page: this.page

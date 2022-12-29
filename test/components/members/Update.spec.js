@@ -95,7 +95,7 @@ describe('Update.vue', () => {
     expect(usersAvatars.at(0).vm.user).toEqual(member.user) // 表示
     expect(dialog.text()).toMatch(member.user.email) // メールアドレス
 
-    // 招待、最終更新
+    // 招待、更新
     expect(usersAvatars.at(1).vm.$props.user).toBe(member.invitationed_user)
     expect(usersAvatars.at(2).vm.$props.user).toBe(member.last_updated_user)
     expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
@@ -168,7 +168,7 @@ describe('Update.vue', () => {
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.memberDetailUrl.replace(':code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.memberDetailUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
       expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
@@ -225,7 +225,7 @@ describe('Update.vue', () => {
     const values = Object.freeze({ power: 'writer' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.memberUpdateUrl.replace(':code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.memberUpdateUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
         member: values
       })
