@@ -3,7 +3,7 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
-import ListSetting from '~/components/ListSetting.vue'
+// import ListSetting from '~/components/ListSetting.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Page from '~/pages/spaces/index.vue'
@@ -40,7 +40,7 @@ describe('index.vue', () => {
         InfiniteLoading: true,
         Loading: true,
         Processing: true,
-        ListSetting: true,
+        // ListSetting: true,
         SpacesSearch: true,
         SpacesLists: true
       },
@@ -221,8 +221,8 @@ describe('index.vue', () => {
     expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
 
     // 設定
-    const listSetting = wrapper.findComponent(ListSetting)
-    expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+    // const listSetting = wrapper.findComponent(ListSetting)
+    // expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
 
     // 検索
     const spacesSearch = wrapper.findComponent(SpacesSearch)
@@ -469,6 +469,7 @@ describe('index.vue', () => {
     })
   })
 
+  /*
   describe('表示項目', () => {
     it('null', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
@@ -497,6 +498,7 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
+  */
 
   describe('スペース一覧検索', () => {
     let wrapper

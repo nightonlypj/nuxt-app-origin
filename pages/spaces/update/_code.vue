@@ -17,7 +17,7 @@
                 作成
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3">{{ $timeFormat(space.created_at, 'ja', 'N/A') }}</span>
+                <span class="align-self-center mr-3">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.created_user" />
               </v-col>
             </v-row>
@@ -26,7 +26,7 @@
                 更新
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3">{{ $timeFormat(space.last_updated_at, 'ja', 'N/A') }}</span>
+                <span class="align-self-center mr-3">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.last_updated_user" />
               </v-col>
             </v-row>

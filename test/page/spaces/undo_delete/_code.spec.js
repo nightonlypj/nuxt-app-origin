@@ -78,8 +78,8 @@ describe('_code.vue', () => {
   const viewTest = (wrapper) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(space.destroy_requested_at, 'ja')) // 削除依頼日時
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat(space.destroy_schedule_at, 'ja')) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.destroy_requested_at)) // 削除依頼日時
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
   }
 
   // テストケース

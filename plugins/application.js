@@ -2,6 +2,21 @@ export default {
   computed: {
     appTableHeight () {
       return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
+    },
+
+    appTimeZoneOffset () {
+      return (locales) => {
+        const secZone = new Date().toLocaleString(locales, { second: 'numeric', timeZoneName: 'longOffset' }) // 0 GMT+09:00
+        const zone = secZone.split(' ')[1] // GMT+09:00
+        return (zone.slice(0, 3) === 'GMT') ? zone.slice(3) : zone // +09:00
+      }
+    },
+
+    appTimeZoneShort () {
+      return (locales) => {
+        const secZone = new Date().toLocaleString(locales, { second: 'numeric', timeZoneName: 'short' }) // 0 JST
+        return secZone.split(' ')[1] // JST
+      }
     }
   },
 

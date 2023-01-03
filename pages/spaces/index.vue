@@ -18,16 +18,16 @@
       <v-card-text>
         <v-row>
           <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString(space.total_count, 'N/A') }}件
+            {{ $localeString('ja', space.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
             <div v-if="$auth.loggedIn" class="mr-1">
               <SpacesCreate />
             </div>
-            <ListSetting
+            <!-- ListSetting
               model="space"
               :hidden-items.sync="hiddenItems"
-            />
+            / -->
           </v-col>
         </v-row>
 
@@ -67,7 +67,7 @@ import lodash from 'lodash'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
-import ListSetting from '~/components/ListSetting.vue'
+// import ListSetting from '~/components/ListSetting.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
@@ -78,7 +78,7 @@ export default {
     InfiniteLoading,
     Loading,
     Processing,
-    ListSetting,
+    // ListSetting,
     SpacesSearch,
     SpacesCreate,
     SpacesLists
@@ -113,7 +113,7 @@ export default {
       page: 1,
       space: null,
       spaces: null,
-      hiddenItems: localStorage.getItem('space.hidden-items')?.split(',') || []
+      hiddenItems: [] // localStorage.getItem('space.hidden-items')?.split(',') || []
     }
   },
 

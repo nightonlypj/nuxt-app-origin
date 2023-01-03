@@ -46,11 +46,11 @@
         <v-row>
           <v-col class="d-flex py-2">
             <div class="align-self-center text-no-wrap">
-              {{ $localeString(member.total_count, 'N/A') }}名
+              {{ $localeString('ja', member.total_count, 'N/A') }}名
             </div>
             <div v-if="selectedMembers.length > 0" class="d-flex">
               <div class="align-self-center text-no-wrap ml-4">
-                選択: {{ $localeString(selectedMembers.length) }}名
+                選択: {{ $localeString('ja', selectedMembers.length) }}名
               </div>
               <div v-if="currentMemberAdmin" class="align-self-center ml-2">
                 <MembersDelete

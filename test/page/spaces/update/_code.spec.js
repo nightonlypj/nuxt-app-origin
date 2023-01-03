@@ -106,8 +106,8 @@ describe('_code.vue', () => {
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     expect(usersAvatars.at(0).vm.$props.user).toBe(space.created_user)
     expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(space.created_at, 'ja'))
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(space.last_updated_at, 'ja'))
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.created_at))
+    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.last_updated_at))
 
     // 表示
     const privateFalse = wrapper.find('#private_false')

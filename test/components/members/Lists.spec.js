@@ -111,9 +111,9 @@ describe('Lists.vue', () => {
       // 招待日時
       if (member.invitationed_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
+          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
         }
       }
       // 更新者
@@ -125,9 +125,9 @@ describe('Lists.vue', () => {
       // 更新日時
       if (member.last_updated_at != null) {
         if (show.optional && show.admin) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
+          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
         }
       }
     }

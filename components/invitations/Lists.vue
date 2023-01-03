@@ -35,7 +35,12 @@
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
+      <template v-if="item.status === 'email_joined'">
+        <v-icon :id="`icon_email_joined_${item.id}`" color="info" dense>mdi-information</v-icon>
+        {{ item.status_i18n }}
+      </template>
       <a
+        v-else
         :id="`invitation_update_link_${item.code}`"
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
@@ -48,7 +53,14 @@
     <!-- メールアドレス -->
     <template #[`item.email`]="{ item }">
       <div class="pl-1">
-        *@{{ item.domains }}
+        <div v-if="item.email != null">
+          {{ item.email }}
+        </div>
+        <template v-else>
+          <div v-for="domain in item.domains" :key="domain">
+            *@{{ domain }}
+          </div>
+        </template>
       </div>
     </template>
     <!-- 権限 -->
@@ -61,7 +73,7 @@
     <!-- 期限 -->
     <template #[`item.ended_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat(item.ended_at, 'ja') }}
+        {{ $timeFormat('ja', item.ended_at) }}
       </div>
     </template>
     <!-- 作成者 -->
@@ -78,7 +90,7 @@
     </template>
     <template #[`item.created_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat(item.created_at, 'ja') }}
+        {{ $timeFormat('ja', item.created_at) }}
       </div>
     </template>
     <!-- 更新者 -->
@@ -91,7 +103,7 @@
     <!-- 更新日時 -->
     <template #[`item.last_updated_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat(item.last_updated_at, 'ja') }}
+        {{ $timeFormat('ja', item.last_updated_at) }}
       </div>
     </template>
   </v-data-table>
@@ -141,6 +153,7 @@ export default {
     showUpdate (event, { item }) {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('showUpdate', event.target.innerHTML) }
+      if (item.status === 'email_joined') { return }
 
       this.$emit('showUpdate', item)
     },

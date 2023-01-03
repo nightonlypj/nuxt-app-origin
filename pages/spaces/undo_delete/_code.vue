@@ -12,9 +12,9 @@
       </v-card-title>
       <v-card-text>
         <p>
-          このスペースは{{ $dateFormat(space.destroy_schedule_at, 'ja', 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+          このスペースは{{ $dateFormat('ja', space.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
           <template v-if="space.destroy_requested_at != null">
-            （{{ $timeFormat(space.destroy_requested_at, 'ja') }}にスペース削除依頼を受け付けています）
+            （{{ $timeFormat('ja', space.destroy_requested_at) }}にスペース削除依頼を受け付けています）
           </template>
         </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">

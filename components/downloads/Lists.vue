@@ -19,7 +19,7 @@
     </template>
     <template #[`item.requested_at`]="{ item }">
       <div class="text-no-wrap">
-        {{ $timeFormat(item.requested_at, 'ja') }}
+        {{ $timeFormat('ja', item.requested_at) }}
       </div>
     </template>
     <!-- ステータス -->

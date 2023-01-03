@@ -37,7 +37,7 @@ const localeString = (locales, value, defaultValue = null) => {
 }
 
 const textTruncate = (text, length) => {
-  return text == null || text.length <= length ? text : `${text.substr(0, length)}...`
+  return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
 }
 
 export default (_context, inject) => {

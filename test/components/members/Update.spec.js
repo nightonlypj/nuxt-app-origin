@@ -98,8 +98,8 @@ describe('Update.vue', () => {
     // 招待、更新
     expect(usersAvatars.at(1).vm.$props.user).toBe(member.invitationed_user)
     expect(usersAvatars.at(2).vm.$props.user).toBe(member.last_updated_user)
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(member.invitationed_at, 'ja'))
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat(member.last_updated_at, 'ja'))
+    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
+    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
 
     // 権限
     for (const key in helper.locales.enums.member.power) {

@@ -21,7 +21,7 @@
         <v-row>
           <v-col class="d-flex py-2">
             <div class="align-self-center text-no-wrap">
-              {{ $localeString(invitation.total_count, 'N/A') }}件
+              {{ $localeString('ja', invitation.total_count, 'N/A') }}件
             </div>
           </v-col>
           <v-col class="d-flex justify-end">
@@ -156,7 +156,7 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('reloadInvitations', this.reloading) }
 
-      this.reloading = false
+      this.reloading = true
       this.page = 1
 
       await this.getInvitations()

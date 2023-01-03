@@ -1,6 +1,6 @@
 <template>
   <v-alert v-if="space.destroy_schedule_at != null" type="warning">
-    このスペースは{{ $dateFormat(space.destroy_schedule_at, 'ja', 'N/A') }}以降に削除されます。
+    このスペースは{{ $dateFormat('ja', space.destroy_schedule_at, 'N/A') }}以降に削除されます。
     <NuxtLink v-if="currentMemberAdmin" :to="`/spaces/undo_delete/${space.code}`">取り消しはこちら</NuxtLink>
   </v-alert>
 </template>

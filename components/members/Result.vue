@@ -4,13 +4,13 @@
       N/A
     </div>
     <div v-else class="d-flex align-self-center">
-      {{ $localeString(result.email.count, 'N/A') }}名中
+      {{ $localeString('ja', result.email.count, 'N/A') }}名中
       <v-icon :color="$config.enum.member.createColor.create" class="ml-1" dense>{{ $config.enum.member.createIcon.create }}</v-icon>
-      招待: {{ $localeString(result.email.create_count, 'N/A') }}名
+      招待: {{ $localeString('ja', result.email.create_count, 'N/A') }}名
       <v-icon :color="$config.enum.member.createColor.exist" class="ml-1" dense>{{ $config.enum.member.createIcon.exist }}</v-icon>
-      参加中: {{ $localeString(result.email.exist_count, 'N/A') }}名
+      参加中: {{ $localeString('ja', result.email.exist_count, 'N/A') }}名
       <v-icon :color="$config.enum.member.createColor.notfound" class="ml-1" dense>{{ $config.enum.member.createIcon.notfound }}</v-icon>
-      未登録: {{ $localeString(result.email.notfound_count, 'N/A') }}名
+      未登録: {{ $localeString('ja', result.email.notfound_count, 'N/A') }}名
     </div>
     <v-divider class="my-2" />
     <v-data-table

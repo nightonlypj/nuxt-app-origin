@@ -26,7 +26,7 @@
                   招待
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat(member.invitationed_at, 'ja', 'N/A') }}</span>
+                  <span class="align-self-center mr-3">{{ $timeFormat('ja', member.invitationed_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.invitationed_user" />
                 </v-col>
               </v-row>
@@ -35,7 +35,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat(member.last_updated_at, 'ja', 'N/A') }}</span>
+                  <span class="align-self-center mr-3">{{ $timeFormat('ja', member.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.last_updated_user" />
                 </v-col>
               </v-row>

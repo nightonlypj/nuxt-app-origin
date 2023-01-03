@@ -10,7 +10,7 @@
         <Processing v-if="reloading" />
         <v-row>
           <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString(download.total_count, 'N/A') }}件
+            {{ $localeString('ja', download.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
             <v-btn

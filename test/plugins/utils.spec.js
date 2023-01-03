@@ -18,7 +18,7 @@ describe('utils.js', () => {
       const wrapper = mountFunction(10)
       const now = new Date()
       await wrapper.vm.sleep
-      expect((new Date()) - now + 1).toBeGreaterThan(10)
+      expect(new Date() - now + 1).toBeGreaterThan(10)
     })
   })
 

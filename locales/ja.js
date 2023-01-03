@@ -3,6 +3,13 @@ module.exports = {
   my_name: 'My name',
   my_url: 'https://example.com',
   enums: {
+    invitation: {
+      power: {
+        admin: '管理者',
+        writer: '投稿者',
+        reader: '閲覧者'
+      }
+    },
     member: {
       power: {
         admin: '管理者',
@@ -38,11 +45,11 @@ module.exports = {
       { text: '説明', value: 'description', required: false }
     ],
     invitation: [
-      { text: 'メールアドレス', value: 'email', required: true },
+      { text: '招待URL', value: 'code', required: true },
+      { text: 'ステータス', value: 'status', required: true },
+      { text: 'メールアドレス', value: 'email', required: false },
       { text: '権限', value: 'power', required: false },
       { text: '期限', value: 'ended_at', required: false },
-      { text: 'ステータス', value: 'status', required: true },
-      { text: '招待URL', value: 'code', required: true },
       { text: 'メモ', value: 'memo', required: false },
       { text: '作成者', value: 'created_user.name', required: false },
       { text: '作成日時', value: 'created_at', required: false },
@@ -97,7 +104,10 @@ module.exports = {
   },
   notice: {
     invitation: {
-      copy: 'クリップボードにコピーしました。'
+      copy: {
+        success: 'クリップボードにコピーしました。',
+        failure: 'コピーに失敗しました。'
+      }
     },
     download: {
       status: {

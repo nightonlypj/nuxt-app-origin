@@ -9,7 +9,7 @@
         <template #activator="{ on, attrs }">
           <v-icon dense v-bind="attrs" v-on="on">mdi-delete-clock</v-icon>
         </template>
-        {{ $dateFormat(user.destroy_schedule_at, 'ja', 'N/A') }}以降に削除される予定です。
+        {{ $dateFormat('ja', user.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
       </v-tooltip>
     </template>
     <template v-else>

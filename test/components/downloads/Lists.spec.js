@@ -38,7 +38,7 @@ describe('Lists.vue', () => {
       expect(wrapper.findAll('.row_active').length).toBe(row.active)
       expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
       // 依頼日時
-      expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat(download.requested_at, 'ja'))
+      expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.requested_at))
       // ステータス
       const color = ['success', 'failure'].includes(download.status) ? download.status : 'info'
       expect(wrapper.find(`#icon_${color}_${download.id}`).exists()).toBe(true)
@@ -47,7 +47,7 @@ describe('Lists.vue', () => {
       expect(wrapper.find(`#download_done_${download.id}`).exists()).toBe(download.status === 'success' && download.last_downloaded_at != null)
       // 対象・形式等
       if (download.model === 'member' && download.space != null && download.space.name != null) {
-        expect(wrapper.text()).toMatch(`${download.space.name}のメンバー`)
+        expect(wrapper.text()).toMatch(`メンバー: ${download.space.name}`)
       } else {
         expect(wrapper.text()).toMatch(download.model_i18n || '')
       }

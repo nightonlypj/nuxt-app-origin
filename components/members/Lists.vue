@@ -59,7 +59,7 @@
     <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat(item.invitationed_at, 'ja') }}
+        {{ $timeFormat('ja', item.invitationed_at) }}
       </div>
     </template>
     <!-- 更新者 -->
@@ -80,7 +80,7 @@
     </template>
     <template #[`item.last_updated_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat(item.last_updated_at, 'ja') }}
+        {{ $timeFormat('ja', item.last_updated_at) }}
       </div>
     </template>
   </v-data-table>
