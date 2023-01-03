@@ -65,17 +65,17 @@ export default {
   },
 
   async created () {
-    if (!await this.getInfomationDetail()) { return }
+    if (!await this.getInfomationsDetail()) { return }
 
     this.loading = false
   },
 
   methods: {
     // お知らせ詳細取得
-    async getInfomationDetail () {
+    async getInfomationsDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace(':id', this.$route.params.id))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.detailUrl.replace(':id', this.$route.params.id))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
 

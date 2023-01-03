@@ -11,7 +11,7 @@
           </v-col>
           <v-col v-if="enablePagination" class="px-0 py-0">
             <div class="d-flex justify-end">
-              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomations()" />
+              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
             </div>
           </v-col>
         </v-row>
@@ -24,7 +24,7 @@
         <InfomationsLists v-else :infomations="infomations" />
 
         <div v-if="enablePagination">
-          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomations()" />
+          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
         </div>
       </v-card-text>
     </v-card>
@@ -71,7 +71,7 @@ export default {
   },
 
   async created () {
-    if (!await this.getInfomations()) { return }
+    if (!await this.getInfomationsList()) { return }
 
     if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
       this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
@@ -82,12 +82,12 @@ export default {
 
   methods: {
     // お知らせ一覧取得
-    async getInfomations () {
+    async getInfomationsList () {
       this.processing = true
       let result = false
 
       const redirect = this.infomation == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationsUrl, { params: { page: this.page } })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.listUrl, { params: { page: this.page } })
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation?.current_page !== this.page)) { return }
 
