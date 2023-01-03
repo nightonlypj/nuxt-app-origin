@@ -107,7 +107,7 @@ export default {
   data () {
     return {
       loading: true,
-      processing: true,
+      processing: false,
       waiting: false,
       alert: null,
       notice: null,
@@ -132,7 +132,6 @@ export default {
       return this.appRedirectAlreadyAuth()
     }
 
-    this.processing = false
     this.loading = false
   },
 

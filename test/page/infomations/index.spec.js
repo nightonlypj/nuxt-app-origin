@@ -91,7 +91,7 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (count, page = count) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.infomationsUrl, { params: { page } })
+    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.listUrl, { params: { page } })
   }
 
   const viewTest = (wrapper, data, countView) => {

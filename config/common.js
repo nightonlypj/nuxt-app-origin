@@ -63,12 +63,14 @@ module.exports = {
   // アカウント削除取り消しAPI
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
 
-  // 大切なお知らせ一覧API
-  importantInfomationsUrl: '/infomations/important.json',
-  // お知らせ一覧API
-  infomationsUrl: '/infomations.json',
-  // お知らせ詳細API
-  infomationDetailUrl: '/infomations/:id.json',
+  infomations: {
+    // 大切なお知らせ一覧API
+    importantUrl: '/infomations/important.json',
+    // お知らせ一覧API
+    listUrl: '/infomations.json',
+    // お知らせ詳細API
+    detailUrl: '/infomations/:id.json'
+  },
 
   // ダウンロード結果一覧API
   downloadsUrl: '/downloads.json',

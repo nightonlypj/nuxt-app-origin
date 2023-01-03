@@ -54,14 +54,14 @@ export default {
   },
 
   async created () {
-    await this.getImportantInfomations()
+    await this.getInfomationsImportant()
     this.loading = false
   },
 
   methods: {
     // 大切なお知らせ一覧取得
-    async getImportantInfomations () {
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
+    async getInfomationsImportant () {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.importantUrl)
         .then((response) => {
           this.errorMessage = this.appCheckResponse(response, { returnKey: true })
           if (this.errorMessage != null) { return }

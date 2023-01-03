@@ -73,7 +73,7 @@ describe('_id.vue', () => {
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomationDetailUrl.replace(':id', params.id))
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.detailUrl.replace(':id', params.id))
     }
 
     let wrapper
