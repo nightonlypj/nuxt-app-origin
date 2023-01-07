@@ -17,7 +17,7 @@
               id="downloads_reload_btn"
               color="secondary"
               :disabled="processing || reloading"
-              @click="reloadDownloads()"
+              @click="reloadDownloadsList()"
             >
               <v-tooltip bottom>
                 <template #activator="{ on: tooltip }">
@@ -38,7 +38,7 @@
           <v-divider class="my-2" />
           <DownloadsLists
             :downloads="downloads"
-            @downloadFile="downloadFile"
+            @downloadsFile="downloadsFile"
           />
           <v-divider class="my-2" />
         </template>
@@ -46,7 +46,7 @@
         <InfiniteLoading
           v-if="!reloading && download != null && download.current_page < download.total_pages"
           :identifier="page"
-          @infinite="getNextDownloads"
+          @infinite="getNextDownloadsList"
         >
           <div slot="no-more" />
           <div slot="no-results" />
@@ -108,32 +108,32 @@ export default {
 
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
-    if (!await this.getDownloads()) { return }
+    if (!await this.getDownloadsList()) { return }
 
     this.loading = false
   },
 
   methods: {
     // ダウンロード結果一覧再取得
-    async reloadDownloads () {
+    async reloadDownloadsList () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('reloadDownloads', this.reloading) }
+      if (this.$config.debug) { console.log('reloadDownloadsList', this.reloading) }
 
       this.reloading = true
       this.page = 1
 
-      await this.getDownloads()
+      await this.getDownloadsList()
       this.reloading = false
     },
 
     // 次頁のダウンロード結果一覧取得
-    async getNextDownloads ($state) {
+    async getNextDownloadsList ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextDownloads', this.page + 1, this.processing, this.error) }
+      if (this.$config.debug) { console.log('getNextDownloadsList', this.page + 1, this.processing, this.error) }
       if (this.processing || this.error) { return }
 
       this.page = this.download.current_page + 1
-      if (!await this.getDownloads()) {
+      if (!await this.getDownloadsList()) {
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
@@ -149,12 +149,12 @@ export default {
     },
 
     // ダウンロード結果一覧取得
-    async getDownloads () {
+    async getDownloadsList () {
       this.processing = true
       let result = false
 
       const redirect = this.download == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloadsUrl, { params: { page: this.page } })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloads.listUrl, { params: { page: this.page } })
         .then((response) => {
           if (this.page === 1) {
             this.uid = response.headers?.uid || null
@@ -201,11 +201,11 @@ export default {
     },
 
     // ダウンロード
-    async downloadFile (item) {
+    async downloadsFile (item) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('downloadFile', item) }
+      if (this.$config.debug) { console.log('downloadsFile', item) }
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloadFileUrl.replace(':id', item.id), { responseType: 'blob' })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloads.fileUrl.replace(':id', item.id), { responseType: 'blob' })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

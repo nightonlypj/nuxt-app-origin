@@ -73,44 +73,48 @@ module.exports = {
     // お知らせ詳細API
     detailUrl: '/infomations/:id.json'
   },
-
-  // ダウンロード結果一覧API
-  downloadsUrl: '/downloads.json',
-  // ダウンロードAPI
-  downloadFileUrl: '/downloads/file/:id.json',
-  // ダウンロード依頼API
-  downloadCreateUrl: '/downloads/create.json',
-
-  // スペース一覧API
-  spacesUrl: '/spaces.json',
-  // スペース詳細API
-  spaceDetailUrl: '/-/:code.json',
-  // スペース作成API
-  spaceCreateUrl: '/spaces/create.json',
-  // スペース設定変更API
-  spaceUpdateUrl: '/spaces/update/:code.json',
-  // スペース削除API
-  spaceDeleteUrl: '/spaces/delete/:code.json',
-  // スペース削除取り消しAPI
-  spaceUndoDeleteUrl: '/spaces/undo_delete/:code.json',
-
-  // 招待URL一覧API
-  invitationsUrl: '/invitations/:space_code.json',
-  // 招待URL詳細API
-  invitationDetailUrl: '/invitations/:space_code/detail/:code.json',
-  // 招待URL作成API
-  invitationCreateUrl: '/invitations/:space_code/create.json',
-  // 招待URL設定変更API
-  invitationUpdateUrl: '/invitations/:space_code/update/:code.json',
-
-  // メンバー一覧API
-  membersUrl: '/members/:space_code.json',
-  // メンバー詳細API
-  memberDetailUrl: '/members/:space_code/detail/:user_code.json',
-  // メンバー招待API
-  memberCreateUrl: '/members/:space_code/create.json',
-  // メンバー情報変更API
-  memberUpdateUrl: '/members/:space_code/update/:user_code.json',
-  // メンバー解除API
-  memberDeleteUrl: '/members/:space_code/delete.json'
+  downloads: {
+    // ダウンロード結果一覧API
+    listUrl: '/downloads.json',
+    // ダウンロードAPI
+    fileUrl: '/downloads/file/:id.json',
+    // ダウンロード依頼API
+    createUrl: '/downloads/create.json'
+  },
+  spaces: {
+    // スペース一覧API
+    listUrl: '/spaces.json',
+    // スペース詳細API
+    detailUrl: '/-/:code.json',
+    // スペース作成API
+    createUrl: '/spaces/create.json',
+    // スペース設定変更API
+    updateUrl: '/spaces/update/:code.json',
+    // スペース削除API
+    deleteUrl: '/spaces/delete/:code.json',
+    // スペース削除取り消しAPI
+    undoDeleteUrl: '/spaces/undo_delete/:code.json'
+  },
+  invitations: {
+    // 招待URL一覧API
+    listUrl: '/invitations/:space_code.json',
+    // 招待URL詳細API
+    detailUrl: '/invitations/:space_code/detail/:code.json',
+    // 招待URL作成API
+    createUrl: '/invitations/:space_code/create.json',
+    // 招待URL設定変更API
+    updateUrl: '/invitations/:space_code/update/:code.json'
+  },
+  members: {
+    // メンバー一覧API
+    listUrl: '/members/:space_code.json',
+    // メンバー詳細API
+    detailUrl: '/members/:space_code/detail/:user_code.json',
+    // メンバー招待API
+    createUrl: '/members/:space_code/create.json',
+    // メンバー情報変更API
+    updateUrl: '/members/:space_code/update/:user_code.json',
+    // メンバー解除API
+    deleteUrl: '/members/:space_code/delete.json'
+  }
 }

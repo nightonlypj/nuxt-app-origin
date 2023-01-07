@@ -24,7 +24,7 @@ describe('_code.vue', () => {
     routerPushMock = jest.fn()
   })
 
-  const space = Object.freeze({
+  const defaultSpace = Object.freeze({
     code: 'code0001',
     upload_image: true,
     image_url: {
@@ -37,17 +37,20 @@ describe('_code.vue', () => {
     created_user: {
       code: 'code000000000000000000001'
     },
-    last_updated_user: {
-      code: 'code000000000000000000002'
-    },
-    created_at: '2000-01-01T12:34:56+09:00',
-    last_updated_at: '2000-02-01T12:34:56+09:00'
+    created_at: '2000-01-01T12:34:56+09:00'
   })
   const spaceAdmin = Object.freeze({
-    ...space,
+    ...defaultSpace,
     current_member: {
       power: 'admin'
     }
+  })
+  const spaceUpdated = Object.freeze({
+    ...spaceAdmin,
+    last_updated_user: {
+      code: 'code000000000000000000002'
+    },
+    last_updated_at: '2000-01-02T12:34:56+09:00'
   })
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
@@ -75,7 +78,7 @@ describe('_code.vue', () => {
         },
         $route: {
           params: {
-            code: space.code
+            code: defaultSpace.code
           }
         },
         $toasted: {
@@ -95,7 +98,7 @@ describe('_code.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper) => {
+  const viewTest = (wrapper, space) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -105,9 +108,14 @@ describe('_code.vue', () => {
     // 作成、更新
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     expect(usersAvatars.at(0).vm.$props.user).toBe(space.created_user)
-    expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)
     expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.created_at))
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.last_updated_at))
+    if (space.last_updated_user != null || space.last_updated_at != null) {
+      expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)
+      expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.last_updated_at, 'N/A'))
+      expect(usersAvatars.length).toBe(2)
+    } else {
+      expect(usersAvatars.length).toBe(1)
+    }
 
     // 表示
     const privateFalse = wrapper.find('#private_false')
@@ -120,7 +128,7 @@ describe('_code.vue', () => {
     }
 
     // 画像
-    const imageDelete = wrapper.find('#image_delete')
+    const imageDelete = wrapper.find('#space_image_delete')
     expect(imageDelete.exists()).toBe(true)
     expect(imageDelete.element.checked).toBe(false) // 未選択
 
@@ -139,21 +147,30 @@ describe('_code.vue', () => {
     helper.loadingTest(wrapper, Loading)
     expect(wrapper.findComponent(Loading).exists()).toBe(true) // NOTE: Jestでmiddlewareが実行されない為
   })
-  it('[ログイン中（管理者）]表示される', async () => {
-    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
-    const wrapper = mountFunction(true, {})
+  describe('ログイン中（管理者）', () => {
+    it('[更新なし]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
+      const wrapper = mountFunction(true, {})
 
-    await helper.sleep(1)
-    viewTest(wrapper)
+      await helper.sleep(1)
+      viewTest(wrapper, spaceAdmin)
+    })
+    it('[更新あり]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceUpdated } }))
+      const wrapper = mountFunction(true, {})
+
+      await helper.sleep(1)
+      viewTest(wrapper, spaceUpdated)
+    })
   })
   it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
-    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space } }))
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: defaultSpace } }))
     mountFunction(true, {})
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
     helper.mockCalledTest(toastedInfoMock, 0)
-    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${defaultSpace.code}` })
   })
   it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
@@ -162,10 +179,11 @@ describe('_code.vue', () => {
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
-    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
   })
 
   describe('スペース詳細取得', () => {
+    const space = spaceAdmin
     const beforeAction = async () => {
       mountFunction()
 
@@ -174,7 +192,7 @@ describe('_code.vue', () => {
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', space.code))
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', space.code))
     }
 
     it('[データなし]エラーページが表示される', async () => {
@@ -205,6 +223,16 @@ describe('_code.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
       // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
+    it('[存在しない]エラーページが表示される', async () => {
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: data.alert, notice: data.notice })
+    })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
       await beforeAction()
@@ -226,6 +254,7 @@ describe('_code.vue', () => {
   })
 
   describe('スペース設定変更', () => {
+    const space = spaceAdmin
     const data = Object.freeze({ space, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ ...space, name: '更新スペース1', description: '更新スペース1の説明', private: false, image_delete: true })
     const apiCalledTest = () => {
@@ -238,17 +267,17 @@ describe('_code.vue', () => {
       params.append('space[image_delete]', Number(values.image_delete))
       params.append('space[image]', values.image)
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceUpdateUrl.replace(':code', space.code), params)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.updateUrl.replace(':code', space.code), params)
     }
 
     let wrapper, button
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...spaceAdmin } } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...space } } }))
       wrapper = mountFunction()
 
       // 変更
       await helper.sleep(1)
-      wrapper.find('#image_delete').trigger('change')
+      wrapper.find('#space_image_delete').trigger('change')
       wrapper.vm.$data.space = values
 
       // 変更ボタン

@@ -27,7 +27,7 @@
           <v-col class="d-flex justify-end">
             <InvitationsCreate
               :space="space"
-              @reload="reloadInvitations"
+              @reload="reloadInvitationsList"
             />
             <div class="ml-1">
               <ListSetting
@@ -53,8 +53,7 @@
           <InvitationsLists
             :invitations="invitations"
             :hidden-items="hiddenItems"
-            :active-code="activeCode"
-            @reload="reloadInvitations"
+            @reload="reloadInvitationsList"
             @showUpdate="$refs.update.showDialog($event)"
           />
           <v-divider class="my-2" />
@@ -63,7 +62,7 @@
         <InfiniteLoading
           v-if="!reloading && invitation != null && invitation.current_page < invitation.total_pages"
           :identifier="page"
-          @infinite="getNextInvitations"
+          @infinite="getNextInvitationsList"
         >
           <div slot="no-more" />
           <div slot="no-results" />
@@ -122,8 +121,7 @@ export default {
       invitation: null,
       invitations: null,
       selectedInvitations: [],
-      hiddenItems: localStorage.getItem('invitation.hidden-items')?.split(',') || [],
-      activeCode: []
+      hiddenItems: localStorage.getItem('invitation.hidden-items')?.split(',') || []
     }
   },
 
@@ -145,32 +143,32 @@ export default {
 
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
-    if (!await this.getInvitations()) { return }
+    if (!await this.getInvitationsList()) { return }
 
     this.loading = false
   },
 
   methods: {
     // 招待URL一覧再取得
-    async reloadInvitations () {
+    async reloadInvitationsList () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('reloadInvitations', this.reloading) }
+      if (this.$config.debug) { console.log('reloadInvitationsList', this.reloading) }
 
       this.reloading = true
       this.page = 1
 
-      await this.getInvitations()
+      await this.getInvitationsList()
       this.reloading = false
     },
 
     // 次頁の招待URL一覧取得
-    async getNextInvitations ($state) {
+    async getNextInvitationsList ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextInvitations', this.page + 1, this.processing, this.error) }
+      if (this.$config.debug) { console.log('getNextInvitationsList', this.page + 1, this.processing, this.error) }
       if (this.processing || this.error) { return }
 
       this.page = this.invitation.current_page + 1
-      if (!await this.getInvitations()) {
+      if (!await this.getInvitationsList()) {
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
@@ -186,12 +184,12 @@ export default {
     },
 
     // 招待URL一覧取得
-    async getInvitations () {
+    async getInvitationsList () {
       this.processing = true
       let result = false
 
       const redirect = this.invitation == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.invitationsUrl.replace(':space_code', this.$route.params.code), { params: { page: this.page } })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.invitations.listUrl.replace(':space_code', this.$route.params.code), { params: { page: this.page } })
         .then((response) => {
           if (this.page === 1) {
             this.uid = response.headers?.uid || null
@@ -229,7 +227,6 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('updateInvitation', invitation) }
 
-      this.activeCode = invitation.code
       const index = this.invitations.findIndex(item => item.code === invitation.code)
       if (index < 0) { return }
 

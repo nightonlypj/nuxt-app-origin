@@ -67,7 +67,7 @@ describe('Create.vue', () => {
 
     // 権限
     for (const key in helper.locales.enums.member.power) {
-      const power = wrapper.find(`#power_${key}`)
+      const power = wrapper.find(`#member_power_${key}`)
       expect(power.exists()).toBe(true)
       expect(power.element.checked).toBe(false) // 未選択
     }
@@ -128,7 +128,7 @@ describe('Create.vue', () => {
     const values = Object.freeze({ emails: 'user1@example.com', power: 'admin' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberCreateUrl.replace(':space_code', space.code), {
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.members.createUrl.replace(':space_code', space.code), {
         member: values
       })
     }

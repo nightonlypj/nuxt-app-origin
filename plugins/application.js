@@ -5,18 +5,19 @@ export default {
     },
 
     appTimeZoneOffset () {
-      return (locales) => {
-        const secZone = new Date().toLocaleString(locales, { second: 'numeric', timeZoneName: 'longOffset' }) // 0 GMT+09:00
-        const zone = secZone.split(' ')[1] // GMT+09:00
-        return (zone.slice(0, 3) === 'GMT') ? zone.slice(3) : zone // +09:00
-      }
+      // NOTE: Jestだとエラーになる -> RangeError: Value longOffset out of range for Intl.DateTimeFormat options property timeZoneName
+      // const secZone = new Date().toLocaleString('default', { second: 'numeric', timeZoneName: 'longOffset' }) // 0 GMT+09:00
+      // const result = secZone.match(/GMT([+-][\d]{2}:[\d]{2})/)
+      // return (result != null) ? result[1] : null
+      const offset = new Date().getTimezoneOffset() * -1
+      const offsetAbs = Math.abs(offset)
+      return (offset >= 0 ? '+' : '-') + `0${String(Math.trunc(offsetAbs / 60))}`.slice(-2) + ':' + `0${offsetAbs % 60}`.slice(-2)
     },
 
     appTimeZoneShort () {
-      return (locales) => {
-        const secZone = new Date().toLocaleString(locales, { second: 'numeric', timeZoneName: 'short' }) // 0 JST
-        return secZone.split(' ')[1] // JST
-      }
+      const secZone = new Date().toLocaleString('default', { second: 'numeric', timeZoneName: 'short' }) // 0 JST
+      const result = secZone.match(/\s(.*)$/)
+      return (result != null) ? result[1] : null
     }
   },
 

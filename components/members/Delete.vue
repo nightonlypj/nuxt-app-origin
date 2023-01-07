@@ -78,11 +78,8 @@ export default {
   methods: {
     // ダイアログ表示
     showDialog () {
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
       this.dialog = true
     },
@@ -91,7 +88,7 @@ export default {
     async postMembersDelete () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberDeleteUrl.replace(':space_code', this.space.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.members.deleteUrl.replace(':space_code', this.space.code), {
         codes: this.selectedMembers.map(member => member.user.code)
       })
         .then((response) => {

@@ -94,7 +94,7 @@ describe('_code.vue', () => {
   describe('スペース情報取得', () => {
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', params.code))
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', params.code))
     }
 
     let wrapper

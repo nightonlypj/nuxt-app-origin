@@ -21,20 +21,26 @@ describe('Update.vue', () => {
   })
 
   const space = Object.freeze({ code: 'code0001' })
-  const member = Object.freeze({
+  const memberCreated = Object.freeze({
     user: {
       code: 'code000000000000000000001',
       email: 'user1@example.com'
     },
-    power: 'admin',
+    power: 'admin'
+  })
+  const memberInvitationed = Object.freeze({
+    ...memberCreated,
     invitationed_user: {
       code: 'code000000000000000000001'
     },
+    invitationed_at: '2000-01-01T12:34:56+09:00'
+  })
+  const memberUpdated = Object.freeze({
+    ...memberCreated,
     last_updated_user: {
       code: 'code000000000000000000002'
     },
-    invitationed_at: '2000-01-01T12:34:56+09:00',
-    last_updated_at: '2000-02-01T12:34:56+09:00'
+    last_updated_at: '2000-01-02T12:34:56+09:00'
   })
   const mountFunction = (loggedIn = true, user = {}) => {
     const localVue = createLocalVue()
@@ -74,7 +80,7 @@ describe('Update.vue', () => {
   }
 
   // テスト内容
-  const viewTest = async (wrapper) => {
+  const viewTest = async (wrapper, member) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
     // メンバー情報変更ダイアログ
@@ -96,14 +102,22 @@ describe('Update.vue', () => {
     expect(dialog.text()).toMatch(member.user.email) // メールアドレス
 
     // 招待、更新
-    expect(usersAvatars.at(1).vm.$props.user).toBe(member.invitationed_user)
-    expect(usersAvatars.at(2).vm.$props.user).toBe(member.last_updated_user)
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
-    expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
+    let index = 1
+    if (member.invitationed_user != null || member.invitationed_at != null) {
+      expect(usersAvatars.at(index).vm.$props.user).toBe(member.invitationed_user)
+      expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at, 'N/A'))
+      index += 1
+    }
+    if (member.last_updated_user != null || member.last_updated_at != null) {
+      expect(usersAvatars.at(index).vm.$props.user).toBe(member.last_updated_user)
+      expect(dialog.text()).toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at, 'N/A'))
+      index += 1
+    }
+    expect(usersAvatars.length).toBe(index)
 
     // 権限
     for (const key in helper.locales.enums.member.power) {
-      const power = wrapper.find(`#power_${key}`)
+      const power = wrapper.find(`#member_power_${key}`)
       expect(power.exists()).toBe(true)
       expect(power.element.checked).toBe(key === member.power) // [現在の権限]選択
     }
@@ -129,24 +143,36 @@ describe('Update.vue', () => {
     const wrapper = mountFunction(false)
 
     // ダイアログ表示
-    wrapper.vm.showDialog(member)
+    wrapper.vm.showDialog(memberCreated)
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
   })
-  it('[ログイン中]表示される', async () => {
-    axiosGetMock = jest.fn(() => Promise.resolve({ data: { member } }))
-    const wrapper = mountFunction(true, {})
-    await viewTest(wrapper)
+  describe('ログイン中', () => {
+    it('[招待なし]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: memberCreated } }))
+      const wrapper = mountFunction(true, {})
+      await viewTest(wrapper, memberCreated)
+    })
+    it('[招待あり]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: memberInvitationed } }))
+      const wrapper = mountFunction(true, {})
+      await viewTest(wrapper, memberInvitationed)
+    })
+    it('[更新あり]表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: memberUpdated } }))
+      const wrapper = mountFunction(true, {})
+      await viewTest(wrapper, memberUpdated)
+    })
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
-    axiosGetMock = jest.fn(() => Promise.resolve({ data: { member } }))
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: memberCreated } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
     // ダイアログ表示
-    wrapper.vm.showDialog(member)
+    wrapper.vm.showDialog(memberCreated)
 
     await helper.sleep(1)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
@@ -157,6 +183,7 @@ describe('Update.vue', () => {
   })
 
   describe('メンバー詳細取得', () => {
+    const member = memberCreated
     const beforeAction = async () => {
       const wrapper = mountFunction()
 
@@ -168,7 +195,7 @@ describe('Update.vue', () => {
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.memberDetailUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.members.detailUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
       expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
@@ -221,11 +248,12 @@ describe('Update.vue', () => {
   })
 
   describe('メンバー情報変更', () => {
+    const member = memberCreated
     const data = Object.freeze({ member, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const values = Object.freeze({ power: 'writer' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.memberUpdateUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.members.updateUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
         member: values
       })
@@ -243,7 +271,7 @@ describe('Update.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 変更
-      wrapper.find(`#power_${values.power}`).trigger('change')
+      wrapper.find(`#member_power_${values.power}`).trigger('change')
 
       // 変更ボタン
       await helper.sleep(1)

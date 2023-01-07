@@ -22,14 +22,14 @@
               :processing="processing || reloading"
               :query.sync="query"
               :admin="currentMemberAdmin"
-              @search="searchMembers"
+              @search="searchMembersList"
             />
           </v-col>
           <v-col v-if="currentMemberAdmin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
             <MembersCreate
               :space="space"
               @result="resultMembers"
-              @reload="reloadMembers"
+              @reload="reloadMembersList"
             />
             <v-btn color="primary" :to="`/invitations/${$route.params.code}`" class="ml-1" nuxt>
               <v-icon dense>mdi-clipboard-check</v-icon>
@@ -59,7 +59,7 @@
                   @alert="alert = $event"
                   @notice="notice = $event"
                   @clear="selectedMembers = []"
-                  @reload="reloadMembers"
+                  @reload="reloadMembersList"
                 />
               </div>
             </div>
@@ -105,7 +105,7 @@
             :hidden-items="hiddenItems"
             :active-user-codes="activeUserCodes"
             :current-member-admin="currentMemberAdmin"
-            @reload="reloadMembers"
+            @reload="reloadMembersList"
             @showUpdate="$refs.update.showDialog($event)"
           />
           <v-divider class="my-2" />
@@ -114,7 +114,7 @@
         <InfiniteLoading
           v-if="!reloading && member != null && member.current_page < member.total_pages"
           :identifier="page"
-          @infinite="getNextMembers"
+          @infinite="getNextMembersList"
         >
           <div slot="no-more" />
           <div slot="no-results" />
@@ -231,27 +231,27 @@ export default {
 
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
-    if (!await this.getMembers()) { return }
+    if (!await this.getMembersList()) { return }
 
     this.loading = false
   },
 
   methods: {
     // メンバー一覧検索
-    async searchMembers () {
+    async searchMembersList () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('searchMembers') }
+      if (this.$config.debug) { console.log('searchMembersList') }
 
       this.params = null
-      if (!await this.reloadMembers()) {
+      if (!await this.reloadMembersList()) {
         this.$refs.search.error()
       }
     },
 
     // メンバー一覧再取得
-    async reloadMembers ($event = {}) {
+    async reloadMembersList ($event = {}) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('reloadMembers', $event, this.reloading) }
+      if (this.$config.debug) { console.log('reloadMembersList', $event, this.reloading) }
 
       if (Object.keys($event).length >= 0) {
         if ($event.sort != null) { this.query.sort = $event.sort }
@@ -287,7 +287,7 @@ export default {
       this.reloading = true
 
       this.page = 1
-      const result = await this.getMembers()
+      const result = await this.getMembersList()
 
       let power = ''
       for (const key in this.query.power) {
@@ -299,13 +299,13 @@ export default {
     },
 
     // 次頁のメンバー一覧取得
-    async getNextMembers ($state) {
+    async getNextMembersList ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextMembers', this.page + 1, this.processing, this.error) }
+      if (this.$config.debug) { console.log('getNextMembersList', this.page + 1, this.processing, this.error) }
       if (this.processing || this.error) { return }
 
       this.page = this.member.current_page + 1
-      if (!await this.getMembers()) {
+      if (!await this.getMembersList()) {
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
@@ -321,7 +321,7 @@ export default {
     },
 
     // メンバー一覧取得
-    async getMembers () {
+    async getMembersList () {
       this.processing = true
       let result = false
 
@@ -338,7 +338,7 @@ export default {
       }
 
       const redirect = this.member == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.membersUrl.replace(':space_code', this.$route.params.code), {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.members.listUrl.replace(':space_code', this.$route.params.code), {
         params: {
           ...this.params,
           page: this.page

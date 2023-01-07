@@ -92,17 +92,17 @@ export default {
   },
 
   async created () {
-    if (!await this.getSpace()) { return }
+    if (!await this.getSpacesDetail()) { return }
 
     this.loading = false
   },
 
   methods: {
     // スペース情報取得
-    async getSpace () {
+    async getSpacesDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaceDetailUrl.replace(':code', this.$route.params.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.detailUrl.replace(':code', this.$route.params.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.space == null)) { return }
 

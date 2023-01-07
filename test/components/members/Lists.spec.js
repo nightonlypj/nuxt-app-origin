@@ -103,10 +103,14 @@ describe('Lists.vue', () => {
         expect(wrapper.text()).not.toMatch(member.power_i18n)
       }
       // 招待者
-      if (show.optional && show.admin) {
-        expect(usersAvatars.at(index).exists()).toBe(true)
-        expect(usersAvatars.at(index).vm.$props.user).toEqual(member.invitationed_user || null)
-        index += 1
+      if (show.optional && show.admin && member.invitationed_user != null) {
+        if (member.invitationed_user.deleted) {
+          expect(wrapper.text()).toMatch('N/A')
+        } else {
+          expect(usersAvatars.at(index).exists()).toBe(true)
+          expect(usersAvatars.at(index).vm.$props.user).toEqual(member.invitationed_user)
+          index += 1
+        }
       }
       // 招待日時
       if (member.invitationed_at != null) {
@@ -117,10 +121,14 @@ describe('Lists.vue', () => {
         }
       }
       // 更新者
-      if (show.optional && show.admin) {
-        expect(usersAvatars.at(index).exists()).toBe(true)
-        expect(usersAvatars.at(index).vm.$props.user).toEqual(member.last_updated_user || null)
-        index += 1
+      if (show.optional && show.admin && member.last_updated_user != null) {
+        if (member.last_updated_user.deleted) {
+          expect(wrapper.text()).toMatch('N/A')
+        } else {
+          expect(usersAvatars.at(index).exists()).toBe(true)
+          expect(usersAvatars.at(index).vm.$props.user).toEqual(member.last_updated_user)
+          index += 1
+        }
       }
       // 更新日時
       if (member.last_updated_at != null) {
@@ -131,6 +139,7 @@ describe('Lists.vue', () => {
         }
       }
     }
+    expect(usersAvatars.length).toBe(index)
   }
 
   // テストケース
@@ -142,8 +151,25 @@ describe('Lists.vue', () => {
     const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
-  describe('2件', () => {
+  describe('3件', () => {
     const members = Object.freeze([
+      {
+        user: {
+          code: 'code000000000000000000003',
+          name: 'user3の氏名',
+          email: 'user3@example.com'
+        },
+        power: 'reader',
+        power_i18n: '閲覧者',
+        invitationed_user: {
+          deleted: true
+        },
+        last_updated_user: {
+          deleted: true
+        },
+        invitationed_at: '2000-03-01T12:34:56+09:00',
+        last_updated_at: '2000-03-02T12:34:56+09:00'
+      },
       {
         user: {
           code: 'code000000000000000000002',
@@ -155,11 +181,11 @@ describe('Lists.vue', () => {
         invitationed_user: {
           name: 'user1の氏名'
         },
-        invitationed_at: '2000-01-02T12:34:56+09:00',
         last_updated_user: {
           name: 'user2の氏名'
         },
-        last_updated_at: '2000-01-03T12:34:56+09:00'
+        invitationed_at: '2000-02-01T12:34:56+09:00',
+        last_updated_at: '2000-02-02T12:34:56+09:00'
       },
       {
         user: {

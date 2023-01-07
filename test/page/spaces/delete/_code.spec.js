@@ -164,7 +164,7 @@ describe('_code.vue', () => {
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDetailUrl.replace(':code', space.code))
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', space.code))
     }
 
     it('[データなし]エラーページが表示される', async () => {
@@ -219,7 +219,7 @@ describe('_code.vue', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceDeleteUrl.replace(':code', space.code))
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.deleteUrl.replace(':code', space.code))
     }
 
     let wrapper, button

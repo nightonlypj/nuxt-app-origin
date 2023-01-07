@@ -146,7 +146,7 @@
                 id="download_submit_btn"
                 color="primary"
                 :disabled="processing || invalid || waiting"
-                @click="postDownloadCreate(dialog)"
+                @click="postDownloadsCreate(dialog)"
               >
                 ダウンロード
               </v-btn>
@@ -272,10 +272,10 @@ export default {
     },
 
     // ダウンロード依頼
-    async postDownloadCreate ($dialog) {
+    async postDownloadsCreate ($dialog) {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.downloadCreateUrl, {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.downloads.createUrl, {
         download: {
           model: this.model,
           space_code: this.space?.code || null,

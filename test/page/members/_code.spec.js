@@ -40,11 +40,7 @@ describe('_code.vue', () => {
   })
 
   const space = Object.freeze({
-    code: 'code0001',
-    image_url: {
-      small: 'https://example.com/images/space/small_noimage.jpg'
-    },
-    name: 'スペース1'
+    code: 'code0001'
   })
   const adminSpace = Object.freeze({
     ...space,
@@ -216,7 +212,7 @@ describe('_code.vue', () => {
   // テスト内容
   const apiCalledTest = (count, params, page = count) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    const url = helper.commonConfig.membersUrl.replace(':space_code', space.code)
+    const url = helper.commonConfig.members.listUrl.replace(':space_code', space.code)
     expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + url, {
       params: {
         ...params,
@@ -264,6 +260,7 @@ describe('_code.vue', () => {
       expect(membersCreate.exists()).toBe(true)
       expect(membersCreate.vm.space).toEqual(wrapper.vm.$data.space)
       expect(membersUpdate.exists()).toBe(true)
+      expect(membersUpdate.vm.space).toEqual(wrapper.vm.$data.space)
       expect(listDownload.exists()).toBe(true)
       expect(listDownload.vm.model).toBe('member')
       expect(listDownload.vm.space).toEqual(wrapper.vm.$data.space)
@@ -347,13 +344,13 @@ describe('_code.vue', () => {
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, data, '', true)
       })
       it('[管理者以外]表示される（招待・変更・ダウンロードを除く）', async () => {
-        axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
+        axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
 
         await helper.sleep(1)
         apiCalledTest(1, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount1, '', false)
+        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount0, '', false)
       })
     })
     describe('1件', () => {
@@ -687,7 +684,7 @@ describe('_code.vue', () => {
         desc: findParams.desc === 1,
         option: findQuery.option === '1'
       }
-      await wrapper.vm.searchMembers()
+      await wrapper.vm.searchMembersList()
 
       await helper.sleep(1)
       apiCalledTest(2, findParams, 1)
@@ -718,6 +715,7 @@ describe('_code.vue', () => {
       helper.mockCalledTest(routerPushMock, 1, { query: findQuery })
     })
   })
+
   describe('処理', () => {
     let wrapper
     const beforeAction = async () => {

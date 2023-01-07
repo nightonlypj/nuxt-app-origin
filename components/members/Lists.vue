@@ -51,10 +51,12 @@
       <OnlyIcon power="admin" />
     </template>
     <template #[`item.invitationed_user.name`]="{ item }">
-      <div v-if="item.invitationed_user != null && item.invitationed_user.deleted" class="text-center">
-        N/A
-      </div>
-      <UsersAvatar v-else :user="item.invitationed_user" />
+      <template v-if="item.invitationed_user != null">
+        <div v-if="item.invitationed_user.deleted" class="text-center">
+          N/A
+        </div>
+        <UsersAvatar v-else :user="item.invitationed_user" />
+      </template>
     </template>
     <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }">
@@ -68,10 +70,12 @@
       <OnlyIcon power="admin" />
     </template>
     <template #[`item.last_updated_user.name`]="{ item }">
-      <div v-if="item.last_updated_user != null && item.last_updated_user.deleted" class="text-center">
-        N/A
-      </div>
-      <UsersAvatar v-else :user="item.last_updated_user" />
+      <template v-if="item.last_updated_user != null">
+        <div v-if="item.last_updated_user.deleted" class="text-center">
+          N/A
+        </div>
+        <UsersAvatar v-else :user="item.last_updated_user" />
+      </template>
     </template>
     <!-- 更新日時 -->
     <template #[`header.last_updated_at`]="{ header }">

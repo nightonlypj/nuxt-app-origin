@@ -21,7 +21,7 @@
                   </div>
                 </v-col>
               </v-row>
-              <v-row v-if="member.invitationed_at || member.invitationed_user">
+              <v-row v-if="member.invitationed_at != null || member.invitationed_user != null">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
                   招待
                 </v-col>
@@ -30,7 +30,7 @@
                   <UsersAvatar :user="member.invitationed_user" />
                 </v-col>
               </v-row>
-              <v-row v-if="member.last_updated_at || member.last_updated_user">
+              <v-row v-if="member.last_updated_at != null || member.last_updated_user != null">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
                   更新
                 </v-col>
@@ -60,7 +60,7 @@
                     >
                       <v-radio
                         v-for="(value, key) in $t('enums.member.power')"
-                        :id="`power_${key}`"
+                        :id="`member_power_${key}`"
                         :key="key"
                         :label="value"
                         :value="key"
@@ -77,7 +77,7 @@
               id="member_update_submit_btn"
               color="primary"
               :disabled="invalid || processing || waiting"
-              @click="postMemberUpdate()"
+              @click="postMembersUpdate()"
             >
               変更
             </v-btn>
@@ -136,23 +136,20 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('showDialog', member) }
 
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
-      if (!await this.getMember(member)) { return }
+      if (!await this.getMembersDetail(member)) { return }
 
       this.waiting = true
       this.dialog = true
     },
 
     // メンバー詳細取得
-    async getMember (member) {
+    async getMembersDetail (member) {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.memberDetailUrl.replace(':space_code', this.space.code).replace(':user_code', member.user.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.members.detailUrl.replace(':space_code', this.space.code).replace(':user_code', member.user.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.member == null)) { return }
 
@@ -167,10 +164,10 @@ export default {
     },
 
     // メンバー情報変更
-    async postMemberUpdate () {
+    async postMembersUpdate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberUpdateUrl.replace(':space_code', this.space.code).replace(':user_code', this.member.user.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.members.updateUrl.replace(':space_code', this.space.code).replace(':user_code', this.member.user.code), {
         member: { power: this.member.power }
       })
         .then((response) => {

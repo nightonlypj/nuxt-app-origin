@@ -36,7 +36,7 @@
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
       <template v-if="item.status === 'email_joined'">
-        <v-icon :id="`icon_email_joined_${item.id}`" color="info" dense>mdi-information</v-icon>
+        <v-icon :id="`invitation_icon_email_joined_${item.code}`" color="info" dense>mdi-information</v-icon>
         {{ item.status_i18n }}
       </template>
       <a
@@ -45,8 +45,8 @@
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
       >
-        <v-icon v-if="item.status === 'active'" :id="`icon_active_${item.id}`" color="success" dense>mdi-check-circle</v-icon>
-        <v-icon v-else :id="`icon_inactive_${item.id}`" color="error" dense>mdi-alert</v-icon>
+        <v-icon v-if="item.status === 'active'" :id="`invitation_icon_active_${item.code}`" color="success" dense>mdi-check-circle</v-icon>
+        <v-icon v-else :id="`invitation_icon_inactive_${item.code}`" color="error" dense>mdi-alert</v-icon>
         {{ item.status_i18n }}
       </a>
     </template>
@@ -78,10 +78,12 @@
     </template>
     <!-- 作成者 -->
     <template #[`item.created_user.name`]="{ item }">
-      <div v-if="item.created_user != null && item.created_user.deleted" class="text-center">
-        N/A
-      </div>
-      <UsersAvatar v-else :user="item.created_user" />
+      <template v-if="item.created_user != null">
+        <div v-if="item.created_user.deleted" class="text-center">
+          N/A
+        </div>
+        <UsersAvatar v-else :user="item.created_user" />
+      </template>
     </template>
     <!-- 作成日時 -->
     <template #[`header.created_at`]="{ header }">
@@ -95,10 +97,12 @@
     </template>
     <!-- 更新者 -->
     <template #[`item.last_updated_user.name`]="{ item }">
-      <div v-if="item.last_updated_user != null && item.last_updated_user.deleted" class="text-center">
-        N/A
-      </div>
-      <UsersAvatar v-else :user="item.last_updated_user" />
+      <template v-if="item.last_updated_user != null">
+        <div v-if="item.last_updated_user.deleted" class="text-center">
+          N/A
+        </div>
+        <UsersAvatar v-else :user="item.last_updated_user" />
+      </template>
     </template>
     <!-- 更新日時 -->
     <template #[`item.last_updated_at`]="{ item }">
@@ -161,9 +165,9 @@ export default {
     copyInvitationURL (code) {
       navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
         .then(() => {
-          this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy.success') })
+          this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy_success') })
         }, () => {
-          this.appSetToastedMessage({ alert: this.$t('notice.invitation.copy.failure') })
+          this.appSetToastedMessage({ alert: this.$t('alert.invitation.copy_failure') })
         })
     }
   }

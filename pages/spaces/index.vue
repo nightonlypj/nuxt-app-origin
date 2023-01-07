@@ -8,7 +8,7 @@
           ref="search"
           :processing="processing || reloading"
           :query.sync="query"
-          @search="searchSpaces"
+          @search="searchSpacesList"
         />
       </v-card-text>
     </v-card>
@@ -48,7 +48,7 @@
         <InfiniteLoading
           v-if="!reloading && space != null && space.current_page < space.total_pages"
           :identifier="page"
-          @infinite="getNextSpaces"
+          @infinite="getNextSpacesList"
         >
           <div slot="no-more" />
           <div slot="no-results" />
@@ -130,27 +130,27 @@ export default {
   },
 
   async created () {
-    if (!await this.getSpaces()) { return }
+    if (!await this.getSpacesList()) { return }
 
     this.loading = false
   },
 
   methods: {
     // スペース一覧検索
-    async searchSpaces () {
+    async searchSpacesList () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('searchSpaces') }
+      if (this.$config.debug) { console.log('searchSpacesList') }
 
       this.params = null
-      if (!await this.reloadSpaces()) {
+      if (!await this.reloadSpacesList()) {
         this.$refs.search.error()
       }
     },
 
     // スペース一覧再取得
-    async reloadSpaces () {
+    async reloadSpacesList () {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('reloadSpaces', this.reloading) }
+      if (this.$config.debug) { console.log('reloadSpacesList', this.reloading) }
 
       // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
       let count = 0
@@ -170,7 +170,7 @@ export default {
       this.reloading = true
 
       this.page = 1
-      const result = await this.getSpaces()
+      const result = await this.getSpacesList()
 
       let publicQuery = {}
       if (this.$config.enablePublicSpace) {
@@ -195,13 +195,13 @@ export default {
     },
 
     // 次頁のスペース一覧取得
-    async getNextSpaces ($state) {
+    async getNextSpacesList ($state) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextSpaces', this.page + 1, this.processing, this.error) }
+      if (this.$config.debug) { console.log('getNextSpacesList', this.page + 1, this.processing, this.error) }
       if (this.processing || this.error) { return }
 
       this.page = this.space.current_page + 1
-      if (!await this.getSpaces()) {
+      if (!await this.getSpacesList()) {
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
@@ -217,7 +217,7 @@ export default {
     },
 
     // スペース一覧取得
-    async getSpaces () {
+    async getSpacesList () {
       this.processing = true
       let result = false
 
@@ -241,7 +241,7 @@ export default {
       }
 
       const redirect = this.space == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spacesUrl, {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.listUrl, {
         params: {
           ...this.params,
           page: this.page

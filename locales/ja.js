@@ -100,14 +100,15 @@ module.exports = {
     space: {
       destroy_reserved: 'スペース削除予定の為、この操作はできません。',
       not_destroy_reserved: '既に取り消し済みか、スペース削除されていません。'
+    },
+    invitation: {
+      email_joined: '参加済みの為、この操作はできません。',
+      copy_failure: 'コピーに失敗しました。'
     }
   },
   notice: {
     invitation: {
-      copy: {
-        success: 'クリップボードにコピーしました。',
-        failure: 'コピーに失敗しました。'
-      }
+      copy_success: 'クリップボードにコピーしました。'
     },
     download: {
       status: {

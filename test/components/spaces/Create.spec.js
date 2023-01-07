@@ -141,7 +141,7 @@ describe('Create.vue', () => {
       }
       params.append('space[image]', values.image)
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaceCreateUrl, params)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.createUrl, params)
     }
 
     let wrapper, dialog, button

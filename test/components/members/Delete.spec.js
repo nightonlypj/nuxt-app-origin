@@ -126,7 +126,7 @@ describe('Delete.vue', () => {
   describe('メンバー解除', () => {
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.memberDeleteUrl.replace(':space_code', space.code), { codes })
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.members.deleteUrl.replace(':space_code', space.code), { codes })
     }
 
     let wrapper, dialog, button

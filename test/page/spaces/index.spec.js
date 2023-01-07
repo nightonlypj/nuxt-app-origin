@@ -187,7 +187,7 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (count, params, page = count) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.spacesUrl, {
+    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, {
       params: {
         ...params,
         page
@@ -223,6 +223,7 @@ describe('index.vue', () => {
     // 設定
     // const listSetting = wrapper.findComponent(ListSetting)
     // expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+    // expect(listSetting.vm.admin).toBe(null)
 
     // 検索
     const spacesSearch = wrapper.findComponent(SpacesSearch)
@@ -528,7 +529,7 @@ describe('index.vue', () => {
         destroy: findParams.destroy === 1,
         option: findQuery.option === '1'
       }
-      await wrapper.vm.searchSpaces()
+      await wrapper.vm.searchSpacesList()
 
       await helper.sleep(1)
       apiCalledTest(2, findParams, 1)

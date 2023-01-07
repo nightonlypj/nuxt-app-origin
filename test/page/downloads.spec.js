@@ -21,7 +21,7 @@ describe('downloads.vue', () => {
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     nuxtErrorMock = jest.fn()
-    URL.createObjectURL = jest.fn(() => helper.commonConfig.downloadFileUrl)
+    URL.createObjectURL = jest.fn(() => helper.commonConfig.downloads.fileUrl)
   })
   afterEach(() => {
     URL.createObjectURL.mockReset()
@@ -116,7 +116,7 @@ describe('downloads.vue', () => {
   // テスト内容
   const apiCalledTest = (count, page = count) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.downloadsUrl, { params: { page } })
+    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.listUrl, { params: { page } })
   }
 
   const viewTest = (wrapper, data, countView, values = null, show = { existInfinite: false, testState: null }, error = false) => {
@@ -429,15 +429,15 @@ describe('downloads.vue', () => {
 
       // ダウンロード
       count = document.body.appendChild.mock.calls.length
-      wrapper.vm.downloadFile({ ...item })
+      wrapper.vm.downloadsFile({ ...item })
 
       await helper.sleep(1)
       expect(axiosGetMock).toBeCalledTimes(2)
-      expect(axiosGetMock).nthCalledWith(2, helper.envConfig.apiBaseURL + helper.commonConfig.downloadFileUrl.replace(':id', item.id), { responseType: 'blob' })
+      expect(axiosGetMock).nthCalledWith(2, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.fileUrl.replace(':id', item.id), { responseType: 'blob' })
     }
     const downloadTest = () => {
       const element = document.createElement('a')
-      element.href = helper.commonConfig.downloadFileUrl
+      element.href = helper.commonConfig.downloads.fileUrl
       element.download = filename
       expect(document.body.appendChild).nthCalledWith(count + 1, element)
       expect(document.body.removeChild).nthCalledWith(count + 1, element)

@@ -7,6 +7,8 @@
 
 ### spaceブランチ
 
+- 招待URLを発行し、アカウント作成と同時にスペースに参加した状態にしたい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/496/
 - スペースを作成してメンバーを招待できるようにしたい
   - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/469/
 

@@ -112,7 +112,7 @@
                 id="space_create_submit_btn"
                 color="primary"
                 :disabled="invalid || processing || waiting"
-                @click="postSpaceCreate()"
+                @click="postSpacesCreate()"
               >
                 作成
               </v-btn>
@@ -176,17 +176,14 @@ export default {
 
     // ダイアログ表示
     showDialog () {
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
       this.dialog = true
     },
 
     // スペース作成
-    async postSpaceCreate () {
+    async postSpacesCreate () {
       this.processing = true
 
       const params = new FormData()
@@ -198,7 +195,7 @@ export default {
       if (this.space.image != null) {
         params.append('space[image]', this.space.image)
       }
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaceCreateUrl, params)
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaces.createUrl, params)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

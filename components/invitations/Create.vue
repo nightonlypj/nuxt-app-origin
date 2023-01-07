@@ -55,7 +55,7 @@
                       >
                         <v-radio
                           v-for="(value, key) in $t('enums.invitation.power')"
-                          :id="`power_${key}`"
+                          :id="`invitation_power_${key}`"
                           :key="key"
                           :label="value"
                           :value="key"
@@ -93,7 +93,7 @@
                       />
                     </validation-provider>
                     <div class="ml-2 mt-2">
-                      {{ appTimeZoneOffset('ja') }}({{ appTimeZoneShort('ja') }})
+                      {{ appTimeZoneOffset }}<span v-if="appTimeZoneShort != null">({{ appTimeZoneShort }})</span>
                     </div>
                   </v-col>
                 </v-row>
@@ -184,11 +184,8 @@ export default {
 
     // ダイアログ表示
     showDialog () {
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
       this.dialog = true
     },
@@ -197,10 +194,10 @@ export default {
     async postInvitationsCreate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.invitationCreateUrl.replace(':space_code', this.space.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.invitations.createUrl.replace(':space_code', this.space.code), {
         invitation: {
           ...this.invitation,
-          ended_zone: this.appTimeZoneOffset('ja')
+          ended_zone: this.appTimeZoneOffset
         }
       })
         .then((response) => {

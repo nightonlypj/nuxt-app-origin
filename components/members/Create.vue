@@ -53,7 +53,7 @@
                       >
                         <v-radio
                           v-for="(value, key) in $t('enums.member.power')"
-                          :id="`power_${key}`"
+                          :id="`member_power_${key}`"
                           :key="key"
                           :label="value"
                           :value="key"
@@ -131,11 +131,8 @@ export default {
 
     // ダイアログ表示
     showDialog () {
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
       this.dialog = true
     },
@@ -144,7 +141,7 @@ export default {
     async postMembersCreate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.memberCreateUrl.replace(':space_code', this.space.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.members.createUrl.replace(':space_code', this.space.code), {
         member: this.member
       })
         .then((response) => {

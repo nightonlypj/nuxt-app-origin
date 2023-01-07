@@ -39,7 +39,7 @@
                 <v-btn
                   id="space_undo_delete_yes_btn"
                   color="primary"
-                  @click="postSpaceUndoDelete(dialog)"
+                  @click="postSpacesUndoDelete(dialog)"
                 >
                   はい
                 </v-btn>
@@ -107,7 +107,8 @@ export default {
       this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }
-    if (!await this.getSpace()) { return }
+
+    if (!await this.getSpaceDetail()) { return }
     if (!this.currentMemberAdmin) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
@@ -122,10 +123,10 @@ export default {
 
   methods: {
     // スペース詳細取得
-    async getSpace () {
+    async getSpaceDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaceDetailUrl.replace(':code', this.$route.params.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.detailUrl.replace(':code', this.$route.params.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.space == null)) { return }
 
@@ -140,11 +141,11 @@ export default {
     },
 
     // スペース削除取り消し
-    async postSpaceUndoDelete ($dialog) {
+    async postSpacesUndoDelete ($dialog) {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaceUndoDeleteUrl.replace(':code', this.$route.params.code))
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaces.undoDeleteUrl.replace(':code', this.$route.params.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

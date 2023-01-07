@@ -187,7 +187,7 @@ describe('ListDownload.vue', () => {
     }
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloadCreateUrl, {
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.createUrl, {
         download: {
           model,
           space_code: space.code || null,

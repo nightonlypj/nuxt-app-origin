@@ -21,7 +21,7 @@
                 <UsersAvatar :user="space.created_user" />
               </v-col>
             </v-row>
-            <v-row v-if="space.last_updated_at || space.last_updated_user">
+            <v-row v-if="space.last_updated_at != null || space.last_updated_user != null">
               <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
                 更新
               </v-col>
@@ -108,7 +108,7 @@
                   </v-avatar>
                   <v-checkbox
                     v-if="space.upload_image"
-                    id="image_delete"
+                    id="space_image_delete"
                     v-model="space.image_delete"
                     label="削除（初期画像に戻す）"
                     class="mt-4 ml-4"
@@ -138,7 +138,7 @@
                   id="space_update_btn"
                   color="primary"
                   :disabled="invalid || processing || waiting"
-                  @click="postSpaceUpdate()"
+                  @click="postSpacesUpdate()"
                 >
                   変更
                 </v-btn>
@@ -217,7 +217,8 @@ export default {
       this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }
-    if (!await this.getSpace()) { return }
+
+    if (!await this.getSpacesDetail()) { return }
     if (!this.currentMemberAdmin) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
@@ -228,10 +229,10 @@ export default {
 
   methods: {
     // スペース詳細取得
-    async getSpace () {
+    async getSpacesDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaceDetailUrl.replace(':code', this.$route.params.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.detailUrl.replace(':code', this.$route.params.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.space == null)) { return }
 
@@ -246,7 +247,7 @@ export default {
     },
 
     // スペース設定変更
-    async postSpaceUpdate () {
+    async postSpacesUpdate () {
       this.processing = true
 
       const params = new FormData()
@@ -259,7 +260,7 @@ export default {
       if (this.space.image != null) {
         params.append('space[image]', this.space.image)
       }
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaceUpdateUrl.replace(':code', this.$route.params.code), params)
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.spaces.updateUrl.replace(':code', this.$route.params.code), params)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true }, response.data?.space == null)) { return }
 

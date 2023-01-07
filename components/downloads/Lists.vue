@@ -40,7 +40,7 @@
         <a
           :id="`download_link_${item.id}`"
           class="text-no-wrap"
-          @click="$emit('downloadFile', item)"
+          @click="$emit('downloadsFile', item)"
         >
           <v-icon dense>mdi-download</v-icon>
           ダウンロード

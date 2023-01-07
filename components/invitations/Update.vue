@@ -10,7 +10,7 @@
           </v-toolbar>
           <v-card-text>
             <v-container>
-              <v-row v-if="invitation.created_at || invitation.created_user">
+              <v-row>
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
                   作成
                 </v-col>
@@ -19,7 +19,7 @@
                   <UsersAvatar :user="invitation.created_user" />
                 </v-col>
               </v-row>
-              <v-row v-if="invitation.last_updated_at || invitation.last_updated_user">
+              <v-row v-if="invitation.last_updated_at != null || invitation.last_updated_user != null">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
                   更新
                 </v-col>
@@ -98,7 +98,7 @@
                     />
                   </validation-provider>
                   <div class="ml-2 mt-2">
-                    {{ appTimeZoneOffset('ja') }}({{ appTimeZoneShort('ja') }})
+                    {{ appTimeZoneOffset }}<span v-if="appTimeZoneShort != null">({{ appTimeZoneShort }})</span>
                   </div>
                 </v-col>
               </v-row>
@@ -127,6 +127,7 @@
                 <v-col cols="12" md="10" class="py-0">
                   <template v-if="invitation.destroy_schedule_at == null">
                     <v-checkbox
+                      id="invitation_delete_check"
                       v-model="invitation.delete"
                       label="削除して使用できないようにする"
                       dense
@@ -139,6 +140,7 @@
                   </template>
                   <template v-else>
                     <v-checkbox
+                      id="invitation_undo_delete_check"
                       v-model="invitation.undo_delete"
                       label="削除を取り消して使用できるようにする"
                       dense
@@ -158,7 +160,7 @@
               id="invitation_update_submit_btn"
               color="primary"
               :disabled="invalid || processing || waiting"
-              @click="postInvitationUpdate()"
+              @click="postInvitationsUpdate()"
             >
               変更
             </v-btn>
@@ -223,23 +225,21 @@ export default {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('showDialog', invitation) }
 
-      if (!this.$auth.loggedIn) {
-        return this.appRedirectAuth()
-      } else if (this.$auth.user.destroy_schedule_at != null) {
-        return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      }
+      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
 
-      if (!await this.getInvitation(invitation)) { return }
+      if (!await this.getInvitationsDetail(invitation)) { return }
+      if (this.invitation.status === 'email_joined') { return this.appSetToastedMessage({ alert: this.$t('alert.invitation.email_joined') }) }
 
       this.waiting = true
       this.dialog = true
     },
 
     // 招待URL詳細取得
-    async getInvitation (invitation) {
+    async getInvitationsDetail (invitation) {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.invitationDetailUrl.replace(':space_code', this.space.code).replace(':code', invitation.code))
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.invitations.detailUrl.replace(':space_code', this.space.code).replace(':code', invitation.code))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.invitation == null)) { return }
 
@@ -261,14 +261,14 @@ export default {
     },
 
     // 招待URL設定変更
-    async postInvitationUpdate () {
+    async postInvitationsUpdate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.invitationUpdateUrl.replace(':space_code', this.space.code).replace(':code', this.invitation.code), {
+      await this.$axios.post(this.$config.apiBaseURL + this.$config.invitations.updateUrl.replace(':space_code', this.space.code).replace(':code', this.invitation.code), {
         invitation: {
           ended_date: this.invitation.ended_date,
           ended_time: this.invitation.ended_time,
-          ended_zone: this.appTimeZoneOffset('ja'),
+          ended_zone: this.appTimeZoneOffset,
           memo: this.invitation.memo,
           delete: this.invitation.delete,
           undo_delete: this.invitation.undo_delete
