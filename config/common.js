@@ -36,6 +36,8 @@ module.exports = {
   authRedirectLogOutURL: '/users/sign_in',
   // トークン検証API
   authUserURL: '/users/auth/validate_token.json',
+  // 招待情報取得API
+  userInvitationUrl: '/users/auth/invitation.json',
   // アカウント登録API
   singUpUrl: '/users/auth/sign_up.json',
   singUpSuccessUrl: '/users/sign_in',

@@ -10,18 +10,20 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('sign_up.vue', () => {
-  let axiosPostMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosGetMock, axiosPostMock, setUniversalMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock, routerPushMock
 
   beforeEach(() => {
+    axiosGetMock = null
     axiosPostMock = null
     setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
+    nuxtErrorMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const fullPath = '/users/sign_up'
-  const mountFunction = (loggedIn, values = null) => {
+  const mountFunction = (loggedIn, values = null, query = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -35,6 +37,7 @@ describe('sign_up.vue', () => {
       },
       mocks: {
         $axios: {
+          get: axiosGetMock,
           post: axiosPostMock
         },
         $auth: {
@@ -44,11 +47,15 @@ describe('sign_up.vue', () => {
           }
         },
         $route: {
-          fullPath
+          fullPath,
+          query: { ...query }
         },
         $toasted: {
           error: toastedErrorMock,
           info: toastedInfoMock
+        },
+        $nuxt: {
+          error: nuxtErrorMock
         },
         $router: {
           push: routerPushMock
@@ -63,7 +70,7 @@ describe('sign_up.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper) => {
+  const viewTest = (wrapper, query = null) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -71,7 +78,7 @@ describe('sign_up.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_up')
 
     helper.messageTest(wrapper, Message, null)
-    expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '' })
+    expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '', ...query })
   }
 
   // テストケース
@@ -97,6 +104,86 @@ describe('sign_up.vue', () => {
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
     helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+  })
+
+  describe('招待情報取得', () => {
+    const invitation = Object.freeze({ code: 'invitation000000000000001' })
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction(false, {}, invitation)
+
+      await helper.sleep(1)
+      apiCalledTest()
+    }
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userInvitationUrl, { params: { code: invitation.code } })
+    }
+
+    it('[メールアドレスあり]表示される', async () => {
+      const email = 'user1@example.com'
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { email } } }))
+      await beforeAction()
+
+      viewTest(wrapper, { email })
+    })
+    it('[ドメインあり]表示される', async () => {
+      const domains = Object.freeze(['a.example.com', 'b.example.com'])
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { domains } } }))
+      await beforeAction()
+
+      viewTest(wrapper, { email_domain: domains[0], email_local: '' })
+    })
+    it('[データなし]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+    })
+    it('[メールアドレス・ドメインなし]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { email: null, domains: null } } }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+    })
+
+    it('[接続エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
+    })
+    it('[存在しない]エラーページが表示される', async () => {
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: data.alert, notice: data.notice })
+    })
+    it('[レスポンスエラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
+    })
+    it('[その他エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
+    })
   })
 
   describe('アカウント登録', () => {

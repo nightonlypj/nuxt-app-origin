@@ -19,16 +19,38 @@
                 @input="waiting = false"
               />
             </validation-provider>
-            <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+            <validation-provider v-if="invitation == null || invitation.email != null" v-slot="{ errors }" name="email" rules="required|email">
               <v-text-field
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
                 autocomplete="email"
+                :readonly="invitation != null"
                 :error-messages="errors"
                 @input="waiting = false"
               />
             </validation-provider>
+            <div v-else class="d-flex">
+              <validation-provider v-slot="{ errors }" name="email" rules="required">
+                <v-text-field
+                  v-model="query.email_local"
+                  label="メールアドレス"
+                  prepend-icon="mdi-email"
+                  autocomplete="off"
+                  :error-messages="errors"
+                  @input="waiting = false"
+                />
+              </validation-provider>
+              <validation-provider v-slot="{ errors }" name="email_domain" rules="required_select">
+                <v-select
+                  v-model="query.email_domain"
+                  :items="invitation.domains"
+                  prefix="@"
+                  :error-messages="errors"
+                  @input="waiting = false"
+                />
+              </validation-provider>
+            </div>
             <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
               <v-text-field
                 v-model="query.password"
@@ -87,6 +109,7 @@ import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/plugins/application.js'
 
 extend('required', required)
+extend('required_select', required)
 extend('email', email)
 extend('min', min)
 extend('max', max)
@@ -111,6 +134,7 @@ export default {
       waiting: false,
       alert: null,
       notice: null,
+      invitation: null,
       query: {
         name: '',
         email: '',
@@ -127,20 +151,45 @@ export default {
     }
   },
 
-  created () {
-    if (this.$auth.loggedIn) {
-      return this.appRedirectAlreadyAuth()
-    }
+  async created () {
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (this.$route.query?.code != null && !await this.getUserInvitation()) { return }
 
     this.loading = false
   },
 
   methods: {
+    // 招待情報取得
+    async getUserInvitation () {
+      let result = false
+
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.userInvitationUrl, { params: { code: this.$route.query.code } })
+        .then((response) => {
+          if (!this.appCheckResponse(response, { redirect: true },
+            response.data?.invitation == null || (response.data.invitation.email == null && response.data.invitation.domains == null))) { return }
+
+          this.invitation = response.data.invitation
+          if (response.data.invitation.email != null) {
+            this.query.email = response.data.invitation.email
+          } else {
+            this.query.email_local = ''
+            this.query.email_domain = response.data.invitation.domains[0]
+          }
+          result = true
+        },
+        (error) => {
+          this.appCheckErrorResponse(error, { redirect: true, require: true }, { notfound: true })
+        })
+
+      return result
+    },
+
     // アカウント登録
     async postSingUp () {
       this.processing = true
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
+        code: this.$route.query?.code,
         ...this.query,
         confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
       })
