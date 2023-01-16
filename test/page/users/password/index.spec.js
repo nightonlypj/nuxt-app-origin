@@ -204,7 +204,7 @@ describe('index.vue', () => {
       apiCalledTest(0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[成功]ログイン状態にならなかった場合は、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
@@ -225,7 +225,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -236,7 +236,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -246,7 +246,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
@@ -255,7 +255,7 @@ describe('index.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.messageTest(wrapper, Message, data)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))

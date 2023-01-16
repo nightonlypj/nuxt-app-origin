@@ -105,9 +105,7 @@ export default {
   created () {
     switch (this.$route.query.account_confirmation_success) {
       case 'true':
-        if (this.$auth.loggedIn) {
-          return this.appRedirectTop(this.$route.query)
-        }
+        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
         break
       case 'false':
         return this.$router.push({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
@@ -115,13 +113,9 @@ export default {
     switch (this.$route.query.unlock) {
       case 'true':
       case 'false':
-        if (this.$auth.loggedIn) {
-          return this.appRedirectTop(this.$route.query)
-        }
+        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
     }
-    if (this.$auth.loggedIn) {
-      return this.appRedirectAlreadyAuth()
-    }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
       this.$route.query.notice += this.$t('auth.unauthenticated')

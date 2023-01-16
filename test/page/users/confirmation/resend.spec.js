@@ -177,7 +177,7 @@ describe('resend.vue', () => {
       apiCalledTest(0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[成功][ログイン中]トップページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
@@ -195,7 +195,7 @@ describe('resend.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -205,7 +205,7 @@ describe('resend.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -214,7 +214,7 @@ describe('resend.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
@@ -222,7 +222,7 @@ describe('resend.vue', () => {
 
       apiCalledTest(1, params)
       helper.messageTest(wrapper, Message, data)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -230,7 +230,7 @@ describe('resend.vue', () => {
 
       apiCalledTest(1, params)
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
   })
 })

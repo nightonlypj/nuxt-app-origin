@@ -3,6 +3,25 @@ import { createLocalVue, mount } from '@vue/test-utils'
 describe('utils.js', () => {
   const localVue = createLocalVue()
 
+  // 一定時間停止
+  describe('sleep', () => {
+    const mountFunction = (ms) => {
+      return mount({
+        mounted () {
+          this.sleep = this.$sleep(ms)
+        },
+        template: '<div />'
+      }, { localVue })
+    }
+
+    it('[10]10ミリ秒停止する', async () => {
+      const wrapper = mountFunction(10)
+      const now = new Date()
+      await wrapper.vm.sleep
+      expect(new Date() - now + 1).toBeGreaterThan(10)
+    })
+  })
+
   // 日付/時間を言語のフォーマットで返却
   describe('dateFormat/timeFormat', () => {
     const mountFunction = (locales, value, defaultValue = null) => {
@@ -35,7 +54,7 @@ describe('utils.js', () => {
       expect(wrapper.vm.dateFormat).toBe('N/A')
       expect(wrapper.vm.timeFormat).toBe('N/A')
     })
-    it('[あり]日付が返却される', () => {
+    it('[あり]日付/日時が返却される', () => {
       const wrapper = mountFunction('ja', '2000-01-02T12:34:56+09:00')
       expect(wrapper.vm.dateFormat).toBe('2000/01/02')
       expect(wrapper.vm.timeFormat).toBe('2000/01/02 12:34')
@@ -129,6 +148,31 @@ describe('utils.js', () => {
     it('[数値]値が返却される', () => {
       const wrapper = mountFunction('ja', '1000')
       expect(wrapper.vm.localeString).toBe('1000') // NOTE: Jestだとカンマ区切りにならない
+    })
+  })
+
+  // テキストを省略して返却
+  describe('textTruncate', () => {
+    const mountFunction = (text, length) => {
+      return mount({
+        mounted () {
+          this.textTruncate = this.$textTruncate(text, length)
+        },
+        template: '<div />'
+      }, { localVue })
+    }
+
+    it('[null]nullが返却される', () => {
+      const wrapper = mountFunction(null)
+      expect(wrapper.vm.textTruncate).toBeNull()
+    })
+    it('[最大値]そのまま返却される', () => {
+      const wrapper = mountFunction('123', 3)
+      expect(wrapper.vm.textTruncate).toBe('123')
+    })
+    it('[最大値以上]省略されて返却される', () => {
+      const wrapper = mountFunction('123', 2)
+      expect(wrapper.vm.textTruncate).toBe('12...')
     })
   })
 })

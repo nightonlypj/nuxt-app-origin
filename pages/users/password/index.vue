@@ -108,9 +108,7 @@ export default {
   },
 
   created () {
-    if (this.$auth.loggedIn) {
-      return this.appRedirectAlreadyAuth()
-    }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
     if (this.$route.query.reset_password === 'false') {
       return this.$router.push({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }

@@ -128,9 +128,7 @@ export default {
   },
 
   created () {
-    if (this.$auth.loggedIn) {
-      return this.appRedirectAlreadyAuth()
-    }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     this.loading = false
   },

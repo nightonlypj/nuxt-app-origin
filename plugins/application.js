@@ -1,4 +1,26 @@
 export default {
+  computed: {
+    appTableHeight () {
+      return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
+    },
+
+    appTimeZoneOffset () {
+      // NOTE: Jestだとエラーになる -> RangeError: Value longOffset out of range for Intl.DateTimeFormat options property timeZoneName
+      // const secZone = new Date().toLocaleString('default', { second: 'numeric', timeZoneName: 'longOffset' }) // 0 GMT+09:00
+      // const result = secZone.match(/GMT([+-][\d]{2}:[\d]{2})/)
+      // return (result != null) ? result[1] : null
+      const offset = new Date().getTimezoneOffset() * -1
+      const offsetAbs = Math.abs(offset)
+      return (offset >= 0 ? '+' : '-') + `0${String(Math.trunc(offsetAbs / 60))}`.slice(-2) + ':' + `0${offsetAbs % 60}`.slice(-2)
+    },
+
+    appTimeZoneShort () {
+      const secZone = new Date().toLocaleString('default', { second: 'numeric', timeZoneName: 'short' }) // 0 JST
+      const result = secZone.match(/\s(.*)$/)
+      return (result != null) ? result[1] : null
+    }
+  },
+
   methods: {
     // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
     appSetKeyDownEnter ($event) {

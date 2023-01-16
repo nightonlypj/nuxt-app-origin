@@ -1,3 +1,6 @@
+// 一定時間停止
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 // 日付を言語のフォーマットで返却
 const dateFormat = (locales, value, defaultValue = null) => {
   if (value == null || value === '') { return defaultValue }
@@ -33,21 +36,30 @@ const localeString = (locales, value, defaultValue = null) => {
   return value.toLocaleString(locales)
 }
 
+// テキストを省略して返却
+const textTruncate = (text, length) => {
+  return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
+}
+
 export default (_context, inject) => {
   inject('config', useRuntimeConfig())
+  inject('sleep', sleep)
   inject('dateFormat', dateFormat)
   inject('timeFormat', timeFormat)
   inject('pageFirstNumber', pageFirstNumber)
   inject('pageLastNumber', pageLastNumber)
   inject('localeString', localeString)
+  inject('textTruncate', textTruncate)
 }
 
 export const TestPluginUtils = {
   install (Vue) {
+    Vue.prototype.$sleep = sleep
     Vue.prototype.$dateFormat = dateFormat
     Vue.prototype.$timeFormat = timeFormat
     Vue.prototype.$pageFirstNumber = pageFirstNumber
     Vue.prototype.$pageLastNumber = pageLastNumber
     Vue.prototype.$localeString = localeString
+    Vue.prototype.$textTruncate = textTruncate
   }
 }
