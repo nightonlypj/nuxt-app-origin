@@ -30,6 +30,7 @@ describe('index.vue', () => {
     Object.defineProperty(window, 'location', { configurable: true, value: beforeLocation })
   })
 
+  // const model = 'space'
   const mountFunction = (loggedIn = false, query = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -115,7 +116,7 @@ describe('index.vue', () => {
     }
   }
   const findParams = Object.freeze({
-    text: 'test',
+    text: 'aaa',
     ...optionParams,
     active: 1,
     destroy: 0
@@ -481,7 +482,7 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('space.hidden-items', '')
+      localStorage.setItem(`${model}.hidden-items`, '')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
@@ -490,7 +491,7 @@ describe('index.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('space.hidden-items', 'test1,test2')
+      localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)

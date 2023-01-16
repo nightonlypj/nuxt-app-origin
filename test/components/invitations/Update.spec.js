@@ -365,8 +365,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -376,8 +376,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -395,8 +395,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 406 } }))
@@ -405,8 +405,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -415,8 +415,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { email: ['errorメッセージ'] } }, data) } }))
@@ -425,8 +425,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      helper.disabledTest(wrapper, Processing, button, true)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -435,8 +435,8 @@ describe('Update.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
-      expect(dialog.isVisible()).toBe(true) // [招待URL設定変更ダイアログ]表示
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
   })
 })

@@ -34,6 +34,7 @@ describe('_code.vue', () => {
     Object.defineProperty(window, 'location', { configurable: true, value: beforeLocation })
   })
 
+  const model = 'invitation'
   const space = Object.freeze({ code: 'code0001' })
   const values = Object.freeze({ notice: 'noticeメッセージ' })
   const mountFunction = (loggedIn = true, query = null) => {
@@ -172,7 +173,7 @@ describe('_code.vue', () => {
 
     // 設定
     const listSetting = wrapper.findComponent(ListSetting)
-    expect(listSetting.vm.model).toBe('invitation')
+    expect(listSetting.vm.model).toBe(model)
     expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
     expect(listSetting.vm.admin).toBe(null)
 
@@ -496,7 +497,7 @@ describe('_code.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('invitation.hidden-items', '')
+      localStorage.setItem(`${model}.hidden-items`, '')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
@@ -505,7 +506,7 @@ describe('_code.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('invitation.hidden-items', 'test1,test2')
+      localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)

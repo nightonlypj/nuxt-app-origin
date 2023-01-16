@@ -7,6 +7,7 @@ const helper = new Helper()
 
 describe('ListSetting.vue', () => {
   const model = 'member'
+  const items = helper.locales.items[model]
   const mountFunction = (admin, hiddenItems = []) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -37,7 +38,7 @@ describe('ListSetting.vue', () => {
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // 表示項目
-    for (const item of helper.locales.items[model]) {
+    for (const item of items) {
       const showItem = wrapper.find(`#setting_show_item_${item.value.replace('.', '_')}`)
       if (!item.adminOnly || admin) {
         expect(showItem.exists()).toBe(true)
@@ -51,7 +52,7 @@ describe('ListSetting.vue', () => {
     // 変更ボタン
     const submitButton = wrapper.find('#setting_submit_btn')
     expect(submitButton.exists()).toBe(true)
-    await helper.waitChangeDisabled(submitButton, true)
+    await helper.sleep(1)
     expect(submitButton.vm.disabled).toBe(true) // 無効
 
     // キャンセルボタン
@@ -67,7 +68,7 @@ describe('ListSetting.vue', () => {
 
   const updateViewTest = async (wrapper, dialog, hiddenItems) => {
     // 変更
-    for (const item of helper.locales.items[model]) {
+    for (const item of items) {
       const showItem = wrapper.find(`#setting_show_item_${item.value.replace('.', '_')}`)
       showItem.trigger('change')
       await helper.sleep(1)
@@ -97,9 +98,9 @@ describe('ListSetting.vue', () => {
   })
 
   describe('変更', () => {
-    const allItems = helper.locales.items[model].map(item => item.value)
-    const requiredItems = helper.locales.items[model].filter(item => item.required).map(item => item.value)
-    const optionalItems = helper.locales.items[model].filter(item => !item.required).map(item => item.value)
+    const allItems = items.map(item => item.value)
+    const requiredItems = items.filter(item => item.required).map(item => item.value)
+    const optionalItems = items.filter(item => !item.required).map(item => item.value)
 
     let wrapper, dialog
     const beforeAction = async (hiddenItems, showItems) => {

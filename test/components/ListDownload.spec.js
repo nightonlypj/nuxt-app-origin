@@ -7,16 +7,18 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('ListDownload.vue', () => {
-  let axiosPostMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, authLogoutMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     axiosPostMock = null
+    authLogoutMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
   const model = 'member'
+  const items = helper.locales.items[model]
   const space = Object.freeze({ code: 'code0001' })
   const mountFunction = (admin, hiddenItems = [], selectItems = null, searchParams = null) => {
     const localVue = createLocalVue()
@@ -38,6 +40,10 @@ describe('ListDownload.vue', () => {
       mocks: {
         $axios: {
           post: axiosPostMock
+        },
+        $auth: {
+          loggedIn: true,
+          logout: authLogoutMock
         },
         $toasted: {
           error: toastedErrorMock,
@@ -69,6 +75,12 @@ describe('ListDownload.vue', () => {
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
 
+    // ダウンロードボタン
+    await helper.sleep(1)
+    const submitButton = wrapper.find('#download_submit_btn')
+    expect(submitButton.exists()).toBe(true)
+    expect(submitButton.vm.disabled).toBe(false) // 有効
+
     // 対象
     for (const key in helper.locales.enums.download.target) {
       const target = wrapper.find(`#download_target_${key}`)
@@ -99,7 +111,7 @@ describe('ListDownload.vue', () => {
     }
 
     // 出力項目
-    for (const item of helper.locales.items[model]) {
+    for (const item of items) {
       const outputItem = wrapper.find(`#download_output_item_${item.value.replace('.', '_')}`)
       if (!item.adminOnly || admin) {
         expect(outputItem.exists()).toBe(true)
@@ -110,9 +122,7 @@ describe('ListDownload.vue', () => {
     }
 
     // ダウンロードボタン
-    const submitButton = wrapper.find('#download_submit_btn')
-    expect(submitButton.exists()).toBe(true)
-    await helper.waitChangeDisabled(submitButton, true)
+    await helper.waitChangeDisabled(submitButton, disabled.submit)
     expect(submitButton.vm.disabled).toBe(disabled.submit)
 
     // キャンセルボタン
@@ -137,7 +147,7 @@ describe('ListDownload.vue', () => {
   })
   it('[選択項目・検索パラメータあり]選択項目が選択され、検索も選択できる', async () => {
     const selectItems = Object.freeze(['code000000000000000000001'])
-    const searchParams = Object.freeze({ text: 'test' })
+    const searchParams = Object.freeze({ text: 'aaa' })
     const wrapper = mountFunction(false, [], selectItems, searchParams)
     await viewTest(wrapper, false, { ...defaultChecked, target: 'select' }, { ...defaultDisabled, select: false, search: false })
   })
@@ -149,7 +159,7 @@ describe('ListDownload.vue', () => {
   })
   it('[検索パラメータあり]検索が選択され、選択項目は選択できない', async () => {
     const selectItems = Object.freeze([])
-    const searchParams = Object.freeze({ text: 'test' })
+    const searchParams = Object.freeze({ text: 'aaa' })
     const wrapper = mountFunction(false, [], selectItems, searchParams)
     await viewTest(wrapper, false, { ...defaultChecked, target: 'search' }, { ...defaultDisabled, search: false })
   })
@@ -168,16 +178,16 @@ describe('ListDownload.vue', () => {
     await viewTest(wrapper, false)
   })
   it('[出力項目なし]ダウンロードボタンが押せない', async () => {
-    const hiddenItems = helper.locales.items[model].map(item => item.value)
+    const hiddenItems = items.map(item => item.value)
     const wrapper = mountFunction(false, hiddenItems)
     await viewTest(wrapper, false, defaultChecked, { ...defaultDisabled, submit: true }, hiddenItems)
   })
 
   describe('ダウンロード依頼', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', download: { id: 1 } })
-    const outputItems = helper.locales.items[model].map(item => item.value)
+    const outputItems = items.map(item => item.value)
     const selectItems = Object.freeze(['code000000000000000000001'])
-    const searchParams = Object.freeze({ text: 'test' })
+    const searchParams = Object.freeze({ text: 'aaa' })
 
     const query = {
       target: 'select',
@@ -236,7 +246,8 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -245,7 +256,17 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
+      // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
@@ -253,7 +274,8 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[存在しない]エラーページが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
@@ -261,7 +283,8 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.notfound)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -269,7 +292,8 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -277,7 +301,8 @@ describe('ListDownload.vue', () => {
 
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
     })
   })
 })

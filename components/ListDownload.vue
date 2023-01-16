@@ -295,7 +295,7 @@ export default {
           this.$router.push({ path: '/downloads', query: { id: response.data.download?.id || null } })
         },
         (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { forbidden: true, notfound: true })) { return }
+          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, notfound: true })) { return }
 
           this.appSetToastedMessage(error.response.data, true)
           if (error.response.data.errors != null) {

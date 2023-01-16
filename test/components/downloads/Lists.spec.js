@@ -29,6 +29,7 @@ describe('Lists.vue', () => {
   const viewTest = (wrapper, downloads, row = { active: 0, inactive: 0 }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('依頼日時')
+    expect(wrapper.text()).toMatch('完了日時')
     expect(wrapper.text()).toMatch('ステータス')
     expect(wrapper.text()).toMatch('ファイル')
     expect(wrapper.text()).toMatch('対象・形式等')
@@ -39,6 +40,10 @@ describe('Lists.vue', () => {
       expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
       // 依頼日時
       expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.requested_at))
+      // 完了日時
+      if (download.completed_at != null) {
+        expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.completed_at))
+      }
       // ステータス
       const color = ['success', 'failure'].includes(download.status) ? download.status : 'info'
       expect(wrapper.find(`#icon_${color}_${download.id}`).exists()).toBe(true)
@@ -98,6 +103,7 @@ describe('Lists.vue', () => {
         status: 'success',
         status_i18n: '成功',
         requested_at: '2000-01-03T12:34:56+09:00',
+        completed_at: '2000-02-03T12:34:56+09:00',
         model: 'member',
         model_i18n: 'メンバー3'
       },
@@ -106,14 +112,16 @@ describe('Lists.vue', () => {
         status: 'success',
         status_i18n: '成功',
         requested_at: '2000-01-02T12:34:56+09:00',
-        last_downloaded_at: '2000-02-02T12:34:56+09:00',
+        completed_at: '2000-02-02T12:34:56+09:00',
+        last_downloaded_at: '2000-03-02T12:34:56+09:00',
         model_i18n: 'モデル1'
       },
       {
         id: 1,
         status: 'failure',
         status_i18n: '失敗',
-        requested_at: '2000-01-01T12:34:56+09:00'
+        requested_at: '2000-01-01T12:34:56+09:00',
+        completed_at: '2000-02-01T12:34:56+09:00'
       }
     ])
 

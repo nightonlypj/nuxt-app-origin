@@ -49,6 +49,7 @@ describe('_code.vue', () => {
     }
   })
 
+  const model = 'member'
   const values = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const mountFunction = (loggedIn = true, query = null) => {
     const localVue = createLocalVue()
@@ -136,7 +137,7 @@ describe('_code.vue', () => {
   })
 
   const findParams = Object.freeze({
-    text: 'test',
+    text: 'aaa',
     power: findPowers.join(),
     sort: 'user.name',
     desc: 0
@@ -242,7 +243,7 @@ describe('_code.vue', () => {
 
     // 設定
     const listSetting = wrapper.findComponent(ListSetting)
-    expect(listSetting.vm.model).toBe('member')
+    expect(listSetting.vm.model).toBe(model)
     expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
     expect(listSetting.vm.admin).toBe(admin)
 
@@ -262,7 +263,7 @@ describe('_code.vue', () => {
       expect(membersUpdate.exists()).toBe(true)
       expect(membersUpdate.vm.space).toEqual(wrapper.vm.$data.space)
       expect(listDownload.exists()).toBe(true)
-      expect(listDownload.vm.model).toBe('member')
+      expect(listDownload.vm.model).toBe(model)
       expect(listDownload.vm.space).toEqual(wrapper.vm.$data.space)
       expect(listDownload.vm.searchParams).toEqual(wrapper.vm.$route.query)
       expect(listDownload.vm.selectItems).toBe(wrapper.vm.selectItems)
@@ -647,7 +648,7 @@ describe('_code.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
-      localStorage.setItem('member.hidden-items', '')
+      localStorage.setItem(`${model}.hidden-items`, '')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
@@ -656,7 +657,7 @@ describe('_code.vue', () => {
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
-      localStorage.setItem('member.hidden-items', 'test1,test2')
+      localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)

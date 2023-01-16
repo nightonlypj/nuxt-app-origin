@@ -67,6 +67,7 @@ module.exports = {
     ],
     download: [
       { text: '依頼日時', value: 'requested_at' },
+      { text: '完了日時', value: 'completed_at' },
       { text: 'ステータス', value: 'status' },
       { text: 'ファイル', value: 'file' },
       { text: '対象・形式等', value: 'target' }

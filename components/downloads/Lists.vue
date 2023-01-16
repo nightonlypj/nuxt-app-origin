@@ -22,6 +22,12 @@
         {{ $timeFormat('ja', item.requested_at) }}
       </div>
     </template>
+    <!-- 完了日時 -->
+    <template #[`item.completed_at`]="{ item }">
+      <div class="text-no-wrap">
+        {{ $timeFormat('ja', item.completed_at) }}
+      </div>
+    </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
       <v-icon v-if="item.status === 'success'" :id="`icon_success_${item.id}`" color="success" dense>mdi-check-circle</v-icon>
