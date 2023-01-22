@@ -66,8 +66,8 @@ describe('Infomations.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

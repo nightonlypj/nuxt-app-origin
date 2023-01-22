@@ -85,8 +85,8 @@ describe('undo_delete.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 0)
@@ -97,8 +97,8 @@ describe('undo_delete.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.not_destroy_reserved)
@@ -108,8 +108,8 @@ describe('undo_delete.vue', () => {
   it('[ログイン中（削除予約済み）]表示される', async () => {
     const wrapper = mountFunction(true, userDestroy)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     viewTest(wrapper, userDestroy)
@@ -119,9 +119,9 @@ describe('undo_delete.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     const dialog = wrapper.find('#user_undo_delete_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -136,9 +136,9 @@ describe('undo_delete.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.vm.disabled).toBe(false) // 有効
     noButton.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
   })
 
@@ -147,8 +147,8 @@ describe('undo_delete.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction(true, userDestroy)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       helper.mockCalledTest(authFetchUserMock, 1)
     }
 
@@ -182,7 +182,7 @@ describe('undo_delete.vue', () => {
   })
 
   describe('アカウント削除取り消し', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl)
@@ -191,18 +191,18 @@ describe('undo_delete.vue', () => {
     let wrapper, button
     const beforeAction = async (changeSignOut = false) => {
       wrapper = mountFunction(true, userDestroy)
+      await helper.sleep(1)
 
       // 取り消しボタン
-      await helper.sleep(1)
       button = wrapper.find('#user_undo_delete_btn')
       button.trigger('click')
+      await helper.sleep(1)
 
       // はいボタン
-      await helper.sleep(1)
       if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
       wrapper.find('#user_undo_delete_yes_btn').trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -210,7 +210,7 @@ describe('undo_delete.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -220,7 +220,7 @@ describe('undo_delete.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true)
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
@@ -235,7 +235,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -246,7 +246,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
@@ -266,7 +266,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -276,7 +276,7 @@ describe('undo_delete.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
   })
 })

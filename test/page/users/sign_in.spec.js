@@ -180,7 +180,6 @@ describe('sign_in.vue', () => {
         button = wrapper.find('#sign_in_btn')
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 
@@ -215,7 +214,7 @@ describe('sign_in.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -225,7 +224,7 @@ describe('sign_in.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -234,7 +233,7 @@ describe('sign_in.vue', () => {
       apiCalledTest()
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       authLoginWithMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
@@ -242,7 +241,7 @@ describe('sign_in.vue', () => {
 
       apiCalledTest()
       helper.messageTest(wrapper, Message, { alert: helper.locales.system.default })
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
   })
 })

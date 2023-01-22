@@ -36,6 +36,7 @@ const localeString = (locales, value, defaultValue = null) => {
   return value.toLocaleString(locales)
 }
 
+// テキストを省略して返却
 const textTruncate = (text, length) => {
   return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
 }

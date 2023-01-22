@@ -84,8 +84,8 @@ describe('update.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 0)
@@ -97,8 +97,8 @@ describe('update.vue', () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: null })
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     apiCalledTest()
@@ -109,8 +109,8 @@ describe('update.vue', () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { user } }))
     const wrapper = mountFunction(true, { destroy_schedule_at: null })
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     apiCalledTest()
@@ -119,8 +119,8 @@ describe('update.vue', () => {
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
@@ -133,8 +133,8 @@ describe('update.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       helper.mockCalledTest(authFetchUserMock, 1)
     }
 
@@ -181,8 +181,8 @@ describe('update.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

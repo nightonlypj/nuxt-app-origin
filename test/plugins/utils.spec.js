@@ -54,7 +54,7 @@ describe('utils.js', () => {
       expect(wrapper.vm.dateFormat).toBe('N/A')
       expect(wrapper.vm.timeFormat).toBe('N/A')
     })
-    it('[あり]日付が返却される', () => {
+    it('[あり]日付/日時が返却される', () => {
       const wrapper = mountFunction('ja', '2000-01-02T12:34:56+09:00')
       expect(wrapper.vm.dateFormat).toBe('2000/01/02')
       expect(wrapper.vm.timeFormat).toBe('2000/01/02 12:34')
@@ -151,6 +151,7 @@ describe('utils.js', () => {
     })
   })
 
+  // テキストを省略して返却
   describe('textTruncate', () => {
     const mountFunction = (text, length) => {
       return mount({

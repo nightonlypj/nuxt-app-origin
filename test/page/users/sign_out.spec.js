@@ -93,8 +93,8 @@ describe('sign_out.vue', () => {
 
       wrapper = mountFunction(true)
       wrapper.find('#sign_out_btn').trigger('click')
-
       await helper.sleep(1)
+
       updateViewTest(wrapper)
     }
 

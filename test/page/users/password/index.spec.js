@@ -150,7 +150,7 @@ describe('index.vue', () => {
   })
 
   describe('パスワード再設定', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const params = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = (count, params = null) => {
       expect(axiosPostMock).toBeCalledTimes(count)
@@ -173,7 +173,6 @@ describe('index.vue', () => {
         button.trigger('click')
       }
       if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // NOTE: 状態変更（Mockでは実行されない為）
-
       await helper.sleep(1)
     }
 
@@ -182,7 +181,7 @@ describe('index.vue', () => {
       await beforeAction(true)
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -192,7 +191,7 @@ describe('index.vue', () => {
       await beforeAction(true, { keydown: true, isComposing: false })
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -204,14 +203,14 @@ describe('index.vue', () => {
       apiCalledTest(0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[成功]ログイン状態にならなかった場合は、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
@@ -225,7 +224,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
@@ -236,7 +235,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
@@ -246,7 +245,7 @@ describe('index.vue', () => {
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
       helper.mockCalledTest(toastedInfoMock, 0)
-      helper.disabledTest(wrapper, Processing, button, false)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
@@ -255,7 +254,7 @@ describe('index.vue', () => {
       apiCalledTest(1, params)
       helper.mockCalledTest(authSetUserMock, 0)
       helper.messageTest(wrapper, Message, data)
-      helper.disabledTest(wrapper, Processing, button, true)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
