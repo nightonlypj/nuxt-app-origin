@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
@@ -11,35 +10,43 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('index.vue', () => {
-  let axiosPostMock, authSetUserMock, toastedErrorMock, toastedInfoMock, routerPushMock
+  let axiosPostMock, authSetUserMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
     axiosPostMock = null
     authSetUserMock = jest.fn()
+    setUniversalMock = jest.fn()
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
     routerPushMock = jest.fn()
   })
 
+  const fullPath = '/users/password'
   const mountFunction = (loggedIn, query, values = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true,
+        Message: true,
+        ActionLink: true
+      },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          passwordUpdateUrl: '/users/auth/password/update.json'
-        },
         $axios: {
           post: axiosPostMock
         },
         $auth: {
           loggedIn,
-          setUser: authSetUserMock
+          setUser: authSetUserMock,
+          $storage: {
+            setUniversal: setUniversalMock
+          }
         },
         $route: {
+          fullPath,
           query: { ...query }
         },
         $toasted: {
@@ -58,92 +65,56 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  const commonMessageTest = (wrapper, alert, notice) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Message).exists()).toBe(true)
-    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(alert)
-    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(notice)
-  }
-  const commonViewTest = (wrapper) => {
-    // console.log(wrapper.html())
+  // テスト内容
+  const viewTest = (wrapper) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    commonMessageTest(wrapper, null, null)
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
-    expect(wrapper.vm.$data.password).toBe('')
-    expect(wrapper.vm.$data.password_confirmation).toBe('')
-  }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonApiCalledTest = (values, setUserCalled) => {
-    expect(axiosPostMock).toBeCalledTimes(1)
-    expect(axiosPostMock).toBeCalledWith('https://example.com/users/auth/password/update.json', {
-      reset_password_token: values.reset_password_token,
-      password: values.password,
-      password_confirmation: values.password_confirmation
-    })
-    expect(authSetUserMock).toBeCalledTimes(setUserCalled)
-  }
-  const commonDisabledTest = (wrapper, button, disabled) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    expect(button.vm.disabled).toBe(disabled)
+    helper.messageTest(wrapper, Message, null)
+    expect(wrapper.vm.$data.query).toEqual({ password: '', password_confirmation: '' })
   }
 
+  // テストケース
   it('[未ログイン]表示される', async () => {
     const query = Object.freeze({ reset_password_token: 'token' })
     const wrapper = mountFunction(false, query)
-    commonViewTest(wrapper)
+    viewTest(wrapper)
 
     // 変更ボタン
     const button = wrapper.find('#password_update_btn')
     expect(button.exists()).toBe(true)
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
-      if (button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, true)
     expect(button.vm.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.vm.$data.password = 'abc12345'
-    wrapper.vm.$data.password_confirmation = 'abc12345'
+    wrapper.vm.$data.query = { password: 'abc12345', password_confirmation: 'abc12345' }
 
     // 変更ボタン
-    for (let i = 0; i < 100; i++) {
-      await helper.sleep(10)
-      if (!button.vm.disabled) { break }
-    }
+    await helper.waitChangeDisabled(button, false)
     expect(button.vm.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true, {})
-    commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
+    helper.mockCalledTest(toastedErrorMock, 0)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
+    helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
 
   describe('トークンエラー', () => {
     const query = Object.freeze({ reset_password: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]パスワード再設定にリダイレクトされる', () => {
       mountFunction(false, query)
-      commonRedirectTest(null, null, { path: '/users/password/new', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: query.alert, notice: query.notice } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
 
@@ -151,104 +122,149 @@ describe('index.vue', () => {
     const query = Object.freeze({ reset_password_token: null })
     it('[未ログイン]パスワード再設定にリダイレクトされる', () => {
       mountFunction(false, query)
-      commonRedirectTest(null, null, { path: '/users/password/new', query: { alert: locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: helper.locales.auth.reset_password_token_blank } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
   describe('トークンなし', () => {
     const query = Object.freeze({ reset_password_token: '' })
     it('[未ログイン]パスワード再設定にリダイレクトされる', () => {
       mountFunction(false, query)
-      commonRedirectTest(null, null, { path: '/users/password/new', query: { alert: locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: helper.locales.auth.reset_password_token_blank } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      commonRedirectTest(null, locales.auth.already_authenticated, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_authenticated)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
     })
   })
 
-  describe('パスワード再設定API', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const query = Object.freeze({ reset_password_token: 'token' })
-    const values = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
-    it('[成功]ログイン状態になり、トップページにリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
-      wrapper.vm.$auth.loggedIn = true // Tips: 状態変更（Mockでは実行されない為）
+  describe('パスワード再設定', () => {
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
+    const params = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
+    const apiCalledTest = (count, params = null) => {
+      expect(axiosPostMock).toBeCalledTimes(count)
+      if (count > 0) {
+        expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, {
+          ...params
+        })
+      }
+    }
 
+    let wrapper, button
+    const beforeAction = async (changeSignIn = false, options = { keydown: false, isComposing: null }) => {
+      wrapper = mountFunction(false, { reset_password_token: params.reset_password_token }, { query: params })
+      if (options.keydown) {
+        const inputArea = wrapper.find('#input_area')
+        inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
+        inputArea.trigger('keyup.enter')
+      } else {
+        button = wrapper.find('#password_update_btn')
+        button.trigger('click')
+      }
+      if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // NOTE: 状態変更（Mockでは実行されない為）
       await helper.sleep(1)
-      commonApiCalledTest(values, 1)
-      commonRedirectTest(data.alert, data.notice, { path: '/' })
+    }
+
+    it('[成功][ボタンクリック]ログイン状態になり、トップページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction(true)
+
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+    })
+    it('[成功][Enter送信]ログイン状態になり、トップページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction(true, { keydown: true, isComposing: false })
+
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
+      helper.mockCalledTest(toastedErrorMock, 1, data.alert)
+      helper.mockCalledTest(toastedInfoMock, 1, data.notice)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/' })
+    })
+    it('[成功][IME確定のEnter]APIリクエストされない', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction(false, { keydown: true, isComposing: true })
+
+      apiCalledTest(0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
     })
     it('[成功]ログイン状態にならなかった場合は、ログインページにリダイレクトされる', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest(values, 1)
-      commonRedirectTest(null, null, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
     })
-    it('[入力エラー]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+    it('[データなし]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest(values, 0)
-      commonMessageTest(wrapper, data.alert, data.notice)
-      commonDisabledTest(wrapper, button, true)
-    })
-    it('[連携エラー]パスワード再設定（メールアドレス入力）にリダイレクトされる', async () => {
-      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: null }, data) } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
-
-      await helper.sleep(1)
-      commonApiCalledTest(values, 0)
-      commonRedirectTest(null, null, { path: '/users/password/new', query: { alert: data.alert, notice: data.notice } })
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest(values, 0)
-      commonToastedTest(locales.network.failure, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest(values, 0)
-      commonToastedTest(locales.network.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
-    it('[データなし]エラーメッセージが表示される', async () => {
-      axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction(false, query, values)
-      const button = wrapper.find('#password_update_btn')
-      button.trigger('click')
+    it('[入力エラー]エラーメッセージが表示される', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 422, data: Object.assign({ errors: { password: ['errorメッセージ'] } }, data) } }))
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest(values, 0)
-      commonToastedTest(locales.system.error, null)
-      commonDisabledTest(wrapper, button, false)
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.messageTest(wrapper, Message, data)
+      helper.disabledTest(wrapper, Processing, button, true) // 無効
+    })
+    it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
+      axiosPostMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      await beforeAction()
+
+      apiCalledTest(1, params)
+      helper.mockCalledTest(authSetUserMock, 0)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(routerPushMock, 1, { path: '/users/password/reset', query: { alert: helper.locales.system.default } })
     })
   })
 })

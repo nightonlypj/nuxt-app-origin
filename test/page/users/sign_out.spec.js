@@ -1,6 +1,5 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Page from '~/pages/users/sign_out.vue'
@@ -24,6 +23,10 @@ describe('sign_out.vue', () => {
     const wrapper = mount(Page, {
       localVue,
       vuetify,
+      stubs: {
+        Loading: true,
+        Processing: true
+      },
       mocks: {
         $auth: {
           loggedIn,
@@ -42,8 +45,8 @@ describe('sign_out.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
-    // console.log(wrapper.html())
+  // テスト内容
+  const viewTest = (wrapper) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
@@ -52,43 +55,35 @@ describe('sign_out.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
   }
-  const commonToastedTest = (alert, notice) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-  }
-  const commonRedirectTest = (alert, notice, url) => {
-    commonToastedTest(alert, notice)
-    expect(routerPushMock).toBeCalledTimes(1)
-    expect(routerPushMock).toBeCalledWith(url)
-  }
-  const commonProcessingTest = (wrapper) => {
-    // console.log(wrapper.html())
+
+  const updateViewTest = (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(true)
-  }
-  const commonApiCalledTest = () => {
-    expect(authLogoutMock).toBeCalledTimes(1)
+
+    // Devise Token Auth
+    expect(localStorage.getItem('token-type')).toBeNull()
+    expect(localStorage.getItem('uid')).toBeNull()
+    expect(localStorage.getItem('client')).toBeNull()
+    expect(localStorage.getItem('access-token')).toBeNull()
+    expect(localStorage.getItem('expiry')).toBeNull()
+
+    // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
   }
 
+  // テストケース
   it('[未ログイン]トップページにリダイレクトされる', () => {
     mountFunction(false)
-    commonRedirectTest(null, locales.auth.already_signed_out, { path: '/' })
+    helper.mockCalledTest(toastedErrorMock, 0)
+    helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.already_signed_out)
+    helper.mockCalledTest(routerPushMock, 1, { path: '/' })
   })
   it('[ログイン中]表示される', () => {
     const wrapper = mountFunction(true)
-    commonViewTest(wrapper)
+    viewTest(wrapper)
   })
 
-  describe('ログアウトAPI', () => {
-    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
-      authLogoutMock = jest.fn()
-      const wrapper = mountFunction(true)
-
+  describe('ログアウト', () => {
+    let wrapper
+    const beforeAction = async () => {
       // Devise Token Auth
       localStorage.setItem('token-type', 'Bearer')
       localStorage.setItem('uid', '101')
@@ -96,46 +91,45 @@ describe('sign_out.vue', () => {
       localStorage.setItem('access-token', 'token')
       localStorage.setItem('expiry', '123')
 
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
-
+      wrapper = mountFunction(true)
+      wrapper.find('#sign_out_btn').trigger('click')
       await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(null, locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
 
-      // Devise Token Auth
-      expect(localStorage.getItem('token-type')).toBe(null)
-      expect(localStorage.getItem('uid')).toBe(null)
-      expect(localStorage.getItem('client')).toBe(null)
-      expect(localStorage.getItem('access-token')).toBe(null)
-      expect(localStorage.getItem('expiry')).toBe(null)
+      updateViewTest(wrapper)
+    }
+
+    it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      authLogoutMock = jest.fn()
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
 
-    it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+    it('[接続エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction(true)
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(locales.network.failure, locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
-    it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // Tips: エラーでもフロントは未ログイン状態になる
+    it('[レスポンスエラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
       authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction(true)
-      const button = wrapper.find('#sign_out_btn')
-      button.trigger('click')
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonProcessingTest(wrapper)
-      commonApiCalledTest()
-      commonToastedTest(locales.network.error, locales.auth.signed_out)
-      // Tips: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.error)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
+    })
+    it('[その他エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => { // NOTE: エラーでもフロントは未ログイン状態になる
+      authLogoutMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      await beforeAction()
+
+      helper.mockCalledTest(authLogoutMock, 1)
+      helper.mockCalledTest(toastedErrorMock, 1, helper.locales.system.default)
+      helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.signed_out)
     })
   })
 })

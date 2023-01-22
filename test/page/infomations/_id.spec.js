@@ -1,23 +1,23 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
-import locales from '~/locales/ja.js'
 import Loading from '~/components/Loading.vue'
-import Label from '~/components/infomations/Label.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/_id.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('_id.vue', () => {
-  let axiosGetMock, toastedErrorMock, toastedInfoMock, routerPushMock, nuxtErrorMock
+  let axiosGetMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock
 
   beforeEach(() => {
+    axiosGetMock = null
     toastedErrorMock = jest.fn()
     toastedInfoMock = jest.fn()
-    routerPushMock = jest.fn()
     nuxtErrorMock = jest.fn()
   })
 
+  const params = { id: '1' }
   const mountFunction = () => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
@@ -25,27 +25,19 @@ describe('_id.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Label: true
+        Loading: true,
+        InfomationsLabel: true
       },
       mocks: {
-        $config: {
-          apiBaseURL: 'https://example.com',
-          infomationDetailUrl: '/infomations/_id.json'
-        },
-        $route: {
-          params: {
-            id: 1
-          }
-        },
         $axios: {
           get: axiosGetMock
+        },
+        $route: {
+          params
         },
         $toasted: {
           error: toastedErrorMock,
           info: toastedInfoMock
-        },
-        $router: {
-          push: routerPushMock
         },
         $nuxt: {
           error: nuxtErrorMock
@@ -56,114 +48,112 @@ describe('_id.vue', () => {
     return wrapper
   }
 
-  const commonLoadingTest = (wrapper) => {
-    // console.log(wrapper.html())
-    expect(wrapper.findComponent(Loading).exists()).toBe(true)
-  }
-  const commonApiCalledTest = () => {
-    expect(axiosGetMock).toBeCalledTimes(1)
-    expect(axiosGetMock).toBeCalledWith('https://example.com/infomations/1.json')
-  }
-  const commonViewTest = (wrapper, infomation, startedAt) => {
-    // console.log(wrapper.html())
+  // テスト内容
+  const viewTest = (wrapper, data) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.vm.$data.list).toEqual(infomation)
+    expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
 
-    expect(wrapper.findComponent(Label).exists()).toBe(true) // ラベル
-    expect(wrapper.findComponent(Label).vm.$props.list).toEqual(infomation)
+    expect(wrapper.findComponent(InfomationsLabel).exists()).toBe(true) // ラベル
+    expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(data.infomation)
 
-    // console.log(wrapper.text())
-    expect(wrapper.text()).toMatch(infomation.title) // タイトル
-    expect(wrapper.text()).toMatch(startedAt) // 開始日時
-    if (infomation.body !== null) {
-      expect(wrapper.text()).toMatch(infomation.body) // 本文
-      expect(wrapper.text()).not.toMatch(infomation.summary) // 概要
+    expect(wrapper.text()).toMatch(data.infomation.title) // タイトル
+    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', data.infomation.started_at)) // 開始日
+    if (data.infomation.body != null) {
+      expect(wrapper.text()).toMatch(data.infomation.body) // 本文
+      expect(wrapper.text()).not.toMatch(data.infomation.summary) // 概要
     } else {
-      expect(wrapper.text()).toMatch(infomation.summary)
+      expect(wrapper.text()).toMatch(data.infomation.summary)
     }
 
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/infomations')).toBe(true) // お知らせ一覧
   }
-  const commonRedirectTest = (alert, notice, url, mock = routerPushMock) => {
-    expect(toastedErrorMock).toBeCalledTimes(alert !== null ? 1 : 0)
-    if (alert !== null) {
-      expect(toastedErrorMock).toBeCalledWith(alert)
-    }
-    expect(toastedInfoMock).toBeCalledTimes(notice !== null ? 1 : 0)
-    if (notice !== null) {
-      expect(toastedInfoMock).toBeCalledWith(notice)
-    }
-    expect(mock).toBeCalledTimes(1)
-    expect(mock).toBeCalledWith(url)
-  }
 
-  describe('お知らせ詳細API', () => {
-    it('[本文あり]表示される', async () => {
-      const infomation = Object.freeze({
-        title: 'タイトル1',
-        summary: '概要1',
-        body: '本文1',
-        started_at: '2021-01-01T09:00:00+09:00'
-      })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation } }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
+  // テストケース
+  describe('お知らせ詳細取得', () => {
+    const apiCalledTest = () => {
+      expect(axiosGetMock).toBeCalledTimes(1)
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.detailUrl.replace(':id', params.id))
+    }
 
+    let wrapper
+    const beforeAction = async () => {
+      wrapper = mountFunction()
+      helper.loadingTest(wrapper, Loading)
       await helper.sleep(1)
-      commonApiCalledTest()
-      commonViewTest(wrapper, infomation, '2021/01/01')
+
+      apiCalledTest()
+    }
+
+    it('[本文あり]表示される', async () => {
+      const data = Object.freeze({
+        infomation: {
+          title: 'タイトル1',
+          summary: '概要1',
+          body: '本文1',
+          started_at: '2000-01-01T12:34:56+09:00'
+        }
+      })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
+
+      viewTest(wrapper, data)
     })
     it('[本文なし]表示される', async () => {
-      const infomation = Object.freeze({
-        title: 'タイトル1',
-        summary: '概要1',
-        body: null,
-        started_at: '2021-01-01T09:00:00+09:00'
+      const data = Object.freeze({
+        infomation: {
+          title: 'タイトル1',
+          summary: '概要1',
+          body: null,
+          started_at: '2000-01-01T12:34:56+09:00'
+        }
       })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomation } }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
+      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonApiCalledTest()
-      commonViewTest(wrapper, infomation, '2021/01/01')
+      viewTest(wrapper, data)
     })
-    it('[404]エラーページが表示される', async () => {
+    it('[データなし]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+    })
+
+    it('[接続エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      await beforeAction()
+
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
+    })
+    it('[存在しない]エラーページが表示される', async () => {
       const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonRedirectTest(data.alert, data.notice, { statusCode: 404 }, nuxtErrorMock)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: data.alert, notice: data.notice })
     })
-
-    it('[接続エラー]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
-
-      await helper.sleep(1)
-      commonRedirectTest(locales.network.failure, null, { path: '/' })
-    })
-    it('[レスポンスエラー]トップページにリダイレクトされる', async () => {
+    it('[レスポンスエラー]エラーページが表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonRedirectTest(locales.network.error, null, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
     })
-    it('[データなし]トップページにリダイレクトされる', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
-      const wrapper = mountFunction()
-      commonLoadingTest(wrapper)
+    it('[その他エラー]エラーページが表示される', async () => {
+      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      await beforeAction()
 
-      await helper.sleep(1)
-      commonRedirectTest(locales.system.error, null, { path: '/' })
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
     })
   })
 })

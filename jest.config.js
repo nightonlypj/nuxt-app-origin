@@ -1,4 +1,7 @@
 module.exports = {
+  testMatch: [
+    '<rootDir>/test/**/*.(spec|test).(js|ts)'
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^~/(.*)$': '<rootDir>/$1',
@@ -24,9 +27,7 @@ module.exports = {
     '<rootDir>/components/**/*.vue',
     '<rootDir>/pages/**/*.vue',
     '<rootDir>/layouts/**/*.vue',
-    '<rootDir>/locales/**/*.js',
-    '<rootDir>/plugins/application.js',
-    '<rootDir>/plugins/utils.js'
+    '<rootDir>/plugins/{application,utils}.js'
   ],
   setupFiles: ['./test/setup.js']
 }

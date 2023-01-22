@@ -5,42 +5,26 @@
       <Processing v-if="processing" />
       <v-card-title>お知らせ</v-card-title>
       <v-card-text>
-        <v-row v-if="info != null && info.total_count > info.limit_value">
-          <v-col cols="auto" md="5" align-self="center">
-            {{ info.total_count.toLocaleString() }}件中 {{ $pageFirstNumber(info).toLocaleString() }}-{{ $pageLastNumber(info).toLocaleString() }}件を表示
+        <v-row v-if="existInfomations">
+          <v-col class="align-self-center text-no-wrap">
+            {{ $localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString('ja', $pageFirstNumber(infomation), 'N/A') }}-{{ $localeString('ja', $pageLastNumber(infomation), 'N/A') }}件を表示</template>
           </v-col>
-          <v-col cols="auto" md="7" class="d-flex justify-end">
-            <v-pagination id="pagination" v-model="page" :length="info.total_pages" @input="onPagination()" />
+          <v-col v-if="enablePagination" class="px-0 py-0">
+            <div class="d-flex justify-end">
+              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
+            </div>
           </v-col>
         </v-row>
 
         <v-divider class="my-4" />
-        <article v-if="lists != null && lists.length === 0">
+        <template v-if="!existInfomations">
           <span class="ml-1">お知らせはありません。</span>
           <v-divider class="my-4" />
-        </article>
-        <article v-for="list in lists" :key="list.id">
-          <div>
-            <Label :list="list" />
-            <span class="ml-1 font-weight-bold">
-              <template v-if="list.body_present === true">
-                <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: list.id }}">{{ list.title }}</NuxtLink>
-              </template>
-              <template v-else>
-                {{ list.title }}
-              </template>
-            </span>
-            <span class="ml-1">
-              ({{ $dateFormat(list.started_at, 'ja') }})
-            </span>
-          </div>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <div v-if="list.summary" class="mx-2 my-2" v-html="list.summary" />
-          <v-divider class="my-4" />
-        </article>
+        </template>
+        <InfomationsLists v-else :infomations="infomations" />
 
-        <div v-if="info != null && info.total_pages > 1">
-          <v-pagination id="pagination2" v-model="page" :length="info.total_pages" @input="onPagination()" />
+        <div v-if="enablePagination">
+          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
         </div>
       </v-card-text>
     </v-card>
@@ -48,56 +32,82 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
+import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/plugins/application.js'
-import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'Infomations',
   components: {
-    Label
+    Loading,
+    Processing,
+    InfomationsLists
   },
   mixins: [Application],
 
   data () {
     return {
-      page: 1,
-      info: null,
-      lists: null
+      loading: true,
+      processing: true,
+      page: Number(this.$route?.query?.page) || 1,
+      infomation: null,
+      infomations: null
+    }
+  },
+
+  head () {
+    return {
+      title: 'お知らせ'
+    }
+  },
+
+  computed: {
+    existInfomations () {
+      return this.infomations?.length > 0
+    },
+    enablePagination () {
+      return this.infomation?.total_pages > 1
     }
   },
 
   async created () {
-    await this.onPagination(this.page)
+    if (!await this.getInfomationsList()) { return }
+
+    if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
+      this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
+    }
+
     this.loading = false
   },
 
   methods: {
-    async onPagination () {
+    // お知らせ一覧取得
+    async getInfomationsList () {
       this.processing = true
+      let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationsUrl, { params: { page: this.page } })
+      const redirect = this.infomation == null
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.listUrl, { params: { page: this.page } })
         .then((response) => {
-          if (response.data == null || response.data.infomation == null) {
-            this.$toasted.error(this.$t('system.error'))
-            if (this.info == null) {
-              return this.$router.push({ path: '/' })
-            }
-            this.page = this.info.current_page
-          } else {
-            this.info = response.data.infomation
-            this.lists = response.data.infomations
-            if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0 && this.page === 1) { this.$auth.fetchUser() } // Tips: お知らせ未読数をリセット
-          }
+          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation?.current_page !== this.page)) { return }
+
+          this.infomation = response.data.infomation
+          this.infomations = response.data.infomations
+          result = true
         },
         (error) => {
-          this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
-          if (this.info == null) {
-            return this.$router.push({ path: '/' })
-          }
-          this.page = this.info.current_page
+          this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true })
         })
 
+      this.page = this.infomation?.current_page || 1
+      if (this.page === 1) {
+        this.$router.push({ query: null })
+      } else {
+        this.$router.push({ query: { page: this.page } })
+      }
+
       this.processing = false
+      return result
     }
   }
 }

@@ -20,35 +20,35 @@ describe('ActionLink.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper, action) => {
+  // テスト内容
+  const viewTest = (wrapper, action) => {
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/users/sign_in')).toBe(action !== 'sign_in') // ログイン
     expect(links.includes('/users/sign_up')).toBe(action !== 'sign_up') // アカウント登録
-    expect(links.includes('/users/password/new')).toBe(action !== 'password') // パスワード再設定
-    expect(links.includes('/users/confirmation/new')).toBe(action !== 'confirmation') // メールアドレス確認
-    expect(links.includes('/users/unlock/new')).toBe(action !== 'unlock') // アカウントロック解除
+    expect(links.includes('/users/password/reset')).toBe(action !== 'password') // パスワード再設定
+    expect(links.includes('/users/confirmation/resend')).toBe(action !== 'confirmation') // メールアドレス確認
+    expect(links.includes('/users/unlock/resend')).toBe(action !== 'unlock') // アカウントロック解除
   }
 
+  // テストケース
   it('[ログイン]表示される', () => {
     const wrapper = mountFunction('sign_in')
-    commonViewTest(wrapper, 'sign_in')
+    viewTest(wrapper, 'sign_in')
   })
   it('[アカウント登録]表示される', () => {
     const wrapper = mountFunction('sign_up')
-    commonViewTest(wrapper, 'sign_up')
+    viewTest(wrapper, 'sign_up')
   })
   it('[パスワード再設定]表示される', () => {
     const wrapper = mountFunction('password')
-    commonViewTest(wrapper, 'password')
+    viewTest(wrapper, 'password')
   })
   it('[メールアドレス確認]表示される', () => {
     const wrapper = mountFunction('confirmation')
-    commonViewTest(wrapper, 'confirmation')
+    viewTest(wrapper, 'confirmation')
   })
   it('[アカウントロック解除]表示される', () => {
     const wrapper = mountFunction('unlock')
-    commonViewTest(wrapper, 'unlock')
+    viewTest(wrapper, 'unlock')
   })
 })

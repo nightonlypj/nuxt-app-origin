@@ -2,22 +2,24 @@
   <div>
     <Loading v-if="loading" />
     <v-card v-if="!loading">
-      <v-card-title v-if="list">
-        <Label :list="list" />
-        <span class="ml-1 font-weight-bold">
-          {{ list.title }}
-        </span>
-        <span class="ml-1">
-          ({{ $dateFormat(list.started_at, 'ja') }})
-        </span>
-      </v-card-title>
-      <v-card-text v-if="list">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="list.body" class="mx-2 my-2" v-html="list.body" />
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-else-if="list.summary" class="mx-2 my-2" v-html="list.summary" />
-      </v-card-text>
-      <v-divider />
+      <div v-if="infomation != null">
+        <v-card-title>
+          <InfomationsLabel :infomation="infomation" />
+          <span class="ml-1 font-weight-bold">
+            {{ infomation.title }}
+          </span>
+          <span class="ml-1">
+            ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
+          </span>
+        </v-card-title>
+        <v-card-text>
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-if="infomation.body" class="mx-2 my-2" v-html="infomation.body" />
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-else-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+        </v-card-text>
+        <v-divider />
+      </div>
       <v-card-actions>
         <ul class="my-2">
           <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
@@ -28,48 +30,64 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Application from '~/plugins/application.js'
-import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'Infomations',
   components: {
-    Label
+    Loading,
+    InfomationsLabel
   },
   mixins: [Application],
 
   data () {
     return {
-      list: null
+      loading: true,
+      infomation: null
+    }
+  },
+
+  head () {
+    return {
+      title: this.title
+    }
+  },
+
+  computed: {
+    title () {
+      let label = ''
+      if (this.infomation?.label_i18n != null && this.infomation?.label_i18n !== '') {
+        label = `[${this.infomation.label_i18n}]`
+      }
+      return label + (this.infomation?.title || '')
     }
   },
 
   async created () {
-    await this.$axios.get(this.$config.apiBaseURL + this.$config.infomationDetailUrl.replace('_id', this.$route.params.id))
-      .then((response) => {
-        if (response.data == null) {
-          this.$toasted.error(this.$t('system.error'))
-          return this.$router.push({ path: '/' })
-        }
-        this.list = response.data.infomation
-      },
-      (error) => {
-        if (error.response == null) {
-          this.$toasted.error(this.$t('network.failure'))
-          return this.$router.push({ path: '/' })
-        } else if (error.response.data == null && error.response.status !== 404) {
-          this.$toasted.error(this.$t('network.error'))
-          return this.$router.push({ path: '/' })
-        } else {
-          if (error.response.data != null) {
-            this.$toasted.error(error.response.data.alert)
-            this.$toasted.info(error.response.data.notice)
-          }
-          return this.$nuxt.error({ statusCode: error.response.status })
-        }
-      })
+    if (!await this.getInfomationsDetail()) { return }
 
     this.loading = false
+  },
+
+  methods: {
+    // お知らせ詳細取得
+    async getInfomationsDetail () {
+      let result = false
+
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.detailUrl.replace(':id', this.$route.params.id))
+        .then((response) => {
+          if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
+
+          this.infomation = response.data.infomation
+          result = true
+        },
+        (error) => {
+          this.appCheckErrorResponse(error, { redirect: true, require: true }, { notfound: true })
+        })
+
+      return result
+    }
   }
 }
 </script>

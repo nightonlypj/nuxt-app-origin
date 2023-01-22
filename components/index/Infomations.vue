@@ -1,21 +1,25 @@
 <template>
-  <div v-if="loading || (!loading && lists != null && lists.length > 0)">
+  <div v-if="loading || errorMessage != null || existInfomations">
     <Loading v-if="loading" />
-    <v-card v-if="!loading && lists != null && lists.length > 0">
+    <v-card v-if="!loading">
       <v-card-title>大切なお知らせ</v-card-title>
-      <v-card-text>
-        <article v-for="list in lists" :key="list.id" class="mb-1">
-          <Label :list="list" />
+      <v-card-text v-if="errorMessage != null">
+        <v-icon color="warning">mdi-alert</v-icon>
+        {{ $t(`${errorMessage}_short`) }}
+      </v-card-text>
+      <v-card-text v-else>
+        <article v-for="infomation in infomations" :key="infomation.id" class="mb-1">
+          <InfomationsLabel :infomation="infomation" />
           <span class="ml-1">
-            <template v-if="list.body_present === true || list.summary !== null">
-              <NuxtLink :to="{ name: 'infomations-id___ja', params: { id: list.id }}">{{ list.title }}</NuxtLink>
+            <template v-if="infomation.body_present || infomation.summary !== null">
+              <NuxtLink :to="`/infomations/${infomation.id}`">{{ infomation.title }}</NuxtLink>
             </template>
             <template v-else>
-              {{ list.title }}
+              {{ infomation.title }}
             </template>
           </span>
           <span class="ml-1">
-            ({{ $dateFormat(list.started_at, 'ja') }})
+            ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
           </span>
         </article>
       </v-card-text>
@@ -24,37 +28,50 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import InfomationsLabel from '~/components/infomations/Label.vue'
 import Application from '~/plugins/application.js'
-import Label from '~/components/infomations/Label.vue'
 
 export default {
-  name: 'IndexInfomations',
   components: {
-    Label
+    Loading,
+    InfomationsLabel
   },
   mixins: [Application],
 
   data () {
     return {
-      lists: null
+      loading: true,
+      errorMessage: null,
+      infomations: null
+    }
+  },
+
+  computed: {
+    existInfomations () {
+      return this.infomations?.length > 0
     }
   },
 
   async created () {
-    await this.$axios.get(this.$config.apiBaseURL + this.$config.importantInfomationsUrl)
-      .then((response) => {
-        if (response.data == null) {
-          this.$toasted.error(this.$t('system.error'))
-          this.lists = null
-        } else {
-          this.lists = response.data.infomations
-        }
-      },
-      (error) => {
-        this.$toasted.error(this.$t(error.response == null ? 'network.failure' : 'network.error'))
-      })
-
+    await this.getInfomationsImportant()
     this.loading = false
+  },
+
+  methods: {
+    // 大切なお知らせ一覧取得
+    async getInfomationsImportant () {
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.importantUrl)
+        .then((response) => {
+          this.errorMessage = this.appCheckResponse(response, { returnKey: true })
+          if (this.errorMessage != null) { return }
+
+          this.infomations = response.data.infomations
+        },
+        (error) => {
+          this.errorMessage = this.appCheckErrorResponse(error, { returnKey: true, require: true })
+        })
+    }
   }
 }
 </script>

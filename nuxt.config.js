@@ -1,3 +1,4 @@
+import { defineNuxtConfig } from '@nuxt/bridge'
 import colors from 'vuetify/es5/util/colors'
 
 const environment = process.env.NODE_ENV || 'development'
@@ -5,12 +6,8 @@ const envConfig = require(`./config/${environment}.js`)
 // eslint-disable-next-line nuxt/no-cjs-in-config
 const commonConfig = require('./config/common.js')
 
-export default {
+export default defineNuxtConfig({
   publicRuntimeConfig: Object.assign(envConfig, commonConfig),
-
-  server: {
-    port: 5000
-  },
 
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
@@ -20,12 +17,9 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - nuxt-app-origin',
-    title: 'nuxt-app-origin',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' }
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' }
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
@@ -43,12 +37,10 @@ export default {
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
-  components: true,
+  components: false, // NOTE: Jestでは明示的にimportする必要がある為、揃えておく
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
-    // https://go.nuxtjs.dev/typescript
-    '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify'
   ],
@@ -73,7 +65,9 @@ export default {
   },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {},
+  axios: {
+    debug: envConfig.debug
+  },
 
   // Auth module configuration: https://auth.nuxtjs.org/
   auth: {
@@ -87,7 +81,8 @@ export default {
       local: {
         token: {
           property: 'token',
-          global: true
+          global: true,
+          maxAge: 60 * 60 * 24 // バックエンドと同じか長くしないと不整合な状態になる（フロントが未ログイン、バックエンドがログイン中）
         },
         user: {
           property: 'user'
@@ -110,7 +105,7 @@ export default {
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
     manifest: {
-      lang: 'en'
+      lang: 'ja'
     }
   },
 
@@ -121,13 +116,22 @@ export default {
       dark: true,
       themes: {
         dark: {
-          primary: colors.blue.darken2,
-          accent: colors.grey.darken3,
-          secondary: colors.amber.darken3,
-          info: colors.teal.lighten1,
-          warning: colors.amber.base,
-          error: colors.deepOrange.accent4,
-          success: colors.green.accent3
+          primary: colors.blue.darken2, // <- blue
+          secondary: colors.grey.darken3, // <- amber.darken3 <- grey.darken3
+          accent: colors.amber.darken3, // <- grey.darken3 <- pink.accent2
+          info: colors.teal.lighten1, // <- blue
+          warning: colors.amber.base, // <- orange.darken1
+          error: colors.deepOrange.accent4, // <- red.accent2
+          success: colors.green.accent3 // <- green
+        },
+        light: {
+          // primary: colors.blue.darken2,
+          // secondary: colors.grey.darken3,
+          // accent: colors.blue.accent1,
+          // info: colors.blue,
+          // warning: colors.orange.darken1,
+          // error: colors.red.accent2,
+          // success: colors.green
         }
       }
     }
@@ -141,4 +145,4 @@ export default {
       ]
     }
   }
-}
+})

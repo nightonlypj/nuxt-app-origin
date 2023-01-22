@@ -2,6 +2,9 @@ import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Component from '~/components/Processing.vue'
 
+import { Helper } from '~/test/helper.js'
+const helper = new Helper()
+
 describe('Processing.vue', () => {
   const mountFunction = () => {
     const localVue = createLocalVue()
@@ -14,13 +17,9 @@ describe('Processing.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
-    // console.log(wrapper.html())
-    expect(wrapper.html()).not.toBe('')
-  }
-
+  // テストケース
   it('表示される', () => {
     const wrapper = mountFunction()
-    commonViewTest(wrapper)
+    helper.presentTest(wrapper)
   })
 })

@@ -1,4 +1,5 @@
 module.exports = {
+  debug: true,
   envName: '【テスト環境】',
   apiBaseURL: 'https://test.example.com',
   frontBaseURL: 'https://test-front.example.com'

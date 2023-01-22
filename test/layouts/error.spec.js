@@ -6,7 +6,7 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('error.vue', () => {
-  const mountFunction = (statusCode) => {
+  const mountFunction = (statusCode, alert = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Layout, {
@@ -14,7 +14,8 @@ describe('error.vue', () => {
       vuetify,
       propsData: {
         error: {
-          statusCode
+          statusCode,
+          alert
         }
       }
     })
@@ -22,19 +23,33 @@ describe('error.vue', () => {
     return wrapper
   }
 
-  const commonViewTest = (wrapper) => {
+  // テスト内容
+  const viewTest = (wrapper, alertMessage) => {
     const links = helper.getLinks(wrapper)
-
-    // console.log(links)
     expect(links.includes('/')).toBe(true) // トップページ
+    expect(wrapper.vm.alertMessage).toEqual(alertMessage)
   }
 
-  it('[404]表示される', () => {
-    const wrapper = mountFunction(404)
-    commonViewTest(wrapper)
+  // テストケース
+  describe('alertなし', () => {
+    it('[404]表示される', () => {
+      const wrapper = mountFunction(404)
+      viewTest(wrapper, helper.locales.system.notfound)
+    })
+    it('[500]表示される', () => {
+      const wrapper = mountFunction(500)
+      viewTest(wrapper, helper.locales.system.default)
+    })
   })
-  it('[500]表示される', () => {
-    const wrapper = mountFunction(500)
-    commonViewTest(wrapper)
+  describe('alertあり', () => {
+    const alertMessage = 'alertメッセージ'
+    it('[404]表示される', () => {
+      const wrapper = mountFunction(404, alertMessage)
+      viewTest(wrapper, alertMessage)
+    })
+    it('[500]表示される', () => {
+      const wrapper = mountFunction(500, alertMessage)
+      viewTest(wrapper, alertMessage)
+    })
   })
 })

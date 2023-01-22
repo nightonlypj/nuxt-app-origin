@@ -12,32 +12,35 @@ module.exports = {
   singUpUrl: '/users/auth/sign_up.json',
   singUpSuccessUrl: '/users/sign_in',
   // メールアドレス確認API
-  confirmationNewUrl: '/users/auth/confirmation.json',
+  confirmationUrl: '/users/auth/confirmation.json',
   confirmationSuccessUrl: '/users/sign_in',
   // アカウントロック解除API
-  unlockNewUrl: '/users/auth/unlock.json',
+  unlockUrl: '/users/auth/unlock.json',
   unlockRedirectUrl: '/users/sign_in',
   // パスワード再設定API
-  passwordNewUrl: '/users/auth/password.json',
+  passwordUrl: '/users/auth/password.json',
   passwordRedirectUrl: '/users/password',
   passwordUpdateUrl: '/users/auth/password/update.json',
-  // 登録情報詳細API
-  userShowUrl: '/users/auth/show.json',
-  // 登録情報変更API
+  // ユーザー情報詳細API
+  userDetailUrl: '/users/auth/detail.json',
+  // ユーザー情報変更API
   userUpdateUrl: '/users/auth/update.json',
-  // 画像変更API
+  // ユーザー画像変更API
   userImageUpdateUrl: '/users/auth/image/update.json',
-  // 画像削除API
+  // ユーザー画像削除API
   userImageDeleteUrl: '/users/auth/image/delete.json',
   // アカウント削除API
   userDeleteUrl: '/users/auth/delete.json',
   userSendUndoDeleteUrl: '/users/undo_delete',
   // アカウント削除取り消しAPI
   userUndoDeleteUrl: '/users/auth/undo_delete.json',
-  // 大切なお知らせAPI
-  importantInfomationsUrl: '/infomations/important.json',
-  // お知らせ一覧API
-  infomationsUrl: '/infomations.json',
-  // お知らせ詳細API
-  infomationDetailUrl: '/infomations/_id.json'
+
+  infomations: {
+    // 大切なお知らせ一覧API
+    importantUrl: '/infomations/important.json',
+    // お知らせ一覧API
+    listUrl: '/infomations.json',
+    // お知らせ詳細API
+    detailUrl: '/infomations/:id.json'
+  }
 }

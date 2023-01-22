@@ -1,23 +1,28 @@
 <template>
   <v-row>
     <v-col v-if="!$auth.loggedIn" cols="12" md="6">
-      <SignUp />
+      <IndexSignUp />
     </v-col>
     <v-col cols="12" md="6">
-      <Infomations />
+      <IndexInfomations />
     </v-col>
   </v-row>
 </template>
 
 <script>
-import SignUp from '~/components/index/SignUp.vue'
-import Infomations from '~/components/index/Infomations.vue'
+import IndexSignUp from '~/components/index/SignUp.vue'
+import IndexInfomations from '~/components/index/Infomations.vue'
 
 export default {
-  name: 'Index',
   components: {
-    SignUp,
-    Infomations
+    IndexSignUp,
+    IndexInfomations
+  },
+
+  head () {
+    return {
+      titleTemplate: this.$t('app_name') + this.$config.envName
+    }
   }
 }
 </script>

@@ -5,24 +5,45 @@
       <Processing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
-        このアカウントは{{ $dateFormat($auth.user.destroy_schedule_at, 'ja') || 'N/A' }}以降に削除されます。それまでは取り消し可能です。
-        <div v-if="$auth.user.destroy_requested_at != null">
-          ※{{ $timeFormat($auth.user.destroy_requested_at, 'ja') }}にアカウント削除依頼を受け付けています。
-        </div>
-        <br>
+        <p>
+          このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+          <template v-if="$auth.user.destroy_requested_at != null">
+            （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+          </template>
+        </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
           <template #activator="{ on, attrs }">
-            <v-btn id="user_undo_delete_btn" color="secondary" :disabled="processing" v-bind="attrs" v-on="on">取り消し</v-btn>
+            <v-btn
+              id="user_undo_delete_btn"
+              color="primary"
+              :disabled="processing"
+              v-bind="attrs"
+              v-on="on"
+            >
+              取り消し
+            </v-btn>
           </template>
           <template #default="dialog">
             <v-card id="user_undo_delete_dialog">
-              <v-toolbar color="secondary" dark>アカウント削除取り消し</v-toolbar>
+              <v-toolbar color="primary" dense dark>アカウント削除取り消し</v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-6">本当に取り消しますか？</div>
+                <div class="text-h6 pa-4">本当に取り消しますか？</div>
               </v-card-text>
               <v-card-actions class="justify-end">
-                <v-btn id="user_undo_delete_no_btn" color="secondary" @click="dialog.value = false">いいえ</v-btn>
-                <v-btn id="user_undo_delete_yes_btn" color="primary" @click="dialog.value = false; onUserUndoDelete()">はい</v-btn>
+                <v-btn
+                  id="user_undo_delete_yes_btn"
+                  color="primary"
+                  @click="postUserUndoDelete(dialog)"
+                >
+                  はい
+                </v-btn>
+                <v-btn
+                  id="user_undo_delete_no_btn"
+                  color="secondary"
+                  @click="dialog.value = false"
+                >
+                  いいえ
+                </v-btn>
               </v-card-actions>
             </v-card>
           </template>
@@ -33,66 +54,64 @@
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 export default {
-  name: 'UsersUndoDelete',
+  components: {
+    Loading,
+    Processing
+  },
   mixins: [Application],
 
+  data () {
+    return {
+      loading: true,
+      processing: true
+    }
+  },
+
+  head () {
+    return {
+      title: 'アカウント削除取り消し'
+    }
+  },
+
   async created () {
+    // トークン検証
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      if (error.response == null) {
-        this.$toasted.error(this.$t('network.failure'))
-      } else if (error.response.status === 401) {
-        return this.appSignOut()
-      } else {
-        this.$toasted.error(this.$t('network.error'))
-      }
-      return this.$router.push({ path: '/' })
+      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
     }
 
-    if (!this.$auth.loggedIn) {
-      return this.appRedirectAuth()
-    }
-    if (this.$auth.user.destroy_schedule_at === null) {
-      this.$toasted.error(this.$t('auth.not_destroy_reserved'))
-      return this.$router.push({ path: '/' })
-    }
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+    if (this.$auth.user.destroy_schedule_at == null) { return this.appRedirectNotDestroyReserved() }
 
     this.processing = false
     this.loading = false
   },
 
   methods: {
-    async onUserUndoDelete () {
+    // アカウント削除取り消し
+    async postUserUndoDelete ($dialog) {
       this.processing = true
+      $dialog.value = false
 
       await this.$axios.post(this.$config.apiBaseURL + this.$config.userUndoDeleteUrl)
         .then((response) => {
-          if (response.data == null) {
-            this.$toasted.error(this.$t('system.error'))
+          if (!this.appCheckResponse(response, { toasted: true })) { return }
+
+          this.$auth.setUser(response.data.user)
+          if (this.$auth.loggedIn) {
+            this.appRedirectTop(response.data)
           } else {
-            this.$auth.setUser(response.data.user)
-            if (this.$auth.loggedIn) {
-              return this.appRedirectSuccess(response.data.alert, response.data.notice)
-            } else {
-              return this.appRedirectSignIn(response.data.alert, response.data.notice)
-            }
+            this.appRedirectSignIn(response.data)
           }
         },
         (error) => {
-          if (error.response == null) {
-            this.$toasted.error(this.$t('network.failure'))
-          } else if (error.response.status === 401) {
-            return this.appSignOut()
-          } else if (error.response.data == null) {
-            this.$toasted.error(this.$t('network.error'))
-          } else {
-            this.$toasted.error(error.response.data.alert)
-            this.$toasted.info(error.response.data.notice)
-          }
+          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
         })
 
       this.processing = false

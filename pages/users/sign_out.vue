@@ -6,31 +6,55 @@
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
         <v-btn to="/" nuxt>トップページ</v-btn>
-        <v-btn id="sign_out_btn" class="ml-1" color="primary" :disabled="processing" @click="onSignOut()">はい（ログアウト）</v-btn>
+        <v-btn
+          id="sign_out_btn"
+          class="ml-1"
+          color="primary"
+          :disabled="processing"
+          @click="signOut()"
+        >
+          はい（ログアウト）
+        </v-btn>
       </v-card-text>
     </v-card>
   </div>
 </template>
 
 <script>
+import Loading from '~/components/Loading.vue'
+import Processing from '~/components/Processing.vue'
 import Application from '~/plugins/application.js'
 
 export default {
-  name: 'UsersSignOut',
+  components: {
+    Loading,
+    Processing
+  },
   mixins: [Application],
 
-  created () {
-    if (!this.$auth.loggedIn) {
-      this.$toasted.info(this.$t('auth.already_signed_out'))
-      return this.$router.push({ path: '/' })
+  data () {
+    return {
+      loading: true,
+      processing: true
     }
+  },
+
+  head () {
+    return {
+      title: 'ログアウト'
+    }
+  },
+
+  created () {
+    if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
 
     this.processing = false
     this.loading = false
   },
 
   methods: {
-    onSignOut () {
+    // ログアウト
+    signOut () {
       this.processing = true
       this.appSignOut('auth.signed_out')
     }

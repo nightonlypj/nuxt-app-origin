@@ -1,14 +1,12 @@
 <template>
   <div v-if="alert || notice">
-    <v-alert v-if="alert" type="error">{{ alert }}</v-alert>
-    <v-alert v-if="notice" type="info">{{ notice }}</v-alert>
+    <v-alert v-if="alert" type="error" dismissible @input="$emit('update:alert', null)">{{ alert }}</v-alert>
+    <v-alert v-if="notice" type="info" dismissible @input="$emit('update:notice', null)">{{ notice }}</v-alert>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Message',
-
   props: {
     alert: {
       type: String,

@@ -1,4 +1,5 @@
 module.exports = {
+  debug: false,
   envName: '【STG環境】',
   apiBaseURL: 'https://stg.example.com',
   frontBaseURL: 'https://stg-front.example.com'
