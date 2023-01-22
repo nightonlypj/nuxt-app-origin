@@ -74,8 +74,8 @@ describe('default.vue', () => {
     const button = wrapper.find('#user_menu_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     viewTest(wrapper, true)
   })
 })

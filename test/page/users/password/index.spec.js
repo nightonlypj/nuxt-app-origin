@@ -150,7 +150,7 @@ describe('index.vue', () => {
   })
 
   describe('パスワード再設定', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const params = Object.freeze({ reset_password_token: 'token', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = (count, params = null) => {
       expect(axiosPostMock).toBeCalledTimes(count)
@@ -173,7 +173,6 @@ describe('index.vue', () => {
         button.trigger('click')
       }
       if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // NOTE: 状態変更（Mockでは実行されない為）
-
       await helper.sleep(1)
     }
 
@@ -182,7 +181,7 @@ describe('index.vue', () => {
       await beforeAction(true)
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -192,7 +191,7 @@ describe('index.vue', () => {
       await beforeAction(true, { keydown: true, isComposing: false })
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 1, { path: '/' })
@@ -211,7 +210,7 @@ describe('index.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(setUniversalMock, 1, 'redirect', fullPath)

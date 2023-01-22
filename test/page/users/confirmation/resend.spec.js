@@ -137,7 +137,6 @@ describe('resend.vue', () => {
     const beforeAction = async (loggedIn = false, options = { keydown: false, isComposing: null }) => {
       wrapper = mountFunction(loggedIn, {}, { query: params })
 
-      await helper.sleep(1)
       if (options.keydown) {
         const inputArea = wrapper.find('#input_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
@@ -146,7 +145,6 @@ describe('resend.vue', () => {
         button = wrapper.find('#confirmation_btn')
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 

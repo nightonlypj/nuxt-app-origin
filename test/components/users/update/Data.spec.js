@@ -90,7 +90,7 @@ describe('Data.vue', () => {
   })
 
   describe('ユーザー情報変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     const params = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
     const apiCalledTest = () => {
@@ -107,8 +107,8 @@ describe('Data.vue', () => {
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
       if (changeSignOut) { wrapper.vm.$auth.loggedIn = false } // NOTE: 状態変更（Mockでは実行されない為）
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -116,7 +116,7 @@ describe('Data.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -126,7 +126,7 @@ describe('Data.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true)
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)

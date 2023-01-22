@@ -146,7 +146,6 @@ describe('resend.vue', () => {
         button = wrapper.find('#unlock_btn')
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 

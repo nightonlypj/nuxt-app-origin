@@ -79,7 +79,7 @@ export default {
     // メッセージ表示
     appSetMessage (data, require, defaultKey = 'system.default') {
       this.alert = this.appGetAlertMessage(data, require, defaultKey)
-      this.notice = data.notice
+      this.notice = data?.notice || null
     },
     appSetEmitMessage (data, require, defaultKey = 'system.default') {
       this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))

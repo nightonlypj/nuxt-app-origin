@@ -97,14 +97,14 @@ describe('Image.vue', () => {
     const wrapper = mountFunction(true)
     viewTest(wrapper, true)
 
-    // 削除ボタン
+    // 画像削除ボタン
     const button = wrapper.find('#user_image_delete_btn')
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     const dialog = wrapper.find('#user_image_delete_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -119,14 +119,14 @@ describe('Image.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.vm.disabled).toBe(false) // 有効
     noButton.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
   })
 
   describe('画像変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const image = Object.freeze({})
     const apiCalledTest = () => {
       const params = new FormData()
@@ -140,8 +140,8 @@ describe('Image.vue', () => {
       wrapper = mountFunction(true, { image })
       button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -149,7 +149,7 @@ describe('Image.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction()
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
@@ -227,7 +227,7 @@ describe('Image.vue', () => {
   })
 
   describe('画像削除', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl)
@@ -238,12 +238,12 @@ describe('Image.vue', () => {
       wrapper = mountFunction(true)
       button = wrapper.find('#user_image_delete_btn')
       button.trigger('click')
-
       await helper.sleep(1)
+
       wrapper.find('#user_image_delete_yes_btn').trigger('click')
       if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // NOTE: 状態変更（Mockでは実行されない為）
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -251,7 +251,7 @@ describe('Image.vue', () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data }))
       await beforeAction(true)
 
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { name: 'user1の氏名' })
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)

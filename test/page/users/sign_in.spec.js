@@ -180,7 +180,6 @@ describe('sign_in.vue', () => {
         button = wrapper.find('#sign_in_btn')
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 

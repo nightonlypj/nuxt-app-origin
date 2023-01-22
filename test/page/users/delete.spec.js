@@ -69,8 +69,8 @@ describe('delete.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 0)
@@ -81,8 +81,8 @@ describe('delete.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: null, destroy_schedule_days: 789 })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     viewTest(wrapper, user)
@@ -92,9 +92,9 @@ describe('delete.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     const dialog = wrapper.find('#user_delete_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -118,8 +118,8 @@ describe('delete.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(authFetchUserMock, 1)
     helper.mockCalledTest(authLogoutMock, 0)
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
@@ -132,8 +132,8 @@ describe('delete.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       helper.mockCalledTest(authFetchUserMock, 1)
     }
 
@@ -187,17 +187,17 @@ describe('delete.vue', () => {
     let wrapper, button
     const beforeAction = async () => {
       wrapper = mountFunction()
+      await helper.sleep(1)
 
       // 削除ボタン
-      await helper.sleep(1)
       button = wrapper.find('#user_delete_btn')
       button.trigger('click')
+      await helper.sleep(1)
 
       // はいボタン
-      await helper.sleep(1)
       wrapper.find('#user_delete_yes_btn').trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

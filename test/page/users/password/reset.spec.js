@@ -146,7 +146,6 @@ describe('reset.vue', () => {
         button = wrapper.find('#password_btn')
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 

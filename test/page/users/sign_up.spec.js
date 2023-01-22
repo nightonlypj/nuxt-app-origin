@@ -115,8 +115,8 @@ describe('sign_up.vue', () => {
       wrapper = mountFunction(false, { query: params })
       button = wrapper.find('#sign_up_btn')
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

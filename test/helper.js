@@ -64,8 +64,8 @@ export class Helper {
   // NOTE: 待ち時間を増やさないと状態が変わらない場合に使用
   waitChangeDisabled = async (button, disabled) => {
     for (let index = 0; index < 100; index++) {
-      await this.sleep(1)
       if (button.vm.disabled === disabled) { break }
+      await this.sleep(1)
     }
   }
 }
