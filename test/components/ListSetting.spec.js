@@ -30,9 +30,9 @@ describe('ListSetting.vue', () => {
     const button = wrapper.find('#setting_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
-    // ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     const dialog = wrapper.find('#setting_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -48,11 +48,11 @@ describe('ListSetting.vue', () => {
         expect(showItem.exists()).toBe(false)
       }
     }
+    await helper.sleep(1)
 
     // 変更ボタン
     const submitButton = wrapper.find('#setting_submit_btn')
     expect(submitButton.exists()).toBe(true)
-    await helper.sleep(1)
     expect(submitButton.vm.disabled).toBe(true) // 無効
 
     // キャンセルボタン
@@ -60,9 +60,9 @@ describe('ListSetting.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -78,9 +78,9 @@ describe('ListSetting.vue', () => {
     const button = wrapper.find('#setting_submit_btn')
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
-
-    // ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
 
     expect(localStorage.getItem(`${model}.hidden-items`)).toEqual(hiddenItems.toString())
@@ -109,9 +109,9 @@ describe('ListSetting.vue', () => {
 
       // 表示項目
       expect(wrapper.vm.$data.showItems).toEqual(showItems)
-
-      // ダイアログ
       await helper.sleep(1)
+
+      // 変更ダイアログ
       dialog = wrapper.find('#setting_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
     }

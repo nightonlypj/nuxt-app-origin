@@ -151,23 +151,23 @@ describe('_code.vue', () => {
     it('[更新なし]表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
       const wrapper = mountFunction(true, {})
-
       await helper.sleep(1)
+
       viewTest(wrapper, spaceAdmin)
     })
     it('[更新あり]表示される', async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceUpdated } }))
       const wrapper = mountFunction(true, {})
-
       await helper.sleep(1)
+
       viewTest(wrapper, spaceUpdated)
     })
   })
   it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: defaultSpace } }))
     mountFunction(true, {})
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${defaultSpace.code}` })
@@ -175,24 +175,23 @@ describe('_code.vue', () => {
   it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
     axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
     mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
   })
 
   describe('スペース詳細取得', () => {
-    const space = spaceAdmin
     const beforeAction = async () => {
       mountFunction()
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', space.code))
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', spaceAdmin.code))
     }
 
     it('[データなし]エラーページが表示される', async () => {
@@ -254,9 +253,8 @@ describe('_code.vue', () => {
   })
 
   describe('スペース設定変更', () => {
-    const space = spaceAdmin
-    const data = Object.freeze({ space, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-    const values = Object.freeze({ ...space, name: '更新スペース1', description: '更新スペース1の説明', private: false, image_delete: true })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', space: spaceAdmin })
+    const values = Object.freeze({ name: '更新スペース1', description: '更新スペース1の説明', private: false, image_delete: true, image: {} })
     const apiCalledTest = () => {
       const params = new FormData()
       params.append('space[name]', values.name)
@@ -267,26 +265,26 @@ describe('_code.vue', () => {
       params.append('space[image_delete]', Number(values.image_delete))
       params.append('space[image]', values.image)
       expect(axiosPostMock).toBeCalledTimes(1)
-      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.updateUrl.replace(':code', space.code), params)
+      expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.updateUrl.replace(':code', spaceAdmin.code), params)
     }
 
     let wrapper, button
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...space } } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...spaceAdmin } } }))
       wrapper = mountFunction()
+      await helper.sleep(1)
 
       // 変更
-      await helper.sleep(1)
       wrapper.find('#space_image_delete').trigger('change')
       wrapper.vm.$data.space = values
+      await helper.sleep(1)
 
       // 変更ボタン
-      await helper.sleep(1)
       button = wrapper.find('#space_update_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -298,7 +296,7 @@ describe('_code.vue', () => {
       helper.mockCalledTest(authLogoutMock, 0)
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
-      helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
+      helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
       helper.messageTest(wrapper, Message, null)
     })
     it('[データなし]エラーメッセージが表示される', async () => {

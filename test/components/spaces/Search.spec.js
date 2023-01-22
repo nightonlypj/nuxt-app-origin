@@ -46,8 +46,8 @@ describe('Search.vue', () => {
     if (loggedIn) {
       expect(optionItem.isVisible()).toBe(false) // 非表示
       optionBtn.trigger('click')
-
       await helper.sleep(1)
+
       expect(optionItem.isVisible()).toBe(true) // 表示
     }
   }
@@ -69,10 +69,10 @@ describe('Search.vue', () => {
 
       // 入力
       wrapper.find('#search_text').trigger('input')
+      await helper.sleep(1)
 
       // 検索ボタン
       button = wrapper.find('#search_btn')
-      await helper.sleep(1)
       expect(button.vm.disabled).toBe(false) // 有効
 
       if (options.keydown) {
@@ -82,7 +82,6 @@ describe('Search.vue', () => {
       } else {
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 
@@ -116,10 +115,10 @@ describe('Search.vue', () => {
 
       // 入力
       wrapper.find('#search_text').trigger('input')
+      await helper.sleep(1)
 
       // 検索ボタン
       button = wrapper.find('#search_btn')
-      await helper.sleep(1)
       expect(button.vm.disabled).toBe(false) // 有効
     }
 
@@ -130,9 +129,9 @@ describe('Search.vue', () => {
       // 公開・非公開
       wrapper.vm.syncQuery.public = false
       wrapper.vm.syncQuery.private = false
+      await helper.sleep(1)
 
       // 検索ボタン
-      await helper.sleep(1)
       expect(button.vm.disabled).toBe(true) // 無効
     })
     it('[参加・未参加]検索ボタンが無効になる', async () => {
@@ -142,9 +141,9 @@ describe('Search.vue', () => {
       // 参加・未参加
       wrapper.vm.syncQuery.join = false
       wrapper.vm.syncQuery.nojoin = false
+      await helper.sleep(1)
 
       // 検索ボタン
-      await helper.sleep(1)
       expect(button.vm.disabled).toBe(true) // 無効
     })
     it('[有効・削除予定]検索ボタンが無効になる', async () => {
@@ -153,9 +152,9 @@ describe('Search.vue', () => {
       // 有効・削除予定
       wrapper.vm.syncQuery.active = false
       wrapper.vm.syncQuery.destroy = false
+      await helper.sleep(1)
 
       // 検索ボタン
-      await helper.sleep(1)
       expect(button.vm.disabled).toBe(true) // 無効
     })
   })

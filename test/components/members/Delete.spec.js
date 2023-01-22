@@ -61,19 +61,18 @@ describe('Delete.vue', () => {
   const viewTest = async (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // メンバー解除ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_delete_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     const dialog = wrapper.find('#member_delete_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // はいボタン
-    await helper.sleep(1)
     const yesbutton = wrapper.find('#member_delete_yes_btn')
     expect(yesbutton.exists()).toBe(true)
     expect(yesbutton.vm.disabled).toBe(false) // 有効
@@ -83,9 +82,9 @@ describe('Delete.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.vm.disabled).toBe(false) // 有効
     noButton.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -93,12 +92,12 @@ describe('Delete.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
-    // メンバー解除ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_delete_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
@@ -110,12 +109,12 @@ describe('Delete.vue', () => {
   it('[ログイン中（削除予約済み）]表示されない', async () => {
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
-    // メンバー解除ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_delete_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
 
@@ -133,9 +132,9 @@ describe('Delete.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       wrapper.find('#member_delete_btn').trigger('click')
+      await helper.sleep(1)
 
       // 確認ダイアログ
-      await helper.sleep(1)
       dialog = wrapper.find('#member_delete_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
@@ -143,8 +142,8 @@ describe('Delete.vue', () => {
       button = wrapper.find('#member_delete_yes_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

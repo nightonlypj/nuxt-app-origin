@@ -56,13 +56,13 @@ describe('Create.vue', () => {
   const viewTest = async (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // スペース作成ボタン
+    // 表示ボタン
     const button = wrapper.find('#space_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
-    // スペース作成ダイアログ
     await helper.sleep(1)
+
+    // 作成ダイアログ
     const dialog = wrapper.find('#space_create_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -88,9 +88,9 @@ describe('Create.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // スペース作成ダイアログ
     await helper.sleep(1)
+
+    // 作成ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -98,12 +98,12 @@ describe('Create.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
-    // スペース作成ボタン
+    // 表示ボタン
     const button = wrapper.find('#space_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
@@ -115,16 +115,16 @@ describe('Create.vue', () => {
   it('[ログイン中（削除予約済み）]表示されない', async () => {
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
-    // スペース作成ボタン
+    // 表示ボタン
     const button = wrapper.find('#space_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
 
-    // スペース作成ダイアログ
+    // 作成ダイアログ
     expect(wrapper.find('#space_create_dialog').exists()).toBe(false)
   })
 
@@ -148,22 +148,22 @@ describe('Create.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       wrapper.find('#space_create_btn').trigger('click')
-
-      // スペース作成ダイアログ
       await helper.sleep(1)
+
+      // 作成ダイアログ
       dialog = wrapper.find('#space_create_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 入力
       wrapper.vm.$data.space = values
+      await helper.sleep(1)
 
       // 作成ボタン
-      await helper.sleep(1)
       button = wrapper.find('#space_create_submit_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -186,7 +186,7 @@ describe('Create.vue', () => {
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       helper.mockCalledTest(routerPushMock, 0)
-      expect(dialog.isVisible()).toBe(false) // [スペース作成ダイアログ]非表示
+      expect(dialog.isVisible()).toBe(false) // 非表示
       expect(wrapper.vm.$data.space).toEqual(helper.commonConfig.enablePublicSpace ? { private: true } : {}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {

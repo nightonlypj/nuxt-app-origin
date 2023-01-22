@@ -248,6 +248,8 @@ export default {
         }
       })
         .then((response) => {
+          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
+
           if (this.page === 1) {
             this.uid = response.headers?.uid || null
           } else if (this.uid !== (response.headers?.uid || null)) {
@@ -266,7 +268,6 @@ export default {
             this.spaces.push(...response.data.spaces)
           }
 
-          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
           result = true
         },
         (error) => {

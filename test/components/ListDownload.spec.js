@@ -68,15 +68,14 @@ describe('ListDownload.vue', () => {
     const button = wrapper.find('#download_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
-    // ダイアログ
     await helper.sleep(1)
+
+    // ダウンロードダイアログ
     const dialog = wrapper.find('#download_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // ダウンロードボタン
-    await helper.sleep(1)
     const submitButton = wrapper.find('#download_submit_btn')
     expect(submitButton.exists()).toBe(true)
     expect(submitButton.vm.disabled).toBe(false) // 有効
@@ -130,9 +129,9 @@ describe('ListDownload.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // ダイアログ
     await helper.sleep(1)
+
+    // ダウンロードダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -213,9 +212,9 @@ describe('ListDownload.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction(true, [], selectItems, searchParams)
       wrapper.find('#download_btn').trigger('click')
-
-      // ダイアログ
       await helper.sleep(1)
+
+      // ダウンロードダイアログ
       dialog = wrapper.find('#download_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
@@ -223,8 +222,8 @@ describe('ListDownload.vue', () => {
       button = wrapper.find('#download_submit_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -238,7 +237,7 @@ describe('ListDownload.vue', () => {
       expect(localStorage.getItem('download.char_code')).toBe(query.char_code)
       expect(localStorage.getItem('download.newline_code')).toBe(query.newline_code)
       expect(dialog.isVisible()).toBe(false) // 非表示
-      helper.mockCalledTest(routerPushMock, 1, { path: '/downloads', query: { id: data.download.id } })
+      helper.mockCalledTest(routerPushMock, 1, { path: '/downloads', query: { target_id: data.download.id } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))

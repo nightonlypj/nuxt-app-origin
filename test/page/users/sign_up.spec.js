@@ -111,8 +111,8 @@ describe('sign_up.vue', () => {
     let wrapper
     const beforeAction = async () => {
       wrapper = mountFunction(false, {}, invitation)
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
     const apiCalledTest = () => {

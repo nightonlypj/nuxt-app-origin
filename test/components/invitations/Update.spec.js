@@ -110,14 +110,14 @@ describe('Update.vue', () => {
   const viewTest = async (wrapper, invitation, show = { delete: null, undoDelete: null }) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // 招待URL設定変更ダイアログ
+    // 変更ダイアログ
     expect(wrapper.find('#invitation_update_dialog').exists()).toBe(false)
 
     // ダイアログ表示
     wrapper.vm.showDialog(invitation)
-
-    // 招待URL設定変更ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     const dialog = wrapper.find('#invitation_update_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -175,9 +175,9 @@ describe('Update.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // 招待URL設定変更ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -187,8 +187,8 @@ describe('Update.vue', () => {
 
     // ダイアログ表示
     wrapper.vm.showDialog(invitationActive)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
@@ -215,12 +215,12 @@ describe('Update.vue', () => {
 
       // ダイアログ表示
       wrapper.vm.showDialog(invitationEmailJoined)
-
       await helper.sleep(1)
+
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.alert.invitation.email_joined)
       helper.mockCalledTest(toastedInfoMock, 0)
 
-      // 招待URL設定変更ダイアログ
+      // 変更ダイアログ
       expect(wrapper.find('#invitation_update_dialog').exists()).toBe(false)
     })
   })
@@ -230,29 +230,28 @@ describe('Update.vue', () => {
 
     // ダイアログ表示
     wrapper.vm.showDialog(invitationActive)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
 
-    // 招待URL設定変更ダイアログ
+    // 変更ダイアログ
     expect(wrapper.find('#invitation_update_dialog').exists()).toBe(false)
   })
 
   describe('招待URL詳細取得', () => {
-    const invitation = invitationActive
     const beforeAction = async () => {
       const wrapper = mountFunction()
 
       // ダイアログ表示
-      wrapper.vm.showDialog(invitation)
-
+      wrapper.vm.showDialog(invitationActive)
       await helper.sleep(1)
+
       apiCalledTest()
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.invitations.detailUrl.replace(':space_code', space.code).replace(':code', invitation.code)
+      const url = helper.commonConfig.invitations.detailUrl.replace(':space_code', space.code).replace(':code', invitationActive.code)
       expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
@@ -305,8 +304,7 @@ describe('Update.vue', () => {
   })
 
   describe('招待URL設定変更', () => {
-    const invitation = invitationActive
-    const data = Object.freeze({ invitation, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', invitation: invitationActive })
     const values = Object.freeze({
       ended_date: '9999-12-31',
       ended_time: '23:59',
@@ -317,7 +315,7 @@ describe('Update.vue', () => {
     })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.invitations.updateUrl.replace(':space_code', space.code).replace(':code', invitation.code)
+      const url = helper.commonConfig.invitations.updateUrl.replace(':space_code', space.code).replace(':code', invitationActive.code)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
         invitation: values
       })
@@ -325,26 +323,26 @@ describe('Update.vue', () => {
 
     let wrapper, dialog, button
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { ...invitation } } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { ...invitationActive } } }))
       wrapper = mountFunction()
-      wrapper.vm.showDialog(invitation)
-
-      // 招待URL設定変更ダイアログ
+      wrapper.vm.showDialog(invitationActive)
       await helper.sleep(1)
+
+      // 変更ダイアログ
       dialog = wrapper.find('#invitation_update_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 変更
       wrapper.find('#invitation_delete_check').trigger('change')
-      wrapper.vm.$data.invitation = { ...invitation, ...values }
+      wrapper.vm.$data.invitation = { ...invitationActive, ...values }
+      await helper.sleep(1)
 
       // 変更ボタン
-      await helper.sleep(1)
       button = wrapper.find('#invitation_update_submit_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -356,7 +354,7 @@ describe('Update.vue', () => {
       helper.mockCalledTest(toastedErrorMock, 1, data.alert)
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       expect(wrapper.emitted().update).toEqual([[data.invitation]]) // 招待URL情報更新
-      expect(dialog.isVisible()).toBe(false) // [招待URL設定変更ダイアログ]非表示
+      expect(dialog.isVisible()).toBe(false) // 非表示
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       axiosPostMock = jest.fn(() => Promise.resolve({ data: null }))

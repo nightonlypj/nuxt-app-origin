@@ -83,14 +83,14 @@ describe('Update.vue', () => {
   const viewTest = async (wrapper, member) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // メンバー情報変更ダイアログ
+    // 変更ダイアログ
     expect(wrapper.find('#member_update_dialog').exists()).toBe(false)
 
     // ダイアログ表示
     wrapper.vm.showDialog(member)
-
-    // メンバー情報変更ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     const dialog = wrapper.find('#member_update_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -132,9 +132,9 @@ describe('Update.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // メンバー情報変更ダイアログ
     await helper.sleep(1)
+
+    // 変更ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -144,8 +144,8 @@ describe('Update.vue', () => {
 
     // ダイアログ表示
     wrapper.vm.showDialog(memberCreated)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
@@ -173,29 +173,28 @@ describe('Update.vue', () => {
 
     // ダイアログ表示
     wrapper.vm.showDialog(memberCreated)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
 
-    // メンバー情報変更ダイアログ
+    // 変更ダイアログ
     expect(wrapper.find('#member_update_dialog').exists()).toBe(false)
   })
 
   describe('メンバー詳細取得', () => {
-    const member = memberCreated
     const beforeAction = async () => {
       const wrapper = mountFunction()
 
       // ダイアログ表示
-      wrapper.vm.showDialog(member)
-
+      wrapper.vm.showDialog(memberCreated)
       await helper.sleep(1)
+
       apiCalledTest()
     }
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.members.detailUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.members.detailUrl.replace(':space_code', space.code).replace(':user_code', memberCreated.user.code)
       expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
@@ -248,12 +247,11 @@ describe('Update.vue', () => {
   })
 
   describe('メンバー情報変更', () => {
-    const member = memberCreated
-    const data = Object.freeze({ member, alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', member: memberCreated })
     const values = Object.freeze({ power: 'writer' })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
-      const url = helper.commonConfig.members.updateUrl.replace(':space_code', space.code).replace(':user_code', member.user.code)
+      const url = helper.commonConfig.members.updateUrl.replace(':space_code', space.code).replace(':user_code', memberCreated.user.code)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + url, {
         member: values
       })
@@ -261,25 +259,25 @@ describe('Update.vue', () => {
 
     let wrapper, dialog, button
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: { ...member } } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { member: { ...memberCreated } } }))
       wrapper = mountFunction()
-      wrapper.vm.showDialog(member)
-
-      // メンバー情報変更ダイアログ
+      wrapper.vm.showDialog(memberCreated)
       await helper.sleep(1)
+
+      // 変更ダイアログ
       dialog = wrapper.find('#member_update_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 変更
       wrapper.find(`#member_power_${values.power}`).trigger('change')
+      await helper.sleep(1)
 
       // 変更ボタン
-      await helper.sleep(1)
       button = wrapper.find('#member_update_submit_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

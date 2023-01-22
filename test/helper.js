@@ -44,10 +44,10 @@ export class Helper {
     }
   }
 
-  messageTest = (wrapper, Message, data, check = { alert: true, notice: true }) => {
+  messageTest = (wrapper, Message, data) => {
     expect(wrapper.findComponent(Message).exists()).toBe(true)
-    if (check.alert) { expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null) }
-    if (check.notice) { expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null) }
+    expect(wrapper.findComponent(Message).vm.$props.alert).toBe(data?.alert || null)
+    expect(wrapper.findComponent(Message).vm.$props.notice).toBe(data?.notice || null)
   }
 
   emitMessageTest = (wrapper, data) => {
@@ -64,8 +64,8 @@ export class Helper {
   // NOTE: 待ち時間を増やさないと状態が変わらない場合に使用
   waitChangeDisabled = async (button, disabled) => {
     for (let index = 0; index < 100; index++) {
-      if (button.vm.disabled === disabled) { break }
       await this.sleep(1)
+      if (button.vm.disabled === disabled) { break }
     }
   }
 }

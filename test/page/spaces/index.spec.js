@@ -250,15 +250,15 @@ describe('index.vue', () => {
   const infiniteErrorTest = async (alert, notice) => {
     const wrapper = mountFunction()
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     apiCalledTest(1, defaultParams)
     const infiniteLoading = viewTest(wrapper, defaultParams, defaultQuery, dataPage1, '5件', { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
-
     await helper.sleep(1)
+
     apiCalledTest(2, defaultParams)
     if (alert != null) {
       helper.mockCalledTest(toastedErrorMock, 1, alert)
@@ -279,8 +279,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, defaultParams)
       viewTest(wrapper, defaultParams, defaultQuery, dataCount0, '')
     })
@@ -288,8 +288,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, defaultParams)
       viewTest(wrapper, defaultParams, defaultQuery, dataCount1, '1件')
     })
@@ -302,24 +302,24 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage3, headers: { uid: uid3 } }))
         wrapper = mountFunction(loggedIn)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         infiniteLoading = viewTest(wrapper, defaultParams, defaultQuery, dataPage1, '5件', { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(2, defaultParams)
         const spaces = dataPage1.spaces.concat(dataPage2.spaces)
         viewTest(wrapper, defaultParams, defaultQuery, { ...dataPage2, spaces }, '5件', { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(3, defaultParams)
         viewTest(wrapper, defaultParams, defaultQuery, { ...dataPage3, spaces: spaces.concat(dataPage3.spaces) }, '5件', { existInfinite: false, testState: 'complete' })
       }
@@ -328,10 +328,9 @@ describe('index.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
-        helper.mockCalledTest(window.location.reload, count + 1)
 
+        helper.mockCalledTest(window.location.reload, count + 1)
         apiCalledTest(2, defaultParams)
         viewTest(wrapper, defaultParams, defaultQuery, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
       }
@@ -362,8 +361,8 @@ describe('index.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -380,8 +379,8 @@ describe('index.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, space: { ...dataPage1.space, current_page: 9 } } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
@@ -399,8 +398,8 @@ describe('index.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
@@ -417,8 +416,8 @@ describe('index.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
@@ -435,8 +434,8 @@ describe('index.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
         helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
@@ -455,8 +454,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
       const wrapper = mountFunction(false, findQuery)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, findParams)
       viewTest(wrapper, findParams, findQuery, dataCount1, '1件')
     })
@@ -464,8 +463,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
       const wrapper = mountFunction(true, findQuery)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, findParams)
       viewTest(wrapper, findParams, findQuery, dataCount1, '1件')
     })
@@ -477,8 +476,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
@@ -486,8 +485,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
@@ -495,8 +494,8 @@ describe('index.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
@@ -507,8 +506,8 @@ describe('index.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, defaultParams)
       viewTest(wrapper, defaultParams, defaultQuery, dataPage1, '5件', { existInfinite: true, testState: null })
 
@@ -531,8 +530,8 @@ describe('index.vue', () => {
         option: findQuery.option === '1'
       }
       await wrapper.vm.searchSpacesList()
-
       await helper.sleep(1)
+
       apiCalledTest(2, findParams, 1)
     }
 

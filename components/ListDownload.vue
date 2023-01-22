@@ -292,7 +292,7 @@ export default {
           localStorage.setItem('download.char_code', this.query.char_code)
           localStorage.setItem('download.newline_code', this.query.newline_code)
           $dialog.value = false
-          this.$router.push({ path: '/downloads', query: { id: response.data.download?.id || null } })
+          this.$router.push({ path: '/downloads', query: { target_id: response.data.download?.id || null } })
         },
         (error) => {
           if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, notfound: true })) { return }

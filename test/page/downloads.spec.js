@@ -38,7 +38,7 @@ describe('downloads.vue', () => {
     Object.defineProperty(document, 'body', { configurable: true, value: beforeBody })
   })
 
-  const mountFunction = (loggedIn, user = null, query = null) => {
+  const mountFunction = (loggedIn, user = null, query = null, values = null) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
@@ -71,6 +71,9 @@ describe('downloads.vue', () => {
         $nuxt: {
           error: nuxtErrorMock
         }
+      },
+      data () {
+        return { ...values }
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -114,15 +117,15 @@ describe('downloads.vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = (count, page = count) => {
+  const apiCalledTest = (count, params = { id: null, target_id: null, page: count }) => {
     expect(axiosGetMock).toBeCalledTimes(count)
-    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.listUrl, { params: { page } })
+    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.listUrl, { params })
   }
 
   const viewTest = (wrapper, data, countView, values = null, show = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    helper.messageTest(wrapper, Message, values, { alert: false, notice: true })
+    helper.messageTest(wrapper, Message, values)
 
     expect(wrapper.vm.$data.error).toBe(error)
     expect(wrapper.vm.$data.testState).toBe(show.testState)
@@ -148,15 +151,15 @@ describe('downloads.vue', () => {
   const infiniteErrorTest = async (alert, notice) => {
     const wrapper = mountFunction(true)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     apiCalledTest(1)
     const infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
-
     await helper.sleep(1)
+
     apiCalledTest(2)
     if (alert != null) {
       helper.mockCalledTest(toastedErrorMock, 1, alert)
@@ -188,16 +191,18 @@ describe('downloads.vue', () => {
           current_page: 1,
           total_pages: 0,
           limit_value: 2
-        }
+        },
+        undownloaded_count: 0
       })
       it('表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-        const wrapper = mountFunction(true)
+        const wrapper = mountFunction(true, { undownloaded_count: 0 })
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         viewTest(wrapper, data, '')
+        helper.mockCalledTest(authSetUserMock, 0)
       })
     })
     describe('1件', () => {
@@ -210,16 +215,18 @@ describe('downloads.vue', () => {
         },
         downloads: [
           { id: 1 }
-        ]
+        ],
+        undownloaded_count: 1
       })
       it('表示される', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data }))
-        const wrapper = mountFunction(true)
+        const wrapper = mountFunction(true, { undownloaded_count: 0 })
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         viewTest(wrapper, data, '1件')
+        helper.mockCalledTest(authSetUserMock, 1, { undownloaded_count: 1 })
       })
     })
     describe('無限スクロール', () => {
@@ -231,24 +238,24 @@ describe('downloads.vue', () => {
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage3, headers: { uid: uid3 } }))
         wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         infiniteLoading = viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(2)
         const downloads = dataPage1.downloads.concat(dataPage2.downloads)
         infiniteLoading = viewTest(wrapper, { ...dataPage2, downloads }, '5件', null, { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(3)
         viewTest(wrapper, { ...dataPage3, downloads: downloads.concat(dataPage3.downloads) }, '5件', null, { existInfinite: false, testState: 'complete' })
       }
@@ -257,10 +264,9 @@ describe('downloads.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
-        helper.mockCalledTest(window.location.reload, count + 1)
 
+        helper.mockCalledTest(window.location.reload, count + 1)
         apiCalledTest(2)
         viewTest(wrapper, dataPage1, '5件', null, { existInfinite: true, testState: 'error' }, true)
       }
@@ -283,8 +289,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -302,8 +308,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, download: { ...dataPage1.download, current_page: 9 } } }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -322,8 +328,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -341,8 +347,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(authLogoutMock, 1)
         helper.mockCalledTest(toastedErrorMock, 0)
@@ -361,8 +367,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -380,8 +386,8 @@ describe('downloads.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
         const wrapper = mountFunction(true)
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -393,6 +399,86 @@ describe('downloads.vue', () => {
           .mockImplementationOnce(() => Promise.reject({ response: { status: 400, data: {} } }))
         await infiniteErrorTest(helper.locales.system.default, null)
       })
+    })
+  })
+
+  describe('完了チェック', () => {
+    const targetId = dataPage1.downloads[0].id
+    const user = Object.freeze({ undownloaded_count: 1 })
+    const beforeAction = async (target1, target2, target3, undownloadedCount) => {
+      axiosGetMock = jest.fn()
+        .mockImplementationOnce(() => Promise.resolve({ data: { ...dataPage1, target: target1 } }))
+        .mockImplementationOnce(() => Promise.resolve({ data: { downloads: [{ id: targetId, status: target2.status }], target: target2 } }))
+        .mockImplementationOnce(() => Promise.resolve({ data: { downloads: [{ id: targetId, status: target3.status }], target: target3, undownloaded_count: undownloadedCount } }))
+      const wrapper = mountFunction(true, user, { target_id: targetId })
+      await helper.sleep(1)
+
+      helper.messageTest(wrapper, Message, target1)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      expect(wrapper.vm.$data.testDelay).toEqual([3000, targetId, 1]) // setTimeout: 3秒後、1回目
+      await helper.sleep(1)
+
+      // setTimeoutの処理を実行
+      wrapper.vm.checkDownloadComplete(targetId, 1)
+      await helper.sleep(1)
+
+      apiCalledTest(2, { id: targetId, target_id: targetId })
+      expect(wrapper.vm.$data.testDelay).toEqual([6000, targetId, 2]) // setTimeout: 6秒後、2回目
+
+      // setTimeoutの処理を実行
+      wrapper.vm.checkDownloadComplete(targetId, 2)
+      await helper.sleep(1)
+
+      apiCalledTest(3, { id: targetId, target_id: targetId })
+      expect(wrapper.vm.$data.testDelay).toEqual([6000, targetId, 2]) // setTimeoutされない
+      expect(wrapper.vm.$data.downloads).toEqual([{ id: targetId, status: target3.status }, dataPage1.downloads[1]])
+      helper.mockCalledTest(authSetUserMock, 1, { undownloaded_count: undownloadedCount })
+
+      return wrapper
+    }
+
+    it('[対象が成功]実行されない', async () => {
+      const target = Object.freeze({ status: 'success', notice: 'successメッセージ' })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, target } }))
+      const wrapper = mountFunction(true, user, { target_id: targetId })
+      await helper.sleep(1)
+
+      helper.messageTest(wrapper, Message, target)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, target.notice)
+      expect(wrapper.vm.$data.testDelay).toBeNull() // setTimeoutされない
+    })
+    it('[対象が失敗]実行されない', async () => {
+      const target = Object.freeze({ status: 'failure', alert: 'failureメッセージ' })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, target } }))
+      const wrapper = mountFunction(true, user, { target_id: targetId })
+      await helper.sleep(1)
+
+      helper.messageTest(wrapper, Message, target)
+      helper.mockCalledTest(toastedErrorMock, 1, target.alert)
+      helper.mockCalledTest(toastedInfoMock, 0)
+      expect(wrapper.vm.$data.testDelay).toBeNull() // setTimeoutされない
+    })
+    it('[対象が処理待ち→処理待ち→成功]成功まで繰り返し実行され、表示が変更される', async () => {
+      const target1 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
+      const target2 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
+      const target3 = Object.freeze({ status: 'success', notice: 'successメッセージ' })
+      const wrapper = await beforeAction(target1, target2, target3, 2)
+
+      helper.messageTest(wrapper, Message, target3)
+      helper.mockCalledTest(toastedErrorMock, 0)
+      helper.mockCalledTest(toastedInfoMock, 1, target3.notice)
+    })
+    it('[対象が処理中→処理中→失敗]失敗まで繰り返し実行され、表示が変更される', async () => {
+      const target1 = Object.freeze({ status: 'processing', notice: 'processingメッセージ' })
+      const target2 = Object.freeze({ status: 'processing', notice: 'processingメッセージ' })
+      const target3 = Object.freeze({ status: 'failure', alert: 'failureメッセージ' })
+      const wrapper = await beforeAction(target1, target2, target3, 2)
+
+      helper.messageTest(wrapper, Message, target3)
+      helper.mockCalledTest(toastedErrorMock, 1, target3.alert)
+      helper.mockCalledTest(toastedInfoMock, 0)
     })
   })
 
@@ -420,18 +506,18 @@ describe('downloads.vue', () => {
 
     let wrapper, count
     const beforeAction = async (query, item, values = null) => {
-      wrapper = mountFunction(true, user, query)
+      wrapper = mountFunction(true, user, query, values)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
-      apiCalledTest(1)
+
+      apiCalledTest(1, { id: null, target_id: query?.target_id || null, page: 1 })
       viewTest(wrapper, data, '2件', values)
 
       // ダウンロード
       count = document.body.appendChild.mock.calls.length
       wrapper.vm.downloadsFile({ ...item })
-
       await helper.sleep(1)
+
       expect(axiosGetMock).toBeCalledTimes(2)
       expect(axiosGetMock).nthCalledWith(2, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.fileUrl.replace(':id', item.id), { responseType: 'blob' })
     }
@@ -449,20 +535,19 @@ describe('downloads.vue', () => {
 
       downloadTest()
       helper.messageTest(wrapper, Message, null)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { undownloaded_count: 0 })
     })
     it('[パラメータのIDが一致、未ダウンロード]ダウンロードされ、メッセージがクリアされる', async () => {
       setSuccessMock()
-      const notice = helper.locales.notice.download.status[data.downloads[1].status]
-      await beforeAction({ id: data.downloads[0].id }, data.downloads[0], { notice })
+      await beforeAction({ target_id: data.downloads[0].id }, data.downloads[0], { notice: 'noticeメッセージ' })
 
       downloadTest()
       helper.messageTest(wrapper, Message, null)
-      helper.mockCalledTest(authSetUserMock, 1)
+      helper.mockCalledTest(authSetUserMock, 1, { undownloaded_count: 0 })
     })
     it('[パラメータのIDが不一致、ダウンロード済み]ダウンロードされる', async () => {
       setSuccessMock()
-      await beforeAction({ id: data.downloads[1].id }, data.downloads[1])
+      await beforeAction({ target_id: data.downloads[1].id }, data.downloads[1])
 
       downloadTest()
       helper.messageTest(wrapper, Message, null)

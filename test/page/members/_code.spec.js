@@ -300,15 +300,15 @@ describe('_code.vue', () => {
   const infiniteErrorTest = async (alert, notice) => {
     const wrapper = mountFunction()
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     apiCalledTest(1, defaultParams)
     const infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
-
     await helper.sleep(1)
+
     apiCalledTest(2, defaultParams)
     if (alert != null) {
       helper.mockCalledTest(toastedErrorMock, 1, alert)
@@ -339,8 +339,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, data, '', true)
       })
@@ -348,8 +348,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount0, '', false)
       })
@@ -360,16 +360,16 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, data, '1名', true)
 
         // 選択
         wrapper.vm.selectedMembers = [data.members[0]]
+        await helper.sleep(1)
 
         // 削除
-        await helper.sleep(1)
         const membersDelete = wrapper.findComponent(MembersDelete)
         expect(membersDelete.exists()).toBe(true)
         expect(membersDelete.vm.space).toEqual(wrapper.vm.$data.space)
@@ -378,8 +378,8 @@ describe('_code.vue', () => {
         // 結果
         wrapper.vm.createResult = {}
         wrapper.vm.tabPage = 'result'
-
         await helper.sleep(1)
+
         const membersResult = wrapper.findComponent(MembersResult)
         expect(membersResult.exists()).toBe(true)
         expect(membersResult.vm.result).toEqual(wrapper.vm.$data.createResult)
@@ -388,8 +388,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount1, '1名', false)
       })
@@ -403,24 +403,24 @@ describe('_code.vue', () => {
           .mockImplementationOnce(() => Promise.resolve({ data: dataPage3, headers: { uid: uid3 } }))
         wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(2, defaultParams)
         const members = dataPage1.members.concat(dataPage2.members)
         infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, { ...dataPage2, members }, '5名', false, { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
+
         apiCalledTest(3, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, { ...dataPage3, members: members.concat(dataPage3.members) }, '5名', false, { existInfinite: false, testState: 'complete' })
       }
@@ -429,10 +429,9 @@ describe('_code.vue', () => {
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-
         await helper.sleep(1)
-        helper.mockCalledTest(window.location.reload, count + 1)
 
+        helper.mockCalledTest(window.location.reload, count + 1)
         apiCalledTest(2, defaultParams)
         viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
       }
@@ -455,8 +454,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -474,8 +473,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, space: null } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -493,8 +492,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, member: { ...dataPage1.member, current_page: 9 } } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -513,8 +512,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -532,8 +531,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(authLogoutMock, 1)
         helper.mockCalledTest(toastedErrorMock, 0)
@@ -552,8 +551,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(authLogoutMock, 0)
         helper.mockCalledTest(toastedErrorMock, 0)
@@ -572,8 +571,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -591,8 +590,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -610,8 +609,8 @@ describe('_code.vue', () => {
         axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, Loading)
-
         await helper.sleep(1)
+
         apiCalledTest(1, defaultParams)
         helper.mockCalledTest(toastedErrorMock, 0)
         helper.mockCalledTest(toastedInfoMock, 0)
@@ -631,8 +630,8 @@ describe('_code.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
       const wrapper = mountFunction(true, findQuery)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, findParams)
       viewTest(wrapper, findParams, findPower, findQuery, dataCount1, '1名')
     })
@@ -643,8 +642,8 @@ describe('_code.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
@@ -652,8 +651,8 @@ describe('_code.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
@@ -661,8 +660,8 @@ describe('_code.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
@@ -672,8 +671,8 @@ describe('_code.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, defaultParams)
       viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
@@ -686,8 +685,8 @@ describe('_code.vue', () => {
         option: findQuery.option === '1'
       }
       await wrapper.vm.searchMembersList()
-
       await helper.sleep(1)
+
       apiCalledTest(2, findParams, 1)
     }
 
@@ -723,8 +722,8 @@ describe('_code.vue', () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
       wrapper = mountFunction()
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest(1, defaultParams)
       viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
     }

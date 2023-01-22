@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :notice.sync="notice" />
+    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
     <SpacesDestroyInfo v-if="!loading" :space="space" />
 
     <v-tabs v-if="!loading" v-model="tabPage">
@@ -110,6 +110,7 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
+      alert: null,
       notice: null,
       tabPage: 'active',
       params: null,

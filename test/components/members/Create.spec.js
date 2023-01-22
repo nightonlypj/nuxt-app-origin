@@ -54,13 +54,13 @@ describe('Create.vue', () => {
   const viewTest = async (wrapper) => {
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
 
-    // メンバー招待ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
-    // メンバー招待ダイアログ
     await helper.sleep(1)
+
+    // 招待ダイアログ
     const dialog = wrapper.find('#member_create_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -83,9 +83,9 @@ describe('Create.vue', () => {
     expect(cancelButton.exists()).toBe(true)
     expect(cancelButton.vm.disabled).toBe(false) // 有効
     cancelButton.trigger('click')
-
-    // メンバー招待ダイアログ
     await helper.sleep(1)
+
+    // 招待ダイアログ
     expect(dialog.isVisible()).toBe(false) // 非表示
   }
 
@@ -93,12 +93,12 @@ describe('Create.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
-    // メンバー招待ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 0)
     helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
     helper.mockCalledTest(authRedirectMock, 1, 'login')
@@ -110,16 +110,16 @@ describe('Create.vue', () => {
   it('[ログイン中（削除予約済み）]表示されない', async () => {
     const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
 
-    // メンバー招待ボタン
+    // 表示ボタン
     const button = wrapper.find('#member_create_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
 
-    // メンバー招待ダイアログ
+    // 招待ダイアログ
     expect(wrapper.find('#member_create_dialog').exists()).toBe(false)
   })
 
@@ -137,22 +137,22 @@ describe('Create.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       wrapper.find('#member_create_btn').trigger('click')
-
-      // メンバー招待ダイアログ
       await helper.sleep(1)
+
+      // 招待ダイアログ
       dialog = wrapper.find('#member_create_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
 
       // 入力
       wrapper.vm.$data.member = values
+      await helper.sleep(1)
 
       // 招待ボタン
-      await helper.sleep(1)
       button = wrapper.find('#member_create_submit_btn')
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
@@ -165,7 +165,7 @@ describe('Create.vue', () => {
       helper.mockCalledTest(toastedInfoMock, 1, data.notice)
       expect(wrapper.emitted().result).toEqual([[data]]) // メンバー招待結果表示
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
-      expect(dialog.isVisible()).toBe(false) // [メンバー招待ダイアログ]非表示
+      expect(dialog.isVisible()).toBe(false) // 非表示
       expect(wrapper.vm.$data.member).toEqual({}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {

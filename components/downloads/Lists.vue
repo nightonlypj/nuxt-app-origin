@@ -51,7 +51,7 @@
           <v-icon dense>mdi-download</v-icon>
           ダウンロード
         </a>
-        <div v-if="item.last_downloaded_at" :id="`download_done_${item.id}`">（済み）</div>
+        <div v-if="item.last_downloaded_at != null" :id="`download_done_${item.id}`">（済み）</div>
       </div>
     </template>
     <!-- 対象・形式等 -->
@@ -92,10 +92,12 @@ export default {
 
     itemClass () {
       return (item) => {
-        if (item.status === 'success') {
-          return item.last_downloaded_at ? 'row_inactive' : 'row_active'
+        if (this.$route?.query?.target_id != null) {
+          if (item.id === Number(this.$route.query.target_id)) { return item.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
+          return null
         }
-        if (item.id === Number(this.$route.query.id)) { return 'row_active' }
+
+        if (item.status === 'success') { return item.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
         if (item.status === 'failure') { return 'row_inactive' }
         return null
       }

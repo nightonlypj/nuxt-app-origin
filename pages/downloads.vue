@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :notice.sync="notice" />
+    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
     <v-card v-if="!loading">
       <v-card-title>ダウンロード結果</v-card-title>
     </v-card>
@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import lodash from 'lodash'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -84,13 +85,16 @@ export default {
       loading: true,
       processing: true,
       reloading: false,
+      alert: null,
       notice: null,
+      params: null,
       uid: null,
       error: false,
       testState: null, // Jest用
       page: 1,
       download: null,
-      downloads: null
+      downloads: null,
+      testDelay: null // Jest用
     }
   },
 
@@ -153,9 +157,20 @@ export default {
       this.processing = true
       let result = false
 
+      this.params = {
+        id: null,
+        target_id: (this.$route?.query?.target_id != null) ? Number(this.$route.query.target_id) : null
+      }
       const redirect = this.download == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloads.listUrl, { params: { page: this.page } })
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloads.listUrl, {
+        params: {
+          ...this.params,
+          page: this.page
+        }
+      })
         .then((response) => {
+          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
+
           if (this.page === 1) {
             this.uid = response.headers?.uid || null
           } else if (this.uid !== (response.headers?.uid || null)) {
@@ -174,12 +189,17 @@ export default {
             this.downloads.push(...response.data.downloads)
           }
 
-          if (this.$route?.query?.id != null) {
-            const id = Number(this.$route.query.id)
-            for (const item of response.data.downloads) {
-              if (item.id === id) {
-                this.notice = (item.last_downloaded_at == null && item.status != null) ? this.$t(`notice.download.status.${item.status}`) : null
-                break
+          if (this.params.target_id != null && this.page === 1 && response.data.target != null && response.data.target.last_downloaded_at == null) {
+            this.appSetMessage(response.data.target, false)
+            if (!this.reloading) {
+              if (['waiting', 'processing'].includes(response.data.target.status)) {
+                // eslint-disable-next-line no-console
+                if (this.$config.debug) { console.log('setTimeout: checkDownloadComplete', this.params.target_id, 1) }
+
+                this.testDelay = [1000 * 3, this.params.target_id, 1] // 3秒後
+                setTimeout(this.checkDownloadComplete, ...this.testDelay)
+              } else {
+                this.appSetToastedMessage(response.data.target, false)
               }
             }
           }
@@ -198,6 +218,53 @@ export default {
       this.page = this.download?.current_page || 1
       this.processing = false
       return result
+    },
+
+    // 完了チェック
+    async checkDownloadComplete (targetId, count) {
+      // eslint-disable-next-line no-console
+      if (this.$config.debug) { console.log('checkDownloadComplete', targetId, count) }
+
+      const index = this.downloads.findIndex(item => item.id === targetId)
+      if (index < 0 || !['waiting', 'processing'].includes(this.downloads[index].status)) { // NOTE: 更新ボタンで完了になっていた場合はスキップ
+        // eslint-disable-next-line no-console
+        if (this.$config.debug) { console.log('...Skip') }
+
+        return
+      }
+
+      this.params = {
+        id: targetId,
+        target_id: targetId
+      }
+      await this.$axios.get(this.$config.apiBaseURL + this.$config.downloads.listUrl, { params: this.params })
+        .then((response) => {
+          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
+
+          this.error = !this.appCheckResponse(response, { toasted: true }, response.data?.downloads?.length !== 1 || response.data.downloads[0].id !== targetId || response.data.target == null)
+          if (this.error) { return }
+          if (['waiting', 'processing'].includes(response.data.target.status)) {
+            // eslint-disable-next-line no-console
+            if (this.$config.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
+
+            this.testDelay = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
+            setTimeout(this.checkDownloadComplete, ...this.testDelay)
+            return
+          }
+
+          this.downloads.splice(index, 1, response.data.downloads[0])
+          this.appSetMessage(response.data.target, false)
+          this.appSetToastedMessage(response.data.target, false)
+          this.$auth.setUser({ ...this.$auth.user, undownloaded_count: response.data.undownloaded_count })
+        },
+        (error) => {
+          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
+        })
+    },
+
+    check_search_params (responseParams) {
+      // eslint-disable-next-line no-console
+      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     },
 
     // ダウンロード
@@ -227,7 +294,7 @@ export default {
               this.downloads.splice(index, 1, item)
             }
 
-            if (item.id === Number(this.$route?.query?.id)) { this.notice = null }
+            if (item.id === Number(this.$route?.query?.target_id)) { this.notice = null }
 
             if (this.$auth.user?.undownloaded_count > 0) {
               this.$auth.setUser({ ...this.$auth.user, undownloaded_count: this.$auth.user.undownloaded_count - 1 })

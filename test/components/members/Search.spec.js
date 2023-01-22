@@ -48,8 +48,8 @@ describe('Search.vue', () => {
     expect(optionItem.exists()).toBe(true)
     expect(optionItem.isVisible()).toBe(false) // 非表示
     optionBtn.trigger('click')
-
     await helper.sleep(1)
+
     expect(optionItem.isVisible()).toBe(true) // 表示
   }
 
@@ -70,9 +70,9 @@ describe('Search.vue', () => {
 
       // 入力
       wrapper.find('#search_text').trigger('input')
+      await helper.sleep(1)
 
       // 検索ボタン
-      await helper.sleep(1)
       button = wrapper.find('#search_btn')
       expect(button.vm.disabled).toBe(false) // 有効
 
@@ -83,7 +83,6 @@ describe('Search.vue', () => {
       } else {
         button.trigger('click')
       }
-
       await helper.sleep(1)
     }
 

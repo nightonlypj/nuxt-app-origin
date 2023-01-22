@@ -93,8 +93,8 @@ describe('_code.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     viewTest(wrapper)
 
     // 削除取り消しボタン
@@ -102,9 +102,9 @@ describe('_code.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.vm.disabled).toBe(false) // 有効
     button.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     const dialog = wrapper.find('#space_undo_delete_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -119,9 +119,9 @@ describe('_code.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.vm.disabled).toBe(false) // 有効
     noButton.trigger('click')
+    await helper.sleep(1)
 
     // 確認ダイアログ
-    await helper.sleep(1)
     expect(dialog.isVisible()).toBe(false) // 非表示
   })
   it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
@@ -129,8 +129,8 @@ describe('_code.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.forbidden)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
@@ -140,8 +140,8 @@ describe('_code.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: null })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.alert.space.not_destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
@@ -150,8 +150,8 @@ describe('_code.vue', () => {
     const user = Object.freeze({ destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, Loading)
-
     await helper.sleep(1)
+
     helper.mockCalledTest(toastedErrorMock, 1, helper.locales.auth.destroy_reserved)
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${space.code}` })
@@ -160,8 +160,8 @@ describe('_code.vue', () => {
   describe('スペース詳細取得', () => {
     const beforeAction = async () => {
       mountFunction()
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
     const apiCalledTest = () => {
@@ -228,17 +228,17 @@ describe('_code.vue', () => {
     const beforeAction = async () => {
       axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: spaceAdmin } }))
       wrapper = mountFunction()
+      await helper.sleep(1)
 
       // 削除取り消しボタン
-      await helper.sleep(1)
       button = wrapper.find('#space_undo_delete_btn')
       button.trigger('click')
+      await helper.sleep(1)
 
       // はいボタン
-      await helper.sleep(1)
       wrapper.find('#space_undo_delete_yes_btn').trigger('click')
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 

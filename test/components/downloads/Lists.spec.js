@@ -109,19 +109,19 @@ describe('Lists.vue', () => {
       },
       {
         id: 2,
-        status: 'success',
-        status_i18n: '成功',
+        status: 'failure',
+        status_i18n: '失敗',
         requested_at: '2000-01-02T12:34:56+09:00',
-        completed_at: '2000-02-02T12:34:56+09:00',
-        last_downloaded_at: '2000-03-02T12:34:56+09:00',
-        model_i18n: 'モデル1'
+        completed_at: '2000-02-02T12:34:56+09:00'
       },
       {
         id: 1,
-        status: 'failure',
-        status_i18n: '失敗',
+        status: 'success',
+        status_i18n: '成功',
         requested_at: '2000-01-01T12:34:56+09:00',
-        completed_at: '2000-02-01T12:34:56+09:00'
+        completed_at: '2000-02-01T12:34:56+09:00',
+        last_downloaded_at: '2000-03-01T12:34:56+09:00',
+        model_i18n: 'モデル1'
       }
     ])
 
@@ -129,9 +129,25 @@ describe('Lists.vue', () => {
       const wrapper = mountFunction(downloads, null)
       viewTest(wrapper, downloads, { active: 1, inactive: 2 })
     })
-    it('[パラメータのIDが一致]表示され、activeが2件(5,3)、inactiveが2件(2,1)になる', () => {
-      const wrapper = mountFunction(downloads, { id: '5' })
-      viewTest(wrapper, downloads, { active: 2, inactive: 2 })
+    it('[パラメータの対象が処理待ち]表示され、activeが1件、inactiveが0件になる', () => {
+      const wrapper = mountFunction(downloads, { target_id: '5' })
+      viewTest(wrapper, downloads, { active: 1, inactive: 0 })
+    })
+    it('[パラメータの対象が処理中]表示され、activeが1件、inactiveが0件になる', () => {
+      const wrapper = mountFunction(downloads, { target_id: '4' })
+      viewTest(wrapper, downloads, { active: 1, inactive: 0 })
+    })
+    it('[パラメータの対象が成功]表示され、activeが1件、inactiveが0件になる', () => {
+      const wrapper = mountFunction(downloads, { target_id: '3' })
+      viewTest(wrapper, downloads, { active: 1, inactive: 0 })
+    })
+    it('[パラメータの対象が失敗]表示され、activeが1件、inactiveが0件になる', () => {
+      const wrapper = mountFunction(downloads, { target_id: '2' })
+      viewTest(wrapper, downloads, { active: 1, inactive: 0 })
+    })
+    it('[パラメータの対象がダウンロード済み]表示され、activeが0件、inactiveが1件になる', () => {
+      const wrapper = mountFunction(downloads, { target_id: '1' })
+      viewTest(wrapper, downloads, { active: 0, inactive: 1 })
     })
   })
 })

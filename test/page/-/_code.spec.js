@@ -101,8 +101,8 @@ describe('_code.vue', () => {
     const beforeAction = async (loggedIn = true) => {
       wrapper = mountFunction(loggedIn)
       helper.loadingTest(wrapper, Loading)
-
       await helper.sleep(1)
+
       apiCalledTest()
     }
 
