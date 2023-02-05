@@ -87,7 +87,7 @@ export default {
     },
     appSetEmitMessage (data, require, defaultKey = 'system.default') {
       this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))
-      this.$emit('notice', data?.notice)
+      this.$emit('notice', data?.notice || null)
     },
     appSetToastedMessage (data, require, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)
