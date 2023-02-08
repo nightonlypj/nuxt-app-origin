@@ -221,7 +221,7 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: null })
       helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
   })
@@ -314,7 +314,7 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(authSetUserMock, 0)
       helper.mockCalledTest(authLogoutMock, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: null })
       helper.disabledTest(wrapper, Processing, button, false) // 有効
     })
   })
