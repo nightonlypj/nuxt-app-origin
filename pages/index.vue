@@ -13,7 +13,7 @@
     </v-col>
     <v-col cols="12" md="6" class="px-2 py-2">
       <IndexSignUp v-if="!$auth.loggedIn" />
-      <IndexCreateSpace v-else />
+      <IndexSpace v-else />
     </v-col>
     <v-col cols="12" md="6" class="px-2 py-2">
       <IndexInfomations />
@@ -23,13 +23,13 @@
 
 <script>
 import IndexSignUp from '~/components/index/SignUp.vue'
-import IndexCreateSpace from '~/components/index/CreateSpace.vue'
+import IndexSpace from '~/components/index/Space.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
 export default {
   components: {
     IndexSignUp,
-    IndexCreateSpace,
+    IndexSpace,
     IndexInfomations
   },
 

@@ -149,6 +149,7 @@ describe('Create.vue', () => {
 
       // 招待ボタン
       button = wrapper.find('#member_create_submit_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

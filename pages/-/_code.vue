@@ -6,8 +6,8 @@
       <v-card-title>
         <v-row>
           <v-col>
-            <v-avatar v-if="space.image_url != null" size="32px">
-              <v-img id="space_image" :src="space.image_url.small" />
+            <v-avatar v-if="space.image_url != null" size="48px">
+              <v-img id="space_image" :src="space.image_url.medium" />
             </v-avatar>
             {{ space.name }}
             <SpacesIcon :space="space" />
