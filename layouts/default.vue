@@ -3,13 +3,13 @@
     <v-app-bar clipped-left fixed app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <NuxtLink to="/" class="toolbar-title d-flex">
-        <v-img src="/v.png" max-width="40px" max-height="40px" />
+        <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
           v-if="$vuetify.breakpoint.width > 226"
           :style="{ 'max-width': ($vuetify.breakpoint.width - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
-          {{ $t('app_name') + $config.envName }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$config.envName}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
