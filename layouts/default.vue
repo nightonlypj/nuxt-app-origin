@@ -110,8 +110,8 @@
     </v-main>
 
     <v-footer absolute inset app>
-      <div class="flex-grow-1 text-center">
-        <span>Copyright &copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.</span>
+      <div class="flex-grow-1 text-center text-truncate">
+        <span class="hidden-sm-and-down">Copyright </span>&copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
       </div>
     </v-footer>
 
