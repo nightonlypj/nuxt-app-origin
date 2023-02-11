@@ -105,7 +105,7 @@
           </v-badge>
           <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
         </v-list-item>
-        <v-list-item to="/spaces" nuxt>
+        <v-list-item v-if="$auth.loggedIn || $config.enablePublicSpace" to="/spaces" nuxt>
           <v-icon>mdi-folder-open</v-icon>
           <v-list-item-title class="ml-2">スペース</v-list-item-title>
         </v-list-item>
