@@ -90,4 +90,4 @@ sw.*
 # Vim swap files
 *.swp
 
-config/production.js
+static/robots.txt
