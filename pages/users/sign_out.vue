@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="480px">
+    <v-card v-else max-width="480px">
       <Processing v-if="processing" />
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>

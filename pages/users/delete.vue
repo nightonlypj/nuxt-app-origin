@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="640px">
+    <v-card v-else max-width="640px">
       <Processing v-if="processing" />
       <v-card-title>アカウント削除</v-card-title>
       <v-card-text>
