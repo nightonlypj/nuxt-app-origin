@@ -73,14 +73,6 @@ module.exports = {
     // お知らせ詳細API
     detailUrl: '/infomations/:id.json'
   },
-  downloads: {
-    // ダウンロード結果一覧API
-    listUrl: '/downloads.json',
-    // ダウンロードAPI
-    fileUrl: '/downloads/file/:id.json',
-    // ダウンロード依頼API
-    createUrl: '/downloads/create.json'
-  },
   spaces: {
     // スペース一覧API
     listUrl: '/spaces.json',
@@ -116,5 +108,13 @@ module.exports = {
     updateUrl: '/members/:space_code/update/:user_code.json',
     // メンバー解除API
     deleteUrl: '/members/:space_code/delete.json'
+  },
+  downloads: {
+    // ダウンロード結果一覧API
+    listUrl: '/downloads.json',
+    // ダウンロードAPI
+    fileUrl: '/downloads/file/:id.json',
+    // ダウンロード依頼API
+    createUrl: '/downloads/create.json'
   }
 }

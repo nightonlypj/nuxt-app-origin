@@ -1,62 +1,64 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <v-card v-if="!loading">
-      <v-card-title>ダウンロード結果</v-card-title>
-    </v-card>
-    <v-card v-if="!loading">
-      <v-card-text class="pt-0">
-        <Processing v-if="reloading" />
-        <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString('ja', download.total_count, 'N/A') }}件
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <v-btn
-              id="downloads_reload_btn"
-              color="secondary"
-              :disabled="processing || reloading"
-              @click="reloadDownloadsList()"
-            >
-              <v-tooltip bottom>
-                <template #activator="{ on: tooltip }">
-                  <v-icon small v-on="tooltip">mdi-sync</v-icon>
-                </template>
-                更新
-              </v-tooltip>
-            </v-btn>
-          </v-col>
-        </v-row>
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <v-card>
+        <v-card-title>ダウンロード結果</v-card-title>
+      </v-card>
+      <v-card>
+        <v-card-text class="pt-0">
+          <Processing v-if="reloading" />
+          <v-row>
+            <v-col class="d-flex align-self-center text-no-wrap">
+              {{ $localeString('ja', download.total_count, 'N/A') }}件
+            </v-col>
+            <v-col class="d-flex justify-end">
+              <v-btn
+                id="downloads_reload_btn"
+                color="secondary"
+                :disabled="processing || reloading"
+                @click="reloadDownloadsList()"
+              >
+                <v-tooltip bottom>
+                  <template #activator="{ on: tooltip }">
+                    <v-icon small v-on="tooltip">mdi-sync</v-icon>
+                  </template>
+                  更新
+                </v-tooltip>
+              </v-btn>
+            </v-col>
+          </v-row>
 
-        <template v-if="!existDownloads">
-          <v-divider class="my-4" />
-          <span class="ml-1">ダウンロード結果が見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
-        <template v-if="existDownloads">
-          <v-divider class="my-2" />
-          <DownloadsLists
-            :downloads="downloads"
-            @downloadsFile="downloadsFile"
-          />
-          <v-divider class="my-2" />
-        </template>
+          <template v-if="!existDownloads">
+            <v-divider class="my-4" />
+            <span class="ml-1">ダウンロード結果が見つかりません。</span>
+            <v-divider class="my-4" />
+          </template>
+          <template v-if="existDownloads">
+            <v-divider class="my-2" />
+            <DownloadsLists
+              :downloads="downloads"
+              @downloadsFile="downloadsFile"
+            />
+            <v-divider class="my-2" />
+          </template>
 
-        <InfiniteLoading
-          v-if="!reloading && download != null && download.current_page < download.total_pages"
-          :identifier="page"
-          @infinite="getNextDownloadsList"
-        >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading>
-      </v-card-text>
-    </v-card>
+          <InfiniteLoading
+            v-if="!reloading && download != null && download.current_page < download.total_pages"
+            :identifier="page"
+            @infinite="getNextDownloadsList"
+          >
+            <div slot="no-more" />
+            <div slot="no-results" />
+            <div slot="error" slot-scope="{ trigger }">
+              取得できませんでした。
+              <v-btn @click="error = false; trigger()">再取得</v-btn>
+            </div>
+          </InfiniteLoading>
+        </v-card-text>
+      </v-card>
+    </template>
   </div>
 </template>
 

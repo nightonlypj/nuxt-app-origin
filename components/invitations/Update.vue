@@ -51,9 +51,9 @@
                   メールアドレス
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
-                  <div v-if="invitation.email != null">
+                  <template v-if="invitation.email != null">
                     {{ invitation.email }}
-                  </div>
+                  </template>
                   <template v-else>
                     <div v-for="domain in invitation.domains" :key="domain">
                       *@{{ domain }}

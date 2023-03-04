@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="850px">
+    <v-card v-else max-width="850px">
       <Processing v-if="processing" />
       <v-tabs v-model="tabPage">
         <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
@@ -95,12 +95,6 @@ export default {
     }
   },
 
-  computed: {
-    currentMemberAdmin () {
-      return this.space?.current_member?.power === 'admin'
-    }
-  },
-
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
     if (this.$auth.user.destroy_schedule_at != null) {
@@ -109,7 +103,7 @@ export default {
     }
 
     if (!await this.getSpaceDetail()) { return }
-    if (!this.currentMemberAdmin) {
+    if (!this.appCurrentMemberAdmin(this.space)) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }

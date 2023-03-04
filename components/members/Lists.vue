@@ -15,7 +15,7 @@
     :sort-by.sync="syncSort"
     :sort-desc.sync="syncDesc"
     :custom-sort="disableSortItem"
-    :show-select="currentMemberAdmin"
+    :show-select="admin"
     @dblclick:row="showUpdate"
   >
     <!-- メンバー -->
@@ -32,7 +32,7 @@
     <!-- 権限 -->
     <template #[`item.power`]="{ item }">
       <a
-        v-if="currentMemberAdmin && item.user.code !== $auth.user.code"
+        v-if="admin && item.user.code !== $auth.user.code"
         :id="`member_update_link_${item.user.code}`"
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
@@ -127,7 +127,7 @@ export default {
       type: Array,
       required: true
     },
-    currentMemberAdmin: {
+    admin: {
       type: Boolean,
       default: null
     }
@@ -136,11 +136,11 @@ export default {
   computed: {
     headers () {
       const result = []
-      if (this.currentMemberAdmin) {
+      if (this.admin) {
         result.push({ value: 'data-table-select', class: 'pl-3 pr-0', cellClass: 'pl-3 pr-0 py-2' })
       }
       for (const item of this.$t('items.member')) {
-        if ((item.required || !this.hiddenItems.includes(item.value)) && (!item.adminOnly || this.currentMemberAdmin)) {
+        if ((item.required || !this.hiddenItems.includes(item.value)) && (!item.adminOnly || this.admin)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
       }
@@ -188,7 +188,7 @@ export default {
     showUpdate (event, { item }) {
       // eslint-disable-next-line no-console
       if (this.$config.debug) { console.log('showUpdate', event.target.innerHTML) }
-      if (!this.currentMemberAdmin || item.user.code === this.$auth.user.code) { return }
+      if (!this.admin || item.user.code === this.$auth.user.code) { return }
 
       if (event.target.innerHTML.match(/v-ripple__animation--visible/) || event.target.innerHTML.match(/v-simple-checkbox/)) {
         // eslint-disable-next-line no-console

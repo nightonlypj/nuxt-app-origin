@@ -1,159 +1,161 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <SpacesDestroyInfo v-if="!loading" :space="space" />
-    <v-card v-if="!loading" max-width="850px">
-      <Processing v-if="processing" />
-      <v-tabs v-model="tabPage">
-        <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
-        <v-tab href="#active">スペース設定変更</v-tab>
-      </v-tabs>
-      <validation-observer v-slot="{ invalid }" ref="observer">
-        <v-form autocomplete="on">
-          <v-card-text>
-            <v-row>
-              <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                作成
-              </v-col>
-              <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
-                <UsersAvatar :user="space.created_user" />
-              </v-col>
-            </v-row>
-            <v-row v-if="space.last_updated_at != null || space.last_updated_user != null">
-              <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                更新
-              </v-col>
-              <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
-                <UsersAvatar :user="space.last_updated_user" />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
-                名称&nbsp;<span class="red--text">*</span>
-              </v-col>
-              <v-col cols="12" md="10" class="pb-0">
-                <validation-provider v-slot="{ errors }" name="name" rules="required|min:3|max:128">
-                  <v-text-field
-                    v-model="space.name"
-                    placeholder="名称を追加"
-                    dense
-                    outlined
-                    hide-details="auto"
-                    counter="128"
-                    :error-messages="errors"
-                    @input="waiting = false"
-                  />
-                </validation-provider>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
-                説明
-              </v-col>
-              <v-col cols="12" md="10" class="pb-0">
-                <validation-provider v-slot="{ errors }" name="description">
-                  <v-textarea
-                    v-model="space.description"
-                    placeholder="説明を追加"
-                    dense
-                    outlined
-                    hide-details="auto"
-                    :error-messages="errors"
-                    @input="waiting = false"
-                  />
-                </validation-provider>
-              </v-col>
-            </v-row>
-            <v-row v-if="$config.enablePublicSpace">
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
-                表示&nbsp;<span class="red--text">*</span>
-              </v-col>
-              <v-col cols="12" md="10" class="pb-0">
-                <validation-provider v-slot="{ errors }" name="private" rules="required_select">
-                  <v-radio-group
-                    v-model="space.private"
-                    class="mt-0 pt-0"
-                    dense
-                    row
-                    hide-details="auto"
-                    :error-messages="errors"
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <SpacesDestroyInfo :space="space" />
+      <v-card max-width="850px">
+        <Processing v-if="processing" />
+        <v-tabs v-model="tabPage">
+          <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
+          <v-tab href="#active">スペース設定変更</v-tab>
+        </v-tabs>
+        <validation-observer v-slot="{ invalid }" ref="observer">
+          <v-form autocomplete="on">
+            <v-card-text>
+              <v-row>
+                <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
+                  作成
+                </v-col>
+                <v-col cols="12" md="10" class="d-flex pb-0">
+                  <span class="align-self-center mr-3">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
+                  <UsersAvatar :user="space.created_user" />
+                </v-col>
+              </v-row>
+              <v-row v-if="space.last_updated_at != null || space.last_updated_user != null">
+                <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
+                  更新
+                </v-col>
+                <v-col cols="12" md="10" class="d-flex pb-0">
+                  <span class="align-self-center mr-3">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
+                  <UsersAvatar :user="space.last_updated_user" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
+                  名称&nbsp;<span class="red--text">*</span>
+                </v-col>
+                <v-col cols="12" md="10" class="pb-0">
+                  <validation-provider v-slot="{ errors }" name="name" rules="required|min:3|max:128">
+                    <v-text-field
+                      v-model="space.name"
+                      placeholder="名称を追加"
+                      dense
+                      outlined
+                      hide-details="auto"
+                      counter="128"
+                      :error-messages="errors"
+                      @input="waiting = false"
+                    />
+                  </validation-provider>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
+                  説明
+                </v-col>
+                <v-col cols="12" md="10" class="pb-0">
+                  <validation-provider v-slot="{ errors }" name="description">
+                    <v-textarea
+                      v-model="space.description"
+                      placeholder="説明を追加"
+                      dense
+                      outlined
+                      hide-details="auto"
+                      :error-messages="errors"
+                      @input="waiting = false"
+                    />
+                  </validation-provider>
+                </v-col>
+              </v-row>
+              <v-row v-if="$config.enablePublicSpace">
+                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0">
+                  表示&nbsp;<span class="red--text">*</span>
+                </v-col>
+                <v-col cols="12" md="10" class="pb-0">
+                  <validation-provider v-slot="{ errors }" name="private" rules="required_select">
+                    <v-radio-group
+                      v-model="space.private"
+                      class="mt-0 pt-0"
+                      dense
+                      row
+                      hide-details="auto"
+                      :error-messages="errors"
+                    >
+                      <v-radio
+                        id="private_false"
+                        label="誰でも表示できる（公開）"
+                        :value="false"
+                        @change="waiting = false"
+                      />
+                      <v-radio
+                        id="private_true"
+                        label="メンバーのみ表示できる（非公開）"
+                        :value="true"
+                        @change="waiting = false"
+                      />
+                    </v-radio-group>
+                  </validation-provider>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 pt-8">
+                  画像
+                </v-col>
+                <v-col cols="12" md="10" class="pb-0">
+                  <div class="d-flex align-self-center">
+                    <v-avatar v-if="space.image_url != null" size="64px">
+                      <v-img :src="space.image_url.medium" />
+                    </v-avatar>
+                    <v-checkbox
+                      v-if="space.upload_image"
+                      id="space_image_delete"
+                      v-model="space.image_delete"
+                      label="削除（初期画像に戻す）"
+                      class="mt-4 ml-4"
+                      dense
+                      hide-details
+                      @change="waiting = false"
+                    />
+                  </div>
+                  <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
+                    <v-file-input
+                      v-model="space.image"
+                      accept="image/jpeg,image/gif,image/png"
+                      placeholder="ファイルを選択"
+                      :prepend-icon="null"
+                      show-size
+                      hide-details="auto"
+                      :error-messages="errors"
+                      @change="waiting = false"
+                    />
+                  </validation-provider>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="auto" md="2" class="pr-0" />
+                <v-col cols="12" md="10" class="mt-4">
+                  <v-btn
+                    id="space_update_btn"
+                    color="primary"
+                    :disabled="invalid || processing || waiting"
+                    @click="postSpacesUpdate()"
                   >
-                    <v-radio
-                      id="private_false"
-                      label="誰でも表示できる（公開）"
-                      :value="false"
-                      @change="waiting = false"
-                    />
-                    <v-radio
-                      id="private_true"
-                      label="メンバーのみ表示できる（非公開）"
-                      :value="true"
-                      @change="waiting = false"
-                    />
-                  </v-radio-group>
-                </validation-provider>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 pt-8">
-                画像
-              </v-col>
-              <v-col cols="12" md="10" class="pb-0">
-                <div class="d-flex align-self-center">
-                  <v-avatar v-if="space.image_url != null" size="64px">
-                    <v-img :src="space.image_url.medium" />
-                  </v-avatar>
-                  <v-checkbox
-                    v-if="space.upload_image"
-                    id="space_image_delete"
-                    v-model="space.image_delete"
-                    label="削除（初期画像に戻す）"
-                    class="mt-4 ml-4"
-                    dense
-                    hide-details
-                    @change="waiting = false"
-                  />
-                </div>
-                <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
-                  <v-file-input
-                    v-model="space.image"
-                    accept="image/jpeg,image/gif,image/png"
-                    placeholder="ファイルを選択"
-                    :prepend-icon="null"
-                    show-size
-                    hide-details="auto"
-                    :error-messages="errors"
-                    @change="waiting = false"
-                  />
-                </validation-provider>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="auto" md="2" class="pr-0" />
-              <v-col cols="12" md="10" class="mt-4">
-                <v-btn
-                  id="space_update_btn"
-                  color="primary"
-                  :disabled="invalid || processing || waiting"
-                  @click="postSpacesUpdate()"
-                >
-                  変更
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-form>
-      </validation-observer>
-      <v-divider />
-      <v-card-actions v-if="space.destroy_schedule_at == null">
-        <ul class="my-2">
-          <li><NuxtLink :to="`/spaces/delete/${$route.params.code}`">スペース削除</NuxtLink></li>
-        </ul>
-      </v-card-actions>
-    </v-card>
+                    変更
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-form>
+        </validation-observer>
+        <v-divider />
+        <v-card-actions v-if="space.destroy_schedule_at == null">
+          <ul class="my-2">
+            <li><NuxtLink :to="`/spaces/delete/${$route.params.code}`">スペース削除</NuxtLink></li>
+          </ul>
+        </v-card-actions>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -205,12 +207,6 @@ export default {
     }
   },
 
-  computed: {
-    currentMemberAdmin () {
-      return this.space?.current_member?.power === 'admin'
-    }
-  },
-
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
     if (this.$auth.user.destroy_schedule_at != null) {
@@ -219,7 +215,7 @@ export default {
     }
 
     if (!await this.getSpacesDetail()) { return }
-    if (!this.currentMemberAdmin) {
+    if (!this.appCurrentMemberAdmin(this.space)) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }

@@ -288,7 +288,7 @@ describe('_code.vue', () => {
       expect(membersLists.vm.members).toBe(wrapper.vm.$data.members)
       expect(membersLists.vm.selectedMembers).toBe(wrapper.vm.$data.selectedMembers)
       expect(membersLists.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
-      expect(membersLists.vm.currentMemberAdmin).toBe(wrapper.vm.currentMemberAdmin)
+      expect(membersLists.vm.admin).toBe(admin)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数
 

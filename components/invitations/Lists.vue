@@ -53,9 +53,9 @@
     <!-- メールアドレス -->
     <template #[`item.email`]="{ item }">
       <div class="pl-1">
-        <div v-if="item.email != null">
+        <template v-if="item.email != null">
           {{ item.email }}
-        </div>
+        </template>
         <template v-else>
           <div v-for="domain in item.domains" :key="domain">
             *@{{ domain }}
