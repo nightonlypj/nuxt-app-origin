@@ -1,7 +1,7 @@
 <template>
   <div v-if="loading || errorMessage != null || existInfomations">
     <Loading v-if="loading" />
-    <v-card v-if="!loading">
+    <v-card v-else>
       <v-card-title>大切なお知らせ</v-card-title>
       <v-card-text v-if="errorMessage != null">
         <v-icon color="warning">mdi-alert</v-icon>

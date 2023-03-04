@@ -1,44 +1,46 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <v-card v-if="!loading" max-width="480px">
-      <Processing v-if="processing" />
-      <validation-observer v-slot="{ invalid }" ref="observer">
-        <v-form autocomplete="off" @submit.prevent>
-          <v-card-title>アカウントロック解除</v-card-title>
-          <v-card-text
-            id="input_area"
-            @keydown.enter="appSetKeyDownEnter"
-            @keyup.enter="postUnlockNew(invalid, true)"
-          >
-            <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-              <v-text-field
-                v-model="query.email"
-                label="メールアドレス"
-                prepend-icon="mdi-email"
-                autocomplete="off"
-                :error-messages="errors"
-                @input="waiting = false"
-              />
-            </validation-provider>
-            <v-btn
-              id="unlock_btn"
-              color="primary"
-              class="mt-2"
-              :disabled="invalid || processing || waiting"
-              @click="postUnlockNew(invalid, false)"
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <v-card max-width="480px">
+        <Processing v-if="processing" />
+        <validation-observer v-slot="{ invalid }" ref="observer">
+          <v-form autocomplete="off" @submit.prevent>
+            <v-card-title>アカウントロック解除</v-card-title>
+            <v-card-text
+              id="input_area"
+              @keydown.enter="appSetKeyDownEnter"
+              @keyup.enter="postUnlockNew(invalid, true)"
             >
-              送信
-            </v-btn>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <ActionLink action="unlock" />
-          </v-card-actions>
-        </v-form>
-      </validation-observer>
-    </v-card>
+              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+                <v-text-field
+                  v-model="query.email"
+                  label="メールアドレス"
+                  prepend-icon="mdi-email"
+                  autocomplete="off"
+                  :error-messages="errors"
+                  @input="waiting = false"
+                />
+              </validation-provider>
+              <v-btn
+                id="unlock_btn"
+                color="primary"
+                class="mt-2"
+                :disabled="invalid || processing || waiting"
+                @click="postUnlockNew(invalid, false)"
+              >
+                送信
+              </v-btn>
+            </v-card-text>
+            <v-divider />
+            <v-card-actions>
+              <ActionLink action="unlock" />
+            </v-card-actions>
+          </v-form>
+        </validation-observer>
+      </v-card>
+    </template>
   </div>
 </template>
 

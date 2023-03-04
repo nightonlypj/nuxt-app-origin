@@ -1,101 +1,103 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <v-card v-if="!loading" max-width="480px">
-      <Processing v-if="processing" />
-      <validation-observer v-slot="{ invalid }" ref="observer">
-        <v-form autocomplete="on">
-          <v-card-title>アカウント登録</v-card-title>
-          <v-card-text>
-            <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
-              <v-text-field
-                v-model="query.name"
-                label="氏名"
-                prepend-icon="mdi-account"
-                autocomplete="name"
-                counter="32"
-                :error-messages="errors"
-                @input="waiting = false"
-              />
-            </validation-provider>
-            <validation-provider v-if="invitation == null || invitation.email != null" v-slot="{ errors }" name="email" rules="required|email">
-              <v-text-field
-                v-model="query.email"
-                label="メールアドレス"
-                prepend-icon="mdi-email"
-                autocomplete="email"
-                :readonly="invitation != null"
-                :error-messages="errors"
-                @input="waiting = false"
-              />
-            </validation-provider>
-            <div v-else class="d-flex">
-              <validation-provider v-slot="{ errors }" name="email" rules="required">
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <v-card v-if="!loading" max-width="480px">
+        <Processing v-if="processing" />
+        <validation-observer v-slot="{ invalid }" ref="observer">
+          <v-form autocomplete="on">
+            <v-card-title>アカウント登録</v-card-title>
+            <v-card-text>
+              <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
                 <v-text-field
-                  v-model="query.email_local"
+                  v-model="query.name"
+                  label="氏名"
+                  prepend-icon="mdi-account"
+                  autocomplete="name"
+                  counter="32"
+                  :error-messages="errors"
+                  @input="waiting = false"
+                />
+              </validation-provider>
+              <validation-provider v-if="invitation == null || invitation.email != null" v-slot="{ errors }" name="email" rules="required|email">
+                <v-text-field
+                  v-model="query.email"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
-                  autocomplete="off"
+                  autocomplete="email"
+                  :readonly="invitation != null"
                   :error-messages="errors"
                   @input="waiting = false"
                 />
               </validation-provider>
-              <validation-provider v-slot="{ errors }" name="email_domain" rules="required_select">
-                <v-select
-                  v-model="query.email_domain"
-                  :items="invitation.domains"
-                  prefix="@"
+              <div v-else class="d-flex">
+                <validation-provider v-slot="{ errors }" name="email" rules="required">
+                  <v-text-field
+                    v-model="query.email_local"
+                    label="メールアドレス"
+                    prepend-icon="mdi-email"
+                    autocomplete="off"
+                    :error-messages="errors"
+                    @input="waiting = false"
+                  />
+                </validation-provider>
+                <validation-provider v-slot="{ errors }" name="email_domain" rules="required_select">
+                  <v-select
+                    v-model="query.email_domain"
+                    :items="invitation.domains"
+                    prefix="@"
+                    :error-messages="errors"
+                    @input="waiting = false"
+                  />
+                </validation-provider>
+              </div>
+              <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+                <v-text-field
+                  v-model="query.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  label="パスワード [8文字以上]"
+                  prepend-icon="mdi-lock"
+                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  autocomplete="new-password"
+                  counter
                   :error-messages="errors"
                   @input="waiting = false"
+                  @click:append="showPassword = !showPassword"
                 />
               </validation-provider>
-            </div>
-            <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
-              <v-text-field
-                v-model="query.password"
-                :type="showPassword ? 'text' : 'password'"
-                label="パスワード [8文字以上]"
-                prepend-icon="mdi-lock"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                autocomplete="new-password"
-                counter
-                :error-messages="errors"
-                @input="waiting = false"
-                @click:append="showPassword = !showPassword"
-              />
-            </validation-provider>
-            <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
-              <v-text-field
-                v-model="query.password_confirmation"
-                :type="showPassword ? 'text' : 'password'"
-                label="パスワード(確認)"
-                prepend-icon="mdi-lock"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                autocomplete="new-password"
-                counter
-                :error-messages="errors"
-                @input="waiting = false"
-                @click:append="showPassword = !showPassword"
-              />
-            </validation-provider>
-            <v-btn
-              id="sign_up_btn"
-              color="primary"
-              class="mt-4"
-              :disabled="invalid || processing || waiting"
-              @click="postSingUp()"
-            >
-              登録
-            </v-btn>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <ActionLink action="sign_up" />
-          </v-card-actions>
-        </v-form>
-      </validation-observer>
-    </v-card>
+              <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
+                <v-text-field
+                  v-model="query.password_confirmation"
+                  :type="showPassword ? 'text' : 'password'"
+                  label="パスワード(確認)"
+                  prepend-icon="mdi-lock"
+                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  autocomplete="new-password"
+                  counter
+                  :error-messages="errors"
+                  @input="waiting = false"
+                  @click:append="showPassword = !showPassword"
+                />
+              </validation-provider>
+              <v-btn
+                id="sign_up_btn"
+                color="primary"
+                class="mt-4"
+                :disabled="invalid || processing || waiting"
+                @click="postSingUp()"
+              >
+                登録
+              </v-btn>
+            </v-card-text>
+            <v-divider />
+            <v-card-actions>
+              <ActionLink action="sign_up" />
+            </v-card-actions>
+          </v-form>
+        </validation-observer>
+      </v-card>
+    </template>
   </div>
 </template>
 

@@ -1,25 +1,27 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <v-card v-if="!loading && user != null" max-width="850px">
-      <v-card-title>ユーザー情報変更</v-card-title>
-      <v-row>
-        <v-col cols="auto" md="4">
-          <UpdateImage @alert="alert = $event" @notice="notice = $event" />
-        </v-col>
-        <v-col cols="12" md="8">
-          <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
-        </v-col>
-      </v-row>
-      <v-divider />
-      <v-card-actions>
-        <ul class="my-2">
-          <li v-if="user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
-          <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
-        </ul>
-      </v-card-actions>
-    </v-card>
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <v-card max-width="850px">
+        <v-card-title>ユーザー情報変更</v-card-title>
+        <v-row>
+          <v-col cols="auto" md="4">
+            <UpdateImage @alert="alert = $event" @notice="notice = $event" />
+          </v-col>
+          <v-col cols="12" md="8">
+            <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
+          </v-col>
+        </v-row>
+        <v-divider />
+        <v-card-actions>
+          <ul class="my-2">
+            <li v-if="user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
+            <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
+          </ul>
+        </v-card-actions>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -77,7 +79,7 @@ export default {
 
       await this.$axios.get(this.$config.apiBaseURL + this.$config.userDetailUrl)
         .then((response) => {
-          if (!this.appCheckResponse(response, { redirect: true })) { return }
+          if (!this.appCheckResponse(response, { redirect: true }, response.data?.user == null)) { return }
 
           this.user = response.data.user
           result = true
