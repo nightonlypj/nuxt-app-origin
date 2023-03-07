@@ -232,6 +232,13 @@ export default {
             join: Number(this.query.join),
             nojoin: Number(this.query.nojoin)
           }
+        } else {
+          publicParams = {
+            public: 1,
+            private: 1,
+            join: 1,
+            nojoin: 1
+          }
         }
         this.params = {
           ...this.query,

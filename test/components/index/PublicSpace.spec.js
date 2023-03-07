@@ -1,13 +1,12 @@
 import Vuetify from 'vuetify'
 import { createLocalVue, mount } from '@vue/test-utils'
 import Loading from '~/components/Loading.vue'
-import InfomationsLabel from '~/components/infomations/Label.vue'
-import Component from '~/components/index/Infomations.vue'
+import Component from '~/components/index/PublicSpace.vue'
 
 import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
-describe('Infomations.vue', () => {
+describe('PublicSpace.vue', () => {
   let axiosGetMock
 
   beforeEach(() => {
@@ -21,8 +20,7 @@ describe('Infomations.vue', () => {
       localVue,
       vuetify,
       stubs: {
-        Loading: true,
-        InfomationsLabel: true
+        Loading: true
       },
       mocks: {
         $axios: {
@@ -37,16 +35,14 @@ describe('Infomations.vue', () => {
   // テスト内容
   const viewTest = (wrapper, data) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
+    expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
 
-    const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
-    for (const [index, infomation] of data.infomations.entries()) {
-      expect(labels.at(index).exists()).toBe(true) // ラベル
-      expect(labels.at(index).vm.$props.infomation).toEqual(infomation)
-      expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
-      expect(wrapper.text()).toMatch(infomation.title) // タイトル
-      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', infomation.started_at)) // 開始日
+    for (const space of data.spaces) {
+      expect(links.includes(`/-/${space.code}`)).toBe(true)
+      expect(wrapper.find(`#public_space_link_${space.code}`).exists()).toBe(true)
+      expect(wrapper.find(`#public_space_image_${space.code}`).exists()).toBe(space.image_url != null)
+      expect(wrapper.html()).toMatch(space.name)
     }
   }
 
@@ -56,10 +52,11 @@ describe('Infomations.vue', () => {
   }
 
   // テストケース
-  describe('大切なお知らせ', () => {
+  describe('スペース一覧取得（公開）', () => {
     const apiCalledTest = () => {
       expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.importantUrl)
+      const params = { text: null, public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
+      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, { params })
     }
 
     let wrapper
@@ -72,18 +69,25 @@ describe('Infomations.vue', () => {
     }
 
     it('[0件]表示されない', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { infomations: [] } }))
+      axiosGetMock = jest.fn(() => Promise.resolve({ data: { spaces: [] } }))
       await beforeAction()
 
       helper.blankTest(wrapper, Loading)
     })
-    it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
+    it('[2件]表示される', async () => {
       const data = Object.freeze({
-        infomations: [
-          { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2000-01-01T12:34:56+09:00' },
-          { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2000-01-02T12:34:56+09:00' },
-          { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2000-01-03T12:34:56+09:00' },
-          { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2000-01-04T12:34:56+09:00' }
+        spaces: [
+          {
+            code: 'code0001',
+            image_url: {
+              mini: 'https://example.com/images/space/mini_noimage.jpg'
+            },
+            name: 'スペース1'
+          },
+          {
+            code: 'code0002',
+            name: 'スペース2'
+          }
         ]
       })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))

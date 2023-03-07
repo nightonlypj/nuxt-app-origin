@@ -270,10 +270,10 @@ describe('Update.vue', () => {
 
       // 変更
       wrapper.find(`#member_power_${values.power}`).trigger('change')
-      await helper.sleep(1)
 
       // 変更ボタン
       button = wrapper.find('#member_update_submit_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

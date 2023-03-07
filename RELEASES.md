@@ -1,5 +1,12 @@
 # リリースノート
 
+## 1.2.0 (Sprint 4)
+
+### spaceブランチ
+
+- トップに公開スペースを表示したい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/520/
+
 ## 1.1.0 (Sprint 3)
 
 - Nuxt Bridgeに移行したい

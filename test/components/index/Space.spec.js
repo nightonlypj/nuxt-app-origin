@@ -33,7 +33,6 @@ describe('Space.vue', () => {
       },
       mocks: {
         $auth: {
-          loggedIn: true,
           user: { ...user }
         }
       }
@@ -44,11 +43,11 @@ describe('Space.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper) => {
-    const links = helper.getLinks(wrapper)
-    expect(links.includes('/spaces')).toBe(helper.commonConfig.enablePublicSpace) // スペース一覧
     expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
 
+    const links = helper.getLinks(wrapper)
     for (const space of user.spaces) { // 参加スペース
+      expect(links.includes(`/-/${space.code}`)).toBe(true)
       expect(wrapper.find(`#space_link_${space.code}`).exists()).toBe(true)
       expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
       expect(wrapper.html()).toMatch(space.name)

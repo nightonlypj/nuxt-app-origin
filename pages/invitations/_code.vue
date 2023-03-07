@@ -231,9 +231,7 @@ export default {
       if (this.$config.debug) { console.log('updateInvitation', invitation) }
 
       const index = this.invitations.findIndex(item => item.code === invitation.code)
-      if (index < 0) { return }
-
-      this.invitations.splice(index, 1, invitation)
+      if (index >= 0) { this.invitations.splice(index, 1, invitation) }
     }
   }
 }

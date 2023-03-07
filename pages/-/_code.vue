@@ -50,10 +50,9 @@
             </v-col>
           </v-row>
         </v-card-title>
-        <v-card-text v-if="space.description != null && space.description !== ''">
-          <template v-for="(value, index) in space.description.split('\n')">
-            <div :key="index">{{ value }}</div>
-          </template>
+        <v-card-text v-if="space.description != null && space.description !== ''" class="pb-1">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-html="$md.render(space.description)" />
         </v-card-text>
       </v-card>
     </template>

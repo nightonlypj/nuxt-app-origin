@@ -10,7 +10,6 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('resend.vue', () => {
-  const localVue = createLocalVue()
   let axiosPostMock, setUniversalMock, toastedErrorMock, toastedInfoMock, routerPushMock
 
   beforeEach(() => {
@@ -24,6 +23,7 @@ describe('resend.vue', () => {
   const path = '/users/confirmation/resend'
   const fullPath = `${path}?full`
   const mountFunction = (loggedIn, query, values = null) => {
+    const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Page, {
       localVue,

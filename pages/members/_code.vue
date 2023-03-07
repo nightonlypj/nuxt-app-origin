@@ -399,9 +399,7 @@ export default {
 
       this.activeUserCodes = [member.user.code]
       const index = this.members.findIndex(item => item.user.code === member.user.code)
-      if (index < 0) { return }
-
-      this.members.splice(index, 1, member)
+      if (index >= 0) { this.members.splice(index, 1, member) }
     }
   }
 }

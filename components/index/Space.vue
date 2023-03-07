@@ -3,13 +3,9 @@
     <v-card-title>
       <v-row>
         <v-col>
-          スペース
+          参加スペース
         </v-col>
         <v-col cols="auto" class="d-flex pl-0">
-          <v-btn v-if="$config.enablePublicSpace" color="primary" to="/spaces" class="mr-2" nuxt>
-            <v-icon dense>mdi-magnify</v-icon>
-            <span class="ml-1">探す</span>
-          </v-btn>
           <SpacesCreate btn-color="secondary">
             <template #name>作成</template>
           </SpacesCreate>

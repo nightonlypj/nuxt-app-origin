@@ -59,6 +59,8 @@
                     <v-textarea
                       v-model="space.description"
                       placeholder="説明を追加"
+                      hint="Markdownに対応しています。"
+                      :persistent-hint="true"
                       dense
                       outlined
                       hide-details="auto"

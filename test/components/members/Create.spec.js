@@ -145,7 +145,6 @@ describe('Create.vue', () => {
 
       // 入力
       wrapper.vm.$data.member = values
-      await helper.sleep(1)
 
       // 招待ボタン
       button = wrapper.find('#member_create_submit_btn')

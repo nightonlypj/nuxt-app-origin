@@ -277,10 +277,10 @@ describe('_code.vue', () => {
       // 変更
       wrapper.find('#space_image_delete').trigger('change')
       wrapper.vm.$data.space = values
-      await helper.sleep(1)
 
       // 変更ボタン
       button = wrapper.find('#space_update_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)
