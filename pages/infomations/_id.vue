@@ -4,13 +4,13 @@
     <v-card v-else>
       <template v-if="infomation != null">
         <v-card-title>
-          <InfomationsLabel :infomation="infomation" />
-          <span class="ml-1 font-weight-bold">
-            {{ infomation.title }}
-          </span>
-          <span class="ml-1">
+          <div>
+            <InfomationsLabel :infomation="infomation" />
+            <span class="font-weight-bold">
+              {{ infomation.title }}
+            </span>
             ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
-          </span>
+          </div>
         </v-card-title>
         <v-card-text>
           <!-- eslint-disable-next-line vue/no-v-html -->
