@@ -23,7 +23,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_delete_dialog">
-              <v-toolbar color="error" dense dark>アカウント削除</v-toolbar>
+              <v-toolbar color="error" dense>アカウント削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>

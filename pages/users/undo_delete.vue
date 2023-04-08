@@ -25,7 +25,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_undo_delete_dialog">
-              <v-toolbar color="primary" dense dark>アカウント削除取り消し</v-toolbar>
+              <v-toolbar color="primary" dense>アカウント削除取り消し</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に取り消しますか？</div>
               </v-card-text>
