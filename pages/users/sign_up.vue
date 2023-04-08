@@ -31,7 +31,7 @@
                   @input="waiting = false"
                 />
               </validation-provider>
-              <template v-else class="d-flex">
+              <div v-else class="d-flex">
                 <validation-provider v-slot="{ errors }" name="email" rules="required">
                   <v-text-field
                     v-model="query.email_local"
@@ -51,7 +51,7 @@
                     @input="waiting = false"
                   />
                 </validation-provider>
-              </template>
+              </div>
               <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
                 <v-text-field
                   v-model="query.password"

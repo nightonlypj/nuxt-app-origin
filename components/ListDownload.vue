@@ -22,7 +22,7 @@
         <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
-            <v-toolbar color="primary" dense dark>
+            <v-toolbar color="primary" dense>
               <v-icon dense>mdi-download</v-icon>
               <span class="ml-1">ダウンロード</span>
             </v-toolbar>

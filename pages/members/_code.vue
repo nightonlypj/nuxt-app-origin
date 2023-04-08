@@ -22,11 +22,11 @@
                 ref="search"
                 :processing="processing || reloading"
                 :query.sync="query"
-                :admin="appCurrentMemberAdmin(space)"
+                :admin="admin"
                 @search="searchMembersList"
               />
             </v-col>
-            <v-col v-if="appCurrentMemberAdmin(space)" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
+            <v-col v-if="admin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
               <MembersCreate
                 :space="space"
                 @result="resultMembers"
@@ -53,7 +53,7 @@
                 <div class="align-self-center text-no-wrap ml-4">
                   選択: {{ $localeString('ja', selectedMembers.length) }}名
                 </div>
-                <div v-if="appCurrentMemberAdmin(space)" class="align-self-center ml-2">
+                <div v-if="admin" class="align-self-center ml-2">
                   <MembersDelete
                     :space="space"
                     :selected-members="selectedMembers"
@@ -67,8 +67,8 @@
             </v-col>
             <v-col class="d-flex justify-end">
               <ListDownload
-                v-if="appCurrentMemberAdmin(space)"
-                :admin="appCurrentMemberAdmin(space)"
+                v-if="admin"
+                :admin="admin"
                 model="member"
                 :space="space"
                 :hidden-items="hiddenItems"
@@ -77,7 +77,7 @@
               />
               <div class="ml-1">
                 <ListSetting
-                  :admin="appCurrentMemberAdmin(space)"
+                  :admin="admin"
                   model="member"
                   :hidden-items.sync="hiddenItems"
                 />
@@ -91,7 +91,7 @@
             <v-divider class="my-4" />
           </template>
           <MembersUpdate
-            v-if="appCurrentMemberAdmin(space)"
+            v-if="admin"
             ref="update"
             :space="space"
             @update="updateMember"
@@ -105,7 +105,7 @@
               :selected-members.sync="selectedMembers"
               :hidden-items="hiddenItems"
               :active-user-codes="activeUserCodes"
-              :admin="appCurrentMemberAdmin(space)"
+              :admin="admin"
               @reload="reloadMembersList"
               @showUpdate="$refs.update.showDialog($event)"
             />
@@ -203,6 +203,7 @@ export default {
       testState: null, // Jest用
       page: 1,
       space: null,
+      admin: null,
       member: null,
       members: null,
       selectedMembers: [],
@@ -358,6 +359,7 @@ export default {
           if (this.error) { return }
 
           this.space = response.data.space
+          this.admin = this.appCurrentMemberAdmin(this.space)
           this.member = response.data.member
           if (this.reloading || this.members == null) {
             this.members = response.data.members?.slice()

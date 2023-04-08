@@ -8,7 +8,7 @@
         <Processing v-if="processing" />
         <v-tabs v-model="tabPage">
           <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
-          <v-tab href="#active">スペース設定変更</v-tab>
+          <v-tab href="#active">スペース設定</v-tab>
         </v-tabs>
         <validation-observer v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="on">
@@ -205,7 +205,7 @@ export default {
 
   head () {
     return {
-      title: 'スペース設定変更'
+      title: 'スペース設定'
     }
   },
 
@@ -251,13 +251,9 @@ export default {
       const params = new FormData()
       params.append('space[name]', this.space.name)
       params.append('space[description]', this.space.description || '')
-      if (this.$config.enablePublicSpace) {
-        params.append('space[private]', Number(this.space.private))
-      }
-      params.append('space[image_delete]', Number(this.space.image_delete || false))
-      if (this.space.image != null) {
-        params.append('space[image]', this.space.image)
-      }
+      if (this.$config.enablePublicSpace) { params.append('space[private]', Number(this.space.private)) }
+      if (this.space.image_delete) { params.append('space[image_delete]', true) }
+      if (this.space.image != null) { params.append('space[image]', this.space.image) }
       await this.$axios.post(this.$config.apiBaseURL + this.$config.spaces.updateUrl.replace(':code', this.$route.params.code), params)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true }, response.data?.space == null)) { return }

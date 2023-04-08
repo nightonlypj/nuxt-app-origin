@@ -29,7 +29,7 @@
           </template>
           <template #default="dialog">
             <v-card id="space_delete_dialog">
-              <v-toolbar color="error" dense dark>スペース削除</v-toolbar>
+              <v-toolbar color="error" dense>スペース削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>

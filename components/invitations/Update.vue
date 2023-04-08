@@ -4,7 +4,7 @@
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
-          <v-toolbar color="primary" dense dark>
+          <v-toolbar color="primary" dense>
             <v-icon dense>mdi-clipboard-check</v-icon>
             <span class="ml-1">招待URL設定変更</span>
           </v-toolbar>
@@ -264,14 +264,16 @@ export default {
     async postInvitationsUpdate () {
       this.processing = true
 
+      let params = {}
+      if (this.invitation.delete) { params = { delete: true } }
+      if (this.invitation.undo_delete) { params = { undo_delete: true } }
       await this.$axios.post(this.$config.apiBaseURL + this.$config.invitations.updateUrl.replace(':space_code', this.space.code).replace(':code', this.invitation.code), {
         invitation: {
           ended_date: this.invitation.ended_date,
           ended_time: this.invitation.ended_time,
           ended_zone: this.appTimeZoneOffset,
           memo: this.invitation.memo,
-          delete: this.invitation.delete,
-          undo_delete: this.invitation.undo_delete
+          ...params
         }
       })
         .then((response) => {

@@ -310,8 +310,8 @@ describe('Update.vue', () => {
       ended_time: '23:59',
       ended_zone: helper.envConfig.timeZoneOffset,
       memo: '更新メモ',
-      delete: true,
-      undo_delete: null
+      delete: true
+      // TODO: undo_delete
     })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)

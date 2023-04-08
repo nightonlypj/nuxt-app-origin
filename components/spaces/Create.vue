@@ -13,7 +13,7 @@
         <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
-            <v-toolbar color="primary" dense dark>
+            <v-toolbar color="primary" dense>
               <v-icon dense>mdi-folder-plus</v-icon>
               <span class="ml-1">スペース作成</span>
             </v-toolbar>

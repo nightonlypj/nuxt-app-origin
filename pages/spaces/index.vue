@@ -232,13 +232,6 @@ export default {
             join: Number(this.query.join),
             nojoin: Number(this.query.nojoin)
           }
-        } else {
-          publicParams = {
-            public: 1,
-            private: 1,
-            join: 1,
-            nojoin: 1
-          }
         }
         this.params = {
           ...this.query,
@@ -249,10 +242,20 @@ export default {
         delete this.params.option
       }
 
+      let privateParams = {}
+      if (!this.$config.enablePublicSpace) {
+        privateParams = {
+          public: 1,
+          private: 1,
+          join: 1,
+          nojoin: 1
+        }
+      }
       const redirect = this.space == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.listUrl, {
         params: {
           ...this.params,
+          ...privateParams,
           page: this.page
         }
       })

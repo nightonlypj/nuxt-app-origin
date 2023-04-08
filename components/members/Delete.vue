@@ -18,7 +18,7 @@
       <v-card id="member_delete_dialog">
         <Processing v-if="processing" />
         <v-form autocomplete="off">
-          <v-toolbar color="error" dense dark>
+          <v-toolbar color="error" dense>
             <v-icon dense>mdi-delete</v-icon>
             <span class="ml-1">メンバー解除</span>
           </v-toolbar>

@@ -259,11 +259,10 @@ describe('_code.vue', () => {
       const params = new FormData()
       params.append('space[name]', values.name)
       params.append('space[description]', values.description)
-      if (helper.commonConfig.enablePublicSpace) {
-        params.append('space[private]', Number(values.private))
-      }
-      params.append('space[image_delete]', Number(values.image_delete))
-      params.append('space[image]', values.image)
+      if (helper.commonConfig.enablePublicSpace) { params.append('space[private]', Number(values.private)) }
+      if (values.image_delete) { params.append('space[image_delete]', true) }
+      if (values.image != null) { params.append('space[image]', values.image) }
+      // TODO: image_delete=false, image=null
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.updateUrl.replace(':code', spaceAdmin.code), params)
     }

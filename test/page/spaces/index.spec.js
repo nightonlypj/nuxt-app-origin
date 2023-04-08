@@ -71,15 +71,14 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  let optionParams = {}
+  let optionParams = {
+    public: 1,
+    private: 1,
+    join: 1,
+    nojoin: 1
+  }
   let optionQuery = {}
   if (helper.commonConfig.enablePublicSpace) {
-    optionParams = {
-      public: 1,
-      private: 1,
-      join: 1,
-      nojoin: 1
-    }
     optionQuery = {
       public: String(optionParams.public),
       private: String(optionParams.private),
@@ -94,7 +93,7 @@ describe('index.vue', () => {
     destroy: 0
   })
   const defaultQuery = Object.freeze({
-    ...defaultParams,
+    text: '',
     ...optionQuery,
     active: String(defaultParams.active),
     destroy: String(defaultParams.destroy),
@@ -122,7 +121,7 @@ describe('index.vue', () => {
     destroy: 0
   })
   const findQuery = Object.freeze({
-    ...findParams,
+    text: 'aaa',
     ...optionQuery,
     active: String(findParams.active),
     destroy: String(findParams.destroy),
@@ -209,7 +208,7 @@ describe('index.vue', () => {
       }
     }
     expect(wrapper.vm.$data.query).toEqual({
-      ...params,
+      text: params.text,
       ...optionQuery,
       active: params.active === 1,
       destroy: params.destroy === 1,
@@ -523,7 +522,7 @@ describe('index.vue', () => {
         }
       }
       wrapper.vm.$data.query = {
-        ...findParams,
+        text: findParams.text,
         ...optionQuery,
         active: findParams.active === 1,
         destroy: findParams.destroy === 1,
