@@ -9,7 +9,7 @@
       <span class="ml-1">メンバー招待</span>
     </v-btn>
     <v-dialog v-model="dialog" max-width="720px">
-      <v-card id="member_create_dialog">
+      <v-card v-if="dialog" id="member_create_dialog">
         <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
@@ -28,6 +28,8 @@
                       <v-textarea
                         v-model="member.emails"
                         label="メールアドレス"
+                        hint="アカウントが存在する場合のみ招待されます。"
+                        :persistent-hint="true"
                         dense
                         outlined
                         hide-details="auto"

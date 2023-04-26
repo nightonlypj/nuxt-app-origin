@@ -83,9 +83,9 @@ describe('Lists.vue', () => {
         // helper.mockCalledTest(toastedInfoMock, 1, helper.locales.notice.invitation.copy_success) // NOTE: Jestだと呼ばれない？
       }
       // ステータス
-      expect(wrapper.find(`#invitation_icon_active_${invitation.code}`).exists()).toBe(invitation.status === 'active')
-      expect(wrapper.find(`#invitation_icon_inactive_${invitation.code}`).exists()).toBe(invitation.status === 'expired' || invitation.status === 'deleted')
-      expect(wrapper.find(`#invitation_icon_email_joined_${invitation.code}`).exists()).toBe(invitation.status === 'email_joined')
+      expect(wrapper.find(`#icon_active_${invitation.code}`).exists()).toBe(invitation.status === 'active')
+      expect(wrapper.find(`#icon_inactive_${invitation.code}`).exists()).toBe(invitation.status === 'expired' || invitation.status === 'deleted')
+      expect(wrapper.find(`#icon_email_joined_${invitation.code}`).exists()).toBe(invitation.status === 'email_joined')
       expect(wrapper.text()).toMatch(invitation.status_i18n)
       // メールアドレス
       if (invitation.email != null) {

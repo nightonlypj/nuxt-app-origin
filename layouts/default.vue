@@ -185,4 +185,11 @@ export default {
 .v-input input {
   max-height: 38px; /* NOTE: 文字が下寄りになる為 */
 }
+
+.md-preview {
+  border: ridge;
+  border-radius: 4px;
+  border-color: #1E1E1E;
+  min-height: 32px
+}
 </style>

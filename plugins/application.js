@@ -7,7 +7,22 @@ export default {
     },
     appCurrentMemberWriter () {
       return (space) => {
-        return ['writer', 'admin'].includes(space?.current_member?.power)
+        return space?.current_member?.power === 'writer'
+      }
+    },
+    appCurrentMemberReader () {
+      return (space) => {
+        return space?.current_member?.power === 'reader'
+      }
+    },
+    appCurrentMemberWriterUp () {
+      return (space) => {
+        return ['admin', 'writer'].includes(space?.current_member?.power)
+      }
+    },
+    appCurrentMemberReaderUp () {
+      return (space) => {
+        return ['admin', 'writer', 'reader'].includes(space?.current_member?.power)
       }
     },
 

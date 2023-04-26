@@ -13,7 +13,7 @@
               {{ space.name }}
               <SpacesIcon :space="space" />
             </v-col>
-            <v-col cols="auto" class="d-flex pl-0">
+            <v-col cols="12" sm="auto" class="d-flex justify-end pl-0">
               <v-btn
                 v-if="space.current_member != null"
                 id="members_btn"

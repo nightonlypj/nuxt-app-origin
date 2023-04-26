@@ -9,7 +9,7 @@
       <span class="ml-1"><slot name="name">スペース作成</slot></span>
     </v-btn>
     <v-dialog v-model="dialog" max-width="850px">
-      <v-card id="space_create_dialog">
+      <v-card v-if="dialog" id="space_create_dialog">
         <Processing v-if="processing" />
         <validation-observer v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
@@ -43,7 +43,11 @@
                     説明
                   </v-col>
                   <v-col cols="12" md="10" class="pb-0">
-                    <validation-provider v-slot="{ errors }" name="description">
+                    <v-tabs v-model="tabDescription" height="32px">
+                      <v-tab href="#input">入力</v-tab>
+                      <v-tab href="#preview">プレビュー</v-tab>
+                    </v-tabs>
+                    <validation-provider v-show="tabDescription === 'input'" v-slot="{ errors }" name="description">
                       <v-textarea
                         v-model="space.description"
                         placeholder="説明を追加"
@@ -56,6 +60,10 @@
                         @input="waiting = false"
                       />
                     </validation-provider>
+                    <div v-if="tabDescription === 'preview'" class="md-preview mb-2">
+                      <!-- eslint-disable-next-line vue/no-v-html -->
+                      <div class="mx-3 my-2" v-html="$md.render(space.description || '')" />
+                    </div>
                   </v-col>
                 </v-row>
                 <v-row v-if="$config.enablePublicSpace">
@@ -166,6 +174,7 @@ export default {
       processing: false,
       waiting: false,
       dialog: false,
+      tabDescription: 'input',
       space: this.initialSpace()
     }
   },

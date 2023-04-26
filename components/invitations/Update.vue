@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="dialog" max-width="850px">
-    <v-card id="invitation_update_dialog">
+    <v-card v-if="dialog" id="invitation_update_dialog">
       <Processing v-if="processing" />
       <validation-observer v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
@@ -15,7 +15,7 @@
                   作成
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', invitation.created_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', invitation.created_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.created_user" />
                 </v-col>
               </v-row>
@@ -24,7 +24,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.last_updated_user" />
                 </v-col>
               </v-row>

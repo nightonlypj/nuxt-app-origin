@@ -1,6 +1,6 @@
 <template>
   <div v-if="loading || errorMessage != null || existSpaces">
-    <Loading v-if="loading" />
+    <Loading v-if="loading" height="20vh" />
     <v-card v-else>
       <v-card-title>
         <v-row>

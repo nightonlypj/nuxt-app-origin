@@ -18,7 +18,7 @@
                   作成
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
                   <UsersAvatar :user="space.created_user" />
                 </v-col>
               </v-row>
@@ -27,7 +27,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="space.last_updated_user" />
                 </v-col>
               </v-row>
@@ -55,7 +55,11 @@
                   説明
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
-                  <validation-provider v-slot="{ errors }" name="description">
+                  <v-tabs v-model="tabDescription" height="32px">
+                    <v-tab href="#input">入力</v-tab>
+                    <v-tab href="#preview">プレビュー</v-tab>
+                  </v-tabs>
+                  <validation-provider v-show="tabDescription === 'input'" v-slot="{ errors }" name="description">
                     <v-textarea
                       v-model="space.description"
                       placeholder="説明を追加"
@@ -68,6 +72,10 @@
                       @input="waiting = false"
                     />
                   </validation-provider>
+                  <div v-if="tabDescription === 'preview'" class="md-preview mb-2">
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <div class="mx-3 my-2" v-html="$md.render(space.description || '')" />
+                  </div>
                 </v-col>
               </v-row>
               <v-row v-if="$config.enablePublicSpace">
@@ -199,6 +207,7 @@ export default {
       alert: null,
       notice: null,
       tabPage: 'active',
+      tabDescription: 'input',
       space: null
     }
   },

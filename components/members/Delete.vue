@@ -15,7 +15,7 @@
       </v-tooltip>
     </v-btn>
     <v-dialog v-model="dialog" max-width="640px">
-      <v-card id="member_delete_dialog">
+      <v-card v-if="dialog" id="member_delete_dialog">
         <Processing v-if="processing" />
         <v-form autocomplete="off">
           <v-toolbar color="error" dense>
