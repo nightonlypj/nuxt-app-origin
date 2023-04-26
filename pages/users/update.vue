@@ -4,7 +4,7 @@
     <template v-else>
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="850px">
-        <v-card-title>ユーザー情報変更</v-card-title>
+        <v-card-title>ユーザー情報</v-card-title>
         <v-row>
           <v-col cols="auto" md="4">
             <UpdateImage @alert="alert = $event" @notice="notice = $event" />
@@ -52,7 +52,7 @@ export default {
 
   head () {
     return {
-      title: 'ユーザー情報変更'
+      title: 'ユーザー情報'
     }
   },
 

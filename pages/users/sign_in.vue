@@ -120,7 +120,7 @@ export default {
     if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
-      this.$route.query.notice += this.$t('auth.unauthenticated')
+      this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
     }
     this.appSetQueryMessage()
 

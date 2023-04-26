@@ -50,7 +50,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li><NuxtLink to="/users/update">ユーザー情報変更</NuxtLink></li>
+          <li><NuxtLink to="/users/update">ユーザー情報</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>

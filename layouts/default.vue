@@ -43,7 +43,7 @@
           <v-list dense rounded>
             <v-list-item to="/users/update" nuxt>
               <v-icon>mdi-account-edit</v-icon>
-              <v-list-item-title class="ml-2">ユーザー情報変更</v-list-item-title>
+              <v-list-item-title class="ml-2">ユーザー情報</v-list-item-title>
             </v-list-item>
             <v-list-item to="/users/sign_out" nuxt>
               <v-icon>mdi-logout</v-icon>
@@ -83,7 +83,7 @@
             </template>
             <v-list-item to="/users/update" nuxt>
               <v-icon class="ml-4">mdi-account-edit</v-icon>
-              <v-list-item-title class="ml-2">ユーザー情報変更</v-list-item-title>
+              <v-list-item-title class="ml-2">ユーザー情報</v-list-item-title>
             </v-list-item>
             <v-list-item to="/users/sign_out" nuxt>
               <v-icon class="ml-4">mdi-logout</v-icon>
@@ -148,9 +148,23 @@ export default {
   color: inherit !important;
   text-decoration: inherit;
 }
+.v-data-table__mobile-row {
+  padding-left: 0px !important;
+}
+.v-data-table__mobile-row__header {
+  padding-right: 8px !important;
+  white-space: nowrap;
+  font-size: 10px;
+}
 </style>
 <style>
 .v-btn {
   text-transform: none;
+}
+.v-application .text-overline {
+  text-transform: none !important;
+}
+.v-input input {
+  max-height: 38px; /* NOTE: 文字が下寄りになる為 */
 }
 </style>
