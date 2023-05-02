@@ -9,9 +9,9 @@
       <span class="ml-1">メンバー招待</span>
     </v-btn>
     <v-dialog v-model="dialog" max-width="720px">
-      <v-card v-if="dialog" id="member_create_dialog">
+      <v-card id="member_create_dialog">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <validation-observer v-if="dialog" v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
             <v-toolbar color="primary" dense>
               <v-icon dense>mdi-account-plus</v-icon>

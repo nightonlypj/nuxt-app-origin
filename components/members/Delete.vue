@@ -15,9 +15,9 @@
       </v-tooltip>
     </v-btn>
     <v-dialog v-model="dialog" max-width="640px">
-      <v-card v-if="dialog" id="member_delete_dialog">
+      <v-card id="member_delete_dialog">
         <Processing v-if="processing" />
-        <v-form autocomplete="off">
+        <template v-if="dialog">
           <v-toolbar color="error" dense>
             <v-icon dense>mdi-delete</v-icon>
             <span class="ml-1">メンバー解除</span>
@@ -41,7 +41,7 @@
               はい
             </v-btn>
           </v-card-actions>
-        </v-form>
+        </template>
       </v-card>
     </v-dialog>
   </div>

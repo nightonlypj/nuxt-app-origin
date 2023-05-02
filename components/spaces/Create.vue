@@ -9,9 +9,9 @@
       <span class="ml-1"><slot name="name">スペース作成</slot></span>
     </v-btn>
     <v-dialog v-model="dialog" max-width="850px">
-      <v-card v-if="dialog" id="space_create_dialog">
+      <v-card id="space_create_dialog">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <validation-observer v-if="dialog" v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
             <v-toolbar color="primary" dense>
               <v-icon dense>mdi-folder-plus</v-icon>

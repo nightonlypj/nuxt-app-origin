@@ -9,9 +9,9 @@
       <span class="ml-1">招待URL作成</span>
     </v-btn>
     <v-dialog v-model="dialog" max-width="850px">
-      <v-card v-if="dialog" id="invitation_create_dialog">
+      <v-card id="invitation_create_dialog">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <validation-observer v-if="dialog" v-slot="{ invalid }" ref="observer">
           <v-form autocomplete="off">
             <v-toolbar color="primary" dense>
               <v-icon dense>mdi-clipboard</v-icon>
