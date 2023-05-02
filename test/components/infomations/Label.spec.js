@@ -46,6 +46,11 @@ describe('Label.vue', () => {
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'warning', infomation)
   })
+  it('[アップデート]表示される', () => {
+    const infomation = Object.freeze({ label: 'update', label_i18n: 'アップデート' })
+    const wrapper = mountFunction(infomation)
+    viewTest(wrapper, 'info', infomation)
+  })
   it('[その他]表示される', () => {
     const infomation = Object.freeze({ label: 'other', label_i18n: 'その他' })
     const wrapper = mountFunction(infomation)
