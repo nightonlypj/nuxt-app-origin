@@ -5,7 +5,7 @@
       <Processing v-if="processing" />
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
-        <v-btn to="/" nuxt>トップページ</v-btn>
+        <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
         <v-btn
           id="sign_out_btn"
           class="ml-1"
