@@ -35,14 +35,14 @@
                   color="primary"
                   @click="postUserUndoDelete(dialog)"
                 >
-                  はい
+                  はい（削除取り消し）
                 </v-btn>
                 <v-btn
                   id="user_undo_delete_no_btn"
                   color="secondary"
                   @click="dialog.value = false"
                 >
-                  いいえ
+                  いいえ（キャンセル）
                 </v-btn>
               </v-card-actions>
             </v-card>
