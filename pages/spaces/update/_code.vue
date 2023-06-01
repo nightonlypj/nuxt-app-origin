@@ -230,6 +230,10 @@ export default {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }
+    if (this.space.destroy_schedule_at != null) {
+      this.appSetToastedMessage({ alert: this.$t('alert.space.destroy_reserved') })
+      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+    }
 
     this.loading = false
   },

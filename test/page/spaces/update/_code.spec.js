@@ -181,6 +181,16 @@ describe('_code.vue', () => {
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
   })
+  it('[ログイン中][スペース削除予定]スペーストップにリダイレクトされる', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...spaceAdmin, destroy_schedule_at: '2000-01-08T12:34:56+09:00' } } }))
+    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+    helper.loadingTest(wrapper, Loading)
+    await helper.sleep(1)
+
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.alert.space.destroy_reserved)
+    helper.mockCalledTest(toastedInfoMock, 0)
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
+  })
 
   describe('スペース詳細取得', () => {
     const beforeAction = async () => {

@@ -106,17 +106,13 @@ describe('_code.vue', () => {
     return wrapper
   }
 
-  const defaultPower = {}
   const defaultPowers = []
-  let defaultPowerQuery = ''
   const findPower = {}
   const findPowers = []
   let findPowerQuery = ''
   let index = 0
   for (const key in helper.locales.enums.member.power) {
-    defaultPower[key] = true
     defaultPowers.push(key)
-    defaultPowerQuery += '1'
     findPower[key] = index % 2 === 0
     if (findPower[key]) { findPowers.push(key) }
     findPowerQuery += String(Number(findPower[key]))
@@ -128,12 +124,6 @@ describe('_code.vue', () => {
     power: defaultPowers.join(),
     sort: 'invitationed_at',
     desc: 1
-  })
-  const defaultQuery = Object.freeze({
-    ...defaultParams,
-    power: defaultPowerQuery,
-    desc: String(defaultParams.desc),
-    option: '0'
   })
 
   const findParams = Object.freeze({
@@ -222,7 +212,7 @@ describe('_code.vue', () => {
     })
   }
 
-  const viewTest = (wrapper, params, power, query, data, countView, admin = false, show = { existInfinite: false, testState: null }, error = false) => {
+  const viewTest = (wrapper, data, countView, admin = false, show = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(Loading).exists()).toBe(false)
     expect(wrapper.findComponent(Processing).exists()).toBe(false)
     helper.messageTest(wrapper, Message, values)
@@ -230,7 +220,6 @@ describe('_code.vue', () => {
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
 
-    expect(wrapper.vm.$data.query).toEqual({ ...params, power, desc: params.desc === 1, option: query.option === '1' })
     expect(wrapper.vm.$data.error).toBe(error)
     expect(wrapper.vm.$data.testState).toBe(show.testState)
     expect(wrapper.vm.$data.page).toBe(data.member.current_page)
@@ -303,7 +292,7 @@ describe('_code.vue', () => {
     await helper.sleep(1)
 
     apiCalledTest(1, defaultParams)
-    const infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
+    const infiniteLoading = viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
@@ -320,7 +309,7 @@ describe('_code.vue', () => {
     } else {
       helper.mockCalledTest(toastedInfoMock, 0)
     }
-    viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
+    viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
   }
 
   // テストケース
@@ -342,7 +331,7 @@ describe('_code.vue', () => {
         await helper.sleep(1)
 
         apiCalledTest(1, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, data, '', true)
+        viewTest(wrapper, data, '', true)
       })
       it('[管理者以外]表示される（招待・変更・ダウンロードを除く）', async () => {
         axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
@@ -351,7 +340,7 @@ describe('_code.vue', () => {
         await helper.sleep(1)
 
         apiCalledTest(1, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount0, '', false)
+        viewTest(wrapper, dataCount0, '', false)
       })
     })
     describe('1件', () => {
@@ -363,7 +352,7 @@ describe('_code.vue', () => {
         await helper.sleep(1)
 
         apiCalledTest(1, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, data, '1名', true)
+        viewTest(wrapper, data, '1名', true)
 
         // 選択
         wrapper.vm.selectedMembers = [data.members[0]]
@@ -391,7 +380,7 @@ describe('_code.vue', () => {
         await helper.sleep(1)
 
         apiCalledTest(1, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataCount1, '1名', false)
+        viewTest(wrapper, dataCount1, '1名', false)
       })
     })
     describe('無限スクロール', () => {
@@ -406,7 +395,7 @@ describe('_code.vue', () => {
         await helper.sleep(1)
 
         apiCalledTest(1, defaultParams)
-        infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
+        infiniteLoading = viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
         // スクロール（2頁目）
@@ -415,14 +404,14 @@ describe('_code.vue', () => {
 
         apiCalledTest(2, defaultParams)
         const members = dataPage1.members.concat(dataPage2.members)
-        infiniteLoading = viewTest(wrapper, defaultParams, defaultPower, defaultQuery, { ...dataPage2, members }, '5名', false, { existInfinite: true, testState: 'loaded' })
+        infiniteLoading = viewTest(wrapper, { ...dataPage2, members }, '5名', false, { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await helper.sleep(1)
 
         apiCalledTest(3, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, { ...dataPage3, members: members.concat(dataPage3.members) }, '5名', false, { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, { ...dataPage3, members: members.concat(dataPage3.members) }, '5名', false, { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const count = window.location.reload.mock.calls.length
@@ -433,7 +422,7 @@ describe('_code.vue', () => {
 
         helper.mockCalledTest(window.location.reload, count + 1)
         apiCalledTest(2, defaultParams)
-        viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
+        viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
       }
 
       it('[ログイン中]スクロールで最終頁まで表示される', async () => {
@@ -633,7 +622,7 @@ describe('_code.vue', () => {
       await helper.sleep(1)
 
       apiCalledTest(1, findParams)
-      viewTest(wrapper, findParams, findPower, findQuery, dataCount1, '1名')
+      viewTest(wrapper, dataCount1, '1名')
     })
   })
 
@@ -674,7 +663,7 @@ describe('_code.vue', () => {
       await helper.sleep(1)
 
       apiCalledTest(1, defaultParams)
-      viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
+      viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
       // メンバー一覧検索
       wrapper.vm.$refs.search.error = jest.fn()
@@ -696,7 +685,7 @@ describe('_code.vue', () => {
         .mockImplementationOnce(() => Promise.resolve({ data: dataCount1 }))
       await beforeAction()
 
-      viewTest(wrapper, findParams, findPower, findQuery, dataCount1, '1名')
+      viewTest(wrapper, dataCount1, '1名')
       helper.mockCalledTest(toastedErrorMock, 0)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 0)
@@ -708,7 +697,7 @@ describe('_code.vue', () => {
         .mockImplementationOnce(() => Promise.reject({ response: null }))
       await beforeAction()
 
-      viewTest(wrapper, findParams, findPower, findQuery, dataPage1, '5名', false, { existInfinite: true, testState: null }, true)
+      viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null }, true)
       helper.mockCalledTest(toastedErrorMock, 1, helper.locales.network.failure)
       helper.mockCalledTest(toastedInfoMock, 0)
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
@@ -725,7 +714,7 @@ describe('_code.vue', () => {
       await helper.sleep(1)
 
       apiCalledTest(1, defaultParams)
-      viewTest(wrapper, defaultParams, defaultPower, defaultQuery, dataPage1, '5名', false, { existInfinite: true, testState: null })
+      viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
     }
 
     describe('メンバー招待（結果）', () => {

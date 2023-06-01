@@ -31,14 +31,14 @@
               color="secondary"
               @click="dialog = false"
             >
-              いいえ
+              いいえ（キャンセル）
             </v-btn>
             <v-btn
               id="member_delete_yes_btn"
               color="error"
               @click="postMembersDelete()"
             >
-              はい
+              はい（解除）
             </v-btn>
           </v-card-actions>
         </template>
