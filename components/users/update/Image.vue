@@ -42,7 +42,7 @@
             </template>
             <template #default="dialog">
               <v-card id="user_image_delete_dialog">
-                <v-toolbar color="secondary" dense dark>画像削除</v-toolbar>
+                <v-toolbar color="secondary" dense>画像削除</v-toolbar>
                 <v-card-text>
                   <div class="text-h6 pa-4">本当に削除しますか？</div>
                 </v-card-text>
@@ -52,14 +52,14 @@
                     color="secondary"
                     @click="dialog.value = false"
                   >
-                    いいえ
+                    いいえ（キャンセル）
                   </v-btn>
                   <v-btn
                     id="user_image_delete_yes_btn"
                     color="primary"
                     @click="postUserImageDelete(dialog)"
                   >
-                    はい
+                    はい（削除）
                   </v-btn>
                 </v-card-actions>
               </v-card>

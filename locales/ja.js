@@ -1,5 +1,6 @@
 module.exports = {
   app_name: 'NuxtAppOrigin',
+  sub_title: ': ベースアプリケーション',
   my_name: 'My name',
   my_url: 'https://example.com',
   network: {

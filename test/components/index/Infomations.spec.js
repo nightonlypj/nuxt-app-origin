@@ -8,7 +8,6 @@ import { Helper } from '~/test/helper.js'
 const helper = new Helper()
 
 describe('Infomations.vue', () => {
-  const localVue = createLocalVue()
   let axiosGetMock
 
   beforeEach(() => {
@@ -16,6 +15,7 @@ describe('Infomations.vue', () => {
   })
 
   const mountFunction = () => {
+    const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
       localVue,

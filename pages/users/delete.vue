@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="640px">
+    <v-card v-else max-width="640px">
       <Processing v-if="processing" />
       <v-card-title>アカウント削除</v-card-title>
       <v-card-text>
@@ -23,7 +23,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_delete_dialog">
-              <v-toolbar color="error" dense dark>アカウント削除</v-toolbar>
+              <v-toolbar color="error" dense>アカウント削除</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>
@@ -33,14 +33,14 @@
                   color="secondary"
                   @click="dialog.value = false"
                 >
-                  いいえ
+                  いいえ（キャンセル）
                 </v-btn>
                 <v-btn
                   id="user_delete_yes_btn"
                   color="error"
                   @click="postUserDelete(dialog)"
                 >
-                  はい
+                  はい（削除）
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -50,7 +50,7 @@
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li><NuxtLink to="/users/update">ユーザー情報変更</NuxtLink></li>
+          <li><NuxtLink to="/users/update">ユーザー情報</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>

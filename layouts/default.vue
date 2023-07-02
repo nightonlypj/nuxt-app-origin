@@ -3,13 +3,13 @@
     <v-app-bar clipped-left fixed app>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <NuxtLink to="/" class="toolbar-title d-flex">
-        <v-img src="/v.png" max-width="40px" max-height="40px" />
+        <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
           v-if="$vuetify.breakpoint.width > 226"
           :style="{ 'max-width': ($vuetify.breakpoint.width - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
-          {{ $t('app_name') + $config.envName }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$config.envName}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
@@ -43,7 +43,7 @@
           <v-list dense rounded>
             <v-list-item to="/users/update" nuxt>
               <v-icon>mdi-account-edit</v-icon>
-              <v-list-item-title class="ml-2">ユーザー情報変更</v-list-item-title>
+              <v-list-item-title class="ml-2">ユーザー情報</v-list-item-title>
             </v-list-item>
             <v-list-item to="/users/sign_out" nuxt>
               <v-icon>mdi-logout</v-icon>
@@ -83,7 +83,7 @@
             </template>
             <v-list-item to="/users/update" nuxt>
               <v-icon class="ml-4">mdi-account-edit</v-icon>
-              <v-list-item-title class="ml-2">ユーザー情報変更</v-list-item-title>
+              <v-list-item-title class="ml-2">ユーザー情報</v-list-item-title>
             </v-list-item>
             <v-list-item to="/users/sign_out" nuxt>
               <v-icon class="ml-4">mdi-logout</v-icon>
@@ -110,8 +110,8 @@
     </v-main>
 
     <v-footer absolute inset app>
-      <div class="flex-grow-1 text-center">
-        <span>Copyright &copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.</span>
+      <div class="flex-grow-1 text-center text-truncate">
+        <span class="hidden-sm-and-down">Copyright </span>&copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
       </div>
     </v-footer>
 
@@ -148,9 +148,23 @@ export default {
   color: inherit !important;
   text-decoration: inherit;
 }
+.v-data-table__mobile-row {
+  padding-left: 0px !important;
+}
+.v-data-table__mobile-row__header {
+  padding-right: 8px !important;
+  white-space: nowrap;
+  font-size: 10px;
+}
 </style>
 <style>
 .v-btn {
   text-transform: none;
+}
+.v-application .text-overline {
+  text-transform: none !important;
+}
+.v-input input {
+  max-height: 38px; /* NOTE: 文字が下寄りになる為 */
 }
 </style>

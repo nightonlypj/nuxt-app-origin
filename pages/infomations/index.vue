@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading">
+    <v-card v-else>
       <Processing v-if="processing" />
       <v-card-title>お知らせ</v-card-title>
       <v-card-text>
@@ -23,9 +23,9 @@
         </template>
         <InfomationsLists v-else :infomations="infomations" />
 
-        <div v-if="enablePagination">
+        <template v-if="enablePagination">
           <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
-        </div>
+        </template>
       </v-card-text>
     </v-card>
   </div>

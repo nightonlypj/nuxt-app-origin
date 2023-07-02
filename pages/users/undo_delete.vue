@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="640px">
+    <v-card v-else max-width="640px">
       <Processing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
@@ -25,7 +25,7 @@
           </template>
           <template #default="dialog">
             <v-card id="user_undo_delete_dialog">
-              <v-toolbar color="primary" dense dark>アカウント削除取り消し</v-toolbar>
+              <v-toolbar color="primary" dense>アカウント削除取り消し</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に取り消しますか？</div>
               </v-card-text>
@@ -35,14 +35,14 @@
                   color="primary"
                   @click="postUserUndoDelete(dialog)"
                 >
-                  はい
+                  はい（削除取り消し）
                 </v-btn>
                 <v-btn
                   id="user_undo_delete_no_btn"
                   color="secondary"
                   @click="dialog.value = false"
                 >
-                  いいえ
+                  いいえ（キャンセル）
                 </v-btn>
               </v-card-actions>
             </v-card>

@@ -1,16 +1,16 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading">
-      <div v-if="infomation != null">
+    <v-card v-else>
+      <template v-if="infomation != null">
         <v-card-title>
-          <InfomationsLabel :infomation="infomation" />
-          <span class="ml-1 font-weight-bold">
-            {{ infomation.title }}
-          </span>
-          <span class="ml-1">
+          <div>
+            <InfomationsLabel :infomation="infomation" />
+            <span class="font-weight-bold">
+              {{ infomation.title }}
+            </span>
             ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
-          </span>
+          </div>
         </v-card-title>
         <v-card-text>
           <!-- eslint-disable-next-line vue/no-v-html -->
@@ -19,7 +19,7 @@
           <div v-else-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
         </v-card-text>
         <v-divider />
-      </div>
+      </template>
       <v-card-actions>
         <ul class="my-2">
           <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
