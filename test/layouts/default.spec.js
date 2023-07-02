@@ -49,6 +49,7 @@ describe('default.vue', () => {
       expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
       expect(wrapper.text()).toMatch('12345') // お知らせの未読数
       expect(wrapper.text()).toMatch('67890') // 未ダウンロード数
+
       for (const space of user.spaces) { // 参加スペース
         expect(wrapper.find(`#space_link_${space.code}`).exists()).toBe(true)
         expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)

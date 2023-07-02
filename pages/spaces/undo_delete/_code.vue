@@ -1,7 +1,7 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="850px">
+    <v-card v-else max-width="850px">
       <Processing v-if="processing" />
       <v-tabs v-model="tabPage">
         <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
@@ -31,7 +31,7 @@
           </template>
           <template #default="dialog">
             <v-card id="space_undo_delete_dialog">
-              <v-toolbar color="primary" dense dark>スペース削除取り消し</v-toolbar>
+              <v-toolbar color="primary" dense>スペース削除取り消し</v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に取り消しますか？</div>
               </v-card-text>
@@ -41,14 +41,14 @@
                   color="primary"
                   @click="postSpacesUndoDelete(dialog)"
                 >
-                  はい
+                  はい（削除取り消し）
                 </v-btn>
                 <v-btn
                   id="space_undo_delete_no_btn"
                   color="secondary"
                   @click="dialog.value = false"
                 >
-                  いいえ
+                  いいえ（キャンセル）
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -95,12 +95,6 @@ export default {
     }
   },
 
-  computed: {
-    currentMemberAdmin () {
-      return this.space?.current_member?.power === 'admin'
-    }
-  },
-
   async created () {
     if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
     if (this.$auth.user.destroy_schedule_at != null) {
@@ -109,7 +103,7 @@ export default {
     }
 
     if (!await this.getSpaceDetail()) { return }
-    if (!this.currentMemberAdmin) {
+    if (!this.appCurrentMemberAdmin(this.space)) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
       return this.$router.push({ path: `/-/${this.$route.params.code}` })
     }

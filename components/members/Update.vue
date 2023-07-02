@@ -2,9 +2,9 @@
   <v-dialog v-model="dialog" max-width="720px">
     <v-card id="member_update_dialog">
       <Processing v-if="processing" />
-      <validation-observer v-slot="{ invalid }" ref="observer">
+      <validation-observer v-if="dialog" v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
-          <v-toolbar color="primary" dense dark>
+          <v-toolbar color="primary" dense>
             <v-icon dense>mdi-account-edit</v-icon>
             <span class="ml-1">メンバー情報変更</span>
           </v-toolbar>
@@ -26,7 +26,7 @@
                   招待
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', member.invitationed_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', member.invitationed_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.invitationed_user" />
                 </v-col>
               </v-row>
@@ -35,7 +35,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', member.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', member.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.last_updated_user" />
                 </v-col>
               </v-row>

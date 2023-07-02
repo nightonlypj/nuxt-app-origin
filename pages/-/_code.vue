@@ -1,60 +1,61 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <SpacesDestroyInfo v-if="!loading" :space="space" />
-    <v-card v-if="!loading">
-      <v-card-title>
-        <v-row>
-          <v-col>
-            <v-avatar v-if="space.image_url != null" size="32px">
-              <v-img id="space_image" :src="space.image_url.small" />
-            </v-avatar>
-            {{ space.name }}
-            <SpacesIcon :space="space" />
-          </v-col>
-          <v-col cols="auto" class="d-flex pl-0">
-            <v-btn
-              v-if="space.current_member != null"
-              id="members_btn"
-              :to="`/members/${space.code}`"
-              color="primary"
-              dense
-              nuxt
-            >
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-badge :content="space.member_count > 99 ? '99+' : space.member_count" color="accent" overlap>
-                    <v-icon v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
-                  </v-badge>
-                </template>
-                メンバー一覧
-              </v-tooltip>
-            </v-btn>
-            <v-btn
-              v-if="currentMemberAdmin"
-              id="space_update_btn"
-              :to="`/spaces/update/${space.code}`"
-              color="secondary"
-              class="ml-1"
-              dense
-              nuxt
-            >
-              <v-tooltip bottom>
-                <template #activator="{ on, attrs }">
-                  <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
-                </template>
-                設定変更
-              </v-tooltip>
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-title>
-      <v-card-text v-if="space.description != null && space.description !== ''">
-        <template v-for="(value, index) in space.description.split('\n')">
-          <div :key="index">{{ value }}</div>
-        </template>
-      </v-card-text>
-    </v-card>
+    <template v-else>
+      <SpacesDestroyInfo :space="space" />
+      <v-card>
+        <v-card-title>
+          <v-row>
+            <v-col>
+              <v-avatar v-if="space.image_url != null" size="48px">
+                <v-img id="space_image" :src="space.image_url.medium" />
+              </v-avatar>
+              {{ space.name }}
+              <SpacesIcon :space="space" />
+            </v-col>
+            <v-col cols="12" sm="auto" class="d-flex justify-end pl-0">
+              <v-btn
+                v-if="space.current_member != null"
+                id="members_btn"
+                :to="`/members/${space.code}`"
+                color="primary"
+                dense
+                nuxt
+              >
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-badge :content="space.member_count > 99 ? '99+' : space.member_count" color="accent" overlap>
+                      <v-icon v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
+                    </v-badge>
+                  </template>
+                  メンバー一覧
+                </v-tooltip>
+              </v-btn>
+              <v-btn
+                v-if="appCurrentMemberAdmin(space)"
+                id="space_update_btn"
+                :to="`/spaces/update/${space.code}`"
+                color="secondary"
+                class="ml-1"
+                dense
+                nuxt
+              >
+                <v-tooltip bottom>
+                  <template #activator="{ on, attrs }">
+                    <v-icon small v-bind="attrs" v-on="on">mdi-cog</v-icon>
+                  </template>
+                  設定変更
+                </v-tooltip>
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card-title>
+        <v-card-text v-if="space.description != null && space.description !== ''" class="pb-1">
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <div v-html="$md.render(space.description)" />
+        </v-card-text>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -82,12 +83,6 @@ export default {
   head () {
     return {
       title: this.space?.name
-    }
-  },
-
-  computed: {
-    currentMemberAdmin () {
-      return this.space?.current_member?.power === 'admin'
     }
   },
 

@@ -140,6 +140,7 @@ describe('Delete.vue', () => {
 
       // はいボタン
       button = wrapper.find('#member_delete_yes_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

@@ -138,6 +138,22 @@ describe('_code.vue', () => {
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
     })
+    it('[閲覧者]表示される（メンバー一覧は表示、設定変更は非表示）', async () => {
+      const data = Object.freeze({
+        space: {
+          ...space,
+          current_member: {
+            power: 'reader'
+          }
+        }
+      })
+      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      await beforeAction(true)
+
+      viewTest(wrapper, data)
+      expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
+      expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
+    })
     it('[未参加]表示される（メンバー一覧・設定変更は非表示）', async () => {
       const data = Object.freeze({ space })
       axiosGetMock = jest.fn(() => Promise.resolve({ data }))

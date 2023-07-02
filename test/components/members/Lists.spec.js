@@ -9,7 +9,7 @@ const helper = new Helper()
 
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members, currentMemberAdmin = false, hiddenItems = null, activeUserCodes = []) => {
+  const mountFunction = (members, admin = false, hiddenItems = null, activeUserCodes = []) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()
     const wrapper = mount(Component, {
@@ -26,7 +26,7 @@ describe('Lists.vue', () => {
         selectedMembers: [],
         hiddenItems,
         activeUserCodes,
-        currentMemberAdmin
+        admin
       },
       mocks: {
         $auth: {

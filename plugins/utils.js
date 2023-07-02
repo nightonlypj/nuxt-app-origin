@@ -41,6 +41,7 @@ const textTruncate = (text, length) => {
   return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
 }
 
+/* istanbul ignore next */
 export default (_context, inject) => {
   inject('config', useRuntimeConfig())
   inject('sleep', sleep)

@@ -1,11 +1,11 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading" max-width="480px">
+    <v-card v-else max-width="480px">
       <Processing v-if="processing" />
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
-        <v-btn to="/" nuxt>トップページ</v-btn>
+        <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
         <v-btn
           id="sign_out_btn"
           class="ml-1"

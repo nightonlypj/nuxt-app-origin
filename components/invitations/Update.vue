@@ -2,9 +2,9 @@
   <v-dialog v-model="dialog" max-width="850px">
     <v-card id="invitation_update_dialog">
       <Processing v-if="processing" />
-      <validation-observer v-slot="{ invalid }" ref="observer">
+      <validation-observer v-if="dialog" v-slot="{ invalid }" ref="observer">
         <v-form autocomplete="off">
-          <v-toolbar color="primary" dense dark>
+          <v-toolbar color="primary" dense>
             <v-icon dense>mdi-clipboard-check</v-icon>
             <span class="ml-1">招待URL設定変更</span>
           </v-toolbar>
@@ -15,7 +15,7 @@
                   作成
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', invitation.created_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', invitation.created_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.created_user" />
                 </v-col>
               </v-row>
@@ -24,7 +24,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3">{{ $timeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 grey--text">{{ $timeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.last_updated_user" />
                 </v-col>
               </v-row>
@@ -51,9 +51,9 @@
                   メールアドレス
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
-                  <div v-if="invitation.email != null">
+                  <template v-if="invitation.email != null">
                     {{ invitation.email }}
-                  </div>
+                  </template>
                   <template v-else>
                     <div v-for="domain in invitation.domains" :key="domain">
                       *@{{ domain }}
@@ -264,14 +264,16 @@ export default {
     async postInvitationsUpdate () {
       this.processing = true
 
+      let params = {}
+      if (this.invitation.delete) { params = { delete: true } }
+      if (this.invitation.undo_delete) { params = { undo_delete: true } }
       await this.$axios.post(this.$config.apiBaseURL + this.$config.invitations.updateUrl.replace(':space_code', this.space.code).replace(':code', this.invitation.code), {
         invitation: {
           ended_date: this.invitation.ended_date,
           ended_time: this.invitation.ended_time,
           ended_zone: this.appTimeZoneOffset,
           memo: this.invitation.memo,
-          delete: this.invitation.delete,
-          undo_delete: this.invitation.undo_delete
+          ...params
         }
       })
         .then((response) => {

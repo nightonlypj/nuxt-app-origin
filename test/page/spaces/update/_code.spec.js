@@ -181,6 +181,16 @@ describe('_code.vue', () => {
     helper.mockCalledTest(toastedInfoMock, 0)
     helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
   })
+  it('[ログイン中][スペース削除予定]スペーストップにリダイレクトされる', async () => {
+    axiosGetMock = jest.fn(() => Promise.resolve({ data: { space: { ...spaceAdmin, destroy_schedule_at: '2000-01-08T12:34:56+09:00' } } }))
+    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+    helper.loadingTest(wrapper, Loading)
+    await helper.sleep(1)
+
+    helper.mockCalledTest(toastedErrorMock, 1, helper.locales.alert.space.destroy_reserved)
+    helper.mockCalledTest(toastedInfoMock, 0)
+    helper.mockCalledTest(routerPushMock, 1, { path: `/-/${spaceAdmin.code}` })
+  })
 
   describe('スペース詳細取得', () => {
     const beforeAction = async () => {
@@ -259,11 +269,10 @@ describe('_code.vue', () => {
       const params = new FormData()
       params.append('space[name]', values.name)
       params.append('space[description]', values.description)
-      if (helper.commonConfig.enablePublicSpace) {
-        params.append('space[private]', Number(values.private))
-      }
-      params.append('space[image_delete]', Number(values.image_delete))
-      params.append('space[image]', values.image)
+      if (helper.commonConfig.enablePublicSpace) { params.append('space[private]', Number(values.private)) }
+      if (values.image_delete) { params.append('space[image_delete]', true) }
+      if (values.image != null) { params.append('space[image]', values.image) }
+      // TODO: image_delete=false, image=null
       expect(axiosPostMock).toBeCalledTimes(1)
       expect(axiosPostMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.updateUrl.replace(':code', spaceAdmin.code), params)
     }
@@ -277,10 +286,10 @@ describe('_code.vue', () => {
       // 変更
       wrapper.find('#space_image_delete').trigger('change')
       wrapper.vm.$data.space = values
-      await helper.sleep(1)
 
       // 変更ボタン
       button = wrapper.find('#space_update_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

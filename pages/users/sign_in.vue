@@ -1,58 +1,60 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <v-card v-if="!loading" max-width="480px">
-      <Processing v-if="processing" />
-      <validation-observer v-slot="{ invalid }">
-        <v-form autocomplete="on">
-          <v-card-title>ログイン</v-card-title>
-          <v-card-text
-            id="input_area"
-            @keydown.enter="appSetKeyDownEnter"
-            @keyup.enter="signIn(invalid, true)"
-          >
-            <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-              <v-text-field
-                v-model="query.email"
-                label="メールアドレス"
-                prepend-icon="mdi-email"
-                autocomplete="email"
-                :error-messages="errors"
-                @input="waiting = false"
-              />
-            </validation-provider>
-            <validation-provider v-slot="{ errors }" name="password" rules="required">
-              <v-text-field
-                v-model="query.password"
-                :type="showPassword ? 'text' : 'password'"
-                label="パスワード"
-                prepend-icon="mdi-lock"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                autocomplete="current-password"
-                counter
-                :error-messages="errors"
-                @input="waiting = false"
-                @click:append="showPassword = !showPassword"
-              />
-            </validation-provider>
-            <v-btn
-              id="sign_in_btn"
-              color="primary"
-              class="mt-4"
-              :disabled="invalid || processing || waiting"
-              @click="signIn(invalid, false)"
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <v-card max-width="480px">
+        <Processing v-if="processing" />
+        <validation-observer v-slot="{ invalid }">
+          <v-form autocomplete="on">
+            <v-card-title>ログイン</v-card-title>
+            <v-card-text
+              id="input_area"
+              @keydown.enter="appSetKeyDownEnter"
+              @keyup.enter="signIn(invalid, true)"
             >
-              ログイン
-            </v-btn>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <ActionLink action="sign_in" />
-          </v-card-actions>
-        </v-form>
-      </validation-observer>
-    </v-card>
+              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+                <v-text-field
+                  v-model="query.email"
+                  label="メールアドレス"
+                  prepend-icon="mdi-email"
+                  autocomplete="email"
+                  :error-messages="errors"
+                  @input="waiting = false"
+                />
+              </validation-provider>
+              <validation-provider v-slot="{ errors }" name="password" rules="required">
+                <v-text-field
+                  v-model="query.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  label="パスワード"
+                  prepend-icon="mdi-lock"
+                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  autocomplete="current-password"
+                  counter
+                  :error-messages="errors"
+                  @input="waiting = false"
+                  @click:append="showPassword = !showPassword"
+                />
+              </validation-provider>
+              <v-btn
+                id="sign_in_btn"
+                color="primary"
+                class="mt-4"
+                :disabled="invalid || processing || waiting"
+                @click="signIn(invalid, false)"
+              >
+                ログイン
+              </v-btn>
+            </v-card-text>
+            <v-divider />
+            <v-card-actions>
+              <ActionLink action="sign_in" />
+            </v-card-actions>
+          </v-form>
+        </validation-observer>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -118,7 +120,7 @@ export default {
     if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
-      this.$route.query.notice += this.$t('auth.unauthenticated')
+      this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
     }
     this.appSetQueryMessage()
 

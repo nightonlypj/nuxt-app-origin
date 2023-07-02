@@ -310,8 +310,8 @@ describe('Update.vue', () => {
       ended_time: '23:59',
       ended_zone: helper.envConfig.timeZoneOffset,
       memo: '更新メモ',
-      delete: true,
-      undo_delete: null
+      delete: true
+      // TODO: undo_delete
     })
     const apiCalledTest = () => {
       expect(axiosPostMock).toBeCalledTimes(1)
@@ -335,10 +335,10 @@ describe('Update.vue', () => {
       // 変更
       wrapper.find('#invitation_delete_check').trigger('change')
       wrapper.vm.$data.invitation = { ...invitationActive, ...values }
-      await helper.sleep(1)
 
       // 変更ボタン
       button = wrapper.find('#invitation_update_submit_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

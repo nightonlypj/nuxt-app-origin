@@ -36,7 +36,7 @@
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
       <template v-if="item.status === 'email_joined'">
-        <v-icon :id="`invitation_icon_email_joined_${item.code}`" color="info" dense>mdi-information</v-icon>
+        <v-icon :id="`icon_email_joined_${item.code}`" color="info" dense>mdi-information</v-icon>
         {{ item.status_i18n }}
       </template>
       <a
@@ -45,17 +45,17 @@
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
       >
-        <v-icon v-if="item.status === 'active'" :id="`invitation_icon_active_${item.code}`" color="success" dense>mdi-check-circle</v-icon>
-        <v-icon v-else :id="`invitation_icon_inactive_${item.code}`" color="error" dense>mdi-alert</v-icon>
+        <v-icon v-if="item.status === 'active'" :id="`icon_active_${item.code}`" color="success" dense>mdi-check-circle</v-icon>
+        <v-icon v-else :id="`icon_inactive_${item.code}`" color="error" dense>mdi-alert</v-icon>
         {{ item.status_i18n }}
       </a>
     </template>
     <!-- メールアドレス -->
     <template #[`item.email`]="{ item }">
       <div class="pl-1">
-        <div v-if="item.email != null">
+        <template v-if="item.email != null">
           {{ item.email }}
-        </div>
+        </template>
         <template v-else>
           <div v-for="domain in item.domains" :key="domain">
             *@{{ domain }}

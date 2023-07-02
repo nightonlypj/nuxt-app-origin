@@ -1,78 +1,80 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <SpacesDestroyInfo v-if="!loading" :space="space" />
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <SpacesDestroyInfo :space="space" />
 
-    <v-tabs v-if="!loading" v-model="tabPage">
-      <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
-      <v-tab :to="`/members/${$route.params.code}`" nuxt>メンバー一覧</v-tab>
-      <v-tab href="#active">招待URL一覧</v-tab>
-    </v-tabs>
+      <v-tabs v-model="tabPage">
+        <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
+        <v-tab :to="`/members/${$route.params.code}`" nuxt>メンバー一覧</v-tab>
+        <v-tab href="#active">招待URL一覧</v-tab>
+      </v-tabs>
 
-    <v-card v-if="!loading">
-      <v-card-title>
-        <SpacesTitle :space="space" />
-      </v-card-title>
-    </v-card>
-    <v-card v-if="!loading">
-      <Processing v-if="reloading" />
-      <v-card-text class="pt-0">
-        <v-row>
-          <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap">
-              {{ $localeString('ja', invitation.total_count, 'N/A') }}件
-            </div>
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <InvitationsCreate
-              :space="space"
-              @reload="reloadInvitationsList"
-            />
-            <div class="ml-1">
-              <ListSetting
-                model="invitation"
-                :hidden-items.sync="hiddenItems"
+      <v-card>
+        <v-card-title>
+          <SpacesTitle :space="space" />
+        </v-card-title>
+      </v-card>
+      <v-card>
+        <Processing v-if="reloading" />
+        <v-card-text class="pt-0">
+          <v-row>
+            <v-col class="d-flex py-2">
+              <div class="align-self-center text-no-wrap">
+                {{ $localeString('ja', invitation.total_count, 'N/A') }}件
+              </div>
+            </v-col>
+            <v-col class="d-flex justify-end">
+              <InvitationsCreate
+                :space="space"
+                @reload="reloadInvitationsList"
               />
-            </div>
-          </v-col>
-        </v-row>
+              <div class="ml-1">
+                <ListSetting
+                  model="invitation"
+                  :hidden-items.sync="hiddenItems"
+                />
+              </div>
+            </v-col>
+          </v-row>
 
-        <template v-if="!processing && !existInvitations">
-          <v-divider class="my-4" />
-          <span class="ml-1">対象の招待URLが見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
-        <InvitationsUpdate
-          ref="update"
-          :space="space"
-          @update="updateInvitation"
-        />
-        <template v-if="existInvitations">
-          <v-divider class="my-2" />
-          <InvitationsLists
-            :invitations="invitations"
-            :hidden-items="hiddenItems"
-            @reload="reloadInvitationsList"
-            @showUpdate="$refs.update.showDialog($event)"
+          <template v-if="!processing && !existInvitations">
+            <v-divider class="my-4" />
+            <span class="ml-1">対象の招待URLが見つかりません。</span>
+            <v-divider class="my-4" />
+          </template>
+          <InvitationsUpdate
+            ref="update"
+            :space="space"
+            @update="updateInvitation"
           />
-          <v-divider class="my-2" />
-        </template>
+          <template v-if="existInvitations">
+            <v-divider class="my-2" />
+            <InvitationsLists
+              :invitations="invitations"
+              :hidden-items="hiddenItems"
+              @reload="reloadInvitationsList"
+              @showUpdate="$refs.update.showDialog($event)"
+            />
+            <v-divider class="my-2" />
+          </template>
 
-        <InfiniteLoading
-          v-if="!reloading && invitation != null && invitation.current_page < invitation.total_pages"
-          :identifier="page"
-          @infinite="getNextInvitationsList"
-        >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading>
-      </v-card-text>
-    </v-card>
+          <InfiniteLoading
+            v-if="!reloading && invitation != null && invitation.current_page < invitation.total_pages"
+            :identifier="page"
+            @infinite="getNextInvitationsList"
+          >
+            <div slot="no-more" />
+            <div slot="no-results" />
+            <div slot="error" slot-scope="{ trigger }">
+              取得できませんでした。
+              <v-btn @click="error = false; trigger()">再取得</v-btn>
+            </div>
+          </InfiniteLoading>
+        </v-card-text>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -229,9 +231,7 @@ export default {
       if (this.$config.debug) { console.log('updateInvitation', invitation) }
 
       const index = this.invitations.findIndex(item => item.code === invitation.code)
-      if (index < 0) { return }
-
-      this.invitations.splice(index, 1, invitation)
+      if (index >= 0) { this.invitations.splice(index, 1, invitation) }
     }
   }
 }

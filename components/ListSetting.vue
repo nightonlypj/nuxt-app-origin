@@ -19,7 +19,7 @@
     <template #default="dialog">
       <v-card id="setting_dialog">
         <v-form autocomplete="off">
-          <v-toolbar color="primary" dense dark>
+          <v-toolbar color="primary" dense>
             <v-icon dense>mdi-cog</v-icon>
             <span class="ml-1">設定変更</span>
           </v-toolbar>

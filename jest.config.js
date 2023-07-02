@@ -29,5 +29,6 @@ module.exports = {
     '<rootDir>/layouts/**/*.vue',
     '<rootDir>/plugins/{application,utils}.js'
   ],
-  setupFiles: ['./test/setup.js']
+  setupFiles: ['./test/setup.js'],
+  setupFilesAfterEnv: ['./jest.setup.js']
 }

@@ -70,10 +70,10 @@ describe('Search.vue', () => {
 
       // 入力
       wrapper.find('#search_text').trigger('input')
-      await helper.sleep(1)
 
       // 検索ボタン
       button = wrapper.find('#search_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
 
       if (options.keydown) {

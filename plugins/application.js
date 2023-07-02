@@ -1,5 +1,37 @@
 export default {
   computed: {
+    appCurrentMemberAdmin () {
+      return (space) => {
+        return space?.current_member?.power === 'admin'
+      }
+    },
+    appCurrentMemberWriter () {
+      return (space) => {
+        return space?.current_member?.power === 'writer'
+      }
+    },
+    appCurrentMemberReader () {
+      return (space) => {
+        return space?.current_member?.power === 'reader'
+      }
+    },
+    appCurrentMemberWriterUp () {
+      return (space) => {
+        return ['admin', 'writer'].includes(space?.current_member?.power)
+      }
+    },
+    appCurrentMemberReaderUp () {
+      return (space) => {
+        return ['admin', 'writer', 'reader'].includes(space?.current_member?.power)
+      }
+    },
+
+    appMemberPowerIcon () {
+      return (power) => {
+        return this.$config.enum.member.powerIcon[power] || this.$config.enum.member.powerIcon.default
+      }
+    },
+
     appTableHeight () {
       return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
     },
@@ -25,10 +57,6 @@ export default {
     // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
     appSetKeyDownEnter ($event) {
       this.keyDownEnter = !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
-    },
-
-    appMemberPowerIcon (power) {
-      return this.$config.enum.member.powerIcon[power] || this.$config.enum.member.powerIcon.default
     },
 
     // レスポンスチェック
@@ -87,7 +115,7 @@ export default {
     },
     appSetEmitMessage (data, require, defaultKey = 'system.default') {
       this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))
-      this.$emit('notice', data?.notice)
+      this.$emit('notice', data?.notice || null)
     },
     appSetToastedMessage (data, require, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)

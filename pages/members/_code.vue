@@ -1,136 +1,138 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <Message v-if="!loading" :alert.sync="alert" :notice.sync="notice" />
-    <SpacesDestroyInfo v-if="!loading" :space="space" />
+    <template v-else>
+      <Message :alert.sync="alert" :notice.sync="notice" />
+      <SpacesDestroyInfo :space="space" />
 
-    <v-tabs v-if="!loading" v-model="tabPage">
-      <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
-      <v-tab href="#list">メンバー一覧</v-tab>
-      <v-tab v-if="createResult != null" href="#result">メンバー招待（結果）</v-tab>
-    </v-tabs>
+      <v-tabs v-model="tabPage">
+        <v-tab :to="`/-/${$route.params.code}`" nuxt>スペース</v-tab>
+        <v-tab href="#list">メンバー一覧</v-tab>
+        <v-tab v-if="createResult != null" href="#result">メンバー招待（結果）</v-tab>
+      </v-tabs>
 
-    <v-card v-if="!loading">
-      <v-card-title>
-        <SpacesTitle :space="space" />
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col v-show="tabPage === 'list'" cols="12" sm="9">
-            <MembersSearch
-              ref="search"
-              :processing="processing || reloading"
-              :query.sync="query"
-              :admin="currentMemberAdmin"
-              @search="searchMembersList"
-            />
-          </v-col>
-          <v-col v-if="currentMemberAdmin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
-            <MembersCreate
-              :space="space"
-              @result="resultMembers"
-              @reload="reloadMembersList"
-            />
-            <v-btn color="primary" :to="`/invitations/${$route.params.code}`" class="ml-1" nuxt>
-              <v-icon dense>mdi-clipboard-check</v-icon>
-              <span class="ml-1">招待URL</span>
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+      <v-card>
+        <v-card-title>
+          <SpacesTitle :space="space" />
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col v-show="tabPage === 'list'" cols="12" sm="9">
+              <MembersSearch
+                ref="search"
+                :processing="processing || reloading"
+                :query.sync="query"
+                :admin="admin"
+                @search="searchMembersList"
+              />
+            </v-col>
+            <v-col v-if="admin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
+              <MembersCreate
+                :space="space"
+                @result="resultMembers"
+                @reload="reloadMembersList"
+              />
+              <v-btn color="primary" :to="`/invitations/${$route.params.code}`" class="ml-1" nuxt>
+                <v-icon dense>mdi-clipboard-check</v-icon>
+                <span class="ml-1">招待URL</span>
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
 
-    <v-card v-if="!loading" v-show="tabPage === 'list'" class="mt-2">
-      <Processing v-if="reloading" />
-      <v-card-text>
-        <v-row>
-          <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap">
-              {{ $localeString('ja', member.total_count, 'N/A') }}名
-            </div>
-            <div v-if="selectedMembers.length > 0" class="d-flex">
-              <div class="align-self-center text-no-wrap ml-4">
-                選択: {{ $localeString('ja', selectedMembers.length) }}名
+      <v-card v-show="tabPage === 'list'" class="mt-2">
+        <Processing v-if="reloading" />
+        <v-card-text>
+          <v-row>
+            <v-col class="d-flex py-2">
+              <div class="align-self-center text-no-wrap">
+                {{ $localeString('ja', member.total_count, 'N/A') }}名
               </div>
-              <div v-if="currentMemberAdmin" class="align-self-center ml-2">
-                <MembersDelete
-                  :space="space"
-                  :selected-members="selectedMembers"
-                  @alert="alert = $event"
-                  @notice="notice = $event"
-                  @clear="selectedMembers = []"
-                  @reload="reloadMembersList"
+              <div v-if="selectedMembers.length > 0" class="d-flex">
+                <div class="align-self-center text-no-wrap ml-4">
+                  選択: {{ $localeString('ja', selectedMembers.length) }}名
+                </div>
+                <div v-if="admin" class="align-self-center ml-2">
+                  <MembersDelete
+                    :space="space"
+                    :selected-members="selectedMembers"
+                    @alert="alert = $event"
+                    @notice="notice = $event"
+                    @clear="selectedMembers = []"
+                    @reload="reloadMembersList"
+                  />
+                </div>
+              </div>
+            </v-col>
+            <v-col class="d-flex justify-end">
+              <ListDownload
+                v-if="admin"
+                :admin="admin"
+                model="member"
+                :space="space"
+                :hidden-items="hiddenItems"
+                :select-items="selectItems"
+                :search-params="$route.query"
+              />
+              <div class="ml-1">
+                <ListSetting
+                  :admin="admin"
+                  model="member"
+                  :hidden-items.sync="hiddenItems"
                 />
               </div>
-            </div>
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <ListDownload
-              v-if="currentMemberAdmin"
-              :admin="currentMemberAdmin"
-              model="member"
-              :space="space"
-              :hidden-items="hiddenItems"
-              :select-items="selectItems"
-              :search-params="$route.query"
-            />
-            <div class="ml-1">
-              <ListSetting
-                :admin="currentMemberAdmin"
-                model="member"
-                :hidden-items.sync="hiddenItems"
-              />
-            </div>
-          </v-col>
-        </v-row>
+            </v-col>
+          </v-row>
 
-        <template v-if="!processing && !existMembers">
-          <v-divider class="my-4" />
-          <span class="ml-1">対象のメンバーが見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
-        <MembersUpdate
-          v-if="currentMemberAdmin"
-          ref="update"
-          :space="space"
-          @update="updateMember"
-        />
-        <template v-if="existMembers">
-          <v-divider class="my-2" />
-          <MembersLists
-            :sort="query.sort"
-            :desc="query.desc"
-            :members="members"
-            :selected-members.sync="selectedMembers"
-            :hidden-items="hiddenItems"
-            :active-user-codes="activeUserCodes"
-            :current-member-admin="currentMemberAdmin"
-            @reload="reloadMembersList"
-            @showUpdate="$refs.update.showDialog($event)"
+          <template v-if="!processing && !existMembers">
+            <v-divider class="my-4" />
+            <span class="ml-1">対象のメンバーが見つかりません。</span>
+            <v-divider class="my-4" />
+          </template>
+          <MembersUpdate
+            v-if="admin"
+            ref="update"
+            :space="space"
+            @update="updateMember"
           />
-          <v-divider class="my-2" />
-        </template>
+          <template v-if="existMembers">
+            <v-divider class="my-2" />
+            <MembersLists
+              :sort="query.sort"
+              :desc="query.desc"
+              :members="members"
+              :selected-members.sync="selectedMembers"
+              :hidden-items="hiddenItems"
+              :active-user-codes="activeUserCodes"
+              :admin="admin"
+              @reload="reloadMembersList"
+              @showUpdate="$refs.update.showDialog($event)"
+            />
+            <v-divider class="my-2" />
+          </template>
 
-        <InfiniteLoading
-          v-if="!reloading && member != null && member.current_page < member.total_pages"
-          :identifier="page"
-          @infinite="getNextMembersList"
-        >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading>
-      </v-card-text>
-    </v-card>
+          <InfiniteLoading
+            v-if="!reloading && member != null && member.current_page < member.total_pages"
+            :identifier="page"
+            @infinite="getNextMembersList"
+          >
+            <div slot="no-more" />
+            <div slot="no-results" />
+            <div slot="error" slot-scope="{ trigger }">
+              取得できませんでした。
+              <v-btn @click="error = false; trigger()">再取得</v-btn>
+            </div>
+          </InfiniteLoading>
+        </v-card-text>
+      </v-card>
 
-    <v-card v-if="createResult != null" v-show="tabPage === 'result'" class="mt-2">
-      <v-card-text>
-        <MembersResult :result="createResult" />
-      </v-card-text>
-    </v-card>
+      <v-card v-if="createResult != null" v-show="tabPage === 'result'" class="mt-2">
+        <v-card-text>
+          <MembersResult :result="createResult" />
+        </v-card-text>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -201,6 +203,7 @@ export default {
       testState: null, // Jest用
       page: 1,
       space: null,
+      admin: null,
       member: null,
       members: null,
       selectedMembers: [],
@@ -217,9 +220,6 @@ export default {
   },
 
   computed: {
-    currentMemberAdmin () {
-      return this.space?.current_member?.power === 'admin'
-    },
     existMembers () {
       return this.members?.length > 0
     },
@@ -359,6 +359,7 @@ export default {
           if (this.error) { return }
 
           this.space = response.data.space
+          this.admin = this.appCurrentMemberAdmin(this.space)
           this.member = response.data.member
           if (this.reloading || this.members == null) {
             this.members = response.data.members?.slice()
@@ -400,9 +401,7 @@ export default {
 
       this.activeUserCodes = [member.user.code]
       const index = this.members.findIndex(item => item.user.code === member.user.code)
-      if (index < 0) { return }
-
-      this.members.splice(index, 1, member)
+      if (index >= 0) { this.members.splice(index, 1, member) }
     }
   }
 }

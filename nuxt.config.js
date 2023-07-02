@@ -51,7 +51,8 @@ export default defineNuxtConfig({
     '@nuxtjs/axios',
     '@nuxtjs/auth',
     '@nuxtjs/toast',
-    '@nuxtjs/pwa'
+    '@nuxtjs/pwa',
+    '@nuxtjs/markdownit'
   ],
 
   // I18n module configuration: https://i18n.nuxtjs.org/
@@ -107,6 +108,22 @@ export default defineNuxtConfig({
     manifest: {
       lang: 'ja'
     }
+  },
+
+  // [optional] markdownit options
+  // See https://github.com/markdown-it/markdown-it
+  markdownit: {
+    use: [
+      ['markdown-it-link-attributes', {
+        matcher (href, _config) {
+          return /^(?!\/)/.test(href)
+        },
+        attrs: {
+          target: '_blank',
+          rel: 'noopener noreferrer'
+        }
+      }]
+    ]
   },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify

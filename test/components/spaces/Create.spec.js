@@ -156,10 +156,10 @@ describe('Create.vue', () => {
 
       // 入力
       wrapper.vm.$data.space = values
-      await helper.sleep(1)
 
       // 作成ボタン
       button = wrapper.find('#space_create_submit_btn')
+      await helper.waitChangeDisabled(button, false)
       expect(button.vm.disabled).toBe(false) // 有効
       button.trigger('click')
       await helper.sleep(1)

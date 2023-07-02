@@ -1,64 +1,66 @@
 <template>
   <div>
     <Loading v-if="loading" />
-    <v-card v-if="!loading">
-      <v-card-title>スペース</v-card-title>
-      <v-card-text>
-        <SpacesSearch
-          ref="search"
-          :processing="processing || reloading"
-          :query.sync="query"
-          @search="searchSpacesList"
-        />
-      </v-card-text>
-    </v-card>
-
-    <v-card v-if="!loading" class="mt-2">
-      <Processing v-if="reloading" />
-      <v-card-text>
-        <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString('ja', space.total_count, 'N/A') }}件
-          </v-col>
-          <v-col class="d-flex justify-end">
-            <div v-if="$auth.loggedIn" class="mr-1">
-              <SpacesCreate />
-            </div>
-            <!-- ListSetting
-              model="space"
-              :hidden-items.sync="hiddenItems"
-            / -->
-          </v-col>
-        </v-row>
-
-        <template v-if="!processing && !existSpaces">
-          <v-divider class="my-4" />
-          <span class="ml-1">スペースが見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
-        <template v-if="existSpaces">
-          <v-divider class="my-2" />
-          <SpacesLists
-            :spaces="spaces"
-            :hidden-items="hiddenItems"
+    <template v-else>
+      <v-card>
+        <v-card-title>スペース</v-card-title>
+        <v-card-text>
+          <SpacesSearch
+            ref="search"
+            :processing="processing || reloading"
+            :query.sync="query"
+            @search="searchSpacesList"
           />
-          <v-divider class="my-2" />
-        </template>
+        </v-card-text>
+      </v-card>
 
-        <InfiniteLoading
-          v-if="!reloading && space != null && space.current_page < space.total_pages"
-          :identifier="page"
-          @infinite="getNextSpacesList"
-        >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading>
-      </v-card-text>
-    </v-card>
+      <v-card class="mt-2">
+        <Processing v-if="reloading" />
+        <v-card-text>
+          <v-row>
+            <v-col class="d-flex align-self-center text-no-wrap">
+              {{ $localeString('ja', space.total_count, 'N/A') }}件
+            </v-col>
+            <v-col class="d-flex justify-end">
+              <div v-if="$auth.loggedIn" class="mr-1">
+                <SpacesCreate />
+              </div>
+              <!-- ListSetting
+                model="space"
+                :hidden-items.sync="hiddenItems"
+              / -->
+            </v-col>
+          </v-row>
+
+          <template v-if="!processing && !existSpaces">
+            <v-divider class="my-4" />
+            <span class="ml-1">スペースが見つかりません。</span>
+            <v-divider class="my-4" />
+          </template>
+          <template v-if="existSpaces">
+            <v-divider class="my-2" />
+            <SpacesLists
+              :spaces="spaces"
+              :hidden-items="hiddenItems"
+            />
+            <v-divider class="my-2" />
+          </template>
+
+          <InfiniteLoading
+            v-if="!reloading && space != null && space.current_page < space.total_pages"
+            :identifier="page"
+            @infinite="getNextSpacesList"
+          >
+            <div slot="no-more" />
+            <div slot="no-results" />
+            <div slot="error" slot-scope="{ trigger }">
+              取得できませんでした。
+              <v-btn @click="error = false; trigger()">再取得</v-btn>
+            </div>
+          </InfiniteLoading>
+        </v-card-text>
+      </v-card>
+    </template>
   </div>
 </template>
 
@@ -240,10 +242,20 @@ export default {
         delete this.params.option
       }
 
+      let privateParams = {}
+      if (!this.$config.enablePublicSpace) {
+        privateParams = {
+          public: 1,
+          private: 1,
+          join: 1,
+          nojoin: 1
+        }
+      }
       const redirect = this.space == null
       await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.listUrl, {
         params: {
           ...this.params,
+          ...privateParams,
           page: this.page
         }
       })
