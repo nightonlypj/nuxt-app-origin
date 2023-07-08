@@ -23,7 +23,7 @@
           id="search_btn"
           color="primary"
           class="ml-1"
-          :disabled="processing || waiting || powerBlank()"
+          :disabled="processing || waiting || blank()"
           @click="search(false)"
         >
           <v-icon dense>mdi-magnify</v-icon>
@@ -38,22 +38,44 @@
           <span class="hidden-sm-and-down">検索オプション</span>
         </v-btn>
       </div>
-      <v-row v-show="syncQuery.option" id="option_item">
-        <v-col cols="auto" class="d-flex">
-          <div class="mt-2">
-            権限:
-          </div>
+      <v-row v-show="syncQuery.option" id="option_item" class="py-4">
+        <v-col cols="auto" class="py-0 pe-0">
+          <v-chip label small class="mt-2">
+            権限
+          </v-chip>
+        </v-col>
+        <v-col v-for="(value, key, index) in $t('enums.member.power')" :key="key" cols="auto" class="ps-2 py-0" :class="index + 1 < Object.keys($t('enums.member.power')).length ? 'pe-0' : null">
           <v-checkbox
-            v-for="(value, key) in $t('enums.member.power')"
-            :key="key"
             v-model="syncQuery.power[key]"
             input-value="1"
             :label="value"
-            class="ml-2"
             dense
             hide-details
             :error="powerBlank()"
             @change="waiting = false"
+          />
+        </v-col>
+        <v-col cols="auto" class="d-flex pe-0 py-0">
+          <v-chip label small class="mt-2">
+            状態
+          </v-chip>
+          <v-checkbox
+            v-model="syncQuery.active"
+            label="有効"
+            class="ml-2"
+            dense
+            hide-details
+            :error="activeBlank()"
+            @click="waiting = false"
+          />
+          <v-checkbox
+            v-model="syncQuery.destroy"
+            label="削除予約"
+            class="ml-2"
+            dense
+            hide-details
+            :error="activeBlank()"
+            @click="waiting = false"
           />
         </v-col>
       </v-row>
@@ -105,17 +127,23 @@ export default {
   },
 
   methods: {
+    blank () {
+      return this.powerBlank() || this.activeBlank()
+    },
     powerBlank () {
       for (const key in this.query.power) {
         if (this.query.power[key]) { return false }
       }
       return true
     },
+    activeBlank () {
+      return !this.query.active && !this.query.destroy
+    },
 
     search (keydown) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
-      if (this.processing || this.waiting || this.powerBlank() || (keydown && !enter)) { return }
+      if (this.processing || this.waiting || this.blank() || (keydown && !enter)) { return }
 
       this.waiting = true
       this.$emit('search')

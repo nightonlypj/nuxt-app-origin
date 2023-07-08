@@ -10,7 +10,7 @@ describe('Search.vue', () => {
   if (helper.commonConfig.enablePublicSpace) {
     optionQuery = { public: true, private: true, join: true, nojoin: true }
   }
-  const defaultQuery = Object.freeze({ text: '', ...optionQuery, active: true, destroy: false, option: false })
+  const defaultQuery = Object.freeze({ text: '', option: false, ...optionQuery, active: true, destroy: false })
   const mountFunction = (loggedIn = false, query = defaultQuery) => {
     const localVue = createLocalVue()
     const vuetify = new Vuetify()

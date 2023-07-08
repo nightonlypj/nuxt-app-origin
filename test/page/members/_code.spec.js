@@ -122,6 +122,8 @@ describe('_code.vue', () => {
   const defaultParams = Object.freeze({
     text: '',
     power: defaultPowers.join(),
+    active: 1,
+    destroy: 1,
     sort: 'invitationed_at',
     desc: 1
   })
@@ -129,12 +131,16 @@ describe('_code.vue', () => {
   const findParams = Object.freeze({
     text: 'aaa',
     power: findPowers.join(),
+    active: 1,
+    destroy: 1,
     sort: 'user.name',
     desc: 0
   })
   const findQuery = Object.freeze({
     ...findParams,
     power: findPowerQuery,
+    active: String(findParams.active),
+    destroy: String(findParams.destroy),
     desc: String(findParams.desc),
     option: '1'
   })
@@ -254,7 +260,7 @@ describe('_code.vue', () => {
       expect(listDownload.exists()).toBe(true)
       expect(listDownload.vm.model).toBe(model)
       expect(listDownload.vm.space).toEqual(wrapper.vm.$data.space)
-      expect(listDownload.vm.searchParams).toEqual(wrapper.vm.$route.query)
+      expect(listDownload.vm.searchParams).toEqual(wrapper.vm.$data.params)
       expect(listDownload.vm.selectItems).toBe(wrapper.vm.selectItems)
       expect(listDownload.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
       expect(listDownload.vm.admin).toBe(admin)
@@ -670,6 +676,8 @@ describe('_code.vue', () => {
       wrapper.vm.$data.query = {
         ...findParams,
         power: findPower,
+        active: findParams.active === 1,
+        destroy: findParams.destroy === 1,
         desc: findParams.desc === 1,
         option: findQuery.option === '1'
       }

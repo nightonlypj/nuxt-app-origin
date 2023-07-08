@@ -10,7 +10,7 @@ describe('Search.vue', () => {
   for (const key in helper.locales.enums.member.power) {
     power[key] = true
   }
-  const query = Object.freeze({ text: '', option: false, power })
+  const query = Object.freeze({ text: '', option: false, power, active: true, destroy: true })
 
   const mountFunction = (admin = false) => {
     const localVue = createLocalVue()
@@ -106,6 +106,43 @@ describe('Search.vue', () => {
       await beforeAction({ keydown: true, isComposing: true })
 
       expect(wrapper.vm.$data.waiting).toBe(false)
+    })
+  })
+
+  describe('オプション', () => {
+    let wrapper, button
+    const beforeAction = async () => {
+      wrapper = mountFunction(true)
+
+      // 入力
+      wrapper.find('#search_text').trigger('input')
+
+      // 検索ボタン
+      button = wrapper.find('#search_btn')
+      await helper.waitChangeDisabled(button, false)
+      expect(button.vm.disabled).toBe(false) // 有効
+    }
+
+    it('[権限]検索ボタンが無効になる', async () => {
+      await beforeAction()
+
+      // 権限
+      wrapper.vm.syncQuery.power = {}
+      await helper.sleep(1)
+
+      // 検索ボタン
+      expect(button.vm.disabled).toBe(true) // 無効
+    })
+    it('[状態]検索ボタンが無効になる', async () => {
+      await beforeAction()
+
+      // 有効・削除予定
+      wrapper.vm.syncQuery.active = false
+      wrapper.vm.syncQuery.destroy = false
+      await helper.sleep(1)
+
+      // 検索ボタン
+      expect(button.vm.disabled).toBe(true) // 無効
     })
   })
 })

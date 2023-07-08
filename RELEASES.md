@@ -1,5 +1,17 @@
 # リリースノート
 
+## 1.3.0 (Sprint 5)
+
+### spaceブランチ
+
+- メンバー一覧の検索条件に有効と削除予約を追加したい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/556/
+
+### Bug
+
+- メンバー一覧：検索でダウンロードすると結果が0件になる
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/556/
+
 ## 1.2.0 (Sprint 4)
 
 ### spaceブランチ
