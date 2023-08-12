@@ -39,7 +39,7 @@
                   <validation-provider v-slot="{ errors }" name="name" rules="required|min:3|max:128">
                     <v-text-field
                       v-model="space.name"
-                      placeholder="名称を追加"
+                      placeholder="スペース名を入力"
                       dense
                       outlined
                       hide-details="auto"
@@ -62,7 +62,7 @@
                   <validation-provider v-show="tabDescription === 'input'" v-slot="{ errors }" name="description">
                     <v-textarea
                       v-model="space.description"
-                      placeholder="説明を追加"
+                      placeholder="スペースの説明を入力"
                       hint="Markdownに対応しています。"
                       :persistent-hint="true"
                       dense

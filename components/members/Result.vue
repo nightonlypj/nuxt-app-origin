@@ -5,11 +5,11 @@
     </div>
     <div v-else class="d-flex align-self-center">
       {{ $localeString('ja', result.email.count, 'N/A') }}名中
-      <v-icon :color="$config.enum.member.createColor.create" class="ml-1" dense>{{ $config.enum.member.createIcon.create }}</v-icon>
+      <v-icon :color="$config.member.createColor.create" class="ml-1" dense>{{ $config.member.createIcon.create }}</v-icon>
       招待: {{ $localeString('ja', result.email.create_count, 'N/A') }}名
-      <v-icon :color="$config.enum.member.createColor.exist" class="ml-1" dense>{{ $config.enum.member.createIcon.exist }}</v-icon>
+      <v-icon :color="$config.member.createColor.exist" class="ml-1" dense>{{ $config.member.createIcon.exist }}</v-icon>
       参加中: {{ $localeString('ja', result.email.exist_count, 'N/A') }}名
-      <v-icon :color="$config.enum.member.createColor.notfound" class="ml-1" dense>{{ $config.enum.member.createIcon.notfound }}</v-icon>
+      <v-icon :color="$config.member.createColor.notfound" class="ml-1" dense>{{ $config.member.createIcon.notfound }}</v-icon>
       未登録: {{ $localeString('ja', result.email.notfound_count, 'N/A') }}名
     </div>
     <v-divider class="my-2" />
@@ -24,7 +24,7 @@
     >
       <!-- 結果 -->
       <template #[`item.result`]="{ item }">
-        <v-icon :color="$config.enum.member.createColor[item.result]" dense>{{ $config.enum.member.createIcon[item.result] }}</v-icon>
+        <v-icon :color="$config.member.createColor[item.result]" dense>{{ $config.member.createIcon[item.result] }}</v-icon>
         {{ item.result_i18n }}
       </template>
     </v-data-table>

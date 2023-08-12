@@ -17,18 +17,18 @@ export default {
     },
     appCurrentMemberWriterUp () {
       return (space) => {
-        return ['admin', 'writer'].includes(space?.current_member?.power)
+        return this.$config.member.power.writerUp.includes(space?.current_member?.power)
       }
     },
     appCurrentMemberReaderUp () {
       return (space) => {
-        return ['admin', 'writer', 'reader'].includes(space?.current_member?.power)
+        return this.$config.member.power.readerUp.includes(space?.current_member?.power)
       }
     },
 
     appMemberPowerIcon () {
       return (power) => {
-        return this.$config.enum.member.powerIcon[power] || this.$config.enum.member.powerIcon.default
+        return this.$config.member.powerIcon[power] || this.$config.member.powerIcon.default
       }
     },
 
