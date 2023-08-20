@@ -73,7 +73,7 @@ export default {
   async created () {
     if (!await this.getInfomationsList()) { return }
 
-    if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
+    if (this.$auth?.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
       this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
     }
 

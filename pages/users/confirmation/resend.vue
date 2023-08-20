@@ -33,8 +33,8 @@
                 送信
               </v-btn>
             </v-card-text>
-            <v-divider v-if="!$auth.loggedIn" />
-            <v-card-actions v-if="!$auth.loggedIn">
+            <v-divider v-if="!$auth?.loggedIn" />
+            <v-card-actions v-if="!$auth?.loggedIn">
               <ActionLink action="confirmation" />
             </v-card-actions>
           </v-form>
@@ -109,7 +109,7 @@ export default {
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          if (this.$auth.loggedIn) {
+          if (this.$auth?.loggedIn) {
             this.appRedirectTop(response.data)
           } else {
             this.appRedirectSignIn(response.data)

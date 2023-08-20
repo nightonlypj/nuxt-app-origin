@@ -46,7 +46,7 @@ export default {
   },
 
   created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
+    if (!this.$auth?.loggedIn) { return this.appRedirectAlreadySignedOut() }
 
     this.processing = false
     this.loading = false

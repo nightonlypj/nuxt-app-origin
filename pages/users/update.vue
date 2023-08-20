@@ -64,7 +64,7 @@ export default {
       return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
     }
 
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+    if (!this.$auth?.loggedIn) { return this.appRedirectAuth() }
     if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
 
     if (!await this.getUserDetail()) { return }

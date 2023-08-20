@@ -142,7 +142,7 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.$auth.setUser(response.data.user)
-          if (this.$auth.loggedIn) {
+          if (this.$auth?.loggedIn) {
             this.appRedirectTop(response.data)
           } else {
             this.appRedirectSignIn(response.data)

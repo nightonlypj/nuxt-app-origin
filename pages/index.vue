@@ -11,7 +11,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col v-if="!$auth.loggedIn" cols="12" md="6" class="px-2 py-2">
+    <v-col v-if="!$auth?.loggedIn" cols="12" md="6" class="px-2 py-2">
       <IndexSignUp />
     </v-col>
     <v-col cols="12" md="6" class="px-2 py-2">

@@ -5,15 +5,15 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify.breakpoint.width > 226"
-          :style="{ 'max-width': ($vuetify.breakpoint.width - 226) + 'px' }"
+          v-if="$vuetify?.breakpoint?.width || 1300 > 226"
+          :style="{ 'max-width': ($vuetify?.breakpoint?.width || 1300 - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.envName}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
-      <template v-if="!$auth.loggedIn">
+      <template v-if="!$auth?.loggedIn">
         <v-btn to="/users/sign_in" text rounded nuxt>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
@@ -61,7 +61,7 @@
 
     <v-navigation-drawer v-model="drawer" width="300px" clipped fixed app>
       <v-list>
-        <template v-if="!$auth.loggedIn">
+        <template v-if="!$auth?.loggedIn">
           <v-list-item to="/users/sign_in" nuxt>
             <v-icon>mdi-login</v-icon>
             <v-list-item-title class="ml-2">ログイン</v-list-item-title>
@@ -93,7 +93,7 @@
         </template>
         <v-divider />
         <v-list-item to="/infomations" nuxt>
-          <v-badge v-if="$auth.loggedIn" :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
+          <v-badge v-if="$auth?.loggedIn" :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
             <v-icon>mdi-bell</v-icon>
           </v-badge>
           <v-icon v-else>mdi-bell</v-icon>
@@ -114,24 +114,20 @@
         <span class="hidden-sm-and-down">Copyright </span>&copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
       </div>
     </v-footer>
-
-    <go-top :max-width="48" :size="48" :right="24" :bottom="24" bg-color="#1867c0" />
   </v-app>
 </template>
 
 <script>
-import GoTop from '@inotom/vue-go-top'
 import DestroyInfo from '~/components/DestroyInfo.vue'
 
 export default {
   components: {
-    GoTop,
     DestroyInfo
   },
 
   data () {
     return {
-      drawer: this.$vuetify.breakpoint.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+      drawer: this.$vuetify?.breakpoint?.width || 1300 >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
     }
   },
 

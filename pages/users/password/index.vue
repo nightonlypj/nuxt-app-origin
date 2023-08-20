@@ -110,7 +110,7 @@ export default {
   },
 
   created () {
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (this.$auth?.loggedIn) { return this.appRedirectAlreadyAuth() }
     if (this.$route.query.reset_password === 'false') {
       return this.$router.push({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
@@ -138,7 +138,7 @@ export default {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
           this.$auth.setUser(response.data.user)
-          if (this.$auth.loggedIn) {
+          if (this.$auth?.loggedIn) {
             this.appRedirectTop(response.data)
           } else {
             this.appRedirectSignIn(response.data)
