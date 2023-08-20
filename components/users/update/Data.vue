@@ -90,7 +90,7 @@
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { required, email, min, max, confirmed } from 'vee-validate/dist/rules'
 import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 extend('required', required)
 extend('email', email)

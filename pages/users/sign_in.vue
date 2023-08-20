@@ -65,7 +65,7 @@ import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 extend('required', required)
 extend('email', email)

@@ -75,7 +75,7 @@
 import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
 import { size } from 'vee-validate/dist/rules'
 import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 extend('size_20MB', size)
 configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })

@@ -32,7 +32,7 @@
 <script>
 import Loading from '~/components/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 export default {
   components: {

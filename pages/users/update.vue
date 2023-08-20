@@ -30,7 +30,7 @@ import Loading from '~/components/Loading.vue'
 import Message from '~/components/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 export default {
   components: {

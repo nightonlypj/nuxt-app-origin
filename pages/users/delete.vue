@@ -60,7 +60,7 @@
 <script>
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
 export default {
   components: {
