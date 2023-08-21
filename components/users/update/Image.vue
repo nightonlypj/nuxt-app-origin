@@ -103,7 +103,7 @@ export default {
 
       const params = new FormData()
       params.append('image', this.image)
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, params)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 
@@ -127,7 +127,7 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl)
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }
 

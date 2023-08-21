@@ -1,6 +1,6 @@
-module.exports = {
+export const envConfig = {
   debug: false,
-  envName: '【テスト】',
+  envName: '',
   apiBaseURL: 'https://example.com',
   frontBaseURL: 'https://front.example.com'
 }

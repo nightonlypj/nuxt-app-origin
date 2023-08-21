@@ -1,4 +1,4 @@
-module.exports = {
+export const ja = {
   app_name: 'NuxtAppOrigin',
   sub_title: ': ベースアプリケーション',
   my_name: 'My name',

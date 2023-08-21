@@ -130,7 +130,7 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.passwordUpdateUrl, {
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, {
         reset_password_token: this.$route.query.reset_password_token,
         ...this.query
       })

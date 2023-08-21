@@ -103,8 +103,8 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userDeleteUrl, {
-        undo_delete_url: this.$config.frontBaseURL + this.$config.userSendUndoDeleteUrl
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userDeleteUrl, {
+        undo_delete_url: this.$config.public.frontBaseURL + this.$config.public.userSendUndoDeleteUrl
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }

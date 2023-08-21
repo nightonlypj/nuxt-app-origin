@@ -9,7 +9,7 @@
           :style="{ 'max-width': ($vuetify?.breakpoint?.width || 1300 - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
-          {{ `${$t('app_name')}${$t('sub_title')}${$config.envName}` }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
@@ -133,7 +133,7 @@ export default {
 
   head () {
     return {
-      titleTemplate: `%s - ${this.$t('app_name')}${this.$config.envName}`
+      titleTemplate: `%s - ${this.$t('app_name')}${this.$config.public.envName}`
     }
   }
 }

@@ -32,7 +32,7 @@ export default {
 
   head () {
     return {
-      titleTemplate: this.$t('app_name') + this.$config.envName
+      titleTemplate: this.$t('app_name') + this.$config.public.envName
     }
   }
 }

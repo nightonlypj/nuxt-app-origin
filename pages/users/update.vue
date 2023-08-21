@@ -77,7 +77,7 @@ export default {
     async getUserDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.userDetailUrl)
+      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.user == null)) { return }
 

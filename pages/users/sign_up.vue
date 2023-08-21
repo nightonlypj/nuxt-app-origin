@@ -140,9 +140,9 @@ export default {
     async postSingUp () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.singUpUrl, {
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, {
         ...this.query,
-        confirm_success_url: this.$config.frontBaseURL + this.$config.singUpSuccessUrl
+        confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }

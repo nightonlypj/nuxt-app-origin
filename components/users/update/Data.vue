@@ -134,9 +134,9 @@ export default {
     async postUserUpdate () {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userUpdateUrl, {
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, {
         ...this.query,
-        confirm_redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
+        confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }

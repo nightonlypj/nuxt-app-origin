@@ -1,4 +1,4 @@
-module.exports = {
+export const commonConfig = {
   // ログインAPI
   authSignInURL: '/users/auth/sign_in.json',
   authRedirectSignInURL: '/users/sign_in',

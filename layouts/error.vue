@@ -37,7 +37,7 @@ export default {
 
   created () {
     // eslint-disable-next-line no-console
-    if (this.$config.debug) { console.dir(this.error) }
+    if (this.$config.public.debug) { console.dir(this.error) }
   }
 }
 </script>

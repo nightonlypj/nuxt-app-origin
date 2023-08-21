@@ -1,4 +1,4 @@
-module.exports = {
+export const envConfig = {
   debug: false,
   envName: '【STG環境】',
   apiBaseURL: 'https://stg.example.com',

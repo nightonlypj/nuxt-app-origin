@@ -139,7 +139,7 @@ export default {
       await this.$auth.loginWith('local', {
         data: {
           ...this.query,
-          unlock_redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
+          unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
         }
       })
         .then((response) => {

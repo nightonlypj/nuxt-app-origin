@@ -61,7 +61,7 @@ export default {
   methods: {
     // 大切なお知らせ一覧取得
     async getInfomationsImportant () {
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.importantUrl)
+      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
         .then((response) => {
           this.errorMessage = this.appCheckResponse(response, { returnKey: true })
           if (this.errorMessage != null) { return }

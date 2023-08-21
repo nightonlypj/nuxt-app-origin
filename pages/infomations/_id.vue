@@ -75,7 +75,7 @@ export default {
     async getInfomationsDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.detailUrl.replace(':id', this.$route.params.id))
+      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
 

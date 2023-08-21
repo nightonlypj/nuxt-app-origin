@@ -102,9 +102,9 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.confirmationUrl, {
+      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.confirmationUrl, {
         ...this.query,
-        redirect_url: this.$config.frontBaseURL + this.$config.confirmationSuccessUrl
+        redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
       })
         .then((response) => {
           if (!this.appCheckResponse(response, { toasted: true })) { return }

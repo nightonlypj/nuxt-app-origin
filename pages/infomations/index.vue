@@ -87,7 +87,7 @@ export default {
       let result = false
 
       const redirect = this.infomation == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.listUrl, { params: { page: this.page } })
+      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl, { params: { page: this.page } })
         .then((response) => {
           if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation?.current_page !== this.page)) { return }
 
