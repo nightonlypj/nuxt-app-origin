@@ -5,8 +5,8 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify?.breakpoint?.width || 1300 > 226"
-          :style="{ 'max-width': ($vuetify?.breakpoint?.width || 1300 - 226) + 'px' }"
+          v-if="displayWidth > 226"
+          :style="{ 'max-width': (displayWidth - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
@@ -105,7 +105,7 @@
     <v-main class="mx-2">
       <v-container fluid>
         <DestroyInfo />
-        <nuxt />
+        <slot />
       </v-container>
     </v-main>
 
@@ -118,6 +118,7 @@
 </template>
 
 <script>
+import { useDisplay } from 'vuetify'
 import DestroyInfo from '~/components/DestroyInfo.vue'
 
 export default {
@@ -127,7 +128,7 @@ export default {
 
   data () {
     return {
-      drawer: this.$vuetify?.breakpoint?.width || 1300 >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+      drawer: null
     }
   },
 
@@ -135,7 +136,18 @@ export default {
     return {
       titleTemplate: `%s - ${this.$t('app_name')}${this.$config.public.envName}`
     }
-  }
+  },
+
+  computed: {
+    displayWidth () {
+      const { width } = useDisplay()
+      return width.value
+    }
+  },
+
+  created () {
+    this.drawer = this.displayWidth >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+  },
 }
 </script>
 

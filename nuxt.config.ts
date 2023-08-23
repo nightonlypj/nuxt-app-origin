@@ -1,3 +1,4 @@
+import vuetify from 'vite-plugin-vuetify'
 import { commonConfig } from './config/common'
 
 const environment = process.env.NODE_ENV || 'development'
@@ -15,5 +16,25 @@ export default defineNuxtConfig({
   ],
   i18n: {
     vueI18n: './i18n.config.ts'
+  },
+  css: [
+    'vuetify/lib/styles/main.sass',
+    '@mdi/font/css/materialdesignicons.css'
+  ],
+  build: {
+    transpile: ['vuetify']
+  },
+  hooks: {
+    'vite:extendConfig': (config) => {
+      config.plugins!.push(vuetify())
+    }
+  },
+  vite: {
+    ssr: {
+      noExternal: ['vuetify'],
+    },
+    define: {
+      'process.env.DEBUG': false,
+    }
   }
 })
