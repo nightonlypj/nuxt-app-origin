@@ -5,27 +5,27 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }">
+        <Form v-slot="{ meta }">
           <v-form autocomplete="on">
             <v-card-title>ログイン</v-card-title>
             <v-card-text
               id="input_area"
               @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="signIn(invalid, true)"
+              @keyup.enter="signIn(!meta.valid, true)"
             >
-              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-model="query.email"
+                  v-bind="field"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="email"
                   :error-messages="errors"
                   @input="waiting = false"
                 />
-              </validation-provider>
-              <validation-provider v-slot="{ errors }" name="password" rules="required">
+              </Field>
+              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required">
                 <v-text-field
-                  v-model="query.password"
+                  v-bind="field"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード"
                   prepend-icon="mdi-lock"
@@ -36,13 +36,13 @@
                   @input="waiting = false"
                   @click:append="showPassword = !showPassword"
                 />
-              </validation-provider>
+              </Field>
               <v-btn
                 id="sign_in_btn"
                 color="primary"
                 class="mt-4"
-                :disabled="invalid || processing || waiting"
-                @click="signIn(invalid, false)"
+                :disabled="!meta.valid || processing || waiting"
+                @click="signIn(!meta.valid, false)"
               >
                 ログイン
               </v-btn>
@@ -52,29 +52,32 @@
               <ActionLink action="sign_in" />
             </v-card-actions>
           </v-form>
-        </validation-observer>
+        </Form>
       </v-card>
     </template>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { required, email } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('email', email)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('email', email)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Loading,
     Processing,
     Message,

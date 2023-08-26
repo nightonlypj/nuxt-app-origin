@@ -1,15 +1,15 @@
 <template>
   <div>
     <Processing v-if="processing" />
-    <validation-observer v-slot="{ invalid }" ref="observer">
+    <Form v-slot="{ meta }" ref="form">
       <v-form autocomplete="off">
         <v-card-text>
           <v-avatar size="256px">
             <v-img :src="$auth.user.image_url.xlarge" />
           </v-avatar>
-          <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
+          <Field v-slot="{ field, errors }" v-model="image" name="image" rules="size_20MB:20480">
             <v-file-input
-              v-model="image"
+              v-bind="field"
               accept="image/jpeg,image/gif,image/png"
               label="画像ファイル"
               prepend-icon="mdi-camera"
@@ -17,12 +17,12 @@
               :error-messages="errors"
               @click="waiting = false"
             />
-          </validation-provider>
+          </Field>
           <v-btn
             id="user_image_update_btn"
             color="primary"
             class="mt-2"
-            :disabled="invalid || image == null || processing || waiting"
+            :disabled="!meta.valid || image == null || processing || waiting"
             @click="postUserImageUpdate()"
           >
             アップロード
@@ -67,23 +67,26 @@
           </v-dialog>
         </v-card-text>
       </v-form>
-    </validation-observer>
+    </Form>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { size } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { size } from '@vee-validate/rules'
 import Processing from '~/components/Processing.vue'
 import Application from '~/utils/application.js'
 
-extend('size_20MB', size)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('size_20MB', size)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Processing
   },
   mixins: [Application],
@@ -114,7 +117,7 @@ export default {
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
+            this.$refs.form.setErrors(error.response.data.errors)
             this.waiting = true
           }
         })

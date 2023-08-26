@@ -1,12 +1,12 @@
 <template>
   <div>
     <Processing v-if="processing" />
-    <validation-observer v-slot="{ invalid }" ref="observer">
+    <Form v-slot="{ meta }" ref="form">
       <v-form autocomplete="off">
         <v-card-text>
-          <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
+          <Field v-slot="{ field, errors }" v-model="query.name" name="name" rules="required|max:32">
             <v-text-field
-              v-model="query.name"
+              v-bind="field"
               label="氏名"
               prepend-icon="mdi-account"
               autocomplete="off"
@@ -14,24 +14,24 @@
               :error-messages="errors"
               @input="waiting = false"
             />
-          </validation-provider>
+          </Field>
           <v-alert v-if="user.unconfirmed_email != null" color="info">
             確認待ち: {{ user.unconfirmed_email }}<br>
             <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
           </v-alert>
-          <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+          <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
             <v-text-field
-              v-model="query.email"
+              v-bind="field"
               label="メールアドレス"
               prepend-icon="mdi-email"
               autocomplete="off"
               :error-messages="errors"
               @input="waiting = false"
             />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password" rules="min:8">
+          </Field>
+          <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="min:8">
             <v-text-field
-              v-model="query.password"
+              v-bind="field"
               :type="showPassword ? 'text' : 'password'"
               label="パスワード [8文字以上] (変更する場合のみ)"
               prepend-icon="mdi-lock"
@@ -42,10 +42,10 @@
               @input="waiting = false"
               @click:append="showPassword = !showPassword"
             />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="password_confirmation" rules="confirmed_password:password">
+          </Field>
+          <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="confirmed_password:@password">
             <v-text-field
-              v-model="query.password_confirmation"
+              v-bind="field"
               :type="showPassword ? 'text' : 'password'"
               label="パスワード(確認) (変更する場合のみ)"
               prepend-icon="mdi-lock"
@@ -56,10 +56,10 @@
               @input="waiting = false"
               @click:append="showPassword = !showPassword"
             />
-          </validation-provider>
-          <validation-provider v-slot="{ errors }" name="current_password" rules="required">
+          </Field>
+          <Field v-slot="{ field, errors }" v-model="query.current_password" name="current_password" rules="required">
             <v-text-field
-              v-model="query.current_password"
+              v-bind="field"
               :type="showPassword ? 'text' : 'password'"
               label="現在のパスワード"
               prepend-icon="mdi-lock"
@@ -70,39 +70,42 @@
               @input="waiting = false"
               @click:append="showPassword = !showPassword"
             />
-          </validation-provider>
+          </Field>
           <v-btn
             id="user_update_btn"
             color="primary"
             class="mt-4"
-            :disabled="invalid || processing || waiting"
+            :disabled="!meta.valid || processing || waiting"
             @click="postUserUpdate()"
           >
             変更
           </v-btn>
         </v-card-text>
       </v-form>
-    </validation-observer>
+    </Form>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, max, confirmed } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import Processing from '~/components/Processing.vue'
 import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('email', email)
-extend('min', min)
-extend('max', max)
-extend('confirmed_password', confirmed)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('email', email)
+defineRule('min', min)
+defineRule('max', max)
+defineRule('confirmed_password', confirmed)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Processing
   },
   mixins: [Application],
@@ -153,7 +156,7 @@ export default {
 
           this.appSetEmitMessage(error.response.data, true)
           if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
+            this.$refs.form.setErrors(error.response.data.errors)
             this.waiting = true
           }
         })

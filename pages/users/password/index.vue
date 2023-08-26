@@ -5,17 +5,17 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <Form v-slot="{ meta }" ref="form">
           <v-form autocomplete="off">
             <v-card-title>パスワード再設定</v-card-title>
             <v-card-text
               id="input_area"
               @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postPasswordUpdate(invalid, true)"
+              @keyup.enter="postPasswordUpdate(!meta.valid, true)"
             >
-              <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required|min:8">
                 <v-text-field
-                  v-model="query.password"
+                  v-bind="field"
                   :type="showPassword ? 'text' : 'password'"
                   label="新しいパスワード [8文字以上]"
                   prepend-icon="mdi-lock"
@@ -26,10 +26,10 @@
                   @input="waiting = false"
                   @click:append="showPassword = !showPassword"
                 />
-              </validation-provider>
-              <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_new_password:password">
+              </Field>
+              <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
                 <v-text-field
-                  v-model="query.password_confirmation"
+                  v-bind="field"
                   :type="showPassword ? 'text' : 'password'"
                   label="新しいパスワード(確認)"
                   prepend-icon="mdi-lock"
@@ -40,13 +40,13 @@
                   @input="waiting = false"
                   @click:append="showPassword = !showPassword"
                 />
-              </validation-provider>
+              </Field>
               <v-btn
                 id="password_update_btn"
                 color="primary"
                 class="mt-4"
-                :disabled="invalid || processing || waiting"
-                @click="postPasswordUpdate(invalid, false)"
+                :disabled="!meta.valid || processing || waiting"
+                @click="postPasswordUpdate(!meta.valid, false)"
               >
                 変更
               </v-btn>
@@ -56,30 +56,33 @@
               <ActionLink action="password" />
             </v-card-actions>
           </v-form>
-        </validation-observer>
+        </Form>
       </v-card>
     </template>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, min, confirmed } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { required, min, confirmed } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('min', min)
-extend('confirmed_new_password', confirmed)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('min', min)
+defineRule('confirmed_new_password', confirmed)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Loading,
     Processing,
     Message,
@@ -153,7 +156,7 @@ export default {
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
+            this.$refs.form.setErrors(error.response.data.errors)
             this.waiting = true
           }
         })

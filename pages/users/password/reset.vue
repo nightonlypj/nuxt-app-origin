@@ -5,30 +5,30 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <Form v-slot="{ meta }" ref="form">
           <v-form autocomplete="off" @submit.prevent>
             <v-card-title>パスワード再設定</v-card-title>
             <v-card-text
               id="input_area"
               @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postPasswordNew(invalid, true)"
+              @keyup.enter="postPasswordNew(!meta.valid, true)"
             >
-              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-model="query.email"
+                  v-bind="field"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="off"
                   :error-messages="errors"
                   @input="waiting = false"
                 />
-              </validation-provider>
+              </Field>
               <v-btn
                 id="password_btn"
                 color="primary"
                 class="mt-2"
-                :disabled="invalid || processing || waiting"
-                @click="postPasswordNew(invalid, false)"
+                :disabled="!meta.valid || processing || waiting"
+                @click="postPasswordNew(!meta.valid, false)"
               >
                 送信
               </v-btn>
@@ -38,29 +38,32 @@
               <ActionLink action="password" />
             </v-card-actions>
           </v-form>
-        </validation-observer>
+        </Form>
       </v-card>
     </template>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { required, email } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('email', email)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('email', email)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Loading,
     Processing,
     Message,
@@ -118,7 +121,7 @@ export default {
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
+            this.$refs.form.setErrors(error.response.data.errors)
             this.waiting = true
           }
         })

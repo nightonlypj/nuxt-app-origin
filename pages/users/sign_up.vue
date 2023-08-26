@@ -5,13 +5,13 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <Form v-slot="{ meta }" ref="form">
           <v-form autocomplete="on">
             <v-card-title>アカウント登録</v-card-title>
             <v-card-text>
-              <validation-provider v-slot="{ errors }" name="name" rules="required|max:32">
+              <Field v-slot="{ field, errors }" v-model="query.name" name="name" rules="required|max:32">
                 <v-text-field
-                  v-model="query.name"
+                  v-bind="field"
                   label="氏名"
                   prepend-icon="mdi-account"
                   autocomplete="name"
@@ -19,20 +19,20 @@
                   :error-messages="errors"
                   @input="waiting = false"
                 />
-              </validation-provider>
-              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
+              </Field>
+              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-model="query.email"
+                  v-bind="field"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="email"
                   :error-messages="errors"
                   @input="waiting = false"
                 />
-              </validation-provider>
-              <validation-provider v-slot="{ errors }" name="password" rules="required|min:8">
+              </Field>
+              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required|min:8">
                 <v-text-field
-                  v-model="query.password"
+                  v-bind="field"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード [8文字以上]"
                   prepend-icon="mdi-lock"
@@ -43,10 +43,10 @@
                   @input="waiting = false"
                   @click:append="showPassword = !showPassword"
                 />
-              </validation-provider>
-              <validation-provider v-slot="{ errors }" name="password_confirmation" rules="required|confirmed_password:password">
+              </Field>
+              <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
                 <v-text-field
-                  v-model="query.password_confirmation"
+                  v-bind="field"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード(確認)"
                   prepend-icon="mdi-lock"
@@ -57,12 +57,12 @@
                   @input="waiting = false"
                   @click:append="showPassword = !showPassword"
                 />
-              </validation-provider>
+              </Field>
               <v-btn
                 id="sign_up_btn"
                 color="primary"
                 class="mt-4"
-                :disabled="invalid || processing || waiting"
+                :disabled="!meta.valid || processing || waiting"
                 @click="postSingUp()"
               >
                 登録
@@ -73,32 +73,35 @@
               <ActionLink action="sign_up" />
             </v-card-actions>
           </v-form>
-        </validation-observer>
+        </Form>
       </v-card>
     </template>
   </div>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email, min, max, confirmed } from 'vee-validate/dist/rules'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import ja from '~/locales/validate.ja.ts'
+import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Message from '~/components/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('email', email)
-extend('min', min)
-extend('max', max)
-extend('confirmed_password', confirmed)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('email', email)
+defineRule('min', min)
+defineRule('max', max)
+defineRule('confirmed_password', confirmed)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
 export default {
   components: {
-    ValidationObserver,
-    ValidationProvider,
+    Form,
+    Field,
     Loading,
     Processing,
     Message,
@@ -154,7 +157,7 @@ export default {
 
           this.appSetMessage(error.response.data, true)
           if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
+            this.$refs.form.setErrors(error.response.data.errors)
             this.waiting = true
           }
         })
