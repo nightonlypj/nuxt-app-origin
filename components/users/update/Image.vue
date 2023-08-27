@@ -1,7 +1,7 @@
 <template>
   <div>
     <Processing v-if="processing" />
-    <Form v-slot="{ meta }" ref="form">
+    <Form v-slot="{ meta, setErrors, values }">
       <v-form autocomplete="off">
         <v-card-text>
           <v-avatar size="256px">
@@ -23,7 +23,7 @@
             color="primary"
             class="mt-2"
             :disabled="!meta.valid || image == null || processing || waiting"
-            @click="postUserImageUpdate()"
+            @click="postUserImageUpdate(setErrors, values)"
           >
             アップロード
           </v-btn>
@@ -74,7 +74,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { size } from '@vee-validate/rules'
 import Processing from '~/components/Processing.vue'
 import Application from '~/utils/application.js'
@@ -101,26 +101,26 @@ export default {
 
   methods: {
     // ユーザー画像変更
-    async postUserImageUpdate () {
+    async postUserImageUpdate (setErrors, values) {
       this.processing = true
 
       const params = new FormData()
       params.append('image', this.image)
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, params)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST', params)
 
-          this.setUser(response)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetEmitMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.form.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+        this.setUser(data)
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
+
+        this.appSetEmitMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     },
@@ -130,25 +130,25 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
 
-          this.setUser(response)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetEmitMessage(error.response.data, true)
-        })
+        this.setUser(data)
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
+
+        this.appSetEmitMessage(data, true)
+      }
 
       this.processing = false
     },
 
     // ユーザー情報更新
-    setUser (response) {
-      this.$auth.setUser(response.data.user)
-      this.appSetToastedMessage(response.data, false)
+    setUser (data) {
+      this.$auth.setUser(data.user)
+      this.appSetToastedMessage(data, false)
       this.image = null
 
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為

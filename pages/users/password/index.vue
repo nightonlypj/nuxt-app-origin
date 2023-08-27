@@ -5,13 +5,13 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <Form v-slot="{ meta }" ref="form">
+        <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="off">
             <v-card-title>パスワード再設定</v-card-title>
             <v-card-text
               id="input_area"
               @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postPasswordUpdate(!meta.valid, true)"
+              @keyup.enter="postPasswordUpdate(!meta.valid, true, setErrors, values)"
             >
               <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required|min:8">
                 <v-text-field
@@ -46,7 +46,7 @@
                 color="primary"
                 class="mt-4"
                 :disabled="!meta.valid || processing || waiting"
-                @click="postPasswordUpdate(!meta.valid, false)"
+                @click="postPasswordUpdate(!meta.valid, false, setErrors, values)"
               >
                 変更
               </v-btn>
@@ -65,7 +65,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { required, min, confirmed } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -127,39 +127,39 @@ export default {
 
   methods: {
     // パスワード再設定
-    async postPasswordUpdate (invalid, keydown) {
+    async postPasswordUpdate (invalid, keydown, setErrors, values) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, {
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, 'POST', JSON.stringify({
         reset_password_token: this.$route.query.reset_password_token,
         ...this.query
-      })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      }))
 
-          this.$auth.setUser(response.data.user)
-          if (this.$auth?.loggedIn) {
-            this.appRedirectTop(response.data)
-          } else {
-            this.appRedirectSignIn(response.data)
-          }
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true })) {
-            return
-          } else if (error.response.data.errors == null) {
-            return this.$router.push({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(error.response.data, true), notice: error.response.data.notice } })
-          }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.form.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+        this.$auth.setUser(data.user)
+        if (this.$auth?.loggedIn) {
+          this.appRedirectTop(data)
+        } else {
+          this.appRedirectSignIn(data)
+        }
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
+          return
+        } else if (data.errors == null) {
+          return this.$router.push({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(data, true), notice: data.notice } })
+        }
+
+        this.appSetMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }

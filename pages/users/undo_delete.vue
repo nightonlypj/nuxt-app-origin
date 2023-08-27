@@ -83,7 +83,7 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
+      return this.appCheckErrorResponse(null, error, { redirect: true, require: true }, { auth: true })
     }
 
     if (!this.$auth?.loggedIn) { return this.appRedirectAuth() }
@@ -99,20 +99,20 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl, 'POST')
 
-          this.$auth.setUser(response.data.user)
-          if (this.$auth?.loggedIn) {
-            this.appRedirectTop(response.data)
-          } else {
-            this.appRedirectSignIn(response.data)
-          }
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true })
-        })
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
+
+        this.$auth.setUser(data.user)
+        if (this.$auth?.loggedIn) {
+          this.appRedirectTop(data)
+        } else {
+          this.appRedirectSignIn(data)
+        }
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })
+      }
 
       this.processing = false
     }

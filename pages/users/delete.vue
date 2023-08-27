@@ -87,7 +87,7 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
+      return this.appCheckErrorResponse(null, error, { redirect: true, require: true }, { auth: true })
     }
 
     if (!this.$auth?.loggedIn) { return this.appRedirectAuth() }
@@ -103,17 +103,17 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userDeleteUrl, {
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDeleteUrl, 'POST', JSON.stringify({
         undo_delete_url: this.$config.public.frontBaseURL + this.$config.public.userSendUndoDeleteUrl
-      })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      }))
 
-          this.appSignOut(null, '/users/sign_in', response.data)
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true, reserved: true })
-        })
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
+
+        this.appSignOut(null, '/users/sign_in', data)
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, reserved: true })
+      }
 
       this.processing = false
     }

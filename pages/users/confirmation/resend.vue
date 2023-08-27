@@ -5,13 +5,13 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <Form v-slot="{ meta }" ref="form">
+        <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="off" @submit.prevent>
             <v-card-title>メールアドレス確認</v-card-title>
             <v-card-text
               id="input_area"
               @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postConfirmationNew(!meta.valid, true)"
+              @keyup.enter="postConfirmationNew(!meta.valid, true, setErrors, values)"
             >
               <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
@@ -28,7 +28,7 @@
                 color="primary"
                 class="mt-2"
                 :disabled="!meta.valid || processing || waiting"
-                @click="postConfirmationNew(!meta.valid, false)"
+                @click="postConfirmationNew(!meta.valid, false, setErrors, values)"
               >
                 送信
               </v-btn>
@@ -47,7 +47,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { required, email } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -99,34 +99,34 @@ export default {
 
   methods: {
     // メールアドレス確認
-    async postConfirmationNew (invalid, keydown) {
+    async postConfirmationNew (invalid, keydown, setErrors, values) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.confirmationUrl, {
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.confirmationUrl, 'POST', JSON.stringify({
         ...this.query,
         redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
-      })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      }))
 
-          if (this.$auth?.loggedIn) {
-            this.appRedirectTop(response.data)
-          } else {
-            this.appRedirectSignIn(response.data)
-          }
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.form.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+        if (this.$auth?.loggedIn) {
+          this.appRedirectTop(data)
+        } else {
+          this.appRedirectSignIn(data)
+        }
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
+
+        this.appSetMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }

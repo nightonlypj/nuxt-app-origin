@@ -61,7 +61,7 @@ export default {
     try {
       await this.$auth.fetchUser()
     } catch (error) {
-      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
+      return this.appCheckErrorResponse(null, error, { redirect: true, require: true }, { auth: true })
     }
 
     if (!this.$auth?.loggedIn) { return this.appRedirectAuth() }
@@ -77,16 +77,16 @@ export default {
     async getUserDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { redirect: true }, response.data?.user == null)) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
 
-          this.user = response.data.user
-          result = true
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
-        })
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { redirect: true }, data?.user == null)) { return }
+
+        this.user = data.user
+        result = true
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
+      }
 
       return result
     }

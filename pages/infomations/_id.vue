@@ -75,16 +75,16 @@ export default {
     async getInfomationsDetail () {
       let result = false
 
-      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
-        .then((response) => {
-          if (!this.appCheckResponse(response, { redirect: true }, response.data?.infomation == null)) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
 
-          this.infomation = response.data.infomation
-          result = true
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { redirect: true, require: true }, { notfound: true })
-        })
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { redirect: true }, data?.infomation == null)) { return }
+
+        this.infomation = data.infomation
+        result = true
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { notfound: true })
+      }
 
       return result
     }

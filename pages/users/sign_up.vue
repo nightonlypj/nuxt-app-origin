@@ -5,7 +5,7 @@
       <Message :alert.sync="alert" :notice.sync="notice" />
       <v-card max-width="480px">
         <Processing v-if="processing" />
-        <Form v-slot="{ meta }" ref="form">
+        <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="on">
             <v-card-title>アカウント登録</v-card-title>
             <v-card-text>
@@ -63,7 +63,7 @@
                 color="primary"
                 class="mt-4"
                 :disabled="!meta.valid || processing || waiting"
-                @click="postSingUp()"
+                @click="postSingUp(setErrors, values)"
               >
                 登録
               </v-btn>
@@ -82,7 +82,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -140,27 +140,27 @@ export default {
 
   methods: {
     // アカウント登録
-    async postSingUp () {
+    async postSingUp (setErrors, values) {
       this.processing = true
 
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, {
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST', JSON.stringify({
         ...this.query,
         confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
-      })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      }))
 
-          this.appRedirectSignIn(response.data)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.form.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+        this.appRedirectSignIn(data)
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
+
+        this.appSetMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }

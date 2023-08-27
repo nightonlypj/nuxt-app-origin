@@ -19,6 +19,7 @@
     "@vee-validate/i18n": "^4.11.2",
     "@vee-validate/rules": "^4.11.2",
     "nuxt": "^3.6.5",
+    "nuxt-lodash": "^2.5.0",
     "sass": "^1.66.1",
     "vee-validate": "^4.11.2",
     "vite-plugin-vuetify": "^1.0.2",

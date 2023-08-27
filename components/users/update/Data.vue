@@ -1,7 +1,7 @@
 <template>
   <div>
     <Processing v-if="processing" />
-    <Form v-slot="{ meta }" ref="form">
+    <Form v-slot="{ meta, setErrors, values }">
       <v-form autocomplete="off">
         <v-card-text>
           <Field v-slot="{ field, errors }" v-model="query.name" name="name" rules="required|max:32">
@@ -76,7 +76,7 @@
             color="primary"
             class="mt-4"
             :disabled="!meta.valid || processing || waiting"
-            @click="postUserUpdate()"
+            @click="postUserUpdate(setErrors, values)"
           >
             変更
           </v-btn>
@@ -89,7 +89,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import Processing from '~/components/Processing.vue'
 import Application from '~/utils/application.js'
@@ -134,32 +134,32 @@ export default {
 
   methods: {
     // ユーザー情報変更
-    async postUserUpdate () {
+    async postUserUpdate (setErrors, values) {
       this.processing = true
 
-      await this.$axios.post(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, {
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, 'POST', JSON.stringify({
         ...this.query,
         confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
-      })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      }))
 
-          this.$auth.setUser(response.data.user)
-          if (this.$auth?.loggedIn) {
-            this.appRedirectTop(response.data)
-          } else {
-            this.appRedirectSignIn(response.data)
-          }
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetEmitMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.form.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+        this.$auth.setUser(data.user)
+        if (this.$auth?.loggedIn) {
+          this.appRedirectTop(data)
+        } else {
+          this.appRedirectSignIn(data)
+        }
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
+
+        this.appSetEmitMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }

@@ -61,7 +61,7 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja.ts'
+import ja from '~/locales/validate.ja'
 import { required, email } from '@vee-validate/rules'
 import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
@@ -145,17 +145,17 @@ export default {
           unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
         }
       })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appSetToastedMessage(response.data, false)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
+      if (response?.ok) {
+        if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-          this.appSetMessage(error.response.data, true)
-          this.waiting = true
-        })
+        this.appSetToastedMessage(data, false)
+      } else {
+        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
+
+        this.appSetMessage(data, true)
+        this.waiting = true
+      }
 
       this.processing = false
     }

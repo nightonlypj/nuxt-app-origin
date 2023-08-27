@@ -61,16 +61,16 @@ export default {
   methods: {
     // 大切なお知らせ一覧取得
     async getInfomationsImportant () {
-      await this.$axios.get(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
-        .then((response) => {
-          this.errorMessage = this.appCheckResponse(response, { returnKey: true })
-          if (this.errorMessage != null) { return }
+      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
 
-          this.infomations = response.data.infomations
-        },
-        (error) => {
-          this.errorMessage = this.appCheckErrorResponse(error, { returnKey: true, require: true })
-        })
+      if (response?.ok) {
+        this.errorMessage = this.appCheckResponse(data, { returnKey: true })
+        if (this.errorMessage != null) { return }
+
+        this.infomations = data.infomations
+      } else {
+        this.errorMessage = this.appCheckErrorResponse(response?.status, data, { returnKey: true, require: true })
+      }
     }
   }
 }
