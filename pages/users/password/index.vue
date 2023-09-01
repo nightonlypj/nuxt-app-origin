@@ -133,10 +133,12 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, 'POST', JSON.stringify({
-        reset_password_token: this.$route.query.reset_password_token,
-        ...this.query
-      }))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, 'POST',
+        JSON.stringify({
+          reset_password_token: this.$route.query.reset_password_token,
+          ...this.query
+        })
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

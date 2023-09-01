@@ -143,10 +143,12 @@ export default {
     async postSingUp (setErrors, values) {
       this.processing = true
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST', JSON.stringify({
-        ...this.query,
-        confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
-      }))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST',
+        JSON.stringify({
+          ...this.query,
+          confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
+        })
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

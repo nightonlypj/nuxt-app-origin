@@ -137,10 +137,12 @@ export default {
     async postUserUpdate (setErrors, values) {
       this.processing = true
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, 'POST', JSON.stringify({
-        ...this.query,
-        confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
-      }))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, 'POST',
+        JSON.stringify({
+          ...this.query,
+          confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
+        })
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

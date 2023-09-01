@@ -105,10 +105,12 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.confirmationUrl, 'POST', JSON.stringify({
-        ...this.query,
-        redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
-      }))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.confirmationUrl, 'POST',
+        JSON.stringify({
+          ...this.query,
+          redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
+        })
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

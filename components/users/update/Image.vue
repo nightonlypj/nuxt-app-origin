@@ -106,7 +106,9 @@ export default {
 
       const params = new FormData()
       params.append('image', this.image)
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST', params)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST',
+        params
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
@@ -130,7 +132,7 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

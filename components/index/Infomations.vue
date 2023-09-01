@@ -61,7 +61,7 @@ export default {
   methods: {
     // 大切なお知らせ一覧取得
     async getInfomationsImportant () {
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
 
       if (response?.ok) {
         this.errorMessage = this.appCheckResponse(data, { returnKey: true })

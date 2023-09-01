@@ -77,7 +77,7 @@ export default {
     async getUserDetail () {
       let result = false
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { redirect: true }, data?.user == null)) { return }

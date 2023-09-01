@@ -75,7 +75,7 @@ export default {
     async getInfomationsDetail () {
       let result = false
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { redirect: true }, data?.infomation == null)) { return }

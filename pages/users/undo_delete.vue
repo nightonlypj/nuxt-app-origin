@@ -99,7 +99,7 @@ export default {
       this.processing = true
       $dialog.value = false
 
-      const [response, data] = await this.appApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl, 'POST')
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl, 'POST')
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
