@@ -33,8 +33,8 @@
                 送信
               </v-btn>
             </v-card-text>
-            <v-divider v-if="!$auth?.loggedIn" />
-            <v-card-actions v-if="!$auth?.loggedIn">
+            <v-divider v-if="!loggedIn" />
+            <v-card-actions v-if="!loggedIn">
               <ActionLink action="confirmation" />
             </v-card-actions>
           </v-form>
@@ -59,6 +59,8 @@ defineRule('required', required)
 defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
+
+const { status:authStatus } = useAuthState()
 
 export default {
   components: {
@@ -91,6 +93,12 @@ export default {
     }
   },
 
+  computed: {
+    loggedIn () {
+      return authStatus.value === 'authenticated'
+    }
+  },
+
   created () {
     this.appSetQueryMessage()
     this.processing = false
@@ -115,10 +123,10 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        if (this.$auth?.loggedIn) {
+        if (this.loggedIn) {
           this.appRedirectTop(data)
         } else {
-          this.appRedirectSignIn(data)
+          navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
         }
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }

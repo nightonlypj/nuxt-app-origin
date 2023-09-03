@@ -60,6 +60,8 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
+const { status:authStatus } = useAuthState()
+
 export default {
   components: {
     Form,
@@ -92,7 +94,7 @@ export default {
   },
 
   created () {
-    if (this.$auth?.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (authStatus.value === 'authenticated') { return this.appRedirectAlreadyAuth() }
 
     this.appSetQueryMessage()
     this.processing = false
@@ -117,7 +119,7 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        this.appRedirectSignIn(data)
+        navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
 

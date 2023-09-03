@@ -11,7 +11,7 @@
           </v-col>
           <v-col v-if="enablePagination" class="px-0 py-0">
             <div class="d-flex justify-end">
-              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
+              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
             </div>
           </v-col>
         </v-row>
@@ -24,7 +24,7 @@
         <InfomationsLists v-else :infomations="infomations" />
 
         <template v-if="enablePagination">
-          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
+          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
         </template>
       </v-card-text>
     </v-card>
@@ -36,6 +36,8 @@ import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/utils/application.js'
+
+const { status:authStatus, data:authData } = useAuthState()
 
 export default {
   components: {
@@ -73,8 +75,8 @@ export default {
   async created () {
     if (!await this.getInfomationsList()) { return }
 
-    if (this.$auth?.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
-      this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
+    if (authStatus.value === 'authenticated' && authData.value.user.infomation_unread_count !== 0) {
+      authData.value = { ...authData.value, user: { ...authData.value.user, infomation_unread_count: 0 } }
     }
 
     this.loading = false
@@ -101,9 +103,9 @@ export default {
 
       this.page = this.infomation?.current_page || 1
       if (this.page === 1) {
-        this.$router.push({ query: null })
+        navigateTo({ query: null })
       } else {
-        this.$router.push({ query: { page: this.page } })
+        navigateTo({ query: { page: this.page } })
       }
 
       this.processing = false

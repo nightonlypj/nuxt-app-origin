@@ -79,6 +79,8 @@ defineRule('confirmed_new_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
+const { status:authStatus, data:authData } = useAuthState()
+
 export default {
   components: {
     Form,
@@ -113,12 +115,12 @@ export default {
   },
 
   created () {
-    if (this.$auth?.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (authStatus.value === 'authenticated') { return this.appRedirectAlreadyAuth() }
     if (this.$route.query.reset_password === 'false') {
-      return this.$router.push({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+      return navigateTo({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
     if (!this.$route.query.reset_password_token) {
-      return this.$router.push({ path: '/users/password/reset', query: { alert: this.$t('auth.reset_password_token_blank') } })
+      return navigateTo({ path: '/users/password/reset', query: { alert: this.$t('auth.reset_password_token_blank') } })
     }
 
     this.processing = false
@@ -143,17 +145,13 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        this.$auth.setUser(data.user)
-        if (this.$auth?.loggedIn) {
-          this.appRedirectTop(data)
-        } else {
-          this.appRedirectSignIn(data)
-        }
+        authData.value = data
+        this.appRedirectTop(data)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
           return
         } else if (data.errors == null) {
-          return this.$router.push({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(data, true), notice: data.notice } })
+          return navigateTo({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(data, true), notice: data.notice } })
         }
 
         this.appSetMessage(data, true)

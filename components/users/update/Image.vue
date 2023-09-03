@@ -5,7 +5,7 @@
       <v-form autocomplete="off">
         <v-card-text>
           <v-avatar size="256px">
-            <v-img :src="$auth.user.image_url.xlarge" />
+            <v-img :src="authData.user.image_url.xlarge" />
           </v-avatar>
           <Field v-slot="{ field, errors }" v-model="image" name="image" rules="size_20MB:20480">
             <v-file-input
@@ -28,19 +28,18 @@
             アップロード
           </v-btn>
           <v-dialog transition="dialog-top-transition" max-width="600px">
-            <template #activator="{ on, attrs }">
+            <template #activator="{ props }">
               <v-btn
+                v-bind="props"
                 id="user_image_delete_btn"
                 color="secondary"
                 class="mt-2"
-                :disabled="!$auth.user.upload_image || processing"
-                v-bind="attrs"
-                v-on="on"
+                :disabled="!authData.user.upload_image || processing"
               >
                 画像削除
               </v-btn>
             </template>
-            <template #default="dialog">
+            <template #default="{ isActive }">
               <v-card id="user_image_delete_dialog">
                 <v-toolbar color="secondary" dense>画像削除</v-toolbar>
                 <v-card-text>
@@ -50,14 +49,14 @@
                   <v-btn
                     id="user_image_delete_no_btn"
                     color="secondary"
-                    @click="dialog.value = false"
+                    @click="isActive.value = false"
                   >
                     いいえ（キャンセル）
                   </v-btn>
                   <v-btn
                     id="user_image_delete_yes_btn"
                     color="primary"
-                    @click="postUserImageDelete(dialog)"
+                    @click="postUserImageDelete(isActive)"
                   >
                     はい（削除）
                   </v-btn>
@@ -83,6 +82,8 @@ defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
+const { data:authData } = useAuthState()
+
 export default {
   components: {
     Form,
@@ -96,6 +97,12 @@ export default {
       processing: false,
       waiting: false,
       image: null
+    }
+  },
+
+  computed: {
+    authData () {
+      return authData.value
     }
   },
 
@@ -113,7 +120,7 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        this.setUser(data)
+        this.successAction(data)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
 
@@ -128,16 +135,16 @@ export default {
     },
 
     // ユーザー画像削除
-    async postUserImageDelete ($dialog) {
+    async postUserImageDelete (isActive) {
       this.processing = true
-      $dialog.value = false
+      isActive.value = false
 
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        this.setUser(data)
+        this.successAction(data)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
 
@@ -147,12 +154,10 @@ export default {
       this.processing = false
     },
 
-    // ユーザー情報更新
-    setUser (data) {
-      this.$auth.setUser(data.user)
+    successAction (data) {
+      authData.value = data
       this.appSetToastedMessage(data, false)
       this.image = null
-
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }
   }

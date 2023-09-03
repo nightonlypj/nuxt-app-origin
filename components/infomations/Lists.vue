@@ -41,7 +41,7 @@ export default {
     redirectInfomation (infomation) {
       if (!infomation.body_present) { return }
 
-      this.$router.push(`/infomations/${infomation.id}`)
+      navigateTo(`/infomations/${infomation.id}`)
     }
   }
 }

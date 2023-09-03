@@ -74,6 +74,9 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
+const { status:authStatus, data:authData } = useAuthState()
+const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
+
 export default {
   components: {
     Form,
@@ -108,19 +111,21 @@ export default {
   },
 
   created () {
+    const loggedIn = authStatus.value === 'authenticated'
+
     switch (this.$route.query.account_confirmation_success) {
       case 'true':
-        if (this.$auth?.loggedIn) { return this.appRedirectTop(this.$route.query) }
+        if (loggedIn) { return this.appRedirectTop(this.$route.query) }
         break
       case 'false':
-        return this.$router.push({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
+        return navigateTo({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
     switch (this.$route.query.unlock) {
       case 'true':
       case 'false':
-        if (this.$auth?.loggedIn) { return this.appRedirectTop(this.$route.query) }
+        if (loggedIn) { return this.appRedirectTop(this.$route.query) }
     }
-    if (this.$auth?.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (loggedIn) { return this.appRedirectAlreadyAuth() }
 
     if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
       this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
@@ -139,17 +144,20 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$auth.loginWith('local', {
-        data: {
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.authSignInURL, 'POST',
+        JSON.stringify({
           ...this.query,
           unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
-        }
-      })
+        })
+      )
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
+        authData.value = data
         this.appSetToastedMessage(data, false)
+        navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
+        updateRedirectUrl(null)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
 

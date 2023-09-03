@@ -11,7 +11,7 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col v-if="!$auth?.loggedIn" cols="12" md="6" class="px-2 py-2">
+    <v-col v-if="!loggedIn" cols="12" md="6" class="px-2 py-2">
       <IndexSignUp />
     </v-col>
     <v-col cols="12" md="6" class="px-2 py-2">
@@ -24,6 +24,8 @@
 import IndexSignUp from '~/components/index/SignUp.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
+const { status:authStatus } = useAuthState()
+
 export default {
   components: {
     IndexSignUp,
@@ -33,6 +35,12 @@ export default {
   head () {
     return {
       titleTemplate: this.$t('app_name') + this.$config.public.envName
+    }
+  },
+
+  computed: {
+    loggedIn () {
+      return authStatus.value === 'authenticated'
     }
   }
 }

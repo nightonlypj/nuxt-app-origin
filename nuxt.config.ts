@@ -13,10 +13,16 @@ export default defineNuxtConfig({
   },
   modules: [
     '@nuxtjs/i18n',
+    '@sidebase/nuxt-auth',
     'nuxt-lodash'
   ],
   i18n: {
     vueI18n: './i18n.config.ts'
+  },
+  auth: {
+    provider: {
+      type: 'local'
+    }
   },
   css: [
     'vuetify/lib/styles/main.sass',

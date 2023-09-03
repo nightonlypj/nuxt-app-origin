@@ -25,6 +25,8 @@ import Loading from '~/components/Loading.vue'
 import Processing from '~/components/Processing.vue'
 import Application from '~/utils/application.js'
 
+const { status:authStatus } = useAuthState()
+
 export default {
   components: {
     Loading,
@@ -46,7 +48,7 @@ export default {
   },
 
   created () {
-    if (!this.$auth?.loggedIn) { return this.appRedirectAlreadySignedOut() }
+    if (authStatus.value !== 'authenticated') { return this.appRedirectAlreadySignedOut() }
 
     this.processing = false
     this.loading = false
@@ -54,9 +56,11 @@ export default {
 
   methods: {
     // ログアウト
-    signOut () {
+    async signOut () {
       this.processing = true
-      this.appSignOut('auth.signed_out')
+      await useAuthSignOut()
+      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false)
+      navigateTo(this.$config.public.authRedirectLogOutURL)
     }
   }
 }

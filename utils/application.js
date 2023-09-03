@@ -41,10 +41,14 @@ export default {
       if (status == null && data == null) {
         return this.appReturnResponse(action, null, 'network.failure')
       } else if (check.auth && status === 401) {
-        if (this.$auth.loggedIn) {
-          this.appSignOut()
+        const { status:authStatus } = useAuthState()
+        if (authStatus.value === 'authenticated') {
+          useAuthSignOut(true)
+          this.appRedirectAuth()
         } else if (action.redirect) {
-          this.appRedirectSignIn({ alert: this.appGetAlertMessage(data, action.require, 'auth.unauthenticated'), notice: data?.notice })
+          const { updateRedirectUrl } = useAuthRedirect()
+          updateRedirectUrl(this.$route?.fullPath)
+          navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: this.appGetAlertMessage(data, action.require, 'auth.unauthenticated'), notice: data?.notice } })
         } else if (action.toasted) {
           this.appSetToastedMessage(data, action.require, 'auth.unauthenticated')
         }
@@ -87,15 +91,15 @@ export default {
     },
     appSetToastedMessage (data, require, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)
-      if (alert != null) { this.$toasted.error(alert) }
-      if (data?.notice != null) { this.$toasted.info(data.notice) }
+      if (alert != null) { this.$toasted?.error(alert) }
+      if (data?.notice != null) { this.$toasted?.info(data.notice) }
     },
     appSetQueryMessage () {
       if (Object.keys(this.$route.query).length === 0) { return }
 
       this.alert = this.$route.query.alert
       this.notice = this.$route.query.notice
-      this.$router.push({ path: this.$route.path }) // NOTE: URLパラメータを消す為
+      navigateTo(this.$route.path) // NOTE: URLパラメータを消す為
     },
     appGetAlertMessage (data, require, defaultKey = 'system.default') {
       return (require && data?.alert == null) ? this.$t(defaultKey) : data?.alert
@@ -103,8 +107,10 @@ export default {
 
     // リダイレクト
     appRedirectAuth () {
-      this.$toasted.info(this.$t('auth.unauthenticated'))
-      this.$auth.redirect('login') // NOTE: ログイン後、元のページに戻す
+      this.appSetToastedMessage({ notice: this.$t('auth.unauthenticated') }, false)
+      const { updateRedirectUrl } = useAuthRedirect()
+      updateRedirectUrl(this.$route?.fullPath)
+      navigateTo(this.$config.public.authRedirectSignInURL)
     },
     appRedirectAlreadyAuth () {
       this.appRedirectTop({ notice: this.$t('auth.already_authenticated') })
@@ -120,39 +126,10 @@ export default {
     },
     appRedirectTop (data, require = false) {
       this.appSetToastedMessage(data, require)
-      this.$router.push({ path: '/' })
-    },
-    appRedirectSignIn (data) {
-      this.$auth.$storage.setUniversal('redirect', this.$route?.fullPath)
-      this.$router.push({ path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      navigateTo('/')
     },
     appRedirectError (statusCode, data) {
       this.$nuxt.error({ statusCode, alert: data.alert, notice: data.notice })
-    },
-
-    // ログアウト
-    async appSignOut (message = 'auth.unauthenticated', path = null, data = null) {
-      try {
-        await this.$auth.logout()
-      } catch (error) {
-        this.appCheckErrorResponse(null, error, { toasted: true, require: true })
-      }
-
-      // Devise Token Auth
-      if (localStorage.getItem('token-type') === 'Bearer' && localStorage.getItem('access-token')) {
-        localStorage.removeItem('token-type')
-        localStorage.removeItem('uid')
-        localStorage.removeItem('client')
-        localStorage.removeItem('access-token')
-        localStorage.removeItem('expiry')
-      }
-
-      if (message != null) {
-        this.$toasted.info(this.$t(message)) // NOTE: メッセージを上書き
-      }
-      if (path != null) {
-        this.$router.push({ path, query: { alert: data.alert, notice: data.notice } })
-      }
     }
   }
 }
