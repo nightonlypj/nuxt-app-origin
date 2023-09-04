@@ -91,8 +91,8 @@ export default {
     },
     appSetToastedMessage (data, require, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)
-      if (alert != null) { this.$toasted?.error(alert) }
-      if (data?.notice != null) { this.$toasted?.info(data.notice) }
+      if (alert != null) { this.$toast.error(alert) }
+      if (data?.notice != null) { this.$toast.info(data.notice) }
     },
     appSetQueryMessage () {
       if (Object.keys(this.$route.query).length === 0) { return }

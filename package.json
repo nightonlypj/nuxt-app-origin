@@ -24,6 +24,7 @@
     "sass": "^1.66.1",
     "vee-validate": "^4.11.2",
     "vite-plugin-vuetify": "^1.0.2",
+    "vue-toastification": "^2.0.0-rc.5",
     "vuetify": "^3.3.13"
   }
 }
