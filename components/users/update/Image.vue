@@ -7,9 +7,9 @@
           <v-avatar size="256px">
             <v-img :src="authData.user.image_url.xlarge" />
           </v-avatar>
-          <Field v-slot="{ field, errors }" v-model="image" name="image" rules="size_20MB:20480">
+          <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
             <v-file-input
-              v-bind="field"
+              v-model="image"
               accept="image/jpeg,image/gif,image/png"
               label="画像ファイル"
               prepend-icon="mdi-camera"
@@ -111,11 +111,9 @@ export default {
     async postUserImageUpdate (setErrors, values) {
       this.processing = true
 
-      const params = new FormData()
-      params.append('image', this.image)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST',
-        params
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST', {
+        image: this.image[0]
+      }, 'form')
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

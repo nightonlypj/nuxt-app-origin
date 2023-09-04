@@ -13,9 +13,9 @@
               @keydown.enter="appSetKeyDownEnter"
               @keyup.enter="signIn(!meta.valid, true)"
             >
-              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
+              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.email"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="email"
@@ -23,9 +23,9 @@
                   @input="waiting = false"
                 />
               </Field>
-              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required">
+              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.password"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード"
                   prepend-icon="mdi-lock"
@@ -144,12 +144,10 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.authSignInURL, 'POST',
-        JSON.stringify({
-          ...this.query,
-          unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
-        })
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.authSignInURL, 'POST', {
+        ...this.query,
+        unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
+      })
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

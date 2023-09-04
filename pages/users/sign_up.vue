@@ -9,9 +9,9 @@
           <v-form autocomplete="on">
             <v-card-title>アカウント登録</v-card-title>
             <v-card-text>
-              <Field v-slot="{ field, errors }" v-model="query.name" name="name" rules="required|max:32">
+              <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.name"
                   label="氏名"
                   prepend-icon="mdi-account"
                   autocomplete="name"
@@ -20,9 +20,9 @@
                   @input="waiting = false"
                 />
               </Field>
-              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
+              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.email"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="email"
@@ -30,9 +30,9 @@
                   @input="waiting = false"
                 />
               </Field>
-              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required|min:8">
+              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.password"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード [8文字以上]"
                   prepend-icon="mdi-lock"
@@ -44,9 +44,9 @@
                   @click:append="showPassword = !showPassword"
                 />
               </Field>
-              <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
+              <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.password_confirmation"
                   :type="showPassword ? 'text' : 'password'"
                   label="パスワード(確認)"
                   prepend-icon="mdi-lock"
@@ -145,12 +145,10 @@ export default {
     async postSingUp (setErrors, values) {
       this.processing = true
 
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST',
-        JSON.stringify({
-          ...this.query,
-          confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
-        })
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST', {
+        ...this.query,
+        confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
+      })
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

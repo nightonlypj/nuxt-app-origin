@@ -13,9 +13,9 @@
               @keydown.enter="appSetKeyDownEnter"
               @keyup.enter="postPasswordUpdate(!meta.valid, true, setErrors, values)"
             >
-              <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="required|min:8">
+              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.password"
                   :type="showPassword ? 'text' : 'password'"
                   label="新しいパスワード [8文字以上]"
                   prepend-icon="mdi-lock"
@@ -27,9 +27,9 @@
                   @click:append="showPassword = !showPassword"
                 />
               </Field>
-              <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
+              <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.password_confirmation"
                   :type="showPassword ? 'text' : 'password'"
                   label="新しいパスワード(確認)"
                   prepend-icon="mdi-lock"
@@ -135,12 +135,10 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, 'POST',
-        JSON.stringify({
-          reset_password_token: this.$route.query.reset_password_token,
-          ...this.query
-        })
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUpdateUrl, 'POST', {
+        reset_password_token: this.$route.query.reset_password_token,
+        ...this.query
+      })
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

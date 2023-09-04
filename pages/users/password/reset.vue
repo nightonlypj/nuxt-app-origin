@@ -13,9 +13,9 @@
               @keydown.enter="appSetKeyDownEnter"
               @keyup.enter="postPasswordNew(!meta.valid, true, setErrors, values)"
             >
-              <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
+              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
                 <v-text-field
-                  v-bind="field"
+                  v-model="query.email"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
                   autocomplete="off"
@@ -109,12 +109,10 @@ export default {
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUrl, 'POST',
-        JSON.stringify({
-          ...this.query,
-          redirect_url: this.$config.public.frontBaseURL + this.$config.public.passwordRedirectUrl
-        })
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUrl, 'POST', {
+        ...this.query,
+        redirect_url: this.$config.public.frontBaseURL + this.$config.public.passwordRedirectUrl
+      })
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

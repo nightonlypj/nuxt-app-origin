@@ -4,9 +4,9 @@
     <Form v-slot="{ meta, setErrors, values }">
       <v-form autocomplete="off">
         <v-card-text>
-          <Field v-slot="{ field, errors }" v-model="query.name" name="name" rules="required|max:32">
+          <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
             <v-text-field
-              v-bind="field"
+              v-model="query.name"
               label="氏名"
               prepend-icon="mdi-account"
               autocomplete="off"
@@ -19,9 +19,9 @@
             確認待ち: {{ user.unconfirmed_email }}<br>
             <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
           </v-alert>
-          <Field v-slot="{ field, errors }" v-model="query.email" name="email" rules="required|email">
+          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
             <v-text-field
-              v-bind="field"
+              v-model="query.email"
               label="メールアドレス"
               prepend-icon="mdi-email"
               autocomplete="off"
@@ -29,9 +29,9 @@
               @input="waiting = false"
             />
           </Field>
-          <Field v-slot="{ field, errors }" v-model="query.password" name="password" rules="min:8">
+          <Field v-slot="{ errors }" v-model="query.password" name="password" rules="min:8">
             <v-text-field
-              v-bind="field"
+              v-model="query.password"
               :type="showPassword ? 'text' : 'password'"
               label="パスワード [8文字以上] (変更する場合のみ)"
               prepend-icon="mdi-lock"
@@ -43,9 +43,9 @@
               @click:append="showPassword = !showPassword"
             />
           </Field>
-          <Field v-slot="{ field, errors }" v-model="query.password_confirmation" name="password_confirmation" rules="confirmed_password:@password">
+          <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="confirmed_password:@password">
             <v-text-field
-              v-bind="field"
+              v-model="query.password_confirmation"
               :type="showPassword ? 'text' : 'password'"
               label="パスワード(確認) (変更する場合のみ)"
               prepend-icon="mdi-lock"
@@ -57,9 +57,9 @@
               @click:append="showPassword = !showPassword"
             />
           </Field>
-          <Field v-slot="{ field, errors }" v-model="query.current_password" name="current_password" rules="required">
+          <Field v-slot="{ errors }" v-model="query.current_password" name="current_password" rules="required">
             <v-text-field
-              v-bind="field"
+              v-model="query.current_password"
               :type="showPassword ? 'text' : 'password'"
               label="現在のパスワード"
               prepend-icon="mdi-lock"
@@ -139,12 +139,10 @@ export default {
     async postUserUpdate (setErrors, values) {
       this.processing = true
 
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, 'POST',
-        JSON.stringify({
-          ...this.query,
-          confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
-        })
-      )
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUpdateUrl, 'POST', {
+        ...this.query,
+        confirm_redirect_url: this.$config.public.frontBaseURL + this.$config.public.confirmationSuccessUrl
+      })
 
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }

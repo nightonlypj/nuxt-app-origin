@@ -1,5 +1,5 @@
 // APIリクエスト
-export const useApiRequest = async (url: string, method = 'GET', body: any = null) => {
+export const useApiRequest = async (url: string, method = 'GET', params: object | null = null, type = 'json') => {
   const $config = useRuntimeConfig()
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useApiRequest', method, url) }
@@ -17,13 +17,29 @@ export const useApiRequest = async (url: string, method = 'GET', body: any = nul
     }
   }
 
+  let contentType: object, body: any = null
+  if (type === 'json') {
+    contentType = { 'Content-type': 'application/json; charset=utf-8' }
+    if (params != null) {
+      body = JSON.stringify(params)
+    }
+  } else { // 'form'
+    contentType = {}
+    if (params != null) {
+      body = new FormData()
+      for (const [key, value] of Object.entries(params)) {
+        body.append(key, value)
+      }
+    }
+  }
+
   let response: any = null
   try {
     response = await fetch(url, {
       method,
       mode: 'cors',
       headers: {
-        'Content-type': 'application/json; charset=utf-8',
+        ...contentType,
         Accept: 'application/json',
         ...authHeaders
       },
