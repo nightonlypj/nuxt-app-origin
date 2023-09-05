@@ -5,8 +5,8 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="displayWidth > 226"
-          :style="{ 'max-width': (displayWidth - 226) + 'px' }"
+          v-if="$vuetify.display.width > 226"
+          :style="{ 'max-width': ($vuetify.display.width - 226) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
@@ -115,18 +115,21 @@
         <span class="hidden-sm-and-down">Copyright </span>&copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
       </div>
     </v-footer>
+
+    <AppBackToTop />
   </v-app>
 </template>
 
 <script>
-import { useDisplay } from 'vuetify'
 import DestroyInfo from '~/components/DestroyInfo.vue'
+import AppBackToTop from '~/components/app/BackToTop.vue'
 
 const { status:authStatus, data:authData } = useAuthState()
 
 export default {
   components: {
-    DestroyInfo
+    DestroyInfo,
+    AppBackToTop
   },
 
   data () {
@@ -147,15 +150,11 @@ export default {
     },
     authData () {
       return authData.value
-    },
-    displayWidth () {
-      const { width } = useDisplay()
-      return width.value
     }
   },
 
   created () {
-    this.drawer = this.displayWidth >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+    this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
   },
 }
 </script>
