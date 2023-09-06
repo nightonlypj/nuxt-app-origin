@@ -105,7 +105,7 @@
 
     <v-main class="mx-2">
       <v-container fluid>
-        <DestroyInfo />
+        <AppDestroyInfo />
         <slot />
       </v-container>
     </v-main>
@@ -121,14 +121,14 @@
 </template>
 
 <script>
-import DestroyInfo from '~/components/DestroyInfo.vue'
+import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
-const { status:authStatus, data:authData } = useAuthState()
+const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   components: {
-    DestroyInfo,
+    AppDestroyInfo,
     AppBackToTop
   },
 
@@ -155,7 +155,7 @@ export default {
 
   created () {
     this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
-  },
+  }
 }
 </script>
 

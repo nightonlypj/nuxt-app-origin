@@ -6,7 +6,7 @@
 </template>
 
 <script>
-const { status:authStatus, data:authData } = useAuthState()
+const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   computed: {

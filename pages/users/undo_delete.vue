@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <v-card v-else max-width="640px">
-      <Processing v-if="processing" />
+      <AppProcessing v-if="processing" />
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
         <p>
@@ -53,16 +53,16 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-const { status:authStatus, data:authData } = useAuthState()
+const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   components: {
-    Loading,
-    Processing
+    AppLoading,
+    AppProcessing
   },
   mixins: [Application],
 

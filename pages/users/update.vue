@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <template v-else>
-      <Message :alert.sync="alert" :notice.sync="notice" />
+      <AppMessage :alert="alert" :notice="notice" />
       <v-card max-width="850px">
         <v-card-title>ユーザー情報</v-card-title>
         <v-row>
@@ -26,18 +26,18 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Message from '~/components/Message.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppMessage from '~/components/app/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
 import Application from '~/utils/application.js'
 
-const { status:authStatus, data:authData } = useAuthState()
+const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   components: {
-    Loading,
-    Message,
+    AppLoading,
+    AppMessage,
     UpdateImage,
     UpdateData
   },

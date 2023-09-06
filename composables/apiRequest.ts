@@ -17,14 +17,15 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
     }
   }
 
-  let contentType: object, body: any = null
+  let contentType = {}
+  let body: any = null
   if (type === 'json') {
     contentType = { 'Content-type': 'application/json; charset=utf-8' }
     if (params != null) {
       body = JSON.stringify(params)
     }
   } else { // 'form'
-    contentType = {}
+    // eslint-disable-next-line no-lonely-if
     if (params != null) {
       body = new FormData()
       for (const [key, value] of Object.entries(params)) {

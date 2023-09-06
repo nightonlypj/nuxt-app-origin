@@ -20,6 +20,6 @@ export const useAuthSignOut = async (skipRequest = false) => {
     }
   }
 
-  const { data:authData } = useAuthState()
+  const { data: authData } = useAuthState()
   authData.value = null
 }

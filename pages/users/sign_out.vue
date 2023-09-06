@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <v-card v-else max-width="480px">
-      <Processing v-if="processing" />
+      <AppProcessing v-if="processing" />
       <v-card-title>ログアウトします。よろしいですか？</v-card-title>
       <v-card-text>
         <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
@@ -21,16 +21,16 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-const { status:authStatus } = useAuthState()
+const { status: authStatus } = useAuthState()
 
 export default {
   components: {
-    Loading,
-    Processing
+    AppLoading,
+    AppProcessing
   },
   mixins: [Application],
 

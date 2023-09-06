@@ -42,7 +42,7 @@ const textTruncate = (text: string | null, length: number) => {
 }
 
 /* istanbul ignore next */
-export default defineNuxtPlugin(_nuxtApp => {
+export default defineNuxtPlugin((_nuxtApp) => {
   return {
     provide: {
       sleep,

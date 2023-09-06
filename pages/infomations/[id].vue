@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <v-card v-else>
       <template v-if="infomation != null">
         <v-card-title>
@@ -30,13 +30,13 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
+import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Application from '~/utils/application.js'
 
 export default {
   components: {
-    Loading,
+    AppLoading,
     InfomationsLabel
   },
   mixins: [Application],

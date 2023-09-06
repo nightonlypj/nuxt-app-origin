@@ -1,8 +1,8 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <v-card v-else>
-      <Processing v-if="processing" />
+      <AppProcessing v-if="processing" />
       <v-card-title>お知らせ</v-card-title>
       <v-card-text>
         <v-row v-if="existInfomations">
@@ -32,17 +32,17 @@
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/utils/application.js'
 
-const { status:authStatus, data:authData } = useAuthState()
+const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   components: {
-    Loading,
-    Processing,
+    AppLoading,
+    AppProcessing,
     InfomationsLists
   },
   mixins: [Application],

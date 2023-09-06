@@ -41,7 +41,7 @@ export default {
       if (status == null && data == null) {
         return this.appReturnResponse(action, null, 'network.failure')
       } else if (check.auth && status === 401) {
-        const { status:authStatus } = useAuthState()
+        const { status: authStatus } = useAuthState()
         if (authStatus.value === 'authenticated') {
           useAuthSignOut(true)
           this.appRedirectAuth()

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Processing v-if="processing" />
+    <AppProcessing v-if="processing" />
     <Form v-slot="{ meta, setErrors, values }">
       <v-form autocomplete="off">
         <v-card-text>
@@ -73,22 +73,22 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja'
 import { size } from '@vee-validate/rules'
-import Processing from '~/components/Processing.vue'
+import ja from '~/locales/validate.ja'
+import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
 defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { data:authData } = useAuthState()
+const { data: authData } = useAuthState()
 
 export default {
   components: {
     Form,
     Field,
-    Processing
+    AppProcessing
   },
   mixins: [Application],
 

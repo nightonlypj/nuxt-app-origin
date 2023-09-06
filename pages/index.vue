@@ -24,7 +24,7 @@
 import IndexSignUp from '~/components/index/SignUp.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
-const { status:authStatus } = useAuthState()
+const { status: authStatus } = useAuthState()
 
 export default {
   components: {

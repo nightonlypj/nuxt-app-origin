@@ -7,7 +7,7 @@ export const useAuthUser = async () => {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authUserURL)
 
   if (response?.ok) {
-    const { data:authData } = useAuthState()
+    const { data: authData } = useAuthState()
     authData.value = data
   }
 

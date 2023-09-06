@@ -1,10 +1,10 @@
 <template>
   <div>
-    <Loading v-if="loading" />
+    <AppLoading v-if="loading" />
     <template v-else>
-      <Message :alert.sync="alert" :notice.sync="notice" />
+      <AppMessage :alert="alert" :notice="notice" />
       <v-card max-width="480px">
-        <Processing v-if="processing" />
+        <AppProcessing v-if="processing" />
         <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="off" @submit.prevent>
             <v-card-title>パスワード再設定</v-card-title>
@@ -47,11 +47,11 @@
 <script>
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
-import ja from '~/locales/validate.ja'
 import { required, email } from '@vee-validate/rules'
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
+import ja from '~/locales/validate.ja'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
+import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Application from '~/utils/application.js'
 
@@ -60,15 +60,15 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { status:authStatus } = useAuthState()
+const { status: authStatus } = useAuthState()
 
 export default {
   components: {
     Form,
     Field,
-    Loading,
-    Processing,
-    Message,
+    AppLoading,
+    AppProcessing,
+    AppMessage,
     ActionLink
   },
   mixins: [Application],
