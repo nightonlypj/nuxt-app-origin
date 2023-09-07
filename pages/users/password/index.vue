@@ -79,8 +79,6 @@ defineRule('confirmed_new_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { status: authStatus, data: authData } = useAuthState()
-
 export default {
   components: {
     Form,
@@ -115,7 +113,7 @@ export default {
   },
 
   created () {
-    if (authStatus.value === 'authenticated') { return this.appRedirectAlreadyAuth() }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
     if (this.$route.query.reset_password === 'false') {
       return navigateTo({ path: '/users/password/reset', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
     }
@@ -143,7 +141,7 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        authData.value = data
+        this.$auth.setData(data)
         this.appRedirectTop(data)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) {

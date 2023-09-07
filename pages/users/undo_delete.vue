@@ -6,9 +6,9 @@
       <v-card-title>アカウント削除取り消し</v-card-title>
       <v-card-text>
         <p>
-          このアカウントは{{ $dateFormat('ja', authData.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
-          <template v-if="authData.user.destroy_requested_at != null">
-            （{{ $timeFormat('ja', authData.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+          このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+          <template v-if="$auth.user.destroy_requested_at != null">
+            （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
           </template>
         </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
@@ -57,8 +57,6 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-const { status: authStatus, data: authData } = useAuthState()
-
 export default {
   components: {
     AppLoading,
@@ -69,8 +67,7 @@ export default {
   data () {
     return {
       loading: true,
-      processing: true,
-      authData: authData.value
+      processing: true
     }
   },
 
@@ -81,14 +78,14 @@ export default {
   },
 
   async created () {
-    if (authStatus.value !== 'authenticated') { return this.appRedirectAuth() }
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
 
     // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
     const [response, data] = await useAuthUser()
     if (!response?.ok) {
       return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
     }
-    if (this.authData.user.destroy_schedule_at == null) { return this.appRedirectNotDestroyReserved() }
+    if (this.$auth.user.destroy_schedule_at == null) { return this.appRedirectNotDestroyReserved() }
 
     this.processing = false
     this.loading = false
@@ -105,7 +102,7 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        authData.value = data
+        this.$auth.setData(data)
         this.appRedirectTop(data)
       } else {
         this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })

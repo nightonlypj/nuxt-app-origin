@@ -74,9 +74,6 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { status: authStatus, data: authData } = useAuthState()
-const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
-
 export default {
   components: {
     Form,
@@ -111,11 +108,9 @@ export default {
   },
 
   created () {
-    const loggedIn = authStatus.value === 'authenticated'
-
     switch (this.$route.query.account_confirmation_success) {
       case 'true':
-        if (loggedIn) { return this.appRedirectTop(this.$route.query) }
+        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
         break
       case 'false':
         return navigateTo({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
@@ -123,9 +118,9 @@ export default {
     switch (this.$route.query.unlock) {
       case 'true':
       case 'false':
-        if (loggedIn) { return this.appRedirectTop(this.$route.query) }
+        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
     }
-    if (loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
       this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
@@ -152,8 +147,10 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        authData.value = data
+        this.$auth.setData(data)
         this.appSetToastedMessage(data, false)
+
+        const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
         navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
         updateRedirectUrl(null)
       } else {

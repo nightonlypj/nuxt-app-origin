@@ -60,8 +60,6 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { status: authStatus } = useAuthState()
-
 export default {
   components: {
     Form,
@@ -93,14 +91,8 @@ export default {
     }
   },
 
-  computed: {
-    loggedIn () {
-      return authStatus.value === 'authenticated'
-    }
-  },
-
   created () {
-    if (this.loggedIn) { return this.appRedirectAlreadyAuth() }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     this.appSetQueryMessage()
     this.processing = false

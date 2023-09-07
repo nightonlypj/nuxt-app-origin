@@ -102,8 +102,6 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { data: authData } = useAuthState()
-
 export default {
   components: {
     Form,
@@ -147,7 +145,7 @@ export default {
       if (response?.ok) {
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
-        authData.value = data
+        this.$auth.setData(data)
         this.appRedirectTop(data)
       } else {
         if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }

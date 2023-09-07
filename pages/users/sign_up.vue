@@ -98,8 +98,6 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { status: authStatus } = useAuthState()
-
 export default {
   components: {
     Form,
@@ -135,7 +133,7 @@ export default {
   },
 
   created () {
-    if (authStatus.value === 'authenticated') { return this.appRedirectAlreadyAuth() }
+    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
     this.loading = false
   },

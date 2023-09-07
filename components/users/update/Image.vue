@@ -5,7 +5,7 @@
       <v-form autocomplete="off">
         <v-card-text>
           <v-avatar size="256px">
-            <v-img :src="authData.user.image_url.xlarge" />
+            <v-img :src="$auth.user.image_url.xlarge" />
           </v-avatar>
           <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
             <v-file-input
@@ -34,7 +34,7 @@
                 id="user_image_delete_btn"
                 color="secondary"
                 class="mt-2"
-                :disabled="!authData.user.upload_image || processing"
+                :disabled="!$auth.user.upload_image || processing"
               >
                 画像削除
               </v-btn>
@@ -82,8 +82,6 @@ defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const { data: authData } = useAuthState()
-
 export default {
   components: {
     Form,
@@ -97,12 +95,6 @@ export default {
       processing: false,
       waiting: false,
       image: null
-    }
-  },
-
-  computed: {
-    authData () {
-      return authData.value
     }
   },
 
@@ -153,7 +145,7 @@ export default {
     },
 
     successAction (data) {
-      authData.value = data
+      this.$auth.setData(data)
       this.appSetToastedMessage(data, false)
       this.image = null
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為

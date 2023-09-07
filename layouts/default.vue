@@ -13,7 +13,7 @@
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
-      <template v-if="!loggedIn">
+      <template v-if="!$auth.loggedIn">
         <v-btn to="/users/sign_in" text rounded nuxt>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
@@ -34,9 +34,9 @@
               text
             >
               <v-avatar size="32px">
-                <v-img id="user_image" :src="authData.user.image_url.small" />
+                <v-img id="user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
-              <div class="text-truncate hidden-sm-and-down ml-1">{{ authData.user.name }}</div>
+              <div class="text-truncate hidden-sm-and-down ml-1">{{ $auth.user.name }}</div>
             </v-btn>
           </template>
           <v-list dense rounded>
@@ -51,7 +51,7 @@
           </v-list>
         </v-menu>
         <v-btn to="/infomations" text rounded nuxt>
-          <v-badge :content="authData.user.infomation_unread_count" :value="authData.user.infomation_unread_count" color="red" overlap>
+          <v-badge :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
             <v-icon>mdi-bell</v-icon>
           </v-badge>
         </v-btn>
@@ -60,7 +60,7 @@
 
     <v-navigation-drawer v-model="drawer" width="300px" clipped fixed app>
       <v-list>
-        <template v-if="!loggedIn">
+        <template v-if="!$auth.loggedIn">
           <v-list-item to="/users/sign_in" nuxt>
             <v-icon>mdi-login</v-icon>
             <v-list-item-title class="ml-2">ログイン</v-list-item-title>
@@ -75,10 +75,10 @@
             <template #activator="{ props }">
               <v-list-item v-bind="props">
                 <v-avatar size="32px">
-                  <v-img id="user_image" :src="authData.user.image_url.small" />
+                  <v-img id="user_image" :src="$auth.user.image_url.small" />
                 </v-avatar>
                 <v-list-item-title>
-                  <div class="text-truncate ml-1">{{ authData.user.name }}</div>
+                  <div class="text-truncate ml-1">{{ $auth.user.name }}</div>
                 </v-list-item-title>
               </v-list-item>
             </template>
@@ -94,7 +94,7 @@
         </template>
         <v-divider />
         <v-list-item to="/infomations" nuxt>
-          <v-badge v-if="loggedIn" :content="authData.user.infomation_unread_count" :value="authData.user.infomation_unread_count" color="red" overlap>
+          <v-badge v-if="$auth.loggedIn" :content="$auth.user.infomation_unread_count" :value="$auth.user.infomation_unread_count" color="red" overlap>
             <v-icon>mdi-bell</v-icon>
           </v-badge>
           <v-icon v-else>mdi-bell</v-icon>
@@ -124,8 +124,6 @@
 import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
-const { status: authStatus, data: authData } = useAuthState()
-
 export default {
   components: {
     AppDestroyInfo,
@@ -141,15 +139,6 @@ export default {
   head () {
     return {
       titleTemplate: `%s - ${this.$t('app_name')}${this.$config.public.envName}`
-    }
-  },
-
-  computed: {
-    loggedIn () {
-      return authStatus.value === 'authenticated'
-    },
-    authData () {
-      return authData.value
     }
   },
 

@@ -6,7 +6,7 @@
       <v-card-title>アカウント削除</v-card-title>
       <v-card-text>
         <p>
-          アカウントは{{ authData.user.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
+          アカウントは{{ destroyScheduleDays || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
           削除されるまではログインできますが、一部機能が制限されます。
         </p>
         <v-dialog transition="dialog-top-transition" max-width="600px">
@@ -61,8 +61,6 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-const { status: authStatus, data: authData } = useAuthState()
-
 export default {
   components: {
     AppLoading,
@@ -74,7 +72,7 @@ export default {
     return {
       loading: true,
       processing: true,
-      authData: authData.value
+      destroyScheduleDays: this.$auth.user?.destroy_schedule_days
     }
   },
 
@@ -85,14 +83,14 @@ export default {
   },
 
   async created () {
-    if (authStatus.value !== 'authenticated') { return this.appRedirectAuth() }
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
 
     // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
     const [response, data] = await useAuthUser()
     if (!response?.ok) {
       return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
     }
-    if (this.authData.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
+    if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
 
     this.processing = false
     this.loading = false

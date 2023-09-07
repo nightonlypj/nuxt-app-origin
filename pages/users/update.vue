@@ -16,7 +16,7 @@
         <v-divider />
         <v-card-actions>
           <ul class="my-2">
-            <li v-if="authData.user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
+            <li v-if="$auth.user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
             <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
           </ul>
         </v-card-actions>
@@ -31,8 +31,6 @@ import AppMessage from '~/components/app/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
 import Application from '~/utils/application.js'
-
-const { status: authStatus, data: authData } = useAuthState()
 
 export default {
   components: {
@@ -58,21 +56,15 @@ export default {
     }
   },
 
-  computed: {
-    authData () {
-      return authData.value
-    }
-  },
-
   async created () {
-    if (authStatus.value !== 'authenticated') { return this.appRedirectAuth() }
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
 
     // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
     const [response, data] = await useAuthUser()
     if (!response?.ok) {
       return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
     }
-    if (this.authData.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
+    if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
 
     if (!await this.getUserDetail()) { return }
 

@@ -37,8 +37,6 @@ import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/utils/application.js'
 
-const { status: authStatus, data: authData } = useAuthState()
-
 export default {
   components: {
     AppLoading,
@@ -75,10 +73,7 @@ export default {
   async created () {
     if (!await this.getInfomationsList()) { return }
 
-    if (authStatus.value === 'authenticated' && authData.value.user.infomation_unread_count !== 0) {
-      authData.value = { ...authData.value, user: { ...authData.value.user, infomation_unread_count: 0 } }
-    }
-
+    if (this.$auth.loggedIn) { this.$auth.resetUserInfomationUnreadCount() }
     this.loading = false
   },
 
