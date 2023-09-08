@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>アカウント削除取り消し</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <v-card v-else max-width="640px">
       <AppProcessing v-if="processing" />
@@ -57,7 +60,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     AppProcessing
@@ -68,12 +71,6 @@ export default {
     return {
       loading: true,
       processing: true
-    }
-  },
-
-  head () {
-    return {
-      title: 'アカウント削除取り消し'
     }
   },
 
@@ -111,5 +108,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

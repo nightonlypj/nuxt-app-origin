@@ -102,7 +102,7 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -160,5 +160,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

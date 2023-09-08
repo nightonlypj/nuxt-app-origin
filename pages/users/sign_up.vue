@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>アカウント登録</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -98,7 +101,7 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -123,12 +126,6 @@ export default {
         password_confirmation: ''
       },
       showPassword: false
-    }
-  },
-
-  head () {
-    return {
-      title: 'アカウント登録'
     }
   },
 
@@ -165,5 +162,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

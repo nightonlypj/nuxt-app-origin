@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>パスワード再設定</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -79,7 +82,7 @@ defineRule('confirmed_new_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -103,12 +106,6 @@ export default {
       },
       showPassword: false,
       keyDownEnter: false
-    }
-  },
-
-  head () {
-    return {
-      title: 'パスワード再設定'
     }
   },
 
@@ -160,5 +157,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>ログアウト</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <v-card v-else max-width="480px">
       <AppProcessing v-if="processing" />
@@ -25,7 +28,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     AppProcessing
@@ -36,12 +39,6 @@ export default {
     return {
       loading: true,
       processing: true
-    }
-  },
-
-  head () {
-    return {
-      title: 'ログアウト'
     }
   },
 
@@ -61,5 +58,5 @@ export default {
       navigateTo(this.$config.public.authRedirectLogOutURL)
     }
   }
-}
+})
 </script>

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     infomation: {
       type: Object,
@@ -23,5 +23,5 @@ export default {
       }
     }
   }
-}
+})
 </script>

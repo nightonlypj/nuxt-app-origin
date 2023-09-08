@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>{{ title }}</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <v-card v-else>
       <template v-if="infomation != null">
@@ -34,7 +37,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     InfomationsLabel
@@ -45,12 +48,6 @@ export default {
     return {
       loading: true,
       infomation: null
-    }
-  },
-
-  head () {
-    return {
-      title: this.title
     }
   },
 
@@ -89,5 +86,5 @@ export default {
       return result
     }
   }
-}
+})
 </script>

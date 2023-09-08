@@ -1,4 +1,4 @@
-export default {
+export default defineNuxtComponent({
   computed: {
     appTableHeight () {
       return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
@@ -128,7 +128,7 @@ export default {
       navigateTo('/')
     },
     appRedirectError (statusCode, data) {
-      this.$nuxt.error({ statusCode, alert: data.alert, notice: data.notice })
+      throw showError({ statusCode, data: { alert: data.alert, notice: data.notice } })
     }
   }
-}
+})

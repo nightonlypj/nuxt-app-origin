@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>ユーザー情報</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -32,7 +35,7 @@ import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     AppMessage,
@@ -47,12 +50,6 @@ export default {
       alert: null,
       notice: null,
       user: null
-    }
-  },
-
-  head () {
-    return {
-      title: 'ユーザー情報'
     }
   },
 
@@ -90,5 +87,5 @@ export default {
       return result
     }
   }
-}
+})
 </script>

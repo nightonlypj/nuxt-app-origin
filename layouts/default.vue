@@ -124,7 +124,7 @@
 import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppDestroyInfo,
     AppBackToTop
@@ -137,15 +137,17 @@ export default {
   },
 
   head () {
+    const { t: $t } = useI18n()
+    const $config = useRuntimeConfig()
     return {
-      titleTemplate: `%s - ${this.$t('app_name')}${this.$config.public.envName}`
+      titleTemplate: `%s - ${$t('app_name')}${$config.public.envName}`
     }
   },
 
   created () {
     this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
   }
-}
+})
 </script>
 
 <style scoped>

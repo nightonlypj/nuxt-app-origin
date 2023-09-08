@@ -32,7 +32,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     InfomationsLabel
@@ -73,5 +73,5 @@ export default {
       }
     }
   }
-}
+})
 </script>

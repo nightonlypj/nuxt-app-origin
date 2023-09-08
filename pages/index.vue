@@ -24,16 +24,18 @@
 import IndexSignUp from '~/components/index/SignUp.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
-export default {
+export default defineNuxtComponent({
   components: {
     IndexSignUp,
     IndexInfomations
   },
 
   head () {
+    const { t: $t } = useI18n()
+    const $config = useRuntimeConfig()
     return {
-      titleTemplate: this.$t('app_name') + this.$config.public.envName
+      titleTemplate: `${$t('app_name')}${$config.public.envName}`
     }
   }
-}
+})
 </script>

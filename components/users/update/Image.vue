@@ -82,7 +82,7 @@ defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -151,5 +151,5 @@ export default {
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }
   }
-}
+})
 </script>

@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>アカウントロック解除</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -60,7 +63,7 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -82,12 +85,6 @@ export default {
         email: ''
       },
       keyDownEnter: false
-    }
-  },
-
-  head () {
-    return {
-      title: 'アカウントロック解除'
     }
   },
 
@@ -129,5 +126,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

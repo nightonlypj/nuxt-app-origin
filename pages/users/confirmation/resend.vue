@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>メールアドレス確認</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -62,7 +65,7 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -84,12 +87,6 @@ export default {
         email: ''
       },
       keyDownEnter: false
-    }
-  },
-
-  head () {
-    return {
-      title: 'メールアドレス確認'
     }
   },
 
@@ -133,5 +130,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>

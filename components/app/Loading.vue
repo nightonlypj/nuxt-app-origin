@@ -5,12 +5,12 @@
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     height: {
       type: String,
       default: '80vh'
     }
   }
-}
+})
 </script>

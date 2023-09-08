@@ -6,7 +6,7 @@
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     alert: {
       type: String,
@@ -17,5 +17,5 @@ export default {
       default: null
     }
   }
-}
+})
 </script>

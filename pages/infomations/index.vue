@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>お知らせ</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <v-card v-else>
       <AppProcessing v-if="processing" />
@@ -37,7 +40,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     AppLoading,
     AppProcessing,
@@ -52,12 +55,6 @@ export default {
       page: Number(this.$route?.query?.page) || 1,
       infomation: null,
       infomations: null
-    }
-  },
-
-  head () {
-    return {
-      title: 'お知らせ'
     }
   },
 
@@ -107,5 +104,5 @@ export default {
       return result
     }
   }
-}
+})
 </script>

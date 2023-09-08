@@ -25,7 +25,7 @@
 <script>
 import InfomationsLabel from '~/components/infomations/Label.vue'
 
-export default {
+export default defineNuxtComponent({
   components: {
     InfomationsLabel
   },
@@ -44,5 +44,5 @@ export default {
       navigateTo(`/infomations/${infomation.id}`)
     }
   }
-}
+})
 </script>

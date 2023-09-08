@@ -1,5 +1,8 @@
 <template>
   <div>
+    <Head>
+      <Title>ログイン</Title>
+    </Head>
     <AppLoading v-if="loading" />
     <template v-else>
       <AppMessage :alert="alert" :notice="notice" />
@@ -74,7 +77,7 @@ defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
     Form,
     Field,
@@ -98,12 +101,6 @@ export default {
       },
       showPassword: false,
       keyDownEnter: false
-    }
-  },
-
-  head () {
-    return {
-      title: 'ログイン'
     }
   },
 
@@ -163,5 +160,5 @@ export default {
       this.processing = false
     }
   }
-}
+})
 </script>
