@@ -1,5 +1,5 @@
 <template>
-  <div v-if="infomations != null && infomations.length > 0">
+  <template v-if="infomations != null && infomations.length > 0">
     <article v-for="infomation in infomations" :key="infomation.id" @dblclick="redirectInfomation(infomation)">
       <div>
         <InfomationsLabel :infomation="infomation" />
@@ -19,7 +19,7 @@
       <div v-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
       <v-divider class="my-4" />
     </article>
-  </div>
+  </template>
 </template>
 
 <script>

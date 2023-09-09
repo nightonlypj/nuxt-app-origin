@@ -1,50 +1,48 @@
 <template>
-  <div>
-    <Head>
-      <Title>パスワード再設定</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="480px">
-        <AppProcessing v-if="processing" />
-        <Form v-slot="{ meta, setErrors, values }">
-          <v-form autocomplete="off" @submit.prevent>
-            <v-card-title>パスワード再設定</v-card-title>
-            <v-card-text
-              id="input_area"
-              @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postPasswordNew(!meta.valid, true, setErrors, values)"
+  <Head>
+    <Title>パスワード再設定</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="off" @submit.prevent>
+          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-text
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
+            @keyup.enter="postPasswordNew(!meta.valid, true, setErrors, values)"
+          >
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="off"
+                :error-messages="errors"
+                @input="waiting = false"
+              />
+            </Field>
+            <v-btn
+              id="password_btn"
+              color="primary"
+              class="mt-2"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postPasswordNew(!meta.valid, false, setErrors, values)"
             >
-              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-                <v-text-field
-                  v-model="query.email"
-                  label="メールアドレス"
-                  prepend-icon="mdi-email"
-                  autocomplete="off"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </Field>
-              <v-btn
-                id="password_btn"
-                color="primary"
-                class="mt-2"
-                :disabled="!meta.valid || processing || waiting"
-                @click="postPasswordNew(!meta.valid, false, setErrors, values)"
-              >
-                送信
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="password" />
-            </v-card-actions>
-          </v-form>
-        </Form>
-      </v-card>
-    </template>
-  </div>
+              送信
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="password" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>

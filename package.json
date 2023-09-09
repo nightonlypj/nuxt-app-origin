@@ -9,7 +9,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext \".js,.ts,.vue\" --ignore-path .gitignore .",
     "lint:fix": "yarn lint --fix",
-    "eslint": "eslint"
+    "eslint": "eslint",
+    "eslint:fix": "eslint --fix"
   },
   "devDependencies": {
     "@mdi/font": "^7.2.96",

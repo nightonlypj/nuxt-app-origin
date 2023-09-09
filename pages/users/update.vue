@@ -1,31 +1,29 @@
 <template>
-  <div>
-    <Head>
-      <Title>ユーザー情報</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="850px">
-        <v-card-title>ユーザー情報</v-card-title>
-        <v-row>
-          <v-col cols="auto" md="4">
-            <UpdateImage @alert="alert = $event" @notice="notice = $event" />
-          </v-col>
-          <v-col cols="12" md="8">
-            <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
-          </v-col>
-        </v-row>
-        <v-divider />
-        <v-card-actions>
-          <ul class="my-2">
-            <li v-if="$auth.user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
-            <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
-          </ul>
-        </v-card-actions>
-      </v-card>
-    </template>
-  </div>
+  <Head>
+    <Title>ユーザー情報</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="850px">
+      <v-card-title>ユーザー情報</v-card-title>
+      <v-row>
+        <v-col cols="auto" md="4">
+          <UpdateImage @alert="alert = $event" @notice="notice = $event" />
+        </v-col>
+        <v-col cols="12" md="8">
+          <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
+        </v-col>
+      </v-row>
+      <v-divider />
+      <v-card-actions>
+        <ul class="my-2">
+          <li v-if="$auth.user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
+          <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
+        </ul>
+      </v-card-actions>
+    </v-card>
+  </template>
 </template>
 
 <script>

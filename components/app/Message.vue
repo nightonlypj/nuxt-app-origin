@@ -1,8 +1,6 @@
 <template>
-  <div v-if="alert != null || notice != null">
-    <v-alert v-if="alert != null" type="error" closable>{{ alert }}</v-alert>
-    <v-alert v-if="notice != null" type="info" closable>{{ notice }}</v-alert>
-  </div>
+  <v-alert v-if="alert != null" type="error" closable>{{ alert }}</v-alert>
+  <v-alert v-if="notice != null" type="info" closable>{{ notice }}</v-alert>
 </template>
 
 <script>

@@ -1,68 +1,66 @@
 <template>
-  <div>
-    <Head>
-      <Title>パスワード再設定</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="480px">
-        <AppProcessing v-if="processing" />
-        <Form v-slot="{ meta, setErrors, values }">
-          <v-form autocomplete="off">
-            <v-card-title>パスワード再設定</v-card-title>
-            <v-card-text
-              id="input_area"
-              @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postPasswordUpdate(!meta.valid, true, setErrors, values)"
+  <Head>
+    <Title>パスワード再設定</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="off">
+          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-text
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
+            @keyup.enter="postPasswordUpdate(!meta.valid, true, setErrors, values)"
+          >
+            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
+              <v-text-field
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
+                label="新しいパスワード [8文字以上]"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @input="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
+              <v-text-field
+                v-model="query.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
+                label="新しいパスワード(確認)"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @input="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <v-btn
+              id="password_update_btn"
+              color="primary"
+              class="mt-4"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postPasswordUpdate(!meta.valid, false, setErrors, values)"
             >
-              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
-                <v-text-field
-                  v-model="query.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="新しいパスワード [8文字以上]"
-                  prepend-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  autocomplete="new-password"
-                  counter
-                  :error-messages="errors"
-                  @input="waiting = false"
-                  @click:append="showPassword = !showPassword"
-                />
-              </Field>
-              <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
-                <v-text-field
-                  v-model="query.password_confirmation"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="新しいパスワード(確認)"
-                  prepend-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  autocomplete="new-password"
-                  counter
-                  :error-messages="errors"
-                  @input="waiting = false"
-                  @click:append="showPassword = !showPassword"
-                />
-              </Field>
-              <v-btn
-                id="password_update_btn"
-                color="primary"
-                class="mt-4"
-                :disabled="!meta.valid || processing || waiting"
-                @click="postPasswordUpdate(!meta.valid, false, setErrors, values)"
-              >
-                変更
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="password" />
-            </v-card-actions>
-          </v-form>
-        </Form>
-      </v-card>
-    </template>
-  </div>
+              変更
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="password" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>

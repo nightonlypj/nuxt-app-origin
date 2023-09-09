@@ -1,5 +1,5 @@
 <template>
-  <div v-if="loading || errorMessage != null || existInfomations">
+  <template v-if="loading || errorMessage != null || existInfomations">
     <AppLoading v-if="loading" height="20vh" />
     <v-card v-else>
       <v-card-title>大切なお知らせ</v-card-title>
@@ -24,7 +24,7 @@
         </article>
       </v-card-text>
     </v-card>
-  </div>
+  </template>
 </template>
 
 <script>

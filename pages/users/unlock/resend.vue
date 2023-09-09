@@ -1,50 +1,48 @@
 <template>
-  <div>
-    <Head>
-      <Title>アカウントロック解除</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="480px">
-        <AppProcessing v-if="processing" />
-        <Form v-slot="{ meta, setErrors, values }">
-          <v-form autocomplete="off" @submit.prevent>
-            <v-card-title>アカウントロック解除</v-card-title>
-            <v-card-text
-              id="input_area"
-              @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postUnlockNew(!meta.valid, true, setErrors, values)"
+  <Head>
+    <Title>アカウントロック解除</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="off" @submit.prevent>
+          <v-card-title>アカウントロック解除</v-card-title>
+          <v-card-text
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
+            @keyup.enter="postUnlockNew(!meta.valid, true, setErrors, values)"
+          >
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="off"
+                :error-messages="errors"
+                @input="waiting = false"
+              />
+            </Field>
+            <v-btn
+              id="unlock_btn"
+              color="primary"
+              class="mt-2"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postUnlockNew(!meta.valid, false, setErrors, values)"
             >
-              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-                <v-text-field
-                  v-model="query.email"
-                  label="メールアドレス"
-                  prepend-icon="mdi-email"
-                  autocomplete="off"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </Field>
-              <v-btn
-                id="unlock_btn"
-                color="primary"
-                class="mt-2"
-                :disabled="!meta.valid || processing || waiting"
-                @click="postUnlockNew(!meta.valid, false, setErrors, values)"
-              >
-                送信
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="unlock" />
-            </v-card-actions>
-          </v-form>
-        </Form>
-      </v-card>
-    </template>
-  </div>
+              送信
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="unlock" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>

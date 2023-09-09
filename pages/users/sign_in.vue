@@ -1,64 +1,62 @@
 <template>
-  <div>
-    <Head>
-      <Title>ログイン</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="480px">
-        <AppProcessing v-if="processing" />
-        <Form v-slot="{ meta }">
-          <v-form autocomplete="on">
-            <v-card-title>ログイン</v-card-title>
-            <v-card-text
-              id="input_area"
-              @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="signIn(!meta.valid, true)"
+  <Head>
+    <Title>ログイン</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta }">
+        <v-form autocomplete="on">
+          <v-card-title>ログイン</v-card-title>
+          <v-card-text
+            id="input_area"
+            @keydown.enter="appSetKeyDownEnter"
+            @keyup.enter="signIn(!meta.valid, true)"
+          >
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="email"
+                :error-messages="errors"
+                @input="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
+              <v-text-field
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="current-password"
+                counter
+                :error-messages="errors"
+                @input="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <v-btn
+              id="sign_in_btn"
+              color="primary"
+              class="mt-4"
+              :disabled="!meta.valid || processing || waiting"
+              @click="signIn(!meta.valid, false)"
             >
-              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-                <v-text-field
-                  v-model="query.email"
-                  label="メールアドレス"
-                  prepend-icon="mdi-email"
-                  autocomplete="email"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </Field>
-              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
-                <v-text-field
-                  v-model="query.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="パスワード"
-                  prepend-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  autocomplete="current-password"
-                  counter
-                  :error-messages="errors"
-                  @input="waiting = false"
-                  @click:append="showPassword = !showPassword"
-                />
-              </Field>
-              <v-btn
-                id="sign_in_btn"
-                color="primary"
-                class="mt-4"
-                :disabled="!meta.valid || processing || waiting"
-                @click="signIn(!meta.valid, false)"
-              >
-                ログイン
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="sign_in" />
-            </v-card-actions>
-          </v-form>
-        </Form>
-      </v-card>
-    </template>
-  </div>
+              ログイン
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="sign_in" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>

@@ -1,26 +1,24 @@
 <template>
-  <div>
-    <Head>
-      <Title>ログアウト</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <v-card v-else max-width="480px">
-      <AppProcessing v-if="processing" />
-      <v-card-title>ログアウトします。よろしいですか？</v-card-title>
-      <v-card-text>
-        <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
-        <v-btn
-          id="sign_out_btn"
-          class="ml-1"
-          color="primary"
-          :disabled="processing"
-          @click="signOut()"
-        >
-          はい（ログアウト）
-        </v-btn>
-      </v-card-text>
-    </v-card>
-  </div>
+  <Head>
+    <Title>ログアウト</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <v-card v-else max-width="480px">
+    <AppProcessing v-if="processing" />
+    <v-card-title>ログアウトします。よろしいですか？</v-card-title>
+    <v-card-text>
+      <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
+      <v-btn
+        id="sign_out_btn"
+        class="ml-1"
+        color="primary"
+        :disabled="processing"
+        @click="signOut()"
+      >
+        はい（ログアウト）
+      </v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>

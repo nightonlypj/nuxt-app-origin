@@ -1,85 +1,83 @@
 <template>
-  <div>
-    <Head>
-      <Title>アカウント登録</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <template v-else>
-      <AppMessage :alert="alert" :notice="notice" />
-      <v-card max-width="480px">
-        <AppProcessing v-if="processing" />
-        <Form v-slot="{ meta, setErrors, values }">
-          <v-form autocomplete="on">
-            <v-card-title>アカウント登録</v-card-title>
-            <v-card-text>
-              <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
-                <v-text-field
-                  v-model="query.name"
-                  label="氏名"
-                  prepend-icon="mdi-account"
-                  autocomplete="name"
-                  counter="32"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </Field>
-              <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-                <v-text-field
-                  v-model="query.email"
-                  label="メールアドレス"
-                  prepend-icon="mdi-email"
-                  autocomplete="email"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </Field>
-              <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
-                <v-text-field
-                  v-model="query.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="パスワード [8文字以上]"
-                  prepend-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  autocomplete="new-password"
-                  counter
-                  :error-messages="errors"
-                  @input="waiting = false"
-                  @click:append="showPassword = !showPassword"
-                />
-              </Field>
-              <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
-                <v-text-field
-                  v-model="query.password_confirmation"
-                  :type="showPassword ? 'text' : 'password'"
-                  label="パスワード(確認)"
-                  prepend-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  autocomplete="new-password"
-                  counter
-                  :error-messages="errors"
-                  @input="waiting = false"
-                  @click:append="showPassword = !showPassword"
-                />
-              </Field>
-              <v-btn
-                id="sign_up_btn"
-                color="primary"
-                class="mt-4"
-                :disabled="!meta.valid || processing || waiting"
-                @click="postSingUp(setErrors, values)"
-              >
-                登録
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="sign_up" />
-            </v-card-actions>
-          </v-form>
-        </Form>
-      </v-card>
-    </template>
-  </div>
+  <Head>
+    <Title>アカウント登録</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage :alert="alert" :notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="on">
+          <v-card-title>アカウント登録</v-card-title>
+          <v-card-text>
+            <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
+              <v-text-field
+                v-model="query.name"
+                label="氏名"
+                prepend-icon="mdi-account"
+                autocomplete="name"
+                counter="32"
+                :error-messages="errors"
+                @input="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="email"
+                :error-messages="errors"
+                @input="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
+              <v-text-field
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード [8文字以上]"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @input="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
+              <v-text-field
+                v-model="query.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード(確認)"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @input="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <v-btn
+              id="sign_up_btn"
+              color="primary"
+              class="mt-4"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postSingUp(setErrors, values)"
+            >
+              登録
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="sign_up" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>

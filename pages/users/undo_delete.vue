@@ -1,58 +1,56 @@
 <template>
-  <div>
-    <Head>
-      <Title>アカウント削除取り消し</Title>
-    </Head>
-    <AppLoading v-if="loading" />
-    <v-card v-else max-width="640px">
-      <AppProcessing v-if="processing" />
-      <v-card-title>アカウント削除取り消し</v-card-title>
-      <v-card-text>
-        <p>
-          このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
-          <template v-if="$auth.user.destroy_requested_at != null">
-            （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
-          </template>
-        </p>
-        <v-dialog transition="dialog-top-transition" max-width="600px">
-          <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              id="user_undo_delete_btn"
-              color="primary"
-              :disabled="processing"
-            >
-              取り消し
-            </v-btn>
-          </template>
-          <template #default="{ isActive }">
-            <v-card id="user_undo_delete_dialog">
-              <v-toolbar color="primary" dense>アカウント削除取り消し</v-toolbar>
-              <v-card-text>
-                <div class="text-h6 pa-4">本当に取り消しますか？</div>
-              </v-card-text>
-              <v-card-actions class="justify-end">
-                <v-btn
-                  id="user_undo_delete_yes_btn"
-                  color="primary"
-                  @click="postUserUndoDelete(isActive)"
-                >
-                  はい（削除取り消し）
-                </v-btn>
-                <v-btn
-                  id="user_undo_delete_no_btn"
-                  color="secondary"
-                  @click="isActive.value = false"
-                >
-                  いいえ（キャンセル）
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog>
-      </v-card-text>
-    </v-card>
-  </div>
+  <Head>
+    <Title>アカウント削除取り消し</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <v-card v-else max-width="640px">
+    <AppProcessing v-if="processing" />
+    <v-card-title>アカウント削除取り消し</v-card-title>
+    <v-card-text>
+      <p>
+        このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+        <template v-if="$auth.user.destroy_requested_at != null">
+          （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+        </template>
+      </p>
+      <v-dialog transition="dialog-top-transition" max-width="600px">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            id="user_undo_delete_btn"
+            color="primary"
+            :disabled="processing"
+          >
+            取り消し
+          </v-btn>
+        </template>
+        <template #default="{ isActive }">
+          <v-card id="user_undo_delete_dialog">
+            <v-toolbar color="primary" dense>アカウント削除取り消し</v-toolbar>
+            <v-card-text>
+              <div class="text-h6 pa-4">本当に取り消しますか？</div>
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn
+                id="user_undo_delete_yes_btn"
+                color="primary"
+                @click="postUserUndoDelete(isActive)"
+              >
+                はい（削除取り消し）
+              </v-btn>
+              <v-btn
+                id="user_undo_delete_no_btn"
+                color="secondary"
+                @click="isActive.value = false"
+              >
+                いいえ（キャンセル）
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
