@@ -144,7 +144,7 @@ export default defineNuxtComponent({
 
     successAction (data) {
       this.$auth.setData(data)
-      this.appSetToastedMessage(data, false)
+      this.appSetToastedMessage(data, false, true)
       this.image = null
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }

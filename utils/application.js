@@ -49,7 +49,7 @@ export default defineNuxtComponent({
           updateRedirectUrl(this.$route?.fullPath)
           navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: this.appGetAlertMessage(data, action.require, 'auth.unauthenticated'), notice: data?.notice } })
         } else if (action.toasted) {
-          this.appSetToastedMessage(data, action.require, 'auth.unauthenticated')
+          this.appSetToastedMessage(data, action.require, false, 'auth.unauthenticated')
         }
         return (action.returnKey) ? 'auth.unauthenticated' : false
       } else if (check.forbidden && status === 403) {
@@ -74,7 +74,7 @@ export default defineNuxtComponent({
       if (action.redirect) {
         this.appRedirectError(status, { alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice })
       } else if (action.toasted) {
-        this.appSetToastedMessage(data, true, alertKey)
+        this.appSetToastedMessage(data, true, status === 200, alertKey)
       }
       return (action.returnKey) ? alertKey : false
     },
@@ -88,10 +88,16 @@ export default defineNuxtComponent({
       this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))
       this.$emit('notice', data?.notice || null)
     },
-    appSetToastedMessage (data, require, defaultKey = 'system.default') {
+    appSetToastedMessage (data, require, success = false, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)
       if (alert != null) { this.$toast.error(alert) }
-      if (data?.notice != null) { this.$toast.info(data.notice) }
+      if (data?.notice != null) {
+        if (success) {
+          this.$toast.success(data.notice)
+        } else {
+          this.$toast.info(data.notice)
+        }
+      }
     },
     appSetQueryMessage () {
       if (Object.keys(this.$route.query).length === 0) { return }
@@ -106,7 +112,7 @@ export default defineNuxtComponent({
 
     // リダイレクト
     appRedirectAuth () {
-      this.appSetToastedMessage({ notice: this.$t('auth.unauthenticated') }, false)
+      this.appSetToastedMessage({ notice: this.$t('auth.unauthenticated') }, false, false)
       const { updateRedirectUrl } = useAuthRedirect()
       updateRedirectUrl(this.$route?.fullPath)
       navigateTo(this.$config.public.authRedirectSignInURL)
@@ -124,7 +130,7 @@ export default defineNuxtComponent({
       this.appRedirectTop({ alert: this.$t('auth.not_destroy_reserved') })
     },
     appRedirectTop (data, require = false) {
-      this.appSetToastedMessage(data, require)
+      this.appSetToastedMessage(data, require, false)
       navigateTo('/')
     },
     appRedirectError (statusCode, data) {

@@ -1,5 +1,5 @@
 <template>
-  <v-alert v-if="alert != null" type="error" closable>{{ alert }}</v-alert>
+  <v-alert v-if="alert != null" type="error" icon="mdi-alert" closable>{{ alert }}</v-alert>
   <v-alert v-if="notice != null" type="info" closable>{{ notice }}</v-alert>
 </template>
 

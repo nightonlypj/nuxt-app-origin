@@ -18,6 +18,18 @@
       <IndexInfomations />
     </v-col>
   </v-row>
+  <v-row v-if="!production">
+    <v-col cols="12" md="6" class="px-2 py-2">
+      <v-card>
+        <v-card-title>development</v-card-title>
+        <v-card-actions>
+          <ul>
+            <li><NuxtLink to="/development/color">テーマカラー確認</NuxtLink></li>
+          </ul>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script>
@@ -35,6 +47,12 @@ export default defineNuxtComponent({
     const $config = useRuntimeConfig()
     return {
       titleTemplate: `${$t('app_name')}${$config.public.envName}`
+    }
+  },
+
+  computed: {
+    production () {
+      return process.env.NODE_ENV === 'production'
     }
   }
 })

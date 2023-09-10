@@ -52,7 +52,7 @@ export default defineNuxtComponent({
     async signOut () {
       this.processing = true
       await useAuthSignOut()
-      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false)
+      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false, true)
       navigateTo(this.$config.public.authRedirectLogOutURL)
     }
   }

@@ -143,7 +143,7 @@ export default defineNuxtComponent({
         if (!this.appCheckResponse(data, { toasted: true })) { return }
 
         this.$auth.setData(data)
-        this.appSetToastedMessage(data, false)
+        this.appSetToastedMessage(data, false, true)
 
         const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
         navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
