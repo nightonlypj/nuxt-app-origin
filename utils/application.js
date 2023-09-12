@@ -1,4 +1,6 @@
 export default defineNuxtComponent({
+  emits: ['alert', 'notice'],
+
   computed: {
     appTableHeight () {
       return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'

@@ -14,7 +14,7 @@
             @input="waiting = false"
           />
         </Field>
-        <v-alert v-if="user.unconfirmed_email != null" color="info">
+        <v-alert v-if="user.unconfirmed_email != null" color="warning" class="mb-2">
           確認待ち: {{ user.unconfirmed_email }}<br>
           <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
         </v-alert>
@@ -73,7 +73,7 @@
         <v-btn
           id="user_update_btn"
           color="primary"
-          class="mt-4"
+          class="mt-2"
           :disabled="!meta.valid || processing || waiting"
           @click="postUserUpdate(setErrors, values)"
         >

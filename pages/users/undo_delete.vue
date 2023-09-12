@@ -19,6 +19,7 @@
             v-bind="props"
             id="user_undo_delete_btn"
             color="primary"
+            class="mt-4"
             :disabled="processing"
           >
             取り消し
@@ -26,7 +27,7 @@
         </template>
         <template #default="{ isActive }">
           <v-card id="user_undo_delete_dialog">
-            <v-toolbar color="primary" dense>アカウント削除取り消し</v-toolbar>
+            <v-toolbar color="primary" density="compact" title="アカウント削除取り消し" />
             <v-card-text>
               <div class="text-h6 pa-4">本当に取り消しますか？</div>
             </v-card-text>
@@ -34,6 +35,7 @@
               <v-btn
                 id="user_undo_delete_yes_btn"
                 color="primary"
+                variant="elevated"
                 @click="postUserUndoDelete(isActive)"
               >
                 はい（削除取り消し）
@@ -41,6 +43,7 @@
               <v-btn
                 id="user_undo_delete_no_btn"
                 color="secondary"
+                variant="elevated"
                 @click="isActive.value = false"
               >
                 いいえ（キャンセル）

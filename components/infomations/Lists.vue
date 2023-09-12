@@ -16,7 +16,7 @@
         </span>
       </div>
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <div v-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+      <div v-if="infomation.summary" class="ma-2" v-html="infomation.summary" />
       <v-divider class="my-4" />
     </article>
   </template>

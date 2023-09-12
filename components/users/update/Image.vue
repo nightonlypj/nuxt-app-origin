@@ -20,7 +20,7 @@
         <v-btn
           id="user_image_update_btn"
           color="primary"
-          class="mt-2"
+          class="mt-2 mr-2"
           :disabled="!meta.valid || image == null || processing || waiting"
           @click="postUserImageUpdate(setErrors, values)"
         >
@@ -40,7 +40,7 @@
           </template>
           <template #default="{ isActive }">
             <v-card id="user_image_delete_dialog">
-              <v-toolbar color="secondary" dense>画像削除</v-toolbar>
+              <v-toolbar color="warning" density="compact" title="画像削除" />
               <v-card-text>
                 <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>
@@ -48,13 +48,15 @@
                 <v-btn
                   id="user_image_delete_no_btn"
                   color="secondary"
+                  variant="elevated"
                   @click="isActive.value = false"
                 >
                   いいえ（キャンセル）
                 </v-btn>
                 <v-btn
                   id="user_image_delete_yes_btn"
-                  color="primary"
+                  color="warning"
+                  variant="elevated"
                   @click="postUserImageDelete(isActive)"
                 >
                   はい（削除）

@@ -1,6 +1,6 @@
 <template>
-  <v-row class="pt-2">
-    <v-col cols="12" md="12" class="px-2 py-2">
+  <v-row>
+    <v-col cols="12" md="12">
       <v-card>
         <v-card-title>
           Nuxt.js(Vuetify)のベースアプリケーションです。（サービス概要に差し替え）
@@ -11,15 +11,15 @@
         </v-card-text>
       </v-card>
     </v-col>
-    <v-col v-if="!$auth.loggedIn" cols="12" md="6" class="px-2 py-2">
+    <v-col v-if="!$auth.loggedIn" cols="12" md="6">
       <IndexSignUp />
     </v-col>
-    <v-col cols="12" md="6" class="px-2 py-2">
+    <v-col cols="12" md="6">
       <IndexInfomations />
     </v-col>
   </v-row>
   <v-row v-if="!production">
-    <v-col cols="12" md="6" class="px-2 py-2">
+    <v-col cols="12" md="6">
       <v-card>
         <v-card-title>development</v-card-title>
         <v-card-actions>

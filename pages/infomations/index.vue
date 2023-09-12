@@ -11,7 +11,7 @@
         <v-col class="align-self-center text-no-wrap">
           {{ $localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString('ja', $pageFirstNumber(infomation), 'N/A') }}-{{ $localeString('ja', $pageLastNumber(infomation), 'N/A') }}件を表示</template>
         </v-col>
-        <v-col v-if="enablePagination" class="px-0 py-0">
+        <v-col v-if="enablePagination" class="pa-0">
           <div class="d-flex justify-end">
             <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
           </div>
