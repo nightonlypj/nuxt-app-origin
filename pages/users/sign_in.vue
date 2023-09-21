@@ -17,6 +17,7 @@
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
+                id="input_email"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -27,6 +28,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
               <v-text-field
+                id="input_password"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード"
@@ -140,17 +142,16 @@ export default defineNuxtComponent({
       })
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.$auth.setData(data)
+          this.appSetToastedMessage(data, false, true)
 
-        this.$auth.setData(data)
-        this.appSetToastedMessage(data, false, true)
-
-        const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
-        navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
-        updateRedirectUrl(null)
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
-
+          const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
+          navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
+          updateRedirectUrl(null)
+          return
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
         this.appSetMessage(data, true)
         this.waiting = true
       }

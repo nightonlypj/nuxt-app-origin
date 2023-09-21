@@ -13,7 +13,7 @@
           （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
         </template>
       </p>
-      <v-dialog transition="dialog-top-transition" max-width="600px">
+      <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
@@ -98,10 +98,10 @@ export default defineNuxtComponent({
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl, 'POST')
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        this.$auth.setData(data)
-        this.appRedirectTop(data)
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.$auth.setData(data)
+          return this.appRedirectTop(data, true)
+        }
       } else {
         this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })
       }

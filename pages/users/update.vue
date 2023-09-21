@@ -74,10 +74,10 @@ export default defineNuxtComponent({
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { redirect: true }, data?.user == null)) { return }
-
-        this.user = data.user
-        result = true
+        if (this.appCheckResponse(data, { redirect: true }, data?.user == null)) {
+          this.user = data.user
+          result = true
+        }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
       }

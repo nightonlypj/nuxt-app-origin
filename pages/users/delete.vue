@@ -11,7 +11,7 @@
         アカウントは{{ destroyScheduleDays || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
         削除されるまではログインできますが、一部機能が制限されます。
       </p>
-      <v-dialog transition="dialog-top-transition" max-width="600px">
+      <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
@@ -105,10 +105,10 @@ export default defineNuxtComponent({
       })
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        await useAuthSignOut()
-        navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+        if (this.appCheckResponse(data, { toasted: true })) {
+          await useAuthSignOut()
+          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+        }
       } else {
         this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, reserved: true })
       }

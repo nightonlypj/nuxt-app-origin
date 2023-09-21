@@ -58,6 +58,7 @@
         </Field>
         <Field v-slot="{ errors }" v-model="query.current_password" name="current_password" rules="required">
           <v-text-field
+            id="input_current_password"
             v-model="query.current_password"
             :type="showPassword ? 'text' : 'password'"
             label="現在のパスワード"
@@ -141,16 +142,14 @@ export default defineNuxtComponent({
       })
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        this.$auth.setData(data)
-        this.appRedirectTop(data)
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
-
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.$auth.setData(data)
+          this.appRedirectTop(data, true)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
         this.appSetEmitMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

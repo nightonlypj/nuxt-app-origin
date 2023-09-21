@@ -74,7 +74,7 @@ export default defineNuxtComponent({
     // レスポンス返却
     appReturnResponse (action, status, alertKey, data = null) {
       if (action.redirect) {
-        this.appRedirectError(status, { alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice })
+        this.appRedirectError(status, { alert: this.appGetAlertMessage(data, true, alertKey), notice: data?.notice || null })
       } else if (action.toasted) {
         this.appSetToastedMessage(data, true, status === 200, alertKey)
       }
@@ -131,12 +131,14 @@ export default defineNuxtComponent({
     appRedirectNotDestroyReserved () {
       this.appRedirectTop({ alert: this.$t('auth.not_destroy_reserved') })
     },
-    appRedirectTop (data, require = false) {
-      this.appSetToastedMessage(data, require, false)
+    appRedirectTop (data, success = false) {
+      this.appSetToastedMessage(data, false, success)
       navigateTo('/')
     },
     appRedirectError (statusCode, data) {
-      throw showError({ statusCode, data: { alert: data.alert, notice: data.notice } })
+      showError({ statusCode, data: { alert: data.alert, notice: data.notice } })
+      // eslint-disable-next-line no-throw-literal
+      if (process.env.NODE_ENV !== 'test') { throw 'showError' }
     }
   }
 })

@@ -65,9 +65,9 @@ export default defineNuxtComponent({
 
       if (response?.ok) {
         this.errorMessage = this.appCheckResponse(data, { returnKey: true })
-        if (this.errorMessage != null) { return }
-
-        this.infomations = data.infomations
+        if (this.errorMessage == null) {
+          this.infomations = data.infomations
+        }
       } else {
         this.errorMessage = this.appCheckErrorResponse(response?.status, data, { returnKey: true, require: true })
       }

@@ -79,24 +79,22 @@ export default defineNuxtComponent({
       let result = false
 
       const redirect = this.infomation == null
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl + '?' + new URLSearchParams({ page: this.page }))
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl + '?' + new URLSearchParams({
+        page: this.page
+      }))
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.infomation?.current_page !== this.page)) { return }
-
-        this.infomation = data.infomation
-        this.infomations = data.infomations
-        result = true
+        if (this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.infomation?.current_page !== this.page)) {
+          this.infomation = data.infomation
+          this.infomations = data.infomations
+          result = true
+        }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true })
       }
 
       this.page = this.infomation?.current_page || 1
-      if (this.page === 1) {
-        navigateTo({ query: null })
-      } else {
-        navigateTo({ query: { page: this.page } })
-      }
+      navigateTo({ query: this.page === 1 ? null : { page: this.page } })
 
       this.processing = false
       return result

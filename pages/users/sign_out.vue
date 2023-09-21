@@ -7,14 +7,11 @@
     <AppProcessing v-if="processing" />
     <v-card-title>ログアウトします。よろしいですか？</v-card-title>
     <v-card-text>
-      <v-btn
-        color="secondary"
-        to="/"
-        nuxt
-        class="mb-2 mr-1"
-      >
-        いいえ（トップページ）
-      </v-btn>
+      <NuxtLink to="/">
+        <v-btn color="secondary" class="mb-2 mr-1">
+          いいえ（トップページ）
+        </v-btn>
+      </NuxtLink>
       <v-btn
         id="sign_out_btn"
         color="primary"

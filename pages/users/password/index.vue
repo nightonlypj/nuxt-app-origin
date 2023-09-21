@@ -17,6 +17,7 @@
           >
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
               <v-text-field
+                id="input_password"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード [8文字以上]"
@@ -31,6 +32,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
               <v-text-field
+                id="input_password_confirmation"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード(確認)"
@@ -134,20 +136,18 @@ export default defineNuxtComponent({
       })
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        this.$auth.setData(data)
-        this.appRedirectTop(data)
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-          return
-        } else if (data.errors == null) {
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.$auth.setData(data)
+          return this.appRedirectTop(data, true)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
+        if (data.errors == null) {
           return navigateTo({ path: '/users/password/reset', query: { alert: this.appGetAlertMessage(data, true), notice: data.notice } })
         }
 
         this.appSetMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

@@ -8,6 +8,7 @@
         </v-avatar>
         <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
           <v-file-input
+            id="input_image"
             v-model="image"
             accept="image/jpeg,image/gif,image/png"
             label="画像ファイル"
@@ -26,7 +27,7 @@
         >
           アップロード
         </v-btn>
-        <v-dialog transition="dialog-top-transition" max-width="600px">
+        <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
@@ -108,15 +109,13 @@ export default defineNuxtComponent({
       }, 'form')
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        this.successAction(data)
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
-
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.successAction(data)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
         this.appSetEmitMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }
@@ -132,12 +131,10 @@ export default defineNuxtComponent({
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        this.successAction(data)
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) { return }
-
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.successAction(data)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
         this.appSetEmitMessage(data, true)
       }
 

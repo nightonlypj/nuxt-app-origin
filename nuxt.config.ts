@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
   runtimeConfig: {
-    public: Object.assign(commonConfig, config.envConfig)
+    public: Object.assign(commonConfig, config.envConfig, { env: { production: environment === 'production', test: false } })
   },
   modules: [
     '@nuxtjs/i18n',

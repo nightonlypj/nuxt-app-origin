@@ -13,10 +13,11 @@
           <v-card-text
             id="input_area"
             @keydown.enter="appSetKeyDownEnter"
-            @keyup.enter="postConfirmationNew(!meta.valid, true, setErrors, values)"
+            @keyup.enter="postConfirmation(!meta.valid, true, setErrors, values)"
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
+                id="input_email"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -30,7 +31,7 @@
               color="primary"
               class="mt-2"
               :disabled="!meta.valid || processing || waiting"
-              @click="postConfirmationNew(!meta.valid, false, setErrors, values)"
+              @click="postConfirmation(!meta.valid, false, setErrors, values)"
             >
               送信
             </v-btn>
@@ -96,7 +97,7 @@ export default defineNuxtComponent({
 
   methods: {
     // メールアドレス確認
-    async postConfirmationNew (invalid, keydown, setErrors, values) {
+    async postConfirmation (invalid, keydown, setErrors, values) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
@@ -108,19 +109,17 @@ export default defineNuxtComponent({
       })
 
       if (response?.ok) {
-        if (!this.appCheckResponse(data, { toasted: true })) { return }
-
-        if (this.$auth.loggedIn) {
-          this.appRedirectTop(data)
-        } else {
-          navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+        if (this.appCheckResponse(data, { toasted: true })) {
+          if (this.$auth.loggedIn) {
+            return this.appRedirectTop(data, true)
+          } else {
+            return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+          }
         }
-      } else {
-        if (!this.appCheckErrorResponse(response?.status, data, { toasted: true })) { return }
-
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
         this.appSetMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvaildがtrueに戻らない為
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

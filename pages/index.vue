@@ -18,7 +18,7 @@
       <IndexInfomations />
     </v-col>
   </v-row>
-  <v-row v-if="!production">
+  <v-row v-if="!$config.public.env.production">
     <v-col cols="12" md="6">
       <v-card>
         <v-card-title>development</v-card-title>
@@ -42,18 +42,14 @@ export default defineNuxtComponent({
     IndexInfomations
   },
 
+  /* c8 ignore start */
   head () {
     const { t: $t } = useI18n()
     const $config = useRuntimeConfig()
     return {
       titleTemplate: `${$t('app_name')}${$config.public.envName}`
     }
-  },
-
-  computed: {
-    production () {
-      return process.env.NODE_ENV === 'production'
-    }
   }
+  /* c8 ignore stop */
 })
 </script>

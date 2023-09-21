@@ -14,14 +14,14 @@
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
-        <v-btn to="/users/sign_in" text rounded nuxt>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" text rounded>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
-        </v-btn>
-        <v-btn to="/users/sign_up" text rounded nuxt>
+        </component>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" text rounded>
           <v-icon>mdi-account-plus</v-icon>
           <div class="hidden-sm-and-down">アカウント登録</div>
-        </v-btn>
+        </component>
       </template>
       <template v-else>
         <v-menu>
@@ -40,21 +40,21 @@
             </v-btn>
           </template>
           <v-list>
-            <v-list-item to="/users/update" nuxt rounded="xl">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
-            </v-list-item>
-            <v-list-item to="/users/sign_out" nuxt rounded="xl">
+            </component>
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
                 ログアウト
               </v-list-item-title>
-            </v-list-item>
+            </component>
           </v-list>
         </v-menu>
-        <v-btn to="/infomations" text rounded nuxt>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" text rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
             :model-value="$auth.user.infomation_unread_count > 0"
@@ -63,25 +63,25 @@
           >
             <v-icon size="large">mdi-bell</v-icon>
           </v-badge>
-        </v-btn>
+        </component>
       </template>
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" width="300">
       <v-list>
         <template v-if="!$auth.loggedIn">
-          <v-list-item to="/users/sign_in" nuxt>
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_in">
             <v-list-item-title>
               <v-icon>mdi-login</v-icon>
               ログイン
             </v-list-item-title>
-          </v-list-item>
-          <v-list-item to="/users/sign_up" nuxt>
+          </component>
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_up">
             <v-list-item-title>
               <v-icon>mdi-account-plus</v-icon>
               アカウント登録
             </v-list-item-title>
-          </v-list-item>
+          </component>
         </template>
         <template v-else>
           <v-list-group>
@@ -95,22 +95,22 @@
                 </v-list-item-title>
               </v-list-item>
             </template>
-            <v-list-item to="/users/update" nuxt>
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
-            </v-list-item>
-            <v-list-item to="/users/sign_out" nuxt>
+            </component>
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
                 ログアウト
               </v-list-item-title>
-            </v-list-item>
+            </component>
           </v-list-group>
         </template>
         <v-divider />
-        <v-list-item to="/infomations" nuxt>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/infomations">
           <v-list-item-title>
             <template v-if="$auth.loggedIn">
               <v-badge
@@ -129,7 +129,7 @@
               お知らせ
             </template>
           </v-list-item-title>
-        </v-list-item>
+        </component>
       </v-list>
     </v-navigation-drawer>
 
@@ -166,6 +166,7 @@ export default defineNuxtComponent({
     }
   },
 
+  /* c8 ignore start */
   head () {
     const { t: $t } = useI18n()
     const $config = useRuntimeConfig()
@@ -173,6 +174,7 @@ export default defineNuxtComponent({
       titleTemplate: `%s - ${$t('app_name')}${$config.public.envName}`
     }
   },
+  /* c8 ignore stop */
 
   created () {
     this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
