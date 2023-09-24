@@ -137,7 +137,7 @@ export default defineNuxtComponent({
     },
     appRedirectError (statusCode, data) {
       showError({ statusCode, data: { alert: data.alert, notice: data.notice } })
-      // eslint-disable-next-line no-throw-literal
+      /* c8 ignore next */ // eslint-disable-next-line no-throw-literal
       if (process.env.NODE_ENV !== 'test') { throw 'showError' }
     }
   }

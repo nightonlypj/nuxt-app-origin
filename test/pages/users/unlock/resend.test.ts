@@ -8,7 +8,6 @@ import Page from '~/pages/users/unlock/resend.vue'
 
 describe('resend.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,

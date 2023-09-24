@@ -6,7 +6,6 @@ import Page from '~/pages/infomations/[id].vue'
 
 describe('_id.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -75,9 +74,10 @@ describe('_id.vue', () => {
       apiCalledTest()
     }
 
-    it('[本文あり]表示される', async () => {
+    it('[ラベル・本文あり]表示される', async () => {
       const data = Object.freeze({
         infomation: {
+          label_i18n: 'メンテナンス',
           title: 'タイトル1',
           summary: '概要1',
           body: '本文1',
@@ -89,9 +89,10 @@ describe('_id.vue', () => {
 
       viewTest(wrapper, data)
     })
-    it('[本文なし]表示される', async () => {
+    it('[ラベル・本文なし]表示される', async () => {
       const data = Object.freeze({
         infomation: {
+          label_i18n: null,
           title: 'タイトル1',
           summary: '概要1',
           body: null,

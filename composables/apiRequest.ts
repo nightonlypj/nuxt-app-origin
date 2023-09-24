@@ -1,7 +1,7 @@
 // APIリクエスト
 export const useApiRequest = async (url: string, method = 'GET', params: object | null = null, type = 'json') => {
   const $config = useRuntimeConfig()
-  // eslint-disable-next-line no-console
+  /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useApiRequest', method, url) }
 
   // Devise Token Auth
@@ -46,10 +46,12 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
       },
       body
     })
+  /* c8 ignore start */
   } catch (error) {
     // eslint-disable-next-line no-console
     if ($config.public.debug) { console.log(error) }
   }
+  /* c8 ignore stop */
 
   // Devise Token Auth
   if (response != null) {
@@ -67,6 +69,7 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
   let data: any = null
   try {
     if (response != null) { data = await response.json() }
+  /* c8 ignore start */
   } catch (error) {
     // eslint-disable-next-line no-console
     if ($config.public.debug) { console.log(error) }
@@ -74,6 +77,7 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
 
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log(response, data) }
+  /* c8 ignore stop */
 
   return [response, data]
 }

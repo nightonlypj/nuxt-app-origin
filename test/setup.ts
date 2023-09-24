@@ -34,6 +34,7 @@ config.global.mocks = {
   },
   ...TestPluginUtils
 }
+vi.stubGlobal('useRuntimeConfig', vi.fn(() => config.global.mocks.$config))
 vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t })))
 
 // NOTE: Failed to resolve component: NuxtLink

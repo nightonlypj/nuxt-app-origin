@@ -6,7 +6,6 @@ import Component from '~/components/index/Infomations.vue'
 
 describe('Infomations.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null

@@ -1,7 +1,7 @@
 // ユーザー情報更新
 export const useAuthUser = async () => {
   const $config = useRuntimeConfig()
-  // eslint-disable-next-line no-console
+  /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useAuthUser') }
 
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authUserURL)

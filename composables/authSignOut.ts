@@ -1,7 +1,7 @@
 // ログアウト
 export const useAuthSignOut = async (skipRequest = false) => {
   const $config = useRuntimeConfig()
-  // eslint-disable-next-line no-console
+  /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useAuthSignOut') }
 
   if (!skipRequest) {

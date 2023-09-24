@@ -1,7 +1,6 @@
 <template>
   <template v-if="!loading">
-    <!-- v-alert type="error" class="mb-2">error</v-alert -->
-    <v-alert type="error" icon="mdi-alert" class="mb-2">error(mdi-alert)</v-alert>
+    <v-alert type="error" icon="mdi-alert" class="mb-2">error(mdi-alert)</v-alert><!-- NOTE: mdi-alert追加 -->
     <v-alert type="info" class="mb-2">info</v-alert>
     <v-alert type="warning" class="mb-2">warning</v-alert>
     <v-alert type="success" class="mb-2">success</v-alert>
@@ -30,10 +29,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
 const loading = ref(true)
 if (process.env.NODE_ENV === 'production') {
+  /* c8 ignore next */
   showError({ statusCode: 404 })
 } else {
   loading.value = false

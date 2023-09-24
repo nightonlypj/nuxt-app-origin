@@ -8,7 +8,6 @@ import Page from '~/pages/users/password/index.vue'
 
 describe('index.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -77,6 +76,7 @@ describe('index.vue', () => {
     // 入力
     wrapper.find('#input_password').setValue('abc12345')
     wrapper.find('#input_password_confirmation').setValue('abc12345')
+    wrapper.vm.$data.showPassword = true
 
     // 変更ボタン
     await helper.waitChangeDisabled(button, false)

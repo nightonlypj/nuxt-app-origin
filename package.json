@@ -12,8 +12,8 @@
     "eslint": "eslint",
     "eslint:fix": "eslint --fix",
     "test": "vitest run",
-    "test:coverage": "yarn test --coverage",
-    "test:watch": "vitest watch"
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch --coverage"
   },
   "devDependencies": {
     "@mdi/font": "^7.2.96",

@@ -8,7 +8,6 @@ import Page from '~/pages/users/password/reset.vue'
 
 describe('reset.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,

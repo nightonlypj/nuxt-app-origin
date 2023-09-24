@@ -1,6 +1,11 @@
 <template>
   <template v-if="infomations != null && infomations.length > 0">
-    <article v-for="infomation in infomations" :key="infomation.id" @dblclick="redirectInfomation(infomation)">
+    <article
+      v-for="infomation in infomations"
+      :id="`infomation_list${infomation.id}`"
+      :key="infomation.id"
+      @dblclick="redirectInfomation(infomation)"
+    >
       <div>
         <InfomationsLabel :infomation="infomation" />
         <span class="ml-1 font-weight-bold">

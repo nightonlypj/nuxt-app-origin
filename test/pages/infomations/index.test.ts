@@ -7,7 +7,6 @@ import Page from '~/pages/infomations/index.vue'
 
 describe('index.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -156,7 +155,7 @@ describe('index.vue', () => {
 
       // ページネーション（2頁目）
       wrapper.vm.$data.page = 2
-      wrapper.find('#pagination1').trigger('click')
+      wrapper.find('#pagination2').trigger('click') // NOTE: pagination2でも確認
       await helper.sleep(1)
 
       apiCalledTest(2)

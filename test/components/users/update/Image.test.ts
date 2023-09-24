@@ -5,7 +5,6 @@ import Component from '~/components/users/update/Image.vue'
 
 describe('Image.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -176,7 +175,7 @@ describe('Image.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -266,7 +265,7 @@ describe('Image.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)

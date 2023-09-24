@@ -1,41 +1,35 @@
 <template>
-  <v-layout-item
-    v-scroll="onScroll"
+  <div
+    id="back_to_top_item"
+    v-scroll="updateShow"
     class="text-end pointer-events-none"
-    model-value
-    position="bottom"
-    size="44"
+    @scroll="updateShow()"
   >
-    <div class="ma-4">
-      <v-fab-transition>
-        <v-btn
-          v-show="model"
-          class="mt-auto pointer-events-initial"
-          color="primary"
-          elevation="8"
-          icon="mdi-chevron-up"
-          size="default"
-          @click="onClick"
-        />
-      </v-fab-transition>
-    </div>
-  </v-layout-item>
+    <!-- NOTE: @scrollはtestの為 -->
+    <v-fab-transition class="ma-4">
+      <v-btn
+        v-show="show"
+        id="back_to_top_btn"
+        class="mt-auto pointer-events-initial"
+        color="primary"
+        elevation="8"
+        icon="mdi-chevron-up"
+        size="default"
+        @click="backToTop()"
+      />
+    </v-fab-transition>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+const show = ref(false)
 
-const model = ref(false)
-
-function onScroll () {
-  model.value = window.scrollY > 200
+function updateShow () {
+  show.value = window.scrollY > 200
 }
 
-function onClick () {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
+function backToTop () {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 

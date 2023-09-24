@@ -41,7 +41,6 @@ const textTruncate = (text: string | null, length: number) => {
   return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
 }
 
-/* c8 ignore start */
 export default defineNuxtPlugin((_nuxtApp) => {
   return {
     provide: {
@@ -55,7 +54,6 @@ export default defineNuxtPlugin((_nuxtApp) => {
     }
   }
 })
-/* c8 ignore stop */
 
 export const TestPluginUtils = {
   $sleep: sleep,

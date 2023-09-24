@@ -30,9 +30,9 @@ const presentTest = (wrapper: any, AppLoading: any = null) => {
   expect(wrapper.html({ raw: true }).replaceAll('<!--v-if-->', '')).not.toBe('')
 }
 
-const mockCalledTest = (mock: any, count: number, ...args: (string | object | null)[]) => {
+const mockCalledTest = (mock: any, count: number, ...args: any[]) => {
   expect(mock).toBeCalledTimes(count)
-  if (count > 0 && args.length > 0) {
+  if (count > 0) {
     expect(mock).nthCalledWith(count, ...args)
   }
 }

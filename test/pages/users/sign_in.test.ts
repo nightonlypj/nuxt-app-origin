@@ -8,7 +8,6 @@ import Page from '~/pages/users/sign_in.vue'
 
 describe('sign_in.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -79,6 +78,7 @@ describe('sign_in.vue', () => {
     // 入力
     wrapper.find('#input_email').setValue('user1@example.com')
     wrapper.find('#input_password').setValue('abc12345')
+    wrapper.vm.$data.showPassword = true
 
     // ログインボタン
     await helper.waitChangeDisabled(button, false)
@@ -171,7 +171,7 @@ describe('sign_in.vue', () => {
 
     it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      mock.useAuthRedirect = { redirectUrl: { value: '/users/update' }, updateRedirectUrl: vi.fn() } // NOTE: URLがある場合
+      mock.useAuthRedirect = { redirectUrl: ref('/users/update'), updateRedirectUrl: vi.fn() } // NOTE: URLがある場合
       await beforeAction()
 
       apiCalledTest()
@@ -182,7 +182,7 @@ describe('sign_in.vue', () => {
     })
     it('[成功][Enter送信]ログイン状態になり、元のページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      mock.useAuthRedirect = { redirectUrl: { value: null }, updateRedirectUrl: vi.fn() } // NOTE: URLがない場合
+      mock.useAuthRedirect = { redirectUrl: ref(null), updateRedirectUrl: vi.fn() } // NOTE: URLがない場合
       await beforeAction({ keydown: true, isComposing: false })
 
       apiCalledTest()

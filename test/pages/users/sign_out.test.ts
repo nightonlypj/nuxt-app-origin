@@ -6,7 +6,6 @@ import Page from '~/pages/users/sign_out.vue'
 
 describe('sign_out.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useAuthSignOut: vi.fn(),

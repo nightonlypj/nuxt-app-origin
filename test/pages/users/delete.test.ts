@@ -6,7 +6,6 @@ import Page from '~/pages/users/delete.vue'
 
 describe('delete.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -137,7 +136,7 @@ describe('delete.vue', () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -217,7 +216,7 @@ describe('delete.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)

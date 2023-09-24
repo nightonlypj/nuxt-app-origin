@@ -8,7 +8,6 @@ import Page from '~/pages/users/sign_up.vue'
 
 describe('sign_up.vue', () => {
   let mock: any
-
   beforeEach(() => {
     mock = {
       useApiRequest: null,
@@ -76,6 +75,7 @@ describe('sign_up.vue', () => {
     wrapper.find('#input_email').setValue('user1@example.com')
     wrapper.find('#input_password').setValue('abc12345')
     wrapper.find('#input_password_confirmation').setValue('abc12345')
+    wrapper.vm.$data.showPassword = true
 
     // 登録ボタン
     await helper.waitChangeDisabled(button, false)

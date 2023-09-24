@@ -4,7 +4,16 @@ import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/infomations/Lists.vue'
 
 describe('Lists.vue', () => {
+  let mock: any
+  beforeEach(() => {
+    mock = {
+      navigateTo: vi.fn()
+    }
+  })
+
   const mountFunction = (infomations: object | null) => {
+    vi.stubGlobal('navigateTo', mock.navigateTo)
+
     const wrapper = mount(Component, {
       global: {
         stubs: {
@@ -44,7 +53,7 @@ describe('Lists.vue', () => {
     const wrapper = mountFunction([])
     helper.blankTest(wrapper)
   })
-  it('[2件]表示される', () => {
+  it('[2件]表示される。ダブルクリックで、本文ありは遷移し、本文なしは遷移しない', () => {
     const infomations = Object.freeze([
       {
         id: 1,
@@ -63,5 +72,15 @@ describe('Lists.vue', () => {
     ])
     const wrapper = mountFunction(infomations)
     viewTest(wrapper, infomations)
+
+    // ダブルクリックで、本文ありは遷移する
+    const bodyPresentList = wrapper.find(`#infomation_list${infomations[0].id}`)
+    bodyPresentList.trigger('dblclick')
+    helper.mockCalledTest(mock.navigateTo, 1, `/infomations/${infomations[0].id}`)
+
+    // ダブルクリックで、本文なしは遷移しない
+    const bodyBlankList = wrapper.find(`#infomation_list${infomations[1].id}`)
+    bodyBlankList.trigger('dblclick')
+    expect(mock.navigateTo).toBeCalledTimes(1) // NOTE: 上で呼ばれている為
   })
 })
