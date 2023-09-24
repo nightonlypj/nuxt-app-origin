@@ -1,6 +1,6 @@
 <template>
-  <div v-if="loading || errorMessage != null || existInfomations">
-    <Loading v-if="loading" height="20vh" />
+  <template v-if="loading || errorMessage != null || existInfomations">
+    <AppLoading v-if="loading" height="20vh" />
     <v-card v-else>
       <v-card-title>大切なお知らせ</v-card-title>
       <v-card-text v-if="errorMessage != null">
@@ -24,17 +24,17 @@
         </article>
       </v-card-text>
     </v-card>
-  </div>
+  </template>
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
+import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
-    Loading,
+    AppLoading,
     InfomationsLabel
   },
   mixins: [Application],
@@ -61,17 +61,17 @@ export default {
   methods: {
     // 大切なお知らせ一覧取得
     async getInfomationsImportant () {
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.importantUrl)
-        .then((response) => {
-          this.errorMessage = this.appCheckResponse(response, { returnKey: true })
-          if (this.errorMessage != null) { return }
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.importantUrl)
 
-          this.infomations = response.data.infomations
-        },
-        (error) => {
-          this.errorMessage = this.appCheckErrorResponse(error, { returnKey: true, require: true })
-        })
+      if (response?.ok) {
+        this.errorMessage = this.appCheckResponse(data, { returnKey: true })
+        if (this.errorMessage == null) {
+          this.infomations = data.infomations
+        }
+      } else {
+        this.errorMessage = this.appCheckErrorResponse(response?.status, data, { returnKey: true, require: true })
+      }
     }
   }
-}
+})
 </script>
