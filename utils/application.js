@@ -3,7 +3,7 @@ export default defineNuxtComponent({
 
   computed: {
     appTableHeight () {
-      return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
+      return Math.max(200, this.$vuetify.display.height - 146) + 'px'
     },
 
     appTimeZoneOffset () {

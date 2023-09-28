@@ -14,3 +14,9 @@ export default defineNuxtComponent({
   }
 })
 </script>
+
+<style scoped>
+.v-progress-circular >>> svg {
+  height: 50%; /* NOTE: モバイルでヘッダアイコンが左右に動く為 */
+}
+</style>

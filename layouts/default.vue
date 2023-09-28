@@ -5,8 +5,8 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify.display.width > 226"
-          :style="{ 'max-width': ($vuetify.display.width - 226) + 'px' }"
+          v-if="$vuetify.display.width > (48 + 40 - 16 + 64 * 2)"
+          :style="{ 'max-width': ($vuetify.display.width - (48 + 40 - 16 + 64 * 2)) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
@@ -135,7 +135,7 @@
 
     <v-main class="mx-2">
       <v-container fluid>
-        <AppDestroyInfo />
+        <UsersDestroyInfo />
         <slot />
       </v-container>
     </v-main>
@@ -151,12 +151,12 @@
 </template>
 
 <script>
-import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
+import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
 export default defineNuxtComponent({
   components: {
-    AppDestroyInfo,
+    UsersDestroyInfo,
     AppBackToTop
   },
 
@@ -177,7 +177,7 @@ export default defineNuxtComponent({
   /* c8 ignore stop */
 
   created () {
-    this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+    this.drawer = !this.$vuetify.display.mobile
   }
 })
 </script>
@@ -192,8 +192,8 @@ export default defineNuxtComponent({
 }
 </style>
 <style>
-.v-btn {
-  text-transform: none; /* NOTE: 大文字表示になる為 */
+.v-btn, .text-overline {
+  text-transform: none !important; /* NOTE: 大文字表示になる為 */
 }
 .v-btn--disabled.v-btn--variant-elevated { /* NOTE: disable時に押せると誤解する為 */
   background-color: transparent !important;

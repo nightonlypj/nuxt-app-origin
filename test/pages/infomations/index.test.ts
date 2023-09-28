@@ -78,9 +78,8 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.listUrl + '?' + new URLSearchParams({
-      ...params
-    }))
+    const url = helper.commonConfig.infomations.listUrl + '?' + new URLSearchParams({ ...params })
+    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string) => {

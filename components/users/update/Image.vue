@@ -14,6 +14,8 @@
             label="画像ファイル"
             prepend-icon="mdi-camera"
             show-size
+            class="mt-2"
+            density="compact"
             :error-messages="errors"
             @click="waiting = false"
           />
@@ -22,7 +24,7 @@
           id="user_image_update_btn"
           color="primary"
           class="mt-2 mr-2"
-          :disabled="!meta.valid || image == null || processing || waiting"
+          :disabled="!meta.valid || image == null || image.length === 0 || processing || waiting"
           @click="postUserImageUpdate(setErrors, values)"
         >
           アップロード
@@ -41,11 +43,13 @@
           </template>
           <template #default="{ isActive }">
             <v-card id="user_image_delete_dialog">
-              <v-toolbar color="warning" density="compact" title="画像削除" />
+              <v-toolbar color="warning" density="compact">
+                <span class="ml-4">画像削除</span>
+              </v-toolbar>
               <v-card-text>
                 <div class="text-h6 pa-4">本当に削除しますか？</div>
               </v-card-text>
-              <v-card-actions class="justify-end">
+              <v-card-actions class="justify-end mb-2 mr-2">
                 <v-btn
                   id="user_image_delete_no_btn"
                   color="secondary"

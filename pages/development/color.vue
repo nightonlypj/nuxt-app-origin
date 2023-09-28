@@ -1,4 +1,7 @@
 <template>
+  <Head>
+    <Title>テーマカラー確認</Title>
+  </Head>
   <template v-if="!loading">
     <v-alert type="error" icon="mdi-alert" class="mb-2">error(mdi-alert)</v-alert><!-- NOTE: mdi-alert追加 -->
     <v-alert type="info" class="mb-2">info</v-alert>

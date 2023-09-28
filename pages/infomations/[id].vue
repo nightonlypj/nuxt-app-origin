@@ -68,20 +68,19 @@ export default defineNuxtComponent({
   methods: {
     // お知らせ詳細取得
     async getInfomationsDetail () {
-      let result = false
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id))
+      const url = this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
 
       if (response?.ok) {
         if (this.appCheckResponse(data, { redirect: true }, data?.infomation == null)) {
           this.infomation = data.infomation
-          result = true
+          return true
         }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { notfound: true })
       }
 
-      return result
+      return false
     }
   }
 })

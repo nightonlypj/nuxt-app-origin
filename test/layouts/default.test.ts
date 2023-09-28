@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
-import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
+import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
 
@@ -9,7 +9,7 @@ describe('default.vue', () => {
     const wrapper = mount(Layout, {
       global: {
         stubs: {
-          AppDestroyInfo: true,
+          UsersDestroyInfo: true,
           AppBackToTop: true
         },
         mocks: {
@@ -26,7 +26,7 @@ describe('default.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, loggedIn: boolean) => {
-    expect(wrapper.findComponent(AppDestroyInfo).exists()).toBe(true) // アカウント削除予約
+    expect(wrapper.findComponent(UsersDestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.findComponent(AppBackToTop).exists()).toBe(true) // 上に戻る
 
     const links = helper.getLinks(wrapper)
