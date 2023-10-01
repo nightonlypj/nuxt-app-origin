@@ -130,23 +130,47 @@
             </template>
           </v-list-item-title>
         </component>
-        <v-list-item v-if="$auth.loggedIn" to="/downloads" nuxt>
-          <v-badge :content="$auth.user.undownloaded_count" :value="$auth.user.undownloaded_count" color="red" overlap>
-            <v-icon>mdi-download</v-icon>
-          </v-badge>
-          <v-list-item-title class="ml-2">ダウンロード結果</v-list-item-title>
-        </v-list-item>
-        <v-list-item v-if="$auth.loggedIn || $config.enablePublicSpace" to="/spaces" nuxt>
-          <v-icon>mdi-folder-open</v-icon>
-          <v-list-item-title class="ml-2">スペース</v-list-item-title>
-        </v-list-item>
+        <component
+          :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
+          v-if="$auth.loggedIn"
+          to="/downloads"
+        >
+          <v-list-item-title>
+            <v-badge
+              :content="$auth.user.undownloaded_count"
+              :model-value="$auth.user.undownloaded_count > 0"
+              color="red"
+              class="list-badge"
+            >
+              <v-icon>mdi-download</v-icon>
+            </v-badge>
+            <span class="ml-8">ダウンロード結果</span>
+          </v-list-item-title>
+        </component>
+        <component
+          :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
+          v-if="$auth.loggedIn || $config.public.enablePublicSpace"
+          to="/spaces"
+        >
+          <v-list-item-title>
+            <v-icon>mdi-folder-open</v-icon>
+            スペース
+          </v-list-item-title>
+        </component>
         <template v-if="$auth.loggedIn">
-          <v-list-item v-for="space in $auth.user.spaces" :id="`space_link_${space.code}`" :key="space.code" :to="`/-/${space.code}`" nuxt>
-            <v-avatar v-if="space.image_url != null" size="24px">
-              <v-img :id="`space_image_${space.code}`" :src="space.image_url.mini" />
-            </v-avatar>
-            <v-list-item-title class="text-overline ml-2">{{ space.name }}</v-list-item-title>
-          </v-list-item>
+          <component
+            :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
+            v-for="space in $auth.user.spaces" :id="`space_link_${space.code}`"
+            :key="space.code"
+            :to="`/-/${space.code}`"
+          >
+            <v-list-item-title class="text-overline">
+              <v-avatar v-if="space.image_url != null" size="24px">
+                <v-img :id="`space_image_${space.code}`" :src="space.image_url.mini" />
+              </v-avatar>
+              {{ space.name }}
+            </v-list-item-title>
+          </component>
         </template>
       </v-list>
     </v-navigation-drawer>
@@ -210,8 +234,8 @@ export default defineNuxtComponent({
 }
 </style>
 <style>
-.v-btn {
-  text-transform: none; /* NOTE: 大文字表示になる為 */
+.v-btn, .text-overline {
+  text-transform: none !important; /* NOTE: 大文字表示になる為 */
 }
 .v-btn--disabled.v-btn--variant-elevated { /* NOTE: disable時に押せると誤解する為 */
   background-color: transparent !important;
@@ -219,6 +243,9 @@ export default defineNuxtComponent({
 }
 .v-card-title {
   white-space: normal; /* NOTE: 文字が省略され、折り返されない為 */
+}
+.v-input--density-compact {
+  --v-input-control-height: 32px; /* NOTE: v-switchの高さが40pxだと大きい為 */
 }
 
 .md-preview {

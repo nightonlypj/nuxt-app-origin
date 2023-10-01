@@ -156,12 +156,6 @@ export default defineNuxtComponent({
     }
   },
 
-  head () {
-    return {
-      title: 'アカウント登録'
-    }
-  },
-
   async created () {
     if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
     if (this.$route.query?.code != null && !await this.getUserInvitation()) { return }
@@ -172,27 +166,25 @@ export default defineNuxtComponent({
   methods: {
     // 招待情報取得
     async getUserInvitation () {
-      let result = false
+      const url = this.$config.public.userInvitationUrl + '?' + new URLSearchParams({ code: this.$route.query.code })
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
 
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.userInvitationUrl, { params: { code: this.$route.query.code } })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { redirect: true },
-            response.data?.invitation == null || (response.data.invitation.email == null && response.data.invitation.domains == null))) { return }
-
-          this.invitation = response.data.invitation
-          if (response.data.invitation.email != null) {
-            this.query.email = response.data.invitation.email
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { redirect: true }, data?.invitation == null || (data.invitation.email == null && data.invitation.domains == null))) {
+          this.invitation = data.invitation
+          if (data.invitation.email != null) {
+            this.query.email = data.invitation.email
           } else {
             this.query.email_local = ''
-            this.query.email_domain = response.data.invitation.domains[0]
+            this.query.email_domain = data.invitation.domains[0]
           }
-          result = true
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { redirect: true, require: true }, { notfound: true })
-        })
+          return true
+        }
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { notfound: true })
+      }
 
-      return result
+      return false
     },
 
     // アカウント登録

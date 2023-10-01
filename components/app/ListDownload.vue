@@ -1,29 +1,24 @@
 <template>
-  <v-dialog max-width="720px">
-    <template #activator="{ on, attrs }">
+  <v-dialog max-width="720px" :attach="$config.public.env.test">
+    <template #activator="{ props }">
       <v-btn
+        v-bind="props"
         id="download_btn"
         color="secondary"
-        v-bind="attrs"
-        v-on="on"
         @click="initialize()"
       >
-        <v-tooltip bottom :disabled="$vuetify.breakpoint.width >= 960">
-          <template #activator="{ on: tooltip }">
-            <v-icon small v-on="tooltip">mdi-download</v-icon>
-            <span class="hidden-sm-and-down ml-1">ダウンロード</span>
-          </template>
-          ダウンロード
-        </v-tooltip>
+        <v-icon>mdi-download</v-icon>
+        <span class="hidden-sm-and-down ml-1">ダウンロード</span>
+        <v-tooltip activator="parent" location="bottom" :disabled="$vuetify.display.mdAndUp">ダウンロード</v-tooltip>
       </v-btn>
     </template>
-    <template #default="dialog">
+    <template #default="{ isActive }">
       <v-card id="download_dialog">
-        <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
+        <AppProcessing v-if="processing" />
+        <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="off">
-            <v-toolbar color="primary" dense>
-              <v-icon dense>mdi-download</v-icon>
+            <v-toolbar color="primary" density="compact">
+              <v-icon size="small" class="ml-4">mdi-download</v-icon>
               <span class="ml-1">ダウンロード</span>
             </v-toolbar>
             <v-card-text>
@@ -32,12 +27,13 @@
                   <!-- 左側 -->
                   <v-col cols="12" sm="6" class="pb-0">
                     <h4>対象</h4>
-                    <validation-provider v-slot="{ errors }" name="target" rules="required_select">
+                    <Field v-slot="{ errors }" v-model="query.target" name="target" rules="required_select">
                       <v-radio-group
                         v-model="query.target"
+                        color="primary"
                         class="mt-1"
-                        dense
-                        row
+                        density="compact"
+                        inline
                         hide-details="auto"
                         :error-messages="errors"
                       >
@@ -47,18 +43,20 @@
                           :key="key"
                           :label="label"
                           :value="key"
+                          class="mr-2"
                           :disabled="!enableTarget.includes(key)"
                           @change="waiting = false"
                         />
                       </v-radio-group>
-                    </validation-provider>
+                    </Field>
                     <h4 class="pt-3">形式</h4>
-                    <validation-provider v-slot="{ errors }" name="format" rules="required_select">
+                    <Field v-slot="{ errors }" v-model="query.format" name="format" rules="required_select">
                       <v-radio-group
                         v-model="query.format"
+                        color="primary"
                         class="mt-1"
-                        dense
-                        row
+                        density="compact"
+                        inline
                         hide-details="auto"
                         :error-messages="errors"
                       >
@@ -68,17 +66,19 @@
                           :key="key"
                           :label="label"
                           :value="key"
+                          class="mr-2"
                           @change="waiting = false"
                         />
                       </v-radio-group>
-                    </validation-provider>
+                    </Field>
                     <h4 class="pt-3">文字コード</h4>
-                    <validation-provider v-slot="{ errors }" name="char_code" rules="required_select">
+                    <Field v-slot="{ errors }" v-model="query.char_code" name="char_code" rules="required_select">
                       <v-radio-group
                         v-model="query.char_code"
+                        color="primary"
                         class="mt-1"
-                        dense
-                        row
+                        density="compact"
+                        inline
                         hide-details="auto"
                         :error-messages="errors"
                       >
@@ -88,17 +88,19 @@
                           :key="key"
                           :label="label"
                           :value="key"
+                          class="mr-2"
                           @change="waiting = false"
                         />
                       </v-radio-group>
-                    </validation-provider>
+                    </Field>
                     <h4 class="pt-3">改行コード</h4>
-                    <validation-provider v-slot="{ errors }" name="newline_code" rules="required_select">
+                    <Field v-slot="{ errors }" v-model="query.newline_code" name="newline_code" rules="required_select">
                       <v-radio-group
                         v-model="query.newline_code"
+                        color="primary"
                         class="mt-1"
-                        dense
-                        row
+                        density="compact"
+                        inline
                         hide-details="auto"
                         :error-messages="errors"
                       >
@@ -108,77 +110,98 @@
                           :key="key"
                           :label="label"
                           :value="key"
+                          class="mr-2"
                           @change="waiting = false"
                         />
                       </v-radio-group>
-                    </validation-provider>
+                    </Field>
                   </v-col>
                   <!-- 右側 -->
                   <v-col cols="12" sm="6" class="pb-0">
                     <h4>
                       出力項目
-                      <v-btn small :disabled="outputItems.length >= items.length" class="ml-4" @click="setAllOutputItems()">全選択</v-btn>
-                      <v-btn small :disabled="outputItems.length === 0" @click="clearOutputItems()">全解除</v-btn>
+                      <v-btn
+                        color="secondary"
+                        size="small"
+                        class="ml-4"
+                        :disabled="outputItems.length >= items.length"
+                        @click="setAllOutputItems()"
+                      >
+                        全選択
+                      </v-btn>
+                      <v-btn
+                        color="secondary"
+                        size="small"
+                        class="ml-1"
+                        :disabled="outputItems.length === 0"
+                        @click="clearOutputItems(setErrors)"
+                      >
+                        全解除
+                      </v-btn>
                     </h4>
-                    <validation-provider v-slot="{ errors }" name="output_items" rules="required_select">
-                      <template v-for="(item, index) in items">
+                    <Field v-slot="{ errors }" v-model="outputItems" name="output_items" rules="required_select">
+                      <template v-for="(item, index) in items" :key="item.value">
                         <v-switch
                           :id="`download_output_item_${item.value.replace('.', '_')}`"
-                          :key="item.value"
                           v-model="outputItems"
                           color="primary"
                           :label="item.text"
                           :value="item.value"
+                          density="compact"
                           :hide-details="index + 1 < items.length ? 'true' : 'auto'"
                           :error-messages="errors"
-                          dense
-                          class="mt-1"
                           @change="waiting = false"
                         />
                       </template>
-                    </validation-provider>
+                    </Field>
                   </v-col>
                 </v-row>
               </v-container>
             </v-card-text>
-            <v-card-actions class="justify-end">
+            <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
                 id="download_submit_btn"
                 color="primary"
-                :disabled="processing || invalid || waiting"
-                @click="postDownloadsCreate(dialog)"
+                variant="elevated"
+                :disabled="!meta.valid || processing || waiting"
+                @click="postDownloadsCreate(isActive, setErrors, values)"
               >
                 ダウンロード
               </v-btn>
               <v-btn
                 id="download_cancel_btn"
                 color="secondary"
-                @click="dialog.value = false"
+                variant="elevated"
+                @click="isActive.value = false"
               >
                 キャンセル
               </v-btn>
             </v-card-actions>
           </v-form>
-        </validation-observer>
+        </Form>
       </v-card>
     </template>
   </v-dialog>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required } from 'vee-validate/dist/rules'
-import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
 
-extend('required_select', required)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import { required } from '@vee-validate/rules'
+import ja from '~/locales/validate.ja'
+import AppProcessing from '~/components/app/Processing.vue'
+import Application from '~/utils/application.js'
 
-export default {
+defineRule('required_select', required)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
+
+export default defineNuxtComponent({
   components: {
-    ValidationObserver,
-    ValidationProvider,
-    Processing
+    Form,
+    Field,
+    AppProcessing
   },
   mixins: [Application],
 
@@ -221,19 +244,19 @@ export default {
 
   computed: {
     items () {
-      return this.$t(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
+      return this.$tm(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
     },
     targets () {
-      return this.$t('enums.download.target')
+      return this.$tm('enums.download.target')
     },
     formats () {
-      return this.$t('enums.download.format')
+      return this.$tm('enums.download.format')
     },
     charCodes () {
-      return this.$t('enums.download.char_code')
+      return this.$tm('enums.download.char_code')
     },
     newlineCodes () {
-      return this.$t('enums.download.newline_code')
+      return this.$tm('enums.download.newline_code')
     }
   },
 
@@ -257,25 +280,23 @@ export default {
       if (this.formats[this.query.format] == null) { this.query.format = 'csv' }
       if (this.charCodes[this.query.char_code] == null) { this.query.char_code = 'sjis' }
       if (this.newlineCodes[this.query.newline_code] == null) { this.query.newline_code = 'crlf' }
-
-      this.$refs.observer?.reset()
     },
 
     setAllOutputItems () {
       this.outputItems = this.items.map(item => item.value)
       this.waiting = false
     },
-    clearOutputItems () {
+    clearOutputItems (setErrors) {
       this.outputItems = []
       this.waiting = false
-      this.$refs.observer.setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
+      setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
     },
 
     // ダウンロード依頼
-    async postDownloadsCreate ($dialog) {
+    async postDownloadsCreate (isActive, setErrors, values) {
       this.processing = true
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.downloads.createUrl, {
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.createUrl, 'POST', {
         download: {
           model: this.model,
           space_code: this.space?.code || null,
@@ -285,27 +306,25 @@ export default {
           search_params: this.searchParams
         }
       })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { toasted: true })) {
           localStorage.setItem('download.format', this.query.format)
           localStorage.setItem('download.char_code', this.query.char_code)
           localStorage.setItem('download.newline_code', this.query.newline_code)
-          $dialog.value = false
-          this.$router.push({ path: '/downloads', query: { target_id: response.data.download?.id || null } })
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, forbidden: true, notfound: true })) { return }
-
-          this.appSetToastedMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+          isActive.value = false
+          this.$router.push({ path: '/downloads', query: { target_id: data.download?.id || null } })
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, notfound: true })) {
+        this.appSetToastedMessage(data, true)
+        if (data.errors != null) {
+          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }
   }
-}
+})
 </script>

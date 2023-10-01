@@ -15,7 +15,7 @@
     <!-- 依頼日時 -->
     <template #[`header.requested_at`]="{ header }">
       {{ header.text }}
-      <v-icon dense>mdi-arrow-down</v-icon>
+      <v-icon size="small">mdi-arrow-down</v-icon>
     </template>
     <template #[`item.requested_at`]="{ item }">
       <div class="text-no-wrap">
@@ -30,9 +30,9 @@
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
-      <v-icon v-if="item.status === 'success'" :id="`icon_success_${item.id}`" color="success" dense>mdi-check-circle</v-icon>
-      <v-icon v-else-if="item.status === 'failure'" :id="`icon_failure_${item.id}`" color="error" dense>mdi-alert</v-icon>
-      <v-icon v-else :id="`icon_info_${item.id}`" color="info" dense>mdi-information</v-icon>
+      <v-icon v-if="item.status === 'success'" :id="`icon_success_${item.id}`" color="success" size="small">mdi-check-circle</v-icon>
+      <v-icon v-else-if="item.status === 'failure'" :id="`icon_failure_${item.id}`" color="error" size="small">mdi-alert</v-icon>
+      <v-icon v-else :id="`icon_info_${item.id}`" color="info" size="small">mdi-information</v-icon>
       {{ item.status_i18n }}
     </template>
     <!-- ファイル -->
@@ -48,7 +48,7 @@
           class="text-no-wrap"
           @click="$emit('downloadsFile', item)"
         >
-          <v-icon dense>mdi-download</v-icon>
+          <v-icon size="small">mdi-download</v-icon>
           ダウンロード
         </a>
         <div v-if="item.last_downloaded_at != null" :id="`download_done_${item.id}`">（済み）</div>
@@ -68,9 +68,9 @@
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   mixins: [Application],
 
   props: {
@@ -79,11 +79,12 @@ export default {
       default: null
     }
   },
+  emits: ['downloadsFile'],
 
   computed: {
     headers () {
       const result = []
-      for (const item of this.$t('items.download')) {
+      for (const item of this.$tm('items.download')) {
         result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
       }
       if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
@@ -103,7 +104,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>

@@ -19,23 +19,23 @@ export default defineNuxtComponent({
     },
     appCurrentMemberWriterUp () {
       return (space) => {
-        return this.$config.member.power.writerUp.includes(space?.current_member?.power)
+        return this.$config.public.member.power.writerUp.includes(space?.current_member?.power)
       }
     },
     appCurrentMemberReaderUp () {
       return (space) => {
-        return this.$config.member.power.readerUp.includes(space?.current_member?.power)
+        return this.$config.public.member.power.readerUp.includes(space?.current_member?.power)
       }
     },
 
     appMemberPowerIcon () {
       return (power) => {
-        return this.$config.member.powerIcon[power] || this.$config.member.powerIcon.default
+        return this.$config.public.member.powerIcon[power] || this.$config.public.member.powerIcon.default
       }
     },
 
     appTableHeight () {
-      return Math.max(200, this.$vuetify.breakpoint.height - 146) + 'px'
+      return Math.max(200, this.$vuetify.display.height - 146) + 'px'
     },
 
     appTimeZoneOffset () {

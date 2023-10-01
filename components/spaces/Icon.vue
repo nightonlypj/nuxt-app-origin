@@ -1,30 +1,26 @@
 <template>
-  <span>
-    <v-tooltip v-if="space.private" :id="`space_private_${space.code}`" bottom>
-      <template #activator="{ on, attrs }">
-        <v-icon dense v-bind="attrs" v-on="on">mdi-lock</v-icon>
-      </template>
-      非公開
-    </v-tooltip>
-    <v-tooltip v-if="space.current_member != null" :id="`space_power_${space.code}`" bottom>
-      <template #activator="{ on, attrs }">
-        <v-icon dense v-bind="attrs" v-on="on">{{ appMemberPowerIcon(space.current_member.power) }}</v-icon>
-      </template>
+  <span v-if="space.private" :id="`space_private_${space.code}`">
+    <v-icon size="x-small" class="ml-1">mdi-lock</v-icon>
+    <v-tooltip activator="parent" location="bottom">非公開</v-tooltip>
+  </span>
+  <span v-if="space.current_member != null" :id="`space_power_${space.code}`">
+    <v-icon size="x-small" class="ml-1">{{ appMemberPowerIcon(space.current_member.power) }}</v-icon>
+    <v-tooltip activator="parent" location="bottom">
       あなたは「{{ space.current_member.power_i18n }}」です。
     </v-tooltip>
-    <v-tooltip v-if="space.destroy_schedule_at != null" :id="`space_destroy_schedule_${space.code}`" bottom>
-      <template #activator="{ on, attrs }">
-        <v-icon dense v-bind="attrs" v-on="on">mdi-delete-clock</v-icon>
-      </template>
+  </span>
+  <span v-if="space.destroy_schedule_at != null" :id="`space_destroy_schedule_${space.code}`">
+    <v-icon size="x-small" class="ml-1">mdi-delete-clock</v-icon>
+    <v-tooltip activator="parent" location="bottom">
       {{ $dateFormat('ja', space.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
     </v-tooltip>
   </span>
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   mixins: [Application],
 
   props: {
@@ -33,5 +29,5 @@ export default {
       required: true
     }
   }
-}
+})
 </script>

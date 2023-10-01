@@ -14,7 +14,9 @@
     <v-col cols="12" md="6">
       <IndexSignUp v-if="!$auth.loggedIn" />
       <IndexSpace v-else />
-      <IndexPublicSpace class="pt-2" />
+      <div class="pt-2">
+        <IndexPublicSpace />
+      </div>
     </v-col>
     <v-col cols="12" md="6">
       <IndexInfomations />

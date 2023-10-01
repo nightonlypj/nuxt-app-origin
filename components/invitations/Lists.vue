@@ -19,24 +19,20 @@
         <v-btn
           :id="`invitation_url_copy_btn_${item.code}`"
           color="accent"
-          fab
-          outlined
-          small
+          icon
+          variant="outlined"
+          size="small"
           @click="copyInvitationURL(item.code)"
         >
-          <v-tooltip bottom>
-            <template #activator="{ on, attrs }">
-              <v-icon small v-bind="attrs" v-on="on">mdi-content-copy</v-icon>
-            </template>
-            クリップボードにコピー
-          </v-tooltip>
+          <v-icon>mdi-content-copy</v-icon>
+          <v-tooltip activator="parent" location="bottom">クリップボードにコピー</v-tooltip>
         </v-btn>
       </div>
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
       <template v-if="item.status === 'email_joined'">
-        <v-icon :id="`icon_email_joined_${item.code}`" color="info" dense>mdi-information</v-icon>
+        <v-icon :id="`icon_email_joined_${item.code}`" color="info" size="small">mdi-information</v-icon>
         {{ item.status_i18n }}
       </template>
       <a
@@ -45,8 +41,8 @@
         class="text-no-wrap"
         @click="$emit('showUpdate', item)"
       >
-        <v-icon v-if="item.status === 'active'" :id="`icon_active_${item.code}`" color="success" dense>mdi-check-circle</v-icon>
-        <v-icon v-else :id="`icon_inactive_${item.code}`" color="error" dense>mdi-alert</v-icon>
+        <v-icon v-if="item.status === 'active'" :id="`icon_active_${item.code}`" color="success" size="small">mdi-check-circle</v-icon>
+        <v-icon v-else :id="`icon_inactive_${item.code}`" color="error" size="small">mdi-alert</v-icon>
         {{ item.status_i18n }}
       </a>
     </template>
@@ -66,7 +62,7 @@
     <!-- 権限 -->
     <template #[`item.power`]="{ item }">
       <div class="text-no-wrap">
-        <v-icon dense>{{ appMemberPowerIcon(item.power) }}</v-icon>
+        <v-icon size="small">{{ appMemberPowerIcon(item.power) }}</v-icon>
         {{ item.power_i18n }}
       </div>
     </template>
@@ -88,7 +84,7 @@
     <!-- 作成日時 -->
     <template #[`header.created_at`]="{ header }">
       {{ header.text }}
-      <v-icon dense>mdi-arrow-down</v-icon>
+      <v-icon size="small">mdi-arrow-down</v-icon>
     </template>
     <template #[`item.created_at`]="{ item }">
       <div class="text-center">
@@ -115,9 +111,9 @@
 
 <script>
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     UsersAvatar
   },
@@ -133,11 +129,12 @@ export default {
       default: null
     }
   },
+  emits: ['showUpdate'],
 
   computed: {
     headers () {
       const result = []
-      for (const item of this.$t('items.invitation')) {
+      for (const item of this.$tm('items.invitation')) {
         if (item.required || !this.hiddenItems.includes(item.value)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
@@ -156,7 +153,7 @@ export default {
   methods: {
     showUpdate (event, { item }) {
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('showUpdate', event.target.innerHTML) }
+      if (this.$config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
       if (item.status === 'email_joined') { return }
 
       this.$emit('showUpdate', item)
@@ -165,13 +162,13 @@ export default {
     copyInvitationURL (code) {
       navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
         .then(() => {
-          this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy_success') })
+          this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy_success') }, false, true)
         }, () => {
           this.appSetToastedMessage({ alert: this.$t('alert.invitation.copy_failure') })
         })
     }
   }
-}
+})
 </script>
 
 <style scoped>

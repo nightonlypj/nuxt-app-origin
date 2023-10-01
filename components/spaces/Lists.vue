@@ -31,15 +31,10 @@
         v-if="item.current_member != null"
         :to="`/members/${item.code}`"
         color="primary"
-        small
-        nuxt
+        size="small"
       >
-        <v-tooltip bottom>
-          <template #activator="{ on, attrs }">
-            <v-icon small v-bind="attrs" v-on="on">mdi-account-multiple</v-icon>
-          </template>
-          メンバー一覧
-        </v-tooltip>
+        <v-icon>mdi-account-multiple</v-icon>
+        <v-tooltip activator="parent" location="bottom">メンバー一覧</v-tooltip>
       </v-btn>
     </template>
   </v-data-table>
@@ -48,7 +43,7 @@
 <script>
 import SpacesIcon from '~/components/spaces/Icon.vue'
 
-export default {
+export default defineNuxtComponent({
   components: {
     SpacesIcon
   },
@@ -67,7 +62,7 @@ export default {
   computed: {
     headers () {
       const result = []
-      for (const item of this.$t('items.space')) {
+      for (const item of this.$tm('items.space')) {
         if (item.required || !this.hiddenItems.includes(item.value)) {
           result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
         }
@@ -83,7 +78,7 @@ export default {
       }
     }
   }
-}
+})
 </script>
 
 <style scoped>
