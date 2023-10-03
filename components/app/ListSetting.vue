@@ -51,7 +51,7 @@
                   density="compact"
                   hide-details
                   :disabled="item.required"
-                  @change="waiting = false"
+                  @update:model-value="waiting = false"
                 />
               </template>
             </v-container>

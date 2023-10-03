@@ -43,7 +43,7 @@
                   prepend-icon="mdi-email"
                   autocomplete="off"
                   :error-messages="errors"
-                  @input="waiting = false"
+                  @update:model-value="waiting = false"
                 />
               </Field>
               <Field v-slot="{ errors }" v-model="query.email_domain" name="email_domain" rules="required_select">
@@ -53,7 +53,7 @@
                   :items="invitation.domains"
                   prefix="@"
                   :error-messages="errors"
-                  @input="waiting = false"
+                  @update:model-value="waiting = false"
                 />
               </Field>
             </div>

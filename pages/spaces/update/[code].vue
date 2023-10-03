@@ -47,7 +47,7 @@
                     hide-details="auto"
                     counter="128"
                     :error-messages="errors"
-                    @input="waiting = false"
+                    @update:model-value="waiting = false"
                   />
                 </Field>
               </v-col>
@@ -73,7 +73,7 @@
                       hide-details="auto"
                       :disabled="tabDescription !== 'input'"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </span>
@@ -104,13 +104,13 @@
                       label="誰でも表示できる（公開）"
                       :value="false"
                       class="mr-2"
-                      @change="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                     <v-radio
                       id="private_true"
                       label="メンバーのみ表示できる（非公開）"
                       :value="true"
-                      @change="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </v-radio-group>
                 </Field>
@@ -134,7 +134,7 @@
                     class="mt-4 ml-4"
                     density="compact"
                     hide-details
-                    @change="waiting = false"
+                    @update:model-value="waiting = false"
                   />
                 </div>
                 <Field v-slot="{ errors }" v-model="space.image" name="image" rules="size_20MB:20480">

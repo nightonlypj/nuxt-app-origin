@@ -33,7 +33,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
@@ -60,7 +60,7 @@
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @change="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>

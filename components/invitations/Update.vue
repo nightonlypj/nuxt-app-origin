@@ -83,7 +83,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                   <Field v-slot="{ errors }" v-model="invitation.ended_time" name="ended_time">
@@ -94,7 +94,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                   <div class="ml-2 mt-2">
@@ -115,7 +115,7 @@
                       hide-details="auto"
                       counter="64"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
@@ -133,7 +133,7 @@
                       label="削除して使用できないようにする"
                       density="compact"
                       hide-details
-                      @change="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                     <div class="mt-2">
                       （{{ invitation.destroy_schedule_days || 'N/A' }}日後に完全に削除されます。それまでは取り消し可能です）
@@ -147,7 +147,7 @@
                       label="削除を取り消して使用できるようにする"
                       density="compact"
                       hide-details
-                      @change="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                     <div class="mt-2">
                       削除予定: {{ $dateFormat('ja', invitation.destroy_schedule_at, 'N/A') }}（{{ $timeFormat('ja', invitation.destroy_requested_at) }}に削除を受け付けています）

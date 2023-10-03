@@ -18,7 +18,7 @@
             hide-details
             maxlength="255"
             clearable
-            @input="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-btn
             id="search_btn"

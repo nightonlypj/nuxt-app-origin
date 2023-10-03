@@ -45,7 +45,7 @@
                           :value="key"
                           class="mr-2"
                           :disabled="!enableTarget.includes(key)"
-                          @change="waiting = false"
+                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -67,7 +67,7 @@
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @change="waiting = false"
+                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -89,7 +89,7 @@
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @change="waiting = false"
+                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -111,7 +111,7 @@
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @change="waiting = false"
+                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -150,7 +150,7 @@
                           density="compact"
                           :hide-details="index + 1 < items.length ? 'true' : 'auto'"
                           :error-messages="errors"
-                          @change="waiting = false"
+                          @update:model-value="waiting = false"
                         />
                       </template>
                     </Field>

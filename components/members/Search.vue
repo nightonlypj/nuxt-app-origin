@@ -18,7 +18,7 @@
             hide-details
             maxlength="255"
             clearable
-            @input="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-btn
             id="search_btn"
@@ -47,14 +47,14 @@
           <template v-for="(value, key, index) in powers" :key="key">
             <v-checkbox
               v-model="syncQuery.power[key]"
-              input-value="1"
+              model-value="1"
               color="primary"
               :label="value"
               :class="index + 1 < Object.keys(powers).length ? 'mr-2' : null"
               density="compact"
               hide-details
               :error="powerBlank()"
-              @change="waiting = false"
+              @update:model-value="waiting = false"
             />
           </template>
         </v-col>

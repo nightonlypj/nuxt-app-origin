@@ -66,7 +66,7 @@
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @change="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>

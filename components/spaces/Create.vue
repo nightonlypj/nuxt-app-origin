@@ -32,7 +32,7 @@
                       hide-details="auto"
                       counter="128"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
@@ -57,7 +57,7 @@
                         variant="outlined"
                         hide-details="auto"
                         :error-messages="errors"
-                        @input="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                     </Field>
                   </span>
@@ -88,13 +88,13 @@
                         label="誰でも表示できる（公開）"
                         :value="false"
                         class="mr-2"
-                        @change="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                       <v-radio
                         id="private_true"
                         label="メンバーのみ表示できる（非公開）"
                         :value="true"
-                        @change="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>

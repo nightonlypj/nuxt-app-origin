@@ -33,7 +33,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
@@ -60,7 +60,7 @@
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @change="waiting = false"
+                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>
@@ -79,7 +79,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                   <Field v-slot="{ errors }" v-model="invitation.ended_time" name="ended_time">
@@ -90,7 +90,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                   <div class="ml-2 mt-2">
@@ -111,7 +111,7 @@
                       hide-details="auto"
                       counter="64"
                       :error-messages="errors"
-                      @input="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
