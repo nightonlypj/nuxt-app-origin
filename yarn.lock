@@ -3561,7 +3561,7 @@ eslint-plugin-unicorn@^44.0.2:
     semver "^7.3.7"
     strip-indent "^3.0.0"
 
-eslint-plugin-vue@^9.17.0, eslint-plugin-vue@^9.4.0, eslint-plugin-vue@^9.7.0:
+eslint-plugin-vue@^9.17.0, eslint-plugin-vue@^9.4.0, eslint-plugin-vue@^9.6.0, eslint-plugin-vue@^9.7.0:
   version "9.17.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-vue/-/eslint-plugin-vue-9.17.0.tgz#4501547373f246547083482838b4c8f4b28e5932"
   integrity sha512-r7Bp79pxQk9I5XDP0k2dpUC7Ots3OSWgvGZNu3BxmKK6Zg7NgVtcOB6OCna5Kb9oQwJPl5hq183WD0SY5tZtIQ==
@@ -3573,6 +3573,14 @@ eslint-plugin-vue@^9.17.0, eslint-plugin-vue@^9.4.0, eslint-plugin-vue@^9.7.0:
     semver "^7.5.4"
     vue-eslint-parser "^9.3.1"
     xml-name-validator "^4.0.0"
+
+eslint-plugin-vuetify@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-vuetify/-/eslint-plugin-vuetify-2.0.5.tgz#66c5f24ea5a373907d8a4a11ff084572989ccae5"
+  integrity sha512-pDWOLCO6FndzuzJDdoHPLOeGaVnFslWkAkLJ1R0GW9UXEUrW1yu73+EuChg5FRxTDUFWRe9Z7dnVw00p04gvxQ==
+  dependencies:
+    eslint-plugin-vue "^9.6.0"
+    requireindex "^1.2.0"
 
 eslint-scope@^7.1.1, eslint-scope@^7.2.2:
   version "7.2.2"
@@ -6740,6 +6748,11 @@ require-directory@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/require-directory/-/require-directory-2.1.1.tgz#8c64ad5fd30dab1c976e2344ffe7f792a6a6df42"
   integrity sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==
+
+requireindex@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/requireindex/-/requireindex-1.2.0.tgz#3463cdb22ee151902635aa6c9535d4de9c2ef1ef"
+  integrity sha512-L9jEkOi3ASd9PYit2cwRfyppc9NoABujTP8/5gFcbERmo5jUoAKovIC3fsF17pkTnGsrByysqX+Kxd2OTNI1ww==
 
 requrl@^3.0.2:
   version "3.0.2"

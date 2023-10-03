@@ -23,7 +23,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
@@ -37,7 +37,7 @@
                 autocomplete="current-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>

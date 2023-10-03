@@ -69,20 +69,18 @@ export default defineNuxtComponent({
   methods: {
     // ユーザー情報詳細取得
     async getUserDetail () {
-      let result = false
-
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
 
       if (response?.ok) {
         if (this.appCheckResponse(data, { redirect: true }, data?.user == null)) {
           this.user = data.user
-          result = true
+          return true
         }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
       }
 
-      return result
+      return false
     }
   }
 })

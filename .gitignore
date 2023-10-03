@@ -26,4 +26,4 @@ logs
 # Coverage directory used by tools like istanbul
 coverage
 
-static/robots.txt
+public/robots.txt

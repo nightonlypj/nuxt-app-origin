@@ -25,11 +25,13 @@
         </template>
         <template #default="{ isActive }">
           <v-card id="user_delete_dialog">
-            <v-toolbar color="error" density="compact" title="アカウント削除" />
+            <v-toolbar color="error" density="compact">
+              <span class="ml-4">アカウント削除</span>
+            </v-toolbar>
             <v-card-text>
               <div class="text-h6 pa-4">本当に削除しますか？</div>
             </v-card-text>
-            <v-card-actions class="justify-end">
+            <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
                 id="user_delete_no_btn"
                 color="secondary"

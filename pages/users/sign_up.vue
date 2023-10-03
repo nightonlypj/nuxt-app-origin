@@ -20,7 +20,7 @@
                 autocomplete="name"
                 counter="32"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <Field v-if="invitation == null || invitation.email != null" v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
@@ -31,7 +31,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <div v-else class="d-flex">
@@ -68,7 +68,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>
@@ -83,7 +83,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>

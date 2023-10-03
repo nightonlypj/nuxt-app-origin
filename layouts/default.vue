@@ -5,8 +5,8 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify.display.width > 226"
-          :style="{ 'max-width': ($vuetify.display.width - 226) + 'px' }"
+          v-if="$vuetify.display.width > (48 + 40 - 16 + 64 * 2)"
+          :style="{ 'max-width': ($vuetify.display.width - (48 + 40 - 16 + 64 * 2)) + 'px' }"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
@@ -31,7 +31,7 @@
               id="user_menu_btn"
               class="d-inline-block"
               max-width="400px"
-              text
+              variant="text"
             >
               <v-avatar size="32px">
                 <v-img id="user_image" :src="$auth.user.image_url.small" />
@@ -177,7 +177,7 @@
 
     <v-main class="mx-2">
       <v-container fluid>
-        <AppDestroyInfo />
+        <UsersDestroyInfo />
         <slot />
       </v-container>
     </v-main>
@@ -193,12 +193,12 @@
 </template>
 
 <script>
-import AppDestroyInfo from '~/components/app/DestroyInfo.vue'
+import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
 export default defineNuxtComponent({
   components: {
-    AppDestroyInfo,
+    UsersDestroyInfo,
     AppBackToTop
   },
 
@@ -219,7 +219,7 @@ export default defineNuxtComponent({
   /* c8 ignore stop */
 
   created () {
-    this.drawer = this.$vuetify.display.width >= 1264 // NOTE: md(Medium)以下の初期表示はメニューを閉じる
+    this.drawer = !this.$vuetify.display.mobile
   }
 })
 </script>

@@ -1,11 +1,15 @@
 <template>
-  <div
+  <component
+    :is="$config.public.env.test ? 'div' : 'v-layout-item'"
     id="back_to_top_item"
     v-scroll="updateShow"
     class="text-end pointer-events-none"
+    model-value
+    position="bottom"
+    size="24"
     @scroll="updateShow()"
   >
-    <!-- NOTE: @scrollはtestの為 -->
+    <!-- NOTE: @scrollはtestの為。testでv-layout-item-stubになる為、divに変更 -->
     <v-fab-transition class="ma-4">
       <v-btn
         v-show="show"
@@ -18,7 +22,7 @@
         @click="backToTop()"
       />
     </v-fab-transition>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">

@@ -23,7 +23,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <v-btn

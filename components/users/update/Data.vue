@@ -11,10 +11,10 @@
             autocomplete="off"
             counter="32"
             :error-messages="errors"
-            @input="waiting = false"
+            @update:model-value="waiting = false"
           />
         </Field>
-        <v-alert v-if="user.unconfirmed_email != null" color="warning" class="mb-2">
+        <v-alert v-if="user.unconfirmed_email != null" type="warning" density="compact" class="mb-2">
           確認待ち: {{ user.unconfirmed_email }}<br>
           <small>※メールを確認してください。メールが届いていない場合は[メールアドレス確認]をしてください。</small>
         </v-alert>
@@ -25,7 +25,7 @@
             prepend-icon="mdi-email"
             autocomplete="off"
             :error-messages="errors"
-            @input="waiting = false"
+            @update:model-value="waiting = false"
           />
         </Field>
         <Field v-slot="{ errors }" v-model="query.password" name="password" rules="min:8">
@@ -38,7 +38,7 @@
             autocomplete="new-password"
             counter
             :error-messages="errors"
-            @input="waiting = false"
+            @update:model-value="waiting = false"
             @click:append="showPassword = !showPassword"
           />
         </Field>
@@ -52,7 +52,7 @@
             autocomplete="new-password"
             counter
             :error-messages="errors"
-            @input="waiting = false"
+            @update:model-value="waiting = false"
             @click:append="showPassword = !showPassword"
           />
         </Field>
@@ -67,7 +67,7 @@
             autocomplete="new-password"
             counter
             :error-messages="errors"
-            @input="waiting = false"
+            @update:model-value="waiting = false"
             @click:append="showPassword = !showPassword"
           />
         </Field>

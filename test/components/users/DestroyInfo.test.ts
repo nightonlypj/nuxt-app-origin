@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
-import Component from '~/components/app/DestroyInfo.vue'
+import Component from '~/components/users/DestroyInfo.vue'
 
 describe('DestroyInfo.vue', () => {
   const mountFunction = (loggedIn: boolean, path = '/', user: object | null = null) => {

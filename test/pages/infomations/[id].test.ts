@@ -4,7 +4,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/[id].vue'
 
-describe('_id.vue', () => {
+describe('[id].vue', () => {
   let mock: any
   beforeEach(() => {
     mock = {
@@ -62,7 +62,8 @@ describe('_id.vue', () => {
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.detailUrl.replace(':id', params.id))
+      const url = helper.commonConfig.infomations.detailUrl.replace(':id', params.id)
+      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
     let wrapper: any
