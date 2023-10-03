@@ -8,7 +8,9 @@ module.exports = {
   extends: [
     '@nuxtjs/eslint-config-typescript',
     'plugin:nuxt/recommended',
-    'plugin:vue/vue3-recommended'
+    'plugin:vue/vue3-recommended',
+    'plugin:vue/base',
+    'plugin:vuetify/base'
   ],
   plugins: [
   ],

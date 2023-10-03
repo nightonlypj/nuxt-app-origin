@@ -20,7 +20,7 @@
                 autocomplete="name"
                 counter="32"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
@@ -31,7 +31,7 @@
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
               />
             </Field>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
@@ -45,7 +45,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>
@@ -60,7 +60,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>

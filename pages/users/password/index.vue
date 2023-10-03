@@ -26,7 +26,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>
@@ -41,7 +41,7 @@
                 autocomplete="new-password"
                 counter
                 :error-messages="errors"
-                @input="waiting = false"
+                @update:model-value="waiting = false"
                 @click:append="showPassword = !showPassword"
               />
             </Field>

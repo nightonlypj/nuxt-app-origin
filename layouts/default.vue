@@ -31,7 +31,7 @@
               id="user_menu_btn"
               class="d-inline-block"
               max-width="400px"
-              text
+              variant="text"
             >
               <v-avatar size="32px">
                 <v-img id="user_image" :src="$auth.user.image_url.small" />
