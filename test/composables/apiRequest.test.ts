@@ -13,7 +13,8 @@ describe('apiRequest.ts', () => {
   })
 
   const url = 'http://localhost/api'
-  const defaultFormParams = Object.freeze({
+  const params = Object.freeze({ page: 1 })
+  const defaultParams = Object.freeze({
     method: 'GET',
     mode: 'cors',
     headers: {
@@ -21,21 +22,23 @@ describe('apiRequest.ts', () => {
     },
     body: null
   })
-  const defaultParams = Object.freeze({
-    ...defaultFormParams,
+  const defaultPostParams = Object.freeze({
+    ...defaultParams,
+    method: 'POST',
     headers: {
-      ...defaultFormParams.headers,
+      ...defaultParams.headers,
       'Content-type': 'application/json; charset=utf-8'
     }
   })
 
-  const beforeAction = (reqToken: any = {}, resToken: any = {}, result = {}, resData: string | null = null) => {
+  const beforeAction = (reqToken: any = {}, resToken: any = {}, result = {}, resData: string | null = null, useJson = true) => {
     vi.stubGlobal('localStorage', { getItem: vi.fn((key: string) => reqToken[key]), setItem: mock.setItem })
 
     if (lodash.isEmpty(resToken) && lodash.isEmpty(result) && resData == null) {
       mock.fetch = vi.fn(() => null)
     } else {
-      mock.fetch = vi.fn(() => ({ ...result, headers: { get: vi.fn((key: string) => resToken[key]) }, json: vi.fn(() => resData) }))
+      const body = useJson ? { json: vi.fn(() => resData) } : { blob: vi.fn(() => resData) }
+      mock.fetch = vi.fn(() => ({ ...result, headers: { get: vi.fn((key: string) => resToken[key]) }, ...body }))
     }
     vi.stubGlobal('fetch', mock.fetch)
   }
@@ -72,95 +75,113 @@ describe('apiRequest.ts', () => {
     })
   })
 
-  describe('method', () => {
-    it('[GET]GETでリクエストされる', async () => {
+  describe('method/params/type/accept', () => {
+    it('[なし]GETでリクエストされる', async () => {
       beforeAction()
 
-      await useApiRequest(url, 'GET')
+      await useApiRequest(url)
       helper.mockCalledTest(mock.fetch, 1, url, defaultParams)
     })
-    it('[POST]POSTでリクエストされる', async () => {
+    it('[GET/あり]GETでリクエストされる', async () => {
+      beforeAction()
+
+      await useApiRequest(url, 'GET', params)
+      helper.mockCalledTest(mock.fetch, 1, url + '?' + new URLSearchParams(params), defaultParams)
+    })
+    it('[GET/なし/なし/csv]GETとCSVでリクエストされる', async () => {
+      beforeAction()
+
+      await useApiRequest(url, 'GET', null, null, 'text/csv')
+      helper.mockCalledTest(mock.fetch, 1, url, {
+        ...defaultParams,
+        headers: {
+          ...defaultParams.headers,
+          Accept: 'text/csv'
+        }
+      })
+    })
+    it('[POST/なし]POSTでリクエストされる', async () => {
       beforeAction()
 
       await useApiRequest(url, 'POST')
-      helper.mockCalledTest(mock.fetch, 1, url, {
-        ...defaultParams,
-        method: 'POST'
-      })
+      helper.mockCalledTest(mock.fetch, 1, url, defaultPostParams)
     })
-  })
-
-  describe('type', () => {
-    const params = Object.freeze({ param1: 'value1' })
-    it('[なし]jsonでリクエストされる', async () => {
+    it('[POST/あり]POSTとJSONでリクエストされる', async () => {
       beforeAction()
 
-      await useApiRequest(url, undefined, params)
-      helper.mockCalledTest(mock.fetch, 1, url, {
-        ...defaultParams,
-        body: JSON.stringify(params)
-      })
+      await useApiRequest(url, 'POST', params)
+      helper.mockCalledTest(mock.fetch, 1, url, { ...defaultPostParams, body: JSON.stringify(params) })
     })
-    it('[json]jsonでリクエストされる', async () => {
+    it('[POST/あり/json]POSTとJSONでリクエストされる', async () => {
       beforeAction()
 
-      await useApiRequest(url, undefined, params, 'json')
-      helper.mockCalledTest(mock.fetch, 1, url, {
-        ...defaultParams,
-        body: JSON.stringify(params)
-      })
+      await useApiRequest(url, 'POST', params, 'json')
+      helper.mockCalledTest(mock.fetch, 1, url, { ...defaultPostParams, body: JSON.stringify(params) })
     })
-    it('[form]formでリクエストされる', async () => {
+    it('[POST/あり/json/json]JSONが返却される', async () => {
       beforeAction()
 
-      await useApiRequest(url, undefined, params, 'form')
+      await useApiRequest(url, 'POST', params, 'json', 'application/json')
+      helper.mockCalledTest(mock.fetch, 1, url, { ...defaultPostParams, body: JSON.stringify(params) })
+    })
+    it('[POST/あり/form]POSTとFormDataでリクエストされる', async () => {
+      beforeAction()
       const body = new FormData()
       for (const [key, value] of Object.entries(params)) {
         body.append(key, value)
       }
-      helper.mockCalledTest(mock.fetch, 1, url, {
-        ...defaultFormParams,
-        body
-      })
+
+      await useApiRequest(url, 'POST', params, 'form')
+      helper.mockCalledTest(mock.fetch, 1, url, { ...defaultParams, method: 'POST', body })
     })
   })
 
-  describe('response/data', () => {
+  describe('response', () => {
     it('[なし]nullが返却される', async () => {
-      beforeAction(undefined, undefined, {}, null)
+      beforeAction({}, {}, {}, null)
 
       const [response, data] = await useApiRequest(url)
       expect(response).toBeNull()
       expect(data).toBeNull()
     })
-    it('[あり/なし]responseとnullが返却される', async () => {
+    it('[200/json]responseとJSONが返却される', async () => {
+      const result = Object.freeze({ ok: true, status: 200 })
+      const resData = JSON.stringify({ key1: 'value1' })
+      beforeAction({}, {}, result, resData)
+
+      const [response, data] = await useApiRequest(url)
+      expect(response.ok).toBe(result.ok)
+      expect(response.status).toBe(result.status)
+      expect(data).toBe(resData)
+    })
+    it('[200/csv]responseとCSVが返却される', async () => {
+      const result = Object.freeze({ ok: true, status: 200 })
+      const resData = 'key1,key2\nvalue1,value2\n'
+      beforeAction({}, {}, result, resData, false)
+
+      const [response, data] = await useApiRequest(url, 'GET', null, null, 'text/csv')
+      expect(response.ok).toBe(result.ok)
+      expect(response.status).toBe(result.status)
+      expect(data).toBe(resData)
+    })
+    it('[404/なし]responseとnullが返却される', async () => {
       const result = Object.freeze({ ok: false, status: 404 })
-      beforeAction(undefined, undefined, result, null)
+      beforeAction({}, {}, result, null)
 
       const [response, data] = await useApiRequest(url)
       expect(response.ok).toBe(result.ok)
       expect(response.status).toBe(result.status)
       expect(data).toBeNull()
     })
-    it('[あり/json]responseとjsonが返却される', async () => {
-      const result = Object.freeze({ ok: true, status: 200 })
-      const resData = JSON.stringify({ key1: 'value1' })
-      beforeAction(undefined, undefined, result, resData)
-
-      const [response, data] = await useApiRequest(url)
-      expect(response.ok).toBe(result.ok)
-      expect(response.status).toBe(result.status)
-      expect(data).toBe(resData)
-    })
-    it('[あり/text]responseとtextが返却される', async () => {
+    it('[500/html]responseとnullが返却される', async () => {
       const result = Object.freeze({ ok: false, status: 500 })
       const resData = '<html>errorメッセージ</html>'
-      beforeAction(undefined, undefined, result, resData)
+      beforeAction({}, {}, result, resData, false)
 
       const [response, data] = await useApiRequest(url)
       expect(response.ok).toBe(result.ok)
       expect(response.status).toBe(result.status)
-      expect(data).toBe(resData)
+      expect(data).toBeNull()
     })
   })
 })

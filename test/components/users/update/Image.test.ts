@@ -86,7 +86,9 @@ describe('Image.vue', () => {
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.find('#input_image').setValue([''])
+    const file = new File([], 'test.jpg', { type: 'image/jpeg' })
+    // wrapper.find('#input_image').setValue([file]) // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
+    wrapper.vm.image = [file]
 
     // アップロードボタン
     await helper.waitChangeDisabled(button, false)

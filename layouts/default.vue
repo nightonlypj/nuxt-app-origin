@@ -133,7 +133,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main class="mx-2">
+    <v-main class="mx-2 pb-10">
       <v-container fluid>
         <UsersDestroyInfo />
         <slot />

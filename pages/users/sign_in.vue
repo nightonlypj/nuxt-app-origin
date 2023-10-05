@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:alert="alert" v-model:notice="notice" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta }">

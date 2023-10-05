@@ -1,6 +1,6 @@
 <template>
-  <v-alert v-if="alert != null" type="error" icon="mdi-alert" closable class="mb-4">{{ alert }}</v-alert>
-  <v-alert v-if="notice != null" type="info" closable class="mb-4">{{ notice }}</v-alert>
+  <v-alert v-if="alert != null" type="error" icon="mdi-alert" closable class="mb-4" @update:model-value="$emit('update:alert', null)">{{ alert }}</v-alert>
+  <v-alert v-if="notice != null" type="info" closable class="mb-4" @update:model-value="$emit('update:notice', null)">{{ notice }}</v-alert>
 </template>
 
 <script>

@@ -78,8 +78,7 @@ export default defineNuxtComponent({
       this.processing = true
       let result = false
 
-      const url = this.$config.public.infomations.listUrl + '?' + new URLSearchParams({ page: this.page })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl, 'GET', { page: this.page })
 
       const redirect = this.infomation == null
       if (response?.ok) {

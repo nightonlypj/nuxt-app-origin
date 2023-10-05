@@ -1,5 +1,5 @@
 // APIリクエスト
-export const useApiRequest = async (url: string, method = 'GET', params: object | null = null, type = 'json') => {
+export const useApiRequest = async (url: string, method = 'GET', params: object | null = null, type: string | null = 'json', accept: string | null = 'application/json') => {
   const $config = useRuntimeConfig()
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useApiRequest', method, url) }
@@ -18,8 +18,11 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
   }
 
   let contentType = {}
+  let urlParam = ''
   let body: any = null
-  if (type === 'json') {
+  if (method === 'GET') {
+    if (params != null) { urlParam = '?' + new URLSearchParams(params) }
+  } else if (type === 'json') {
     contentType = { 'Content-type': 'application/json; charset=utf-8' }
     if (params != null) {
       body = JSON.stringify(params)
@@ -34,14 +37,19 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
     }
   }
 
+  let acceptHeader = {}
+  if (accept != null) {
+    acceptHeader = { Accept: accept }
+  }
+
   let response: any = null
   try {
-    response = await fetch(url, {
+    response = await fetch(url + urlParam, {
       method,
       mode: 'cors',
       headers: {
         ...contentType,
-        Accept: 'application/json',
+        ...acceptHeader,
         ...authHeaders
       },
       body
@@ -68,7 +76,13 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
 
   let data: any = null
   try {
-    if (response != null) { data = await response.json() }
+    if (response != null) {
+      if (accept === 'application/json') {
+        data = await response.json()
+      } else {
+        data = await response.blob()
+      }
+    }
   /* c8 ignore start */
   } catch (error) {
     // eslint-disable-next-line no-console

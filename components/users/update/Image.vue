@@ -17,7 +17,7 @@
             class="mt-2"
             density="compact"
             :error-messages="errors"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </Field>
         <v-btn
