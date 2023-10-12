@@ -46,7 +46,8 @@ describe('default.vue', () => {
       expect(wrapper.text()).not.toMatch('user1の氏名')
       expect(wrapper.text()).not.toMatch('9+')
     }
-    expect(wrapper.find('#user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
+    expect(wrapper.find('#header_menu_user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
+    expect(wrapper.find('#navigation_user_image').exists()).toBe(loggedIn)
   }
 
   // テストケース
@@ -65,7 +66,7 @@ describe('default.vue', () => {
     const wrapper = mountFunction(true, user)
 
     // ユーザー名クリック時のメニュー表示
-    const button: any = wrapper.find('#user_menu_btn')
+    const button: any = wrapper.find('#header_menu_user_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
     await flushPromises()

@@ -60,12 +60,12 @@ describe('Image.vue', () => {
     expect(wrapper.vm.$data.image).toBeNull()
 
     // アップロードボタン
-    const updateButton: any = wrapper.find('#user_image_update_btn')
+    const updateButton: any = wrapper.find('#user_update_image_btn')
     expect(updateButton.exists()).toBe(true)
     expect(updateButton.element.disabled).toBe(true) // 有効
 
     // 画像削除ボタン
-    const deleteButton: any = wrapper.find('#user_image_delete_btn')
+    const deleteButton: any = wrapper.find('#user_delete_image_btn')
     expect(deleteButton.exists()).toBe(true)
     expect(deleteButton.element.disabled).toBe(!uploadImage) // [アップロード画像]有効
   }
@@ -81,13 +81,15 @@ describe('Image.vue', () => {
     viewTest(wrapper, false)
 
     // アップロードボタン
-    const button: any = wrapper.find('#user_image_update_btn')
+    const button: any = wrapper.find('#user_update_image_btn')
     expect(button.exists()).toBe(true)
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
     const file = new File([], 'test.jpg', { type: 'image/jpeg' })
-    // wrapper.find('#input_image').setValue([file]) // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
+    // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
+    // wrapper.find('#user_update_image_file').setValue([file])
+    expect(wrapper.find('#user_update_image_file').exists()).toBe(true)
     wrapper.vm.image = [file]
     await flushPromises()
 
@@ -99,24 +101,24 @@ describe('Image.vue', () => {
     viewTest(wrapper, true)
 
     // 画像削除ボタン
-    const button: any = wrapper.find('#user_image_delete_btn')
+    const button: any = wrapper.find('#user_delete_image_btn')
     expect(button.exists()).toBe(true)
     expect(button.element.disabled).toBe(false) // 有効
     button.trigger('click')
     await flushPromises()
 
     // 確認ダイアログ
-    const dialog: any = wrapper.find('#user_image_delete_dialog')
+    const dialog: any = wrapper.find('#user_delete_image_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // はいボタン
-    const yesButton: any = wrapper.find('#user_image_delete_yes_btn')
+    const yesButton: any = wrapper.find('#user_delete_image_yes_btn')
     expect(yesButton.exists()).toBe(true)
     expect(yesButton.element.disabled).toBe(false) // 有効
 
     // いいえボタン
-    const noButton: any = wrapper.find('#user_image_delete_no_btn')
+    const noButton: any = wrapper.find('#user_delete_image_no_btn')
     expect(noButton.exists()).toBe(true)
     expect(noButton.element.disabled).toBe(false) // 有効
     noButton.trigger('click')
@@ -139,7 +141,7 @@ describe('Image.vue', () => {
     let wrapper: any, button: any
     const beforeAction = async () => {
       wrapper = mountFunction(true, { image })
-      button = wrapper.find('#user_image_update_btn')
+      button = wrapper.find('#user_update_image_btn')
       button.trigger('click')
       await flushPromises()
 
@@ -226,11 +228,11 @@ describe('Image.vue', () => {
     let wrapper: any, button: any
     const beforeAction = async (changeDefault = false) => {
       wrapper = mountFunction(true)
-      button = wrapper.find('#user_image_delete_btn')
+      button = wrapper.find('#user_delete_image_btn')
       button.trigger('click')
       await flushPromises()
 
-      wrapper.find('#user_image_delete_yes_btn').trigger('click')
+      wrapper.find('#user_delete_image_yes_btn').trigger('click')
       if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // NOTE: 状態変更（Mockでは実行されない為）
       await flushPromises()
 

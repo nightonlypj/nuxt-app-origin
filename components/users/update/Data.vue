@@ -5,6 +5,7 @@
       <v-card-text>
         <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
           <v-text-field
+            id="user_update_name_text"
             v-model="query.name"
             label="氏名"
             prepend-icon="mdi-account"
@@ -20,6 +21,7 @@
         </v-alert>
         <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
           <v-text-field
+            id="user_update_email_text"
             v-model="query.email"
             label="メールアドレス"
             prepend-icon="mdi-email"
@@ -30,6 +32,7 @@
         </Field>
         <Field v-slot="{ errors }" v-model="query.password" name="password" rules="min:8">
           <v-text-field
+            id="user_update_password_text"
             v-model="query.password"
             :type="showPassword ? 'text' : 'password'"
             label="パスワード [8文字以上] (変更する場合のみ)"
@@ -44,6 +47,7 @@
         </Field>
         <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="confirmed_password:@password">
           <v-text-field
+            id="user_update_password_confirmation_text"
             v-model="query.password_confirmation"
             :type="showPassword ? 'text' : 'password'"
             label="パスワード(確認) (変更する場合のみ)"
@@ -58,7 +62,7 @@
         </Field>
         <Field v-slot="{ errors }" v-model="query.current_password" name="current_password" rules="required">
           <v-text-field
-            id="input_current_password"
+            id="user_update_current_password_text"
             v-model="query.current_password"
             :type="showPassword ? 'text' : 'password'"
             label="現在のパスワード"

@@ -11,13 +11,13 @@
         <v-form autocomplete="off" @submit.prevent>
           <v-card-title>メールアドレス確認</v-card-title>
           <v-card-text
-            id="input_area"
+            id="confirmation_resend_area"
             @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="postConfirmation(!meta.valid, true, setErrors, values)"
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
-                id="input_email"
+                id="confirmation_resend_email_text"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -27,7 +27,7 @@
               />
             </Field>
             <v-btn
-              id="confirmation_btn"
+              id="confirmation_resend_btn"
               color="primary"
               class="mt-2"
               :disabled="!meta.valid || processing || waiting"

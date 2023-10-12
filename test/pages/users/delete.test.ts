@@ -20,7 +20,7 @@ describe('delete.vue', () => {
   })
 
   const fullPath = '/users/delete'
-  const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+  const mountFunction = (loggedIn = true, user: object | null = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -59,7 +59,7 @@ describe('delete.vue', () => {
 
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false)
+    const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
@@ -172,7 +172,7 @@ describe('delete.vue', () => {
     let wrapper: any, button: any
     const beforeAction = async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, {}])
-      wrapper = mountFunction(true, {})
+      wrapper = mountFunction()
       await flushPromises()
 
       // 削除ボタン

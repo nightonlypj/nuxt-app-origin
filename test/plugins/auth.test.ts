@@ -47,22 +47,32 @@ describe('auth.ts', () => {
   })
 
   describe('setData', () => {
-    it('保存される', () => {
+    it('設定される', () => {
       const authData = ref(null)
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      Plugin(_nuxtApp).provide.auth.setData({ user })
-      expect(authData.value).toEqual({ user })
+      Plugin(_nuxtApp).provide.auth.setData({ user, other: 1 })
+      expect(authData.value).toEqual({ user, other: 1 })
     })
   })
 
   describe('setUser', () => {
-    it('保存される', () => {
-      const authData = ref(null)
+    it('設定される', () => {
+      const authData = ref({ other: 1 })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
       Plugin(_nuxtApp).provide.auth.setUser(user)
-      expect(authData.value).toEqual({ user })
+      expect(authData.value).toEqual({ user, other: 1 })
+    })
+  })
+
+  describe('resetUserInfomationUnreadCount', () => {
+    it('1から0に変更される', () => {
+      const authData = ref({ user: { ...user, infomation_unread_count: 1 } })
+      vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
+
+      Plugin(_nuxtApp).provide.auth.resetUserInfomationUnreadCount()
+      expect(authData.value).toEqual({ user: { ...user, infomation_unread_count: 0 } })
     })
   })
 })

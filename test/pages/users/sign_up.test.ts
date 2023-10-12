@@ -72,10 +72,10 @@ describe('sign_up.vue', () => {
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.find('#input_name').setValue('user1の氏名')
-    wrapper.find('#input_email').setValue('user1@example.com')
-    wrapper.find('#input_password').setValue('abc12345')
-    wrapper.find('#input_password_confirmation').setValue('abc12345')
+    wrapper.find('#sign_up_name_text').setValue('user1の氏名')
+    wrapper.find('#sign_up_email_text').setValue('user1@example.com')
+    wrapper.find('#sign_up_password_text').setValue('abc12345')
+    wrapper.find('#sign_up_password_confirmation_text').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
     await flushPromises()
 

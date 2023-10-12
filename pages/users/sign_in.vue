@@ -11,13 +11,13 @@
         <v-form autocomplete="on">
           <v-card-title>ログイン</v-card-title>
           <v-card-text
-            id="input_area"
+            id="sign_in_area"
             @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="signIn(!meta.valid, true)"
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
-                id="input_email"
+                id="sign_in_email_text"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -28,7 +28,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
               <v-text-field
-                id="input_password"
+                id="sign_in_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード"

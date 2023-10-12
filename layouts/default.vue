@@ -28,13 +28,13 @@
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
-              id="user_menu_btn"
+              id="header_menu_user_btn"
               class="d-inline-block"
               max-width="400px"
               variant="text"
             >
               <v-avatar size="32px">
-                <v-img id="user_image" :src="$auth.user.image_url.small" />
+                <v-img id="header_menu_user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
               <div class="text-truncate hidden-sm-and-down ml-1">{{ $auth.user.name }}</div>
             </v-btn>
@@ -89,7 +89,7 @@
               <v-list-item v-bind="props">
                 <v-list-item-title class="d-flex">
                   <v-avatar size="32px">
-                    <v-img id="user_image" :src="$auth.user.image_url.small" />
+                    <v-img id="navigation_user_image" :src="$auth.user.image_url.small" />
                   </v-avatar>
                   <div class="text-truncate ml-1">{{ $auth.user.name }}</div>
                 </v-list-item-title>

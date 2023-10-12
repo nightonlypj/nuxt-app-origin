@@ -11,13 +11,13 @@
         <v-form autocomplete="off">
           <v-card-title>パスワード再設定</v-card-title>
           <v-card-text
-            id="input_area"
+            id="password_update_area"
             @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="postPasswordUpdate(!meta.valid, true, setErrors, values)"
           >
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
               <v-text-field
-                id="input_password"
+                id="password_update_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード [8文字以上]"
@@ -32,7 +32,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_new_password:@password">
               <v-text-field
-                id="input_password_confirmation"
+                id="password_update_password_confirmation_text"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
                 label="新しいパスワード(確認)"

@@ -13,7 +13,7 @@
           <v-card-text>
             <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
               <v-text-field
-                id="input_name"
+                id="sign_up_name_text"
                 v-model="query.name"
                 label="氏名"
                 prepend-icon="mdi-account"
@@ -25,7 +25,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
-                id="input_email"
+                id="sign_up_email_text"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -36,7 +36,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
               <v-text-field
-                id="input_password"
+                id="sign_up_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード [8文字以上]"
@@ -51,7 +51,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
               <v-text-field
-                id="input_password_confirmation"
+                id="sign_up_password_confirmation_text"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード(確認)"

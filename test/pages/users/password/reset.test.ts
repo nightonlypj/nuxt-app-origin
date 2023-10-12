@@ -83,13 +83,13 @@ describe('reset.vue', () => {
       viewTest(wrapper, query)
 
       // 送信ボタン
-      const button: any = wrapper.find('#password_btn')
+      const button: any = wrapper.find('#password_reset_btn')
       expect(button.exists()).toBe(true)
       await flushPromises()
       expect(button.element.disabled).toBe(true) // 無効
 
       // 入力
-      wrapper.find('#input_email').setValue('user1@example.com')
+      wrapper.find('#password_reset_email_text').setValue('user1@example.com')
       await flushPromises()
 
       // 送信ボタン
@@ -120,11 +120,11 @@ describe('reset.vue', () => {
     const beforeAction = async (options: Options = { keydown: false, isComposing: null }) => {
       wrapper = mountFunction(false, {}, { query: params })
       if (options.keydown) {
-        const inputArea: any = wrapper.find('#input_area')
+        const inputArea: any = wrapper.find('#password_reset_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
         inputArea.trigger('keyup.enter')
       } else {
-        button = wrapper.find('#password_btn')
+        button = wrapper.find('#password_reset_btn')
         button.trigger('click')
       }
       await flushPromises()

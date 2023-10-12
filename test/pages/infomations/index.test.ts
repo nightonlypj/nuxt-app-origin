@@ -92,8 +92,8 @@ describe('index.vue', () => {
     if (data.infomations?.length === 0) {
       expect(wrapper.text()).toMatch('お知らせはありません。')
     } else {
-      expect(wrapper.find('#pagination1').exists()).toBe(data.infomation.total_pages >= 2) // [2頁以上]ページネーション
-      expect(wrapper.find('#pagination2').exists()).toBe(data.infomation.total_pages >= 2)
+      expect(wrapper.find('#infomation_pagination1').exists()).toBe(data.infomation.total_pages >= 2) // [2頁以上]ページネーション
+      expect(wrapper.find('#infomation_pagination2').exists()).toBe(data.infomation.total_pages >= 2)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数、[2頁以上]開始・終了
     expect(wrapper.findComponent(InfomationsLists).exists()).toBe(data.infomations?.length > 0)
@@ -154,7 +154,7 @@ describe('index.vue', () => {
 
       // ページネーション（2頁目）
       wrapper.vm.$data.page = 2
-      wrapper.find('#pagination2').trigger('click') // NOTE: pagination2でも確認
+      wrapper.find('#infomation_pagination2').trigger('click') // NOTE: pagination2でも確認
       await flushPromises()
 
       apiCalledTest(2)
@@ -187,7 +187,7 @@ describe('index.vue', () => {
 
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
-        wrapper.find('#pagination1').trigger('click')
+        wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
@@ -222,7 +222,7 @@ describe('index.vue', () => {
 
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
-        wrapper.find('#pagination1').trigger('click')
+        wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
@@ -258,7 +258,7 @@ describe('index.vue', () => {
 
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
-        wrapper.find('#pagination1').trigger('click')
+        wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
@@ -293,7 +293,7 @@ describe('index.vue', () => {
 
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
-        wrapper.find('#pagination1').trigger('click')
+        wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
@@ -328,7 +328,7 @@ describe('index.vue', () => {
 
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
-        wrapper.find('#pagination1').trigger('click')
+        wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)

@@ -77,8 +77,8 @@ describe('sign_in.vue', () => {
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.find('#input_email').setValue('user1@example.com')
-    wrapper.find('#input_password').setValue('abc12345')
+    wrapper.find('#sign_in_email_text').setValue('user1@example.com')
+    wrapper.find('#sign_in_password_text').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
     await flushPromises()
 
@@ -147,12 +147,14 @@ describe('sign_in.vue', () => {
   describe('ログイン', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
-    const apiCalledTest = () => {
-      expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.authSignInURL, 'POST', {
-        ...params,
-        unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
-      })
+    const apiCalledTest = (count: number) => {
+      expect(mock.useApiRequest).toBeCalledTimes(count)
+      if (count > 0) {
+        expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.authSignInURL, 'POST', {
+          ...params,
+          unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+        })
+      }
     }
 
     let wrapper: any, button: any
@@ -160,7 +162,7 @@ describe('sign_in.vue', () => {
     const beforeAction = async (options: Options = { keydown: false, isComposing: null }) => {
       wrapper = mountFunction(false, {}, { query: params })
       if (options.keydown) {
-        const inputArea: any = wrapper.find('#input_area')
+        const inputArea: any = wrapper.find('#sign_in_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
         inputArea.trigger('keyup.enter')
       } else {
@@ -175,7 +177,7 @@ describe('sign_in.vue', () => {
       mock.useAuthRedirect = { redirectUrl: ref('/users/update'), updateRedirectUrl: vi.fn() } // NOTE: URLがある場合
       await beforeAction()
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.mockCalledTest(mock.setData, 1, data)
       helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/users/update') // NOTE: 保持されているURLに遷移
@@ -186,7 +188,7 @@ describe('sign_in.vue', () => {
       mock.useAuthRedirect = { redirectUrl: ref(null), updateRedirectUrl: vi.fn() } // NOTE: URLがない場合
       await beforeAction({ keydown: true, isComposing: false })
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.mockCalledTest(mock.setData, 1, data)
       helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectHomeURL) // NOTE: トップに遷移
@@ -196,7 +198,7 @@ describe('sign_in.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction({ keydown: true, isComposing: true })
 
-      expect(mock.useApiRequest).toBeCalledTimes(0)
+      apiCalledTest(0)
       helper.toastMessageTest(mock.toast, {})
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
@@ -204,7 +206,7 @@ describe('sign_in.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
@@ -213,7 +215,7 @@ describe('sign_in.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
@@ -221,7 +223,7 @@ describe('sign_in.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
@@ -229,7 +231,7 @@ describe('sign_in.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      apiCalledTest()
+      apiCalledTest(1)
       helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
