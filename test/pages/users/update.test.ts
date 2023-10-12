@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -21,7 +22,7 @@ describe('update.vue', () => {
   })
 
   const fullPath = '/users/update'
-  const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+  const mountFunction = (loggedIn = true, user: object | null = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -78,9 +79,9 @@ describe('update.vue', () => {
 
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false)
+    const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
     helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
@@ -92,7 +93,7 @@ describe('update.vue', () => {
     mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     apiCalledTest()
@@ -104,7 +105,7 @@ describe('update.vue', () => {
     mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     apiCalledTest()
@@ -114,7 +115,7 @@ describe('update.vue', () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
     const wrapper = mountFunction(true, userDestroy)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
@@ -124,9 +125,9 @@ describe('update.vue', () => {
   describe('ユーザー情報更新', () => {
     let wrapper: any
     const beforeAction = async () => {
-      wrapper = mountFunction(true, {})
+      wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -168,9 +169,9 @@ describe('update.vue', () => {
     let wrapper: any
     const beforeAction = async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, {}])
-      wrapper = mountFunction(true, {})
+      wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

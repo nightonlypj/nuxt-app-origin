@@ -74,12 +74,12 @@ describe('Lists.vue', () => {
     viewTest(wrapper, infomations)
 
     // ダブルクリックで、本文ありは遷移する
-    const bodyPresentList = wrapper.find(`#infomation_list${infomations[0].id}`)
+    const bodyPresentList = wrapper.find(`#infomation_list_${infomations[0].id}`)
     bodyPresentList.trigger('dblclick')
     helper.mockCalledTest(mock.navigateTo, 1, `/infomations/${infomations[0].id}`)
 
     // ダブルクリックで、本文なしは遷移しない
-    const bodyBlankList = wrapper.find(`#infomation_list${infomations[1].id}`)
+    const bodyBlankList = wrapper.find(`#infomation_list_${infomations[1].id}`)
     bodyBlankList.trigger('dblclick')
     expect(mock.navigateTo).toBeCalledTimes(1) // NOTE: 上で呼ばれている為
   })

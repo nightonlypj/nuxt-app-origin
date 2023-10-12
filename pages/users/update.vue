@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:alert="alert" v-model:notice="notice" />
     <v-card max-width="850px">
       <v-card-title>ユーザー情報</v-card-title>
       <v-row>

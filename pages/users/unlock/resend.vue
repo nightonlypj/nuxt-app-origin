@@ -4,20 +4,20 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:alert="alert" v-model:notice="notice" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="off" @submit.prevent>
           <v-card-title>アカウントロック解除</v-card-title>
           <v-card-text
-            id="input_area"
+            id="unlock_reset_area"
             @keydown.enter="appSetKeyDownEnter"
             @keyup.enter="postUnlock(!meta.valid, true, setErrors, values)"
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
-                id="input_email"
+                id="unlock_reset_email_text"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -27,7 +27,7 @@
               />
             </Field>
             <v-btn
-              id="unlock_btn"
+              id="unlock_reset_btn"
               color="primary"
               class="mt-2"
               :disabled="!meta.valid || processing || waiting"

@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Data.vue'
@@ -65,15 +66,25 @@ describe('Data.vue', () => {
     // 変更ボタン
     const button: any = wrapper.find('#user_update_btn')
     expect(button.exists()).toBe(true)
-    await helper.waitChangeDisabled(button, true)
+    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.find('#input_current_password').setValue('abc12345')
+    wrapper.find('#user_update_current_password_text').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
+    await flushPromises()
 
     // 変更ボタン
-    await helper.waitChangeDisabled(button, false)
+    expect(button.element.disabled).toBe(false) // 有効
+
+    // 入力
+    wrapper.find('#user_update_name_text').setValue('newの氏名')
+    wrapper.find('#user_update_email_text').setValue('new@example.com')
+    wrapper.find('#user_update_password_text').setValue('new12345')
+    wrapper.find('#user_update_password_confirmation_text').setValue('new12345')
+    await flushPromises()
+
+    // 変更ボタン
     expect(button.element.disabled).toBe(false) // 有効
   })
 
@@ -94,7 +105,7 @@ describe('Data.vue', () => {
       wrapper = mountFunction(user, { query: params })
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

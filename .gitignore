@@ -24,6 +24,6 @@ logs
 !.env.example
 
 # Coverage directory used by tools like istanbul
-coverage
+/coverage*
 
-public/robots.txt
+/public/robots.txt

@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -19,7 +20,7 @@ describe('delete.vue', () => {
   })
 
   const fullPath = '/users/delete'
-  const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+  const mountFunction = (loggedIn = true, user: object | null = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -58,9 +59,9 @@ describe('delete.vue', () => {
 
   // テストケース
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false)
+    const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
     helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
@@ -71,7 +72,7 @@ describe('delete.vue', () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     viewTest(wrapper, user)
@@ -81,7 +82,7 @@ describe('delete.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.element.disabled).toBe(false) // 有効
     button.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     const dialog: any = wrapper.find('#user_delete_dialog')
@@ -98,7 +99,7 @@ describe('delete.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.element.disabled).toBe(false) // 有効
     noButton.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
@@ -108,7 +109,7 @@ describe('delete.vue', () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
@@ -121,7 +122,7 @@ describe('delete.vue', () => {
       const user = Object.freeze({ destroy_schedule_at: null, destroy_schedule_days: 789 })
       wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -171,17 +172,17 @@ describe('delete.vue', () => {
     let wrapper: any, button: any
     const beforeAction = async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, {}])
-      wrapper = mountFunction(true, {})
-      await helper.sleep(1)
+      wrapper = mountFunction()
+      await flushPromises()
 
       // 削除ボタン
       button = wrapper.find('#user_delete_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       // はいボタン
       wrapper.find('#user_delete_yes_btn').trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

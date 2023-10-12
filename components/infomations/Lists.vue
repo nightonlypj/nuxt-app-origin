@@ -2,7 +2,7 @@
   <template v-if="infomations != null && infomations.length > 0">
     <article
       v-for="infomation in infomations"
-      :id="`infomation_list${infomation.id}`"
+      :id="`infomation_list_${infomation.id}`"
       :key="infomation.id"
       @dblclick="redirectInfomation(infomation)"
     >

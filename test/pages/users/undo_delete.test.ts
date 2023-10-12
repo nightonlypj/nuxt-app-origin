@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -68,7 +69,7 @@ describe('undo_delete.vue', () => {
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
     helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
@@ -79,7 +80,7 @@ describe('undo_delete.vue', () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.not_destroy_reserved })
@@ -89,7 +90,7 @@ describe('undo_delete.vue', () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
     const wrapper = mountFunction(true, userDestroy)
     helper.loadingTest(wrapper, AppLoading)
-    await helper.sleep(1)
+    await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     viewTest(wrapper, userDestroy)
@@ -99,7 +100,7 @@ describe('undo_delete.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.element.disabled).toBe(false) // 有効
     button.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     const dialog: any = wrapper.find('#user_undo_delete_dialog')
@@ -116,7 +117,7 @@ describe('undo_delete.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.element.disabled).toBe(false) // 有効
     noButton.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
@@ -127,7 +128,7 @@ describe('undo_delete.vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction(true, userDestroy)
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -168,16 +169,16 @@ describe('undo_delete.vue', () => {
     const beforeAction = async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
       wrapper = mountFunction(true, userDestroy)
-      await helper.sleep(1)
+      await flushPromises()
 
       // 取り消しボタン
       button = wrapper.find('#user_undo_delete_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       // はいボタン
       wrapper.find('#user_undo_delete_yes_btn').trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

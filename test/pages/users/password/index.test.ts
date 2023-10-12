@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -70,20 +71,20 @@ describe('index.vue', () => {
     // 変更ボタン
     const button: any = wrapper.find('#password_update_btn')
     expect(button.exists()).toBe(true)
-    await helper.waitChangeDisabled(button, true)
+    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
-    wrapper.find('#input_password').setValue('abc12345')
-    wrapper.find('#input_password_confirmation').setValue('abc12345')
+    wrapper.find('#password_update_password_text').setValue('abc12345')
+    wrapper.find('#password_update_password_confirmation_text').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
+    await flushPromises()
 
     // 変更ボタン
-    await helper.waitChangeDisabled(button, false)
     expect(button.element.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
-    mountFunction(true, {})
+    mountFunction(true)
     helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
@@ -146,7 +147,7 @@ describe('index.vue', () => {
     const beforeAction = async (changeSignIn = false, options: Options = { keydown: false, isComposing: null }) => {
       wrapper = mountFunction(false, { reset_password_token: params.reset_password_token }, { query: params })
       if (options.keydown) {
-        const inputArea: any = wrapper.find('#input_area')
+        const inputArea: any = wrapper.find('#password_update_area')
         inputArea.trigger('keydown.enter', { isComposing: options.isComposing })
         inputArea.trigger('keyup.enter')
       } else {
@@ -154,7 +155,7 @@ describe('index.vue', () => {
         button.trigger('click')
       }
       if (changeSignIn) { wrapper.vm.$auth.loggedIn = true } // NOTE: 状態変更（Mockでは実行されない為）
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[成功][ボタンクリック]ログイン状態になり、トップページにリダイレクトされる', async () => {

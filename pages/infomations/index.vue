@@ -13,7 +13,7 @@
         </v-col>
         <v-col v-if="enablePagination" class="pa-0">
           <div class="d-flex justify-end">
-            <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
           </div>
         </v-col>
       </v-row>
@@ -26,7 +26,7 @@
       <InfomationsLists v-else :infomations="infomations" />
 
       <template v-if="enablePagination">
-        <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
       </template>
     </v-card-text>
   </v-card>
@@ -78,8 +78,7 @@ export default defineNuxtComponent({
       this.processing = true
       let result = false
 
-      const url = this.$config.public.infomations.listUrl + '?' + new URLSearchParams({ page: this.page })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl, 'GET', { page: this.page })
 
       const redirect = this.infomation == null
       if (response?.ok) {

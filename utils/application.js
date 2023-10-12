@@ -129,15 +129,15 @@ export default defineNuxtComponent({
     },
 
     // メッセージ表示
-    appSetMessage (data, require, defaultKey = 'system.default') {
+    appSetMessage (data, require = false, defaultKey = 'system.default') {
       this.alert = this.appGetAlertMessage(data, require, defaultKey)
       this.notice = data?.notice || null
     },
-    appSetEmitMessage (data, require, defaultKey = 'system.default') {
+    appSetEmitMessage (data, require = false, defaultKey = 'system.default') {
       this.$emit('alert', this.appGetAlertMessage(data, require, defaultKey))
       this.$emit('notice', data?.notice || null)
     },
-    appSetToastedMessage (data, require, success = false, defaultKey = 'system.default') {
+    appSetToastedMessage (data, require = false, success = false, defaultKey = 'system.default') {
       const alert = this.appGetAlertMessage(data, require, defaultKey)
       if (alert != null) { this.$toast.error(alert) }
       if (data?.notice != null) {

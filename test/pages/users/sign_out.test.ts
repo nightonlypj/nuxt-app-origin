@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -64,7 +65,7 @@ describe('sign_out.vue', () => {
     it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(true)
       wrapper.find('#sign_out_btn').trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1)
       helper.toastMessageTest(mock.toast, { success: helper.locales.auth.signed_out })
