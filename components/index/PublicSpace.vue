@@ -45,7 +45,6 @@
 </template>
 
 <script>
-import lodash from 'lodash'
 import AppLoading from '~/components/app/Loading.vue'
 import Application from '~/utils/application.js'
 
@@ -78,24 +77,17 @@ export default defineNuxtComponent({
     // スペース一覧取得（公開）
     async getPublicSpaces () {
       const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-      const url = this.$config.public.spaces.listUrl + '?' + new URLSearchParams(params)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.listUrl, 'GET', params)
 
       if (response?.ok) {
-        if (this.$config.public.debug) { this.check_search_params(params, data.search_params) }
-
         this.errorMessage = this.appCheckResponse(data, { returnKey: true })
         if (this.errorMessage == null) {
           this.spaces = data.spaces
+          this.appCheckSearchParams(params, data.search_params)
         }
       } else {
         this.errorMessage = this.appCheckErrorResponse(response?.status, data, { returnKey: true, require: true })
       }
-    },
-
-    check_search_params (params, responseParams) {
-      // eslint-disable-next-line no-console
-      console.log('response params: ' + (lodash.isEqual(params, responseParams) ? 'OK' : 'NG'), params, responseParams)
     }
   }
 })

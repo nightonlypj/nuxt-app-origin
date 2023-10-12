@@ -3,7 +3,7 @@
     <template #activator="{ props }">
       <v-btn
         v-bind="props"
-        id="setting_btn"
+        id="list_setting_btn"
         color="secondary"
         @click="initialize()"
       >
@@ -12,7 +12,7 @@
       </v-btn>
     </template>
     <template #default="{ isActive }">
-      <v-card id="setting_dialog">
+      <v-card id="list_setting_dialog">
         <v-form autocomplete="off">
           <v-toolbar color="primary" density="compact">
             <v-icon size="small" class="ml-4">mdi-cog</v-icon>
@@ -41,13 +41,13 @@
                   全解除
                 </v-btn>
               </h4>
-              <template v-for="item in items" :key="item.value">
+              <template v-for="item in items" :key="item.key">
                 <v-switch
-                  :id="`setting_show_item_${item.value.replace('.', '_')}`"
+                  :id="`list_setting_show_item_${item.key.replace('.', '_')}`"
                   v-model="showItems"
                   color="primary"
-                  :label="item.text"
-                  :value="item.value"
+                  :label="item.title"
+                  :value="item.key"
                   density="compact"
                   hide-details
                   :disabled="item.required"
@@ -58,7 +58,7 @@
           </v-card-text>
           <v-card-actions class="justify-end mb-2 mr-2">
             <v-btn
-              id="setting_submit_btn"
+              id="list_setting_submit_btn"
               color="primary"
               variant="elevated"
               :disabled="waiting"
@@ -67,7 +67,7 @@
               変更
             </v-btn>
             <v-btn
-              id="setting_cancel_btn"
+              id="list_setting_cancel_btn"
               color="secondary"
               variant="elevated"
               @click="isActive.value = false"
@@ -115,18 +115,18 @@ export default defineNuxtComponent({
       return this.$tm(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
     },
     requiredShowItems () {
-      return this.items.filter(item => item.required).map(item => item.value)
+      return this.items.filter(item => item.required).map(item => item.key)
     }
   },
 
   methods: {
     initialize () {
       this.waiting = true
-      this.showItems = this.items.filter(item => item.required || !this.hiddenItems.includes(item.value)).map(item => item.value)
+      this.showItems = this.items.filter(item => item.required || !this.hiddenItems.includes(item.key)).map(item => item.key)
     },
 
     setAllShowItems () {
-      this.showItems = this.items.map(item => item.value)
+      this.showItems = this.items.map(item => item.key)
       this.waiting = false
     },
     clearShowItems () {
@@ -135,7 +135,7 @@ export default defineNuxtComponent({
     },
 
     change (isActive) {
-      const hiddenItems = this.items.filter(item => !this.showItems.includes(item.value)).map(item => item.value)
+      const hiddenItems = this.items.filter(item => !this.showItems.includes(item.key)).map(item => item.key)
       localStorage.setItem(`${this.model}.hidden-items`, hiddenItems.toString())
       this.$emit('update:hiddenItems', hiddenItems)
       isActive.value = false

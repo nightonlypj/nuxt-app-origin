@@ -46,41 +46,42 @@
           <span class="ml-1">対象の招待URLが見つかりません。</span>
           <v-divider class="my-4" />
         </template>
-        <!-- InvitationsUpdate
+        <InvitationsUpdate
           ref="update"
           :space="space"
           @update="updateInvitation"
-        / -->
+        />
         <template v-if="existInvitations">
           <v-divider class="my-2" />
-          <!-- InvitationsLists
+          <InvitationsLists
             :invitations="invitations"
             :hidden-items="hiddenItems"
             @reload="reloadInvitationsList"
             @show-update="$refs.update.showDialog($event)"
-          / -->
-          <v-divider class="my-2" />
+          />
         </template>
 
-        <!-- InfiniteLoading
+        <InfiniteLoading
           v-if="!reloading && invitation != null && invitation.current_page < invitation.total_pages"
           :identifier="page"
           @infinite="getNextInvitationsList"
         >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading -->
+          <template #spinner>
+            <AppLoading height="10vh" class="mt-4" />
+          </template>
+          <template #complete />
+          <template #error="{ retry }">
+            <AppErrorRetry class="mt-4" @retry="error = false; retry()" />
+          </template>
+        </InfiniteLoading>
       </v-card-text>
     </v-card>
   </template>
 </template>
 
 <script>
-// TODO: import InfiniteLoading from 'vue-infinite-loading'
+import InfiniteLoading from 'v3-infinite-loading'
+import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -89,12 +90,13 @@ import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesTitle from '~/components/spaces/Title.vue'
 import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
-// TODO: import InvitationsLists from '~/components/invitations/Lists.vue'
+import InvitationsLists from '~/components/invitations/Lists.vue'
 import Application from '~/utils/application.js'
 
 export default defineNuxtComponent({
   components: {
-    // InfiniteLoading,
+    InfiniteLoading,
+    AppErrorRetry,
     AppLoading,
     AppProcessing,
     AppMessage,
@@ -102,11 +104,10 @@ export default defineNuxtComponent({
     SpacesDestroyInfo,
     SpacesTitle,
     InvitationsCreate,
-    InvitationsUpdate
-    // InvitationsLists
+    InvitationsUpdate,
+    InvitationsLists
   },
   mixins: [Application],
-  middleware: 'auth',
 
   data () {
     return {
@@ -119,7 +120,7 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // Jest用
+      testState: null, // vitest用
       page: 1,
       space: null,
       invitation: null,
@@ -144,7 +145,7 @@ export default defineNuxtComponent({
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
     if (!await this.getInvitationsList()) { return }
 
     this.loading = false
@@ -167,7 +168,8 @@ export default defineNuxtComponent({
     async getNextInvitationsList ($state) {
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextInvitationsList', this.page + 1, this.processing, this.error) }
-      if (this.processing || this.error) { return }
+      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+      if (this.processing) { return }
 
       this.page = this.invitation.current_page + 1
       if (!await this.getInvitationsList()) {
@@ -189,14 +191,16 @@ export default defineNuxtComponent({
     async getInvitationsList () {
       this.processing = true
 
-      const redirect = this.invitation == null
-      const url = this.$config.public.invitations.listUrl.replace(':space_code', this.$route.params.code) + '?' + new URLSearchParams({ page: this.page })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const url = this.$config.public.invitations.listUrl.replace(':space_code', this.$route.params.code)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'GET', {
+        page: this.page
+      })
 
+      const redirect = this.invitation == null
       if (response?.ok) {
         if (this.page === 1) {
-          this.uid = response.headers?.uid || null
-        } else if (this.uid !== (response.headers?.uid || null)) {
+          this.uid = response.headers.get('uid')
+        } else if (this.uid !== (response.headers.get('uid'))) {
           this.error = true
           location.reload()
           return false

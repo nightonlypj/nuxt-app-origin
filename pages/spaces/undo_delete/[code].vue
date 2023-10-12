@@ -83,7 +83,6 @@ export default defineNuxtComponent({
     SpacesTitle
   },
   mixins: [Application],
-  middleware: 'auth',
 
   data () {
     return {
@@ -95,26 +94,30 @@ export default defineNuxtComponent({
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
     if (this.$auth.user.destroy_schedule_at != null) {
       this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
 
     if (!await this.getSpaceDetail()) { return }
     if (!this.appCurrentMemberAdmin(this.space)) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
     if (this.space.destroy_schedule_at == null) {
       this.appSetToastedMessage({ alert: this.$t('alert.space.not_destroy_reserved') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
 
     this.loading = false
   },
 
   methods: {
+    navigateToSpace () {
+      navigateTo(`/-/${this.$route.params.code}`)
+    },
+
     // スペース詳細取得
     async getSpaceDetail () {
       const url = this.$config.public.spaces.detailUrl.replace(':code', this.$route.params.code)
@@ -144,10 +147,10 @@ export default defineNuxtComponent({
         if (this.appCheckResponse(data, { toasted: true })) {
           this.appSetToastedMessage(data, false, true)
           await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
-          this.$router.push({ path: `/-/${this.$route.params.code}` })
+          this.navigateToSpace()
         }
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, forbidden: true, notfound: true, reserved: true })) {
-        return this.$router.push({ path: `/-/${this.$route.params.code}` })
+        return this.navigateToSpace()
       }
 
       this.processing = false

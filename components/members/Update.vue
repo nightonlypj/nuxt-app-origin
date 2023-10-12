@@ -58,15 +58,15 @@
                       inline
                       hide-details="auto"
                       :error-messages="errors"
+                      @update:model-value="waiting = false"
                     >
                       <v-radio
                         v-for="(value, key) in $tm('enums.member.power')"
-                        :id="`member_power_${key}`"
+                        :id="`member_update_power_${key}`"
                         :key="key"
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>

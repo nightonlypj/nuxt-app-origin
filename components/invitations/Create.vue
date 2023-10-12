@@ -25,6 +25,7 @@
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.domains" name="domains" rules="required">
                     <v-textarea
+                      id="invitation_create_domains_text"
                       v-model="invitation.domains"
                       label="許可ドメイン"
                       placeholder="example.com"
@@ -52,15 +53,15 @@
                       inline
                       hide-details="auto"
                       :error-messages="errors"
+                      @update:model-value="waiting = false"
                     >
                       <v-radio
                         v-for="(value, key) in $tm('enums.invitation.power')"
-                        :id="`invitation_power_${key}`"
+                        :id="`invitation_create_power_${key}`"
                         :key="key"
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>
@@ -73,6 +74,7 @@
                 <v-col cols="12" md="10" class="d-flex pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.ended_date" name="ended_date">
                     <v-text-field
+                      id="invitation_create_ended_date_text"
                       v-model="invitation.ended_date"
                       type="date"
                       density="compact"
@@ -84,6 +86,7 @@
                   </Field>
                   <Field v-slot="{ errors }" v-model="invitation.ended_time" name="ended_time">
                     <v-text-field
+                      id="invitation_create_ended_time_text"
                       v-model="invitation.ended_time"
                       type="time"
                       density="compact"
@@ -105,6 +108,7 @@
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.memo" name="memo" rules="max:64">
                     <v-text-field
+                      id="invitation_create_memo_text"
                       v-model="invitation.memo"
                       density="compact"
                       variant="outlined"

@@ -25,6 +25,7 @@
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="member.emails" name="emails" rules="required">
                     <v-textarea
+                      id="member_create_emails_text"
                       v-model="member.emails"
                       label="メールアドレス"
                       hint="アカウントが存在する場合のみ招待されます。"
@@ -52,15 +53,15 @@
                       inline
                       hide-details="auto"
                       :error-messages="errors"
+                      @update:model-value="waiting = false"
                     >
                       <v-radio
                         v-for="(value, key) in $tm('enums.member.power')"
-                        :id="`member_power_${key}`"
+                        :id="`member_create_power_${key}`"
                         :key="key"
                         :label="value"
                         :value="key"
                         class="mr-2"
-                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>

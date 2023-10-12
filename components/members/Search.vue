@@ -1,17 +1,17 @@
 <template>
   <v-form autocomplete="on" @submit.prevent>
     <div
-      id="input_area"
+      id="member_search_area"
       @keydown.enter="appSetKeyDownEnter"
       @keyup.enter="search(true)"
     >
       <v-row>
         <v-col class="d-flex">
           <v-text-field
-            id="search_text"
+            id="member_search_text"
             v-model="syncQuery.text"
             label="検索"
-            :placeholder="textPlaceholder"
+            :placeholder="`ユーザー名${admin ? 'やメールアドレス' : ''}を入力`"
             autocomplete="on"
             style="max-width: 400px"
             density="compact"
@@ -21,7 +21,7 @@
             @update:model-value="waiting = false"
           />
           <v-btn
-            id="search_btn"
+            id="member_search_btn"
             color="primary"
             class="ml-1 mt-1"
             :disabled="processing || waiting || blank()"
@@ -30,7 +30,7 @@
             <v-icon size="large">mdi-magnify</v-icon>
           </v-btn>
           <v-btn
-            id="option_btn"
+            id="member_search_option_btn"
             color="secondary"
             class="ml-2 mt-1"
             rounded
@@ -41,13 +41,13 @@
           </v-btn>
         </v-col>
       </v-row>
-      <v-row v-show="syncQuery.option" id="option_item">
+      <v-row v-show="syncQuery.option" id="member_search_option_item">
         <v-col cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">権限</v-chip>
           <template v-for="(value, key, index) in powers" :key="key">
             <v-checkbox
+              :id="`member_search_power_${key}_check`"
               v-model="syncQuery.power[key]"
-              model-value="1"
               color="primary"
               :label="value"
               :class="index + 1 < Object.keys(powers).length ? 'mr-2' : null"
@@ -61,6 +61,7 @@
         <v-col cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">状態</v-chip>
           <v-checkbox
+            id="member_search_active_check"
             v-model="syncQuery.active"
             color="primary"
             label="有効"
@@ -68,16 +69,17 @@
             density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="member_search_destroy_check"
             v-model="syncQuery.destroy"
             color="primary"
             label="削除予定"
             density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
       </v-row>
@@ -115,10 +117,6 @@ export default defineNuxtComponent({
   },
 
   computed: {
-    textPlaceholder () {
-      return `ユーザー名${this.admin ? 'やメールアドレス' : ''}を入力`
-    },
-
     powers () {
       return this.$tm('enums.member.power')
     },

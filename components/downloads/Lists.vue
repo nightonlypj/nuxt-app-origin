@@ -1,70 +1,78 @@
 <template>
-  <v-data-table
+  <v-data-table-server
     v-if="downloads != null && downloads.length > 0"
     :headers="headers"
     :items="downloads"
-    item-key="id"
-    :item-class="itemClass"
     :items-per-page="-1"
-    hide-default-footer
-    mobile-breakpoint="600"
+    :items-length="downloads.length"
+    density="comfortable"
     fixed-header
     :height="appTableHeight"
-    disable-sort
   >
+    <!--
+    :item-class="itemClass"  TODO: 背景色が変わらない
+    mobile-breakpoint="600"  TODO: モバイルデザインにならない
+    -->
     <!-- 依頼日時 -->
-    <template #[`header.requested_at`]="{ header }">
-      {{ header.text }}
-      <v-icon size="small">mdi-arrow-down</v-icon>
+    <template #[`column.requested_at`]="{ column }">
+      <span>{{ column.title }}</span>
+      <v-icon>$sortDesc</v-icon>
     </template>
     <template #[`item.requested_at`]="{ item }">
       <div class="text-no-wrap">
-        {{ $timeFormat('ja', item.requested_at) }}
+        {{ $timeFormat('ja', item.raw.requested_at) }}
       </div>
     </template>
     <!-- 完了日時 -->
     <template #[`item.completed_at`]="{ item }">
       <div class="text-no-wrap">
-        {{ $timeFormat('ja', item.completed_at) }}
+        {{ $timeFormat('ja', item.raw.completed_at) }}
       </div>
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }">
-      <v-icon v-if="item.status === 'success'" :id="`icon_success_${item.id}`" color="success" size="small">mdi-check-circle</v-icon>
-      <v-icon v-else-if="item.status === 'failure'" :id="`icon_failure_${item.id}`" color="error" size="small">mdi-alert</v-icon>
-      <v-icon v-else :id="`icon_info_${item.id}`" color="info" size="small">mdi-information</v-icon>
-      {{ item.status_i18n }}
+      <v-icon
+        :id="`download_icon_${['success', 'failure'].includes(item.raw.status) ? item.raw.status : 'info'}_${item.raw.id}`"
+        :color="item.raw.status === 'success' ? 'success' : (item.raw.status === 'failure' ? 'error' : 'info')"
+        size="small"
+      >
+        {{ item.raw.status === 'success' ? 'mdi-check-circle' : (item.raw.status === 'failure' ? 'mdi-alert' : 'mdi-information') }}
+      </v-icon>
+      {{ item.raw.status_i18n }}
     </template>
     <!-- ファイル -->
-    <template #[`header.file`]="{ header }">
+    <template #[`column.file`]="{ column }">
       <div class="text-center">
-        {{ header.text }}
+        {{ column.title }}
       </div>
     </template>
     <template #[`item.file`]="{ item }">
-      <div v-if="item.status === 'success'" class="text-center">
-        <a
-          :id="`download_link_${item.id}`"
+      <div v-if="item.raw.status === 'success'" class="text-center">
+        <v-btn
+          :id="`download_link${item.raw.last_downloaded_at == null ? '' : '_done'}_${item.raw.id}`"
+          :color="item.raw.last_downloaded_at == null ? 'primary' : 'secondary'"
+          size="small"
           class="text-no-wrap"
-          @click="$emit('downloadsFile', item)"
+          @click="$emit('downloadsFile', item.raw)"
         >
           <v-icon size="small">mdi-download</v-icon>
           ダウンロード
-        </a>
-        <div v-if="item.last_downloaded_at != null" :id="`download_done_${item.id}`">（済み）</div>
+        </v-btn>
       </div>
     </template>
     <!-- 対象・形式等 -->
     <template #[`item.target`]="{ item }">
-      <template v-if="item.model === 'member' && item.space != null && item.space.name != null">
-        メンバー: {{ $textTruncate(item.space.name, 64) }}
-      </template>
-      <template v-else>
-        {{ item.model_i18n }}
-      </template>
-      <div>{{ item.target_i18n }}, {{ item.format_i18n }}, {{ item.char_code_i18n }}, {{ item.newline_code_i18n }}</div>
+      <div class="my-2">
+        <template v-if="item.raw.model === 'member' && item.raw.space != null && item.raw.space.name != null">
+          メンバー: {{ $textTruncate(item.raw.space.name, 64) }}
+        </template>
+        <template v-else>
+          {{ item.raw.model_i18n }}
+        </template>
+        <div>{{ item.raw.target_i18n }}, {{ item.raw.format_i18n }}, {{ item.raw.char_code_i18n }}, {{ item.raw.newline_code_i18n }}</div>
+      </div>
     </template>
-  </v-data-table>
+  </v-data-table-server>
 </template>
 
 <script>
@@ -85,7 +93,7 @@ export default defineNuxtComponent({
     headers () {
       const result = []
       for (const item of this.$tm('items.download')) {
-        result.push({ text: item.text, value: item.value, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
+        result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
       }
       if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
@@ -94,12 +102,12 @@ export default defineNuxtComponent({
     itemClass () {
       return (item) => {
         if (this.$route?.query?.target_id != null) {
-          if (item.id === Number(this.$route.query.target_id)) { return item.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
+          if (item.raw.id === Number(this.$route.query.target_id)) { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
           return null
         }
 
-        if (item.status === 'success') { return item.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
-        if (item.status === 'failure') { return 'row_inactive' }
+        if (item.raw.status === 'success') { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
+        if (item.raw.status === 'failure') { return 'row_inactive' }
         return null
       }
     }
@@ -108,6 +116,9 @@ export default defineNuxtComponent({
 </script>
 
 <style scoped>
+.v-data-table >>> .v-data-table-footer {
+  display: none; /* NOTE: hide-default-footerが効かない為 */
+}
 .v-data-table.theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }

@@ -10,7 +10,7 @@
     <v-tabs v-model="tabPage" color="primary">
       <v-tab :to="`/-/${$route.params.code}`">スペース</v-tab>
       <v-tab value="list">メンバー一覧</v-tab>
-      <v-tab v-if="createResult != null" href="#result">メンバー招待（結果）</v-tab>
+      <v-tab v-if="createResult != null" value="result">メンバー招待（結果）</v-tab>
       <v-tab v-if="admin" :to="`/invitations/${$route.params.code}`">招待URL一覧</v-tab>
     </v-tabs>
 
@@ -101,7 +101,7 @@
         />
         <template v-if="existMembers">
           <v-divider class="my-2" />
-          <!-- MembersLists
+          <MembersLists
             v-model:selected-members="selectedMembers"
             :sort="query.sort"
             :desc="query.desc"
@@ -111,22 +111,22 @@
             :admin="admin"
             @reload="reloadMembersList"
             @show-update="$refs.update.showDialog($event)"
-          / -->
-          <v-divider class="my-2" />
+          />
         </template>
 
-        <!-- InfiniteLoading
+        <InfiniteLoading
           v-if="!reloading && member != null && member.current_page < member.total_pages"
           :identifier="page"
           @infinite="getNextMembersList"
         >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading -->
+          <template #spinner>
+            <AppLoading height="10vh" class="mt-4" />
+          </template>
+          <template #complete />
+          <template #error="{ retry }">
+            <AppErrorRetry class="mt-4" @retry="error = false; retry()" />
+          </template>
+        </InfiniteLoading>
       </v-card-text>
     </v-card>
 
@@ -139,8 +139,8 @@
 </template>
 
 <script>
-import lodash from 'lodash'
-// TODO: import InfiniteLoading from 'vue-infinite-loading'
+import InfiniteLoading from 'v3-infinite-loading'
+import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -152,13 +152,14 @@ import MembersSearch from '~/components/members/Search.vue'
 import MembersCreate from '~/components/members/Create.vue'
 import MembersUpdate from '~/components/members/Update.vue'
 import MembersDelete from '~/components/members/Delete.vue'
-// TODO: import MembersLists from '~/components/members/Lists.vue'
+import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
 import Application from '~/utils/application.js'
 
 export default defineNuxtComponent({
   components: {
-    // InfiniteLoading,
+    InfiniteLoading,
+    AppErrorRetry,
     AppLoading,
     AppProcessing,
     AppMessage,
@@ -170,11 +171,10 @@ export default defineNuxtComponent({
     MembersCreate,
     MembersUpdate,
     MembersDelete,
-    // MembersLists,
+    MembersLists,
     MembersResult
   },
   mixins: [Application],
-  middleware: 'auth',
 
   data () {
     const power = {}
@@ -193,7 +193,7 @@ export default defineNuxtComponent({
       notice: null,
       tabPage: 'list',
       query: {
-        text: this.$route?.query?.text || '',
+        text: this.$route?.query?.text || null,
         power,
         active: this.$route?.query?.active !== '0',
         destroy: this.$route?.query?.destroy !== '0',
@@ -204,7 +204,7 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // Jest用
+      testState: null, // vitest用
       page: 1,
       space: null,
       admin: null,
@@ -232,7 +232,7 @@ export default defineNuxtComponent({
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
     if (!await this.getMembersList()) { return }
 
     this.loading = false
@@ -258,17 +258,6 @@ export default defineNuxtComponent({
       if (Object.keys($event).length >= 0) {
         if ($event.sort != null) { this.query.sort = $event.sort }
         if ($event.desc != null) { this.query.desc = $event.desc }
-
-        // 連続再取得はスキップ  NOTE: v-data-tableで降順から対象を変更すると、対象と昇順変更のイベントが連続で発生する為
-        if (!this.reloading) {
-          await this.$sleep(10)
-          if (this.reloading) {
-            // eslint-disable-next-line no-console
-            if (this.$config.public.debug) { console.log('...Skip') }
-
-            return false
-          }
-        }
       }
 
       // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
@@ -295,7 +284,7 @@ export default defineNuxtComponent({
       for (const key in this.query.power) {
         power += Number(this.query.power[key])
       }
-      this.$router.push({
+      navigateTo({
         query: {
           ...this.params,
           power,
@@ -313,7 +302,8 @@ export default defineNuxtComponent({
     async getNextMembersList ($state) {
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextMembersList', this.page + 1, this.processing, this.error) }
-      if (this.processing || this.error) { return }
+      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+      if (this.processing) { return }
 
       this.page = this.member.current_page + 1
       if (!await this.getMembersList()) {
@@ -342,6 +332,7 @@ export default defineNuxtComponent({
         }
         this.params = {
           ...this.query,
+          text: this.query.text || '',
           power: power.join(),
           active: Number(this.query.active),
           destroy: Number(this.query.destroy),
@@ -353,19 +344,17 @@ export default defineNuxtComponent({
         this.params.desc = Number(this.query.desc)
       }
 
-      const url = this.$config.public.members.listUrl.replace(':space_code', this.$route.params.code) + '?' + new URLSearchParams({
+      const url = this.$config.public.members.listUrl.replace(':space_code', this.$route.params.code)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'GET', {
         ...this.params,
         page: this.page
       })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
 
       const redirect = this.member == null
       if (response?.ok) {
-        if (this.$config.public.debug) { this.check_search_params(data.search_params) }
-
         if (this.page === 1) {
-          this.uid = response.headers?.uid || null
-        } else if (this.uid !== (response.headers?.uid || null)) {
+          this.uid = response.headers.get('uid')
+        } else if (this.uid !== (response.headers.get('uid'))) {
           this.error = true
           location.reload()
           return false
@@ -381,6 +370,7 @@ export default defineNuxtComponent({
           } else {
             this.members.push(...data.members)
           }
+          this.appCheckSearchParams(this.params, data.search_params)
         }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true }, { auth: true, forbidden: true, notfound: true })
@@ -390,11 +380,6 @@ export default defineNuxtComponent({
       this.page = this.member?.current_page || 1
       this.processing = false
       return !this.error
-    },
-
-    check_search_params (responseParams) {
-      // eslint-disable-next-line no-console
-      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     },
 
     // メンバー招待（結果）

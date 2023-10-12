@@ -35,50 +35,51 @@
         </template>
         <template v-if="existDownloads">
           <v-divider class="my-2" />
-          <!-- DownloadsLists
+          <DownloadsLists
             :downloads="downloads"
             @downloads-file="downloadsFile"
-          / -->
+          />
           <v-divider class="my-2" />
         </template>
 
-        <!-- InfiniteLoading
+        <InfiniteLoading
           v-if="!reloading && download != null && download.current_page < download.total_pages"
           :identifier="page"
           @infinite="getNextDownloadsList"
         >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading -->
+          <template #spinner>
+            <AppLoading height="10vh" class="mt-4" />
+          </template>
+          <template #complete />
+          <template #error="{ retry }">
+            <AppErrorRetry class="mt-4" @retry="error = false; retry()" />
+          </template>
+        </InfiniteLoading>
       </v-card-text>
     </v-card>
   </template>
 </template>
 
 <script>
-import lodash from 'lodash'
-// TODO: import InfiniteLoading from 'vue-infinite-loading'
+import InfiniteLoading from 'v3-infinite-loading'
+import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
-// TODO: import DownloadsLists from '~/components/downloads/Lists.vue'
+import DownloadsLists from '~/components/downloads/Lists.vue'
 import Application from '~/utils/application.js'
 
 export default defineNuxtComponent({
 
   components: {
-    // InfiniteLoading,
+    InfiniteLoading,
+    AppErrorRetry,
     AppLoading,
     AppProcessing,
-    AppMessage
-    // DownloadsLists
+    AppMessage,
+    DownloadsLists
   },
   mixins: [Application],
-  middleware: 'auth',
 
   data () {
     return {
@@ -90,11 +91,12 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // Jest用
+      testState: null, // vitest用
       page: 1,
       download: null,
       downloads: null,
-      testDelay: null // Jest用
+      testDelay: null, // vitest用
+      testElement: null // vitest用
     }
   },
 
@@ -105,7 +107,7 @@ export default defineNuxtComponent({
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
     if (!await this.getDownloadsList()) { return }
 
     this.loading = false
@@ -128,7 +130,8 @@ export default defineNuxtComponent({
     async getNextDownloadsList ($state) {
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextDownloadsList', this.page + 1, this.processing, this.error) }
-      if (this.processing || this.error) { return }
+      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+      if (this.processing) { return }
 
       this.page = this.download.current_page + 1
       if (!await this.getDownloadsList()) {
@@ -150,23 +153,19 @@ export default defineNuxtComponent({
     async getDownloadsList () {
       this.processing = true
 
-      this.params = {
-        id: '',
-        target_id: (this.$route?.query?.target_id != null) ? Number(this.$route.query.target_id) : ''
-      }
-      const url = this.$config.public.downloads.listUrl + '?' + new URLSearchParams({
+      this.params = {}
+      if (this.$route?.query?.target_id != null) { this.params.target_id = Number(this.$route.query.target_id) }
+
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.listUrl, 'GET', {
         ...this.params,
         page: this.page
       })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
 
       const redirect = this.download == null
       if (response?.ok) {
-        if (this.$config.public.debug) { this.check_search_params(data.search_params) }
-
         if (this.page === 1) {
-          this.uid = response.headers?.uid || null
-        } else if (this.uid !== (response.headers?.uid || null)) {
+          this.uid = response.headers.get('uid')
+        } else if (this.uid !== response.headers.get('uid')) {
           this.error = true
           location.reload()
           return false
@@ -197,8 +196,9 @@ export default defineNuxtComponent({
           }
 
           if (data.undownloaded_count != null && data.undownloaded_count !== this.$auth.user.undownloaded_count) {
-            this.$auth.setUser({ ...this.$auth.user, undownloaded_count: data.undownloaded_count })
+            this.$auth.updateUserUndownloadedCount(data.undownloaded_count)
           }
+          this.appCheckSearchParams(this.params, data.search_params)
         }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true }, { auth: true })
@@ -227,35 +227,29 @@ export default defineNuxtComponent({
         id: targetId,
         target_id: targetId
       }
-      const url = this.$config.public.downloads.listUrl + '?' + new URLSearchParams(this.params)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.listUrl, 'GET', this.params)
 
       if (response?.ok) {
-        if (this.$config.public.debug) { this.check_search_params(data.search_params) }
-
         this.error = !this.appCheckResponse(data, { toasted: true }, data?.downloads?.length !== 1 || data.downloads[0].id !== targetId || data.target == null)
-        if (this.error) { return }
-        if (['waiting', 'processing'].includes(data.target.status)) {
-          // eslint-disable-next-line no-console
-          if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
+        if (!this.error) {
+          if (['waiting', 'processing'].includes(data.target.status)) {
+            // eslint-disable-next-line no-console
+            if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
 
-          this.testDelay = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
-          setTimeout(this.checkDownloadComplete, ...this.testDelay)
-          return
+            this.testDelay = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
+            setTimeout(this.checkDownloadComplete, ...this.testDelay)
+            return
+          }
+
+          this.downloads.splice(index, 1, data.downloads[0])
+          this.appSetMessage(data.target, false)
+          this.appSetToastedMessage(data.target, false, true)
+          this.$auth.updateUserUndownloadedCount(data.undownloaded_count)
+          this.appCheckSearchParams(this.params, data.search_params)
         }
-
-        this.downloads.splice(index, 1, data.downloads[0])
-        this.appSetMessage(data.target, false)
-        this.appSetToastedMessage(data.target, false, true)
-        this.$auth.setUser({ ...this.$auth.user, undownloaded_count: data.undownloaded_count })
       } else {
         this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })
       }
-    },
-
-    check_search_params (responseParams) {
-      // eslint-disable-next-line no-console
-      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     },
 
     // ダウンロード
@@ -264,20 +258,20 @@ export default defineNuxtComponent({
       if (this.$config.public.debug) { console.log('downloadsFile', item) }
 
       const url = this.$config.public.downloads.fileUrl.replace(':id', item.id)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'GET', null, null, 'text/csv')
 
       if (response?.ok) {
         if (this.appCheckResponse(data, { toasted: true })) {
-          const contentDisposition = response.headers != null ? response.headers['content-disposition'].match(/filename="([^"]*)"/) : []
-          const blob = new Blob([data], { type: data.type })
           const element = document.createElement('a')
-          element.href = (window.URL || window.webkitURL).createObjectURL(blob)
+          element.href = (window.URL || window.webkitURL).createObjectURL(data)
+
+          const contentDisposition = response.headers.get('content-disposition').match(/filename="([^"]*)"/) || []
           if (contentDisposition.length >= 2) { element.download = contentDisposition[1] }
+
           document.body.appendChild(element)
-          if (process.env.NODE_ENV !== 'test') { // NOTE: Jest -> Error: Not implemented: navigation (except hash changes)
-            element.click()
-          }
+          element.click()
           document.body.removeChild(element)
+          this.testElement = element
 
           if (item.last_downloaded_at == null) {
             const index = this.downloads.indexOf(item)
@@ -289,7 +283,7 @@ export default defineNuxtComponent({
             if (item.id === Number(this.$route?.query?.target_id)) { this.notice = null }
 
             if (this.$auth.user?.undownloaded_count > 0) {
-              this.$auth.setUser({ ...this.$auth.user, undownloaded_count: this.$auth.user.undownloaded_count - 1 })
+              this.$auth.updateUserUndownloadedCount(this.$auth.user.undownloaded_count - 1)
             }
           }
         }

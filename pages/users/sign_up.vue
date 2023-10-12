@@ -13,7 +13,7 @@
           <v-card-text>
             <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
               <v-text-field
-                id="input_name"
+                id="sign_up_name_text"
                 v-model="query.name"
                 label="氏名"
                 prepend-icon="mdi-account"
@@ -25,7 +25,7 @@
             </Field>
             <Field v-if="invitation == null || invitation.email != null" v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
               <v-text-field
-                id="input_email"
+                id="sign_up_email_text"
                 v-model="query.email"
                 label="メールアドレス"
                 prepend-icon="mdi-email"
@@ -37,7 +37,7 @@
             <div v-else class="d-flex">
               <Field v-slot="{ errors }" v-model="query.email_local" name="email" rules="required">
                 <v-text-field
-                  id="input_email_local"
+                  id="sign_up_email_local_text"
                   v-model="query.email_local"
                   label="メールアドレス"
                   prepend-icon="mdi-email"
@@ -48,7 +48,6 @@
               </Field>
               <Field v-slot="{ errors }" v-model="query.email_domain" name="email_domain" rules="required_select">
                 <v-select
-                  id="input_email_domain"
                   v-model="query.email_domain"
                   :items="invitation.domains"
                   prefix="@"
@@ -59,7 +58,7 @@
             </div>
             <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
               <v-text-field
-                id="input_password"
+                id="sign_up_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード [8文字以上]"
@@ -74,7 +73,7 @@
             </Field>
             <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
               <v-text-field
-                id="input_password_confirmation"
+                id="sign_up_password_confirmation_text"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
                 label="パスワード(確認)"
@@ -166,8 +165,9 @@ export default defineNuxtComponent({
   methods: {
     // 招待情報取得
     async getUserInvitation () {
-      const url = this.$config.public.userInvitationUrl + '?' + new URLSearchParams({ code: this.$route.query.code })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userInvitationUrl, 'GET', {
+        code: this.$route.query.code
+      })
 
       if (response?.ok) {
         if (this.appCheckResponse(data, { redirect: true }, data?.invitation == null || (data.invitation.email == null && data.invitation.domains == null))) {

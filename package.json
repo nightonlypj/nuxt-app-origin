@@ -37,10 +37,11 @@
     "sass": "^1.66.1",
     "typescript": "^5.2.2",
     "unplugin-auto-import": "^0.16.6",
+    "v3-infinite-loading": "^1.3.1",
     "vee-validate": "^4.11.2",
     "vite-plugin-vuetify": "^1.0.2",
     "vitest": "^0.34.4",
     "vue-toastification": "^2.0.0-rc.5",
-    "vuetify": "^3.3.13"
+    "vuetify": "^3.4.0-alpha.1"
   }
 }

@@ -1,3 +1,5 @@
+import lodash from 'lodash'
+
 export default defineNuxtComponent({
   emits: ['alert', 'notice'],
 
@@ -35,7 +37,7 @@ export default defineNuxtComponent({
     },
 
     appTableHeight () {
-      return Math.max(200, this.$vuetify.display.height - 146) + 'px'
+      return Math.max(200, this.$vuetify.display.height - (64 + 16 + 16 + 40)) + 'px'
     },
 
     appTimeZoneOffset () {
@@ -59,6 +61,19 @@ export default defineNuxtComponent({
     // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
     appSetKeyDownEnter ($event) {
       this.keyDownEnter = !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
+    },
+
+    // 検索パラメータチェック
+    appCheckSearchParams (reqParams, resParams) {
+      if (!this.$config.public.debug) { return }
+
+      const req = Object.entries(reqParams).filter(param => param[1] != null)
+      const res = Object.entries(resParams).filter(param => param[1] != null)
+      const result = lodash.isEqual(req, res)
+      // eslint-disable-next-line no-console
+      console.log(`response params: ${result ? 'OK' : 'NG'}`, reqParams, resParams)
+
+      if (!result) { this.$toast.warning('パラメータが一致していません。ログを確認してください。') }
     },
 
     // レスポンスチェック

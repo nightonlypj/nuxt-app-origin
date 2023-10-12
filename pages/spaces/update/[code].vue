@@ -40,6 +40,7 @@
               <v-col cols="12" md="10" class="pb-0">
                 <Field v-slot="{ errors }" v-model="space.name" name="name" rules="required|min:3|max:128">
                   <v-text-field
+                    id="space_update_name_text"
                     v-model="space.name"
                     placeholder="スペース名を入力"
                     density="compact"
@@ -64,6 +65,7 @@
                 <span v-show="tabDescription === 'input'">
                   <Field v-slot="{ errors }" v-model="space.description" name="description">
                     <v-textarea
+                      id="space_update_description_text"
                       v-model="space.description"
                       placeholder="スペースの説明を入力"
                       hint="Markdownに対応しています。"
@@ -98,19 +100,18 @@
                     inline
                     hide-details="auto"
                     :error-messages="errors"
+                    @update:model-value="waiting = false"
                   >
                     <v-radio
-                      id="private_false"
+                      id="space_update_private_false"
                       label="誰でも表示できる（公開）"
                       :value="false"
                       class="mr-2"
-                      @update:model-value="waiting = false"
                     />
                     <v-radio
-                      id="private_true"
+                      id="space_update_private_true"
                       label="メンバーのみ表示できる（非公開）"
                       :value="true"
-                      @update:model-value="waiting = false"
                     />
                   </v-radio-group>
                 </Field>
@@ -127,7 +128,7 @@
                   </v-avatar>
                   <v-checkbox
                     v-if="space.upload_image"
-                    id="space_image_delete"
+                    id="space_update_image_delete_check"
                     v-model="space.image_delete"
                     color="primary"
                     label="削除（初期画像に戻す）"
@@ -139,6 +140,7 @@
                 </div>
                 <Field v-slot="{ errors }" v-model="space.image" name="image" rules="size_20MB:20480">
                   <v-file-input
+                    id="space_update_image_file"
                     v-model="space.image"
                     accept="image/jpeg,image/gif,image/png"
                     label="画像ファイル"
@@ -149,7 +151,7 @@
                     variant="outlined"
                     hide-details="auto"
                     :error-messages="errors"
-                    @change="waiting = false"
+                    @update:model-value="waiting = false"
                   />
                 </Field>
               </v-col>
@@ -214,7 +216,6 @@ export default defineNuxtComponent({
     UsersAvatar
   },
   mixins: [Application],
-  middleware: 'auth',
 
   data () {
     return {
@@ -230,26 +231,30 @@ export default defineNuxtComponent({
   },
 
   async created () {
-    if (!this.$auth.loggedIn) { return } // NOTE: Jestでmiddlewareが実行されない為
+    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
     if (this.$auth.user.destroy_schedule_at != null) {
       this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
 
     if (!await this.getSpacesDetail()) { return }
     if (!this.appCurrentMemberAdmin(this.space)) {
       this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
     if (this.space.destroy_schedule_at != null) {
       this.appSetToastedMessage({ alert: this.$t('alert.space.destroy_reserved') })
-      return this.$router.push({ path: `/-/${this.$route.params.code}` })
+      return this.navigateToSpace()
     }
 
     this.loading = false
   },
 
   methods: {
+    navigateToSpace () {
+      navigateTo(`/-/${this.$route.params.code}`)
+    },
+
     // スペース詳細取得
     async getSpacesDetail () {
       const url = this.$config.public.spaces.detailUrl.replace(':code', this.$route.params.code)
@@ -286,7 +291,7 @@ export default defineNuxtComponent({
         if (this.appCheckResponse(data, { toasted: true }, data?.space == null)) {
           this.appSetToastedMessage(data, false, true)
           await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
-          this.$router.push({ path: `/-/${this.$route.params.code}` })
+          this.navigateToSpace()
         }
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
         this.appSetMessage(data, true)

@@ -8,7 +8,7 @@
         </v-avatar>
         <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
           <v-file-input
-            id="input_image"
+            id="user_update_image_file"
             v-model="image"
             accept="image/jpeg,image/gif,image/png"
             label="画像ファイル"
@@ -17,11 +17,11 @@
             class="mt-2"
             density="compact"
             :error-messages="errors"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </Field>
         <v-btn
-          id="user_image_update_btn"
+          id="user_update_image_btn"
           color="primary"
           class="mt-2 mr-2"
           :disabled="!meta.valid || image == null || image.length === 0 || processing || waiting"
@@ -33,7 +33,7 @@
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
-              id="user_image_delete_btn"
+              id="user_delete_image_btn"
               color="secondary"
               class="mt-2"
               :disabled="!$auth.user.upload_image || processing"
@@ -42,7 +42,7 @@
             </v-btn>
           </template>
           <template #default="{ isActive }">
-            <v-card id="user_image_delete_dialog">
+            <v-card id="user_delete_image_dialog">
               <v-toolbar color="warning" density="compact">
                 <span class="ml-4">画像削除</span>
               </v-toolbar>
@@ -51,7 +51,7 @@
               </v-card-text>
               <v-card-actions class="justify-end mb-2 mr-2">
                 <v-btn
-                  id="user_image_delete_no_btn"
+                  id="user_delete_image_no_btn"
                   color="secondary"
                   variant="elevated"
                   @click="isActive.value = false"
@@ -59,7 +59,7 @@
                   いいえ（キャンセル）
                 </v-btn>
                 <v-btn
-                  id="user_image_delete_yes_btn"
+                  id="user_delete_image_yes_btn"
                   color="warning"
                   variant="elevated"
                   @click="postUserImageDelete(isActive)"

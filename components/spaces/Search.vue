@@ -1,14 +1,14 @@
 <template>
   <v-form autocomplete="on" @submit.prevent>
     <div
-      id="input_area"
+      id="space_search_area"
       @keydown.enter="appSetKeyDownEnter"
       @keyup.enter="search(true)"
     >
       <v-row>
         <v-col class="d-flex">
           <v-text-field
-            id="search_text"
+            id="space_search_text"
             v-model="syncQuery.text"
             label="検索"
             placeholder="名称や説明を入力"
@@ -21,7 +21,7 @@
             @update:model-value="waiting = false"
           />
           <v-btn
-            id="search_btn"
+            id="space_search_btn"
             color="primary"
             class="ml-1 mt-1"
             :disabled="processing || waiting || blank()"
@@ -31,7 +31,7 @@
           </v-btn>
           <v-btn
             v-if="$auth.loggedIn"
-            id="option_btn"
+            id="space_search_option_btn"
             color="secondary"
             class="ml-2 mt-1"
             rounded
@@ -42,10 +42,11 @@
           </v-btn>
         </v-col>
       </v-row>
-      <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="option_item">
+      <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="space_search_option_item">
         <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">表示</v-chip>
           <v-checkbox
+            id="space_search_public_check"
             v-model="syncQuery.public"
             color="primary"
             label="公開"
@@ -53,21 +54,23 @@
             density="compact"
             hide-details
             :error="privateBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_private_check"
             v-model="syncQuery.private"
             color="primary"
             label="非公開"
             density="compact"
             hide-details
             :error="privateBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
         <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">状況</v-chip>
           <v-checkbox
+            id="space_search_join_check"
             v-model="syncQuery.join"
             color="primary"
             label="参加"
@@ -75,21 +78,23 @@
             density="compact"
             hide-details
             :error="joinBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_nojoin_check"
             v-model="syncQuery.nojoin"
             color="primary"
             label="未参加"
             density="compact"
             hide-details
             :error="joinBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
         <v-col cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">状態</v-chip>
           <v-checkbox
+            id="space_search_active_check"
             v-model="syncQuery.active"
             color="primary"
             label="有効"
@@ -97,16 +102,17 @@
             density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_destroy_check"
             v-model="syncQuery.destroy"
             color="primary"
             label="削除予定"
             density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
       </v-row>

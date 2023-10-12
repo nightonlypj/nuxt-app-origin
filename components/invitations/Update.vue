@@ -72,11 +72,12 @@
               </v-row>
               <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
-                  期限
+                  期限<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.ended_date" name="ended_date">
                     <v-text-field
+                      id="invitation_update_ended_date_text"
                       v-model="invitation.ended_date"
                       type="date"
                       density="compact"
@@ -88,6 +89,7 @@
                   </Field>
                   <Field v-slot="{ errors }" v-model="invitation.ended_time" name="ended_time">
                     <v-text-field
+                      id="invitation_update_ended_time_text"
                       v-model="invitation.ended_time"
                       type="time"
                       density="compact"
@@ -104,11 +106,12 @@
               </v-row>
               <v-row>
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-2">
-                  メモ
+                  メモ<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.memo" name="memo" rules="max:64">
                     <v-text-field
+                      id="invitation_update_memo_text"
                       v-model="invitation.memo"
                       density="compact"
                       variant="outlined"
@@ -122,12 +125,12 @@
               </v-row>
               <v-row v-if="invitation.status !== 'expired'">
                 <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 py-0 mt-2">
-                  削除
+                  削除<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="py-0">
                   <template v-if="invitation.destroy_schedule_at == null">
                     <v-checkbox
-                      id="invitation_delete_check"
+                      id="invitation_update_delete_check"
                       v-model="invitation.delete"
                       color="primary"
                       label="削除して使用できないようにする"
@@ -141,7 +144,7 @@
                   </template>
                   <template v-else>
                     <v-checkbox
-                      id="invitation_undo_delete_check"
+                      id="invitation_update_undo_delete_check"
                       v-model="invitation.undo_delete"
                       color="primary"
                       label="削除を取り消して使用できるようにする"
@@ -188,6 +191,7 @@ import { localize, setLocale } from '@vee-validate/i18n'
 import { max } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Application from '~/utils/application.js'
 
@@ -200,6 +204,7 @@ export default defineNuxtComponent({
     Form,
     Field,
     AppProcessing,
+    AppRequiredLabel,
     UsersAvatar
   },
   mixins: [Application],

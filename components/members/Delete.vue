@@ -95,12 +95,12 @@ export default defineNuxtComponent({
           this.appSetEmitMessage(data, false)
           this.$emit('clear')
           this.$emit('reload')
-          this.dialog = false
         }
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
         this.appSetToastedMessage(data, true)
       }
 
+      this.dialog = false // NOTE: 失敗しても閉じる為
       this.processing = false
     }
   }

@@ -8,7 +8,8 @@ export default defineNuxtPlugin((_nuxtApp) => {
         user: computed(() => authData.value?.user),
         setData: (data: object) => { authData.value = data },
         setUser: (user: object) => { authData.value = { ...authData.value, user } },
-        resetUserInfomationUnreadCount: () => { authData.value.user.infomation_unread_count = 0 }
+        resetUserInfomationUnreadCount: () => { authData.value.user.infomation_unread_count = 0 },
+        updateUserUndownloadedCount: (count: number) => { authData.value.user.undownloaded_count = count }
       })
     }
   }

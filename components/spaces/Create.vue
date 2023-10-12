@@ -25,6 +25,7 @@
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="space.name" name="name" rules="required|min:3|max:128">
                     <v-text-field
+                      id="space_create_name_text"
                       v-model="space.name"
                       placeholder="スペース名を入力"
                       density="compact"
@@ -49,6 +50,7 @@
                   <span v-show="tabDescription === 'input'">
                     <Field v-slot="{ errors }" v-model="space.description" name="description">
                       <v-textarea
+                        id="space_create_description_text"
                         v-model="space.description"
                         placeholder="スペースの説明を入力"
                         hint="Markdownに対応しています。"
@@ -82,19 +84,18 @@
                       inline
                       hide-details="auto"
                       :error-messages="errors"
+                      @update:model-value="waiting = false"
                     >
                       <v-radio
-                        id="private_false"
+                        id="space_create_private_false"
                         label="誰でも表示できる（公開）"
                         :value="false"
                         class="mr-2"
-                        @update:model-value="waiting = false"
                       />
                       <v-radio
-                        id="private_true"
+                        id="space_create_private_true"
                         label="メンバーのみ表示できる（非公開）"
                         :value="true"
-                        @update:model-value="waiting = false"
                       />
                     </v-radio-group>
                   </Field>
@@ -107,6 +108,7 @@
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="space.image" name="image" rules="size_20MB:20480">
                     <v-file-input
+                      id="space_create_image_file"
                       v-model="space.image"
                       accept="image/jpeg,image/gif,image/png"
                       label="画像ファイル"
@@ -117,7 +119,7 @@
                       variant="outlined"
                       hide-details="auto"
                       :error-messages="errors"
-                      @click="waiting = false"
+                      @update:model-value="waiting = false"
                     />
                   </Field>
                 </v-col>
@@ -216,7 +218,6 @@ export default defineNuxtComponent({
         'space[description]': this.space.description || ''
       }
       if (this.$config.public.enablePublicSpace) { params['space[private]'] = Number(this.space.private) }
-      if (this.space.image_delete) { params['space[image_delete]'] = true }
       if (this.space.image != null && this.space.image.length > 0) { params['space[image]'] = this.space.image[0] }
 
       const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.createUrl, 'POST', params, 'form')
@@ -226,7 +227,7 @@ export default defineNuxtComponent({
           this.appSetToastedMessage(data, false, true)
           await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
           if (data.space?.code != null) {
-            this.$router.push({ path: `/-/${data.space.code}` })
+            navigateTo(`/-/${data.space.code}`)
           } else {
             this.dialog = false
             this.space = this.initialSpace()

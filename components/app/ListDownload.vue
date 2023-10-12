@@ -3,7 +3,7 @@
     <template #activator="{ props }">
       <v-btn
         v-bind="props"
-        id="download_btn"
+        id="list_download_btn"
         color="secondary"
         @click="initialize()"
       >
@@ -13,7 +13,7 @@
       </v-btn>
     </template>
     <template #default="{ isActive }">
-      <v-card id="download_dialog">
+      <v-card id="list_download_dialog">
         <AppProcessing v-if="processing" />
         <Form v-slot="{ meta, setErrors, values }">
           <v-form autocomplete="off">
@@ -36,16 +36,16 @@
                         inline
                         hide-details="auto"
                         :error-messages="errors"
+                        @update:model-value="waiting = false"
                       >
                         <v-radio
                           v-for="(label, key) in targets"
-                          :id="`download_target_${key}`"
+                          :id="`list_download_target_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
                           class="mr-2"
                           :disabled="!enableTarget.includes(key)"
-                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -59,15 +59,15 @@
                         inline
                         hide-details="auto"
                         :error-messages="errors"
+                        @update:model-value="waiting = false"
                       >
                         <v-radio
                           v-for="(label, key) in formats"
-                          :id="`download_format_${key}`"
+                          :id="`list_download_format_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -81,15 +81,15 @@
                         inline
                         hide-details="auto"
                         :error-messages="errors"
+                        @update:model-value="waiting = false"
                       >
                         <v-radio
                           v-for="(label, key) in charCodes"
-                          :id="`download_char_code_${key}`"
+                          :id="`list_download_char_code_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -103,15 +103,15 @@
                         inline
                         hide-details="auto"
                         :error-messages="errors"
+                        @update:model-value="waiting = false"
                       >
                         <v-radio
                           v-for="(label, key) in newlineCodes"
-                          :id="`download_newline_code_${key}`"
+                          :id="`list_download_newline_code_${key}`"
                           :key="key"
                           :label="label"
                           :value="key"
                           class="mr-2"
-                          @update:model-value="waiting = false"
                         />
                       </v-radio-group>
                     </Field>
@@ -140,13 +140,13 @@
                       </v-btn>
                     </h4>
                     <Field v-slot="{ errors }" v-model="outputItems" name="output_items" rules="required_select">
-                      <template v-for="(item, index) in items" :key="item.value">
+                      <template v-for="(item, index) in items" :key="item.key">
                         <v-switch
-                          :id="`download_output_item_${item.value.replace('.', '_')}`"
+                          :id="`list_download_output_item_${item.key.replace('.', '_')}`"
                           v-model="outputItems"
                           color="primary"
-                          :label="item.text"
-                          :value="item.value"
+                          :label="item.title"
+                          :value="item.key"
                           density="compact"
                           :hide-details="index + 1 < items.length ? 'true' : 'auto'"
                           :error-messages="errors"
@@ -160,7 +160,7 @@
             </v-card-text>
             <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
-                id="download_submit_btn"
+                id="list_download_submit_btn"
                 color="primary"
                 variant="elevated"
                 :disabled="!meta.valid || processing || waiting"
@@ -169,7 +169,7 @@
                 ダウンロード
               </v-btn>
               <v-btn
-                id="download_cancel_btn"
+                id="list_download_cancel_btn"
                 color="secondary"
                 variant="elevated"
                 @click="isActive.value = false"
@@ -269,7 +269,7 @@ export default defineNuxtComponent({
         char_code: localStorage.getItem('download.char_code'),
         newline_code: localStorage.getItem('download.newline_code')
       }
-      this.outputItems = this.items.filter(item => !this.hiddenItems.includes(item.value)).map(item => item.value)
+      this.outputItems = this.items.filter(item => !this.hiddenItems.includes(item.key)).map(item => item.key)
 
       this.enableTarget = []
       if (this.selectItems != null && this.selectItems.length > 0) { this.enableTarget.push('select') }
@@ -283,7 +283,7 @@ export default defineNuxtComponent({
     },
 
     setAllOutputItems () {
-      this.outputItems = this.items.map(item => item.value)
+      this.outputItems = this.items.map(item => item.key)
       this.waiting = false
     },
     clearOutputItems (setErrors) {
@@ -301,7 +301,7 @@ export default defineNuxtComponent({
           model: this.model,
           space_code: this.space?.code || null,
           ...this.query,
-          output_items: this.items.filter(item => this.outputItems.includes(item.value)).map(item => item.value),
+          output_items: this.items.filter(item => this.outputItems.includes(item.key)).map(item => item.key),
           select_items: this.selectItems,
           search_params: this.searchParams
         }
@@ -313,7 +313,7 @@ export default defineNuxtComponent({
           localStorage.setItem('download.char_code', this.query.char_code)
           localStorage.setItem('download.newline_code', this.query.newline_code)
           isActive.value = false
-          this.$router.push({ path: '/downloads', query: { target_id: data.download?.id || null } })
+          navigateTo({ path: '/downloads', query: { target_id: data.download?.id || null } })
         }
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, notfound: true })) {
         this.appSetToastedMessage(data, true)

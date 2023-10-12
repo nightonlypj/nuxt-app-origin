@@ -28,13 +28,13 @@
           <template #activator="{ props }">
             <v-btn
               v-bind="props"
-              id="user_menu_btn"
+              id="header_menu_user_btn"
               class="d-inline-block"
               max-width="400px"
               variant="text"
             >
               <v-avatar size="32px">
-                <v-img id="user_image" :src="$auth.user.image_url.small" />
+                <v-img id="header_menu_user_image" :src="$auth.user.image_url.small" />
               </v-avatar>
               <div class="text-truncate hidden-sm-and-down ml-1">{{ $auth.user.name }}</div>
             </v-btn>
@@ -89,7 +89,7 @@
               <v-list-item v-bind="props">
                 <v-list-item-title class="d-flex">
                   <v-avatar size="32px">
-                    <v-img id="user_image" :src="$auth.user.image_url.small" />
+                    <v-img id="navigation_user_image" :src="$auth.user.image_url.small" />
                   </v-avatar>
                   <div class="text-truncate ml-1">{{ $auth.user.name }}</div>
                 </v-list-item-title>
@@ -160,13 +160,13 @@
         <template v-if="$auth.loggedIn">
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
-            v-for="space in $auth.user.spaces" :id="`space_link_${space.code}`"
+            v-for="space in $auth.user.spaces" :id="`navigation_space_link_${space.code}`"
             :key="space.code"
             :to="`/-/${space.code}`"
           >
             <v-list-item-title class="text-overline">
               <v-avatar v-if="space.image_url != null" size="24px">
-                <v-img :id="`space_image_${space.code}`" :src="space.image_url.mini" />
+                <v-img :id="`navigation_space_image_${space.code}`" :src="space.image_url.mini" />
               </v-avatar>
               {{ space.name }}
             </v-list-item-title>
@@ -175,7 +175,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main class="mx-2">
+    <v-main class="mx-2 pb-10">
       <v-container fluid>
         <UsersDestroyInfo />
         <slot />

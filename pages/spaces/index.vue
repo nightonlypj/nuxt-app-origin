@@ -41,50 +41,51 @@
         </template>
         <template v-if="existSpaces">
           <v-divider class="my-2" />
-          <!-- SpacesLists
+          <SpacesLists
             :spaces="spaces"
             :hidden-items="hiddenItems"
-          / -->
-          <v-divider class="my-2" />
+          />
         </template>
 
-        <!-- InfiniteLoading
+        <InfiniteLoading
           v-if="!reloading && space != null && space.current_page < space.total_pages"
           :identifier="page"
           @infinite="getNextSpacesList"
         >
-          <div slot="no-more" />
-          <div slot="no-results" />
-          <div slot="error" slot-scope="{ trigger }">
-            取得できませんでした。
-            <v-btn @click="error = false; trigger()">再取得</v-btn>
-          </div>
-        </InfiniteLoading -->
+          <template #spinner>
+            <AppLoading height="10vh" class="mt-4" />
+          </template>
+          <template #complete />
+          <template #error="{ retry }">
+            <AppErrorRetry class="mt-4" @retry="error = false; retry()" />
+          </template>
+        </InfiniteLoading>
       </v-card-text>
     </v-card>
   </template>
 </template>
 
 <script>
-import lodash from 'lodash'
-// TODO: import InfiniteLoading from 'vue-infinite-loading'
+import InfiniteLoading from 'v3-infinite-loading'
+import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-// import AppListSetting from '~/components/app/ListSetting.vue'
+// import AppListSetting from '~/components/app/ListSetting.vue' // NOTE: 項目が少ないので未使用
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesCreate from '~/components/spaces/Create.vue'
-// TODO: import SpacesLists from '~/components/spaces/Lists.vue'
+import SpacesLists from '~/components/spaces/Lists.vue'
 import Application from '~/utils/application.js'
 
 export default defineNuxtComponent({
   components: {
-    // InfiniteLoading,
+    InfiniteLoading,
+    AppErrorRetry,
     AppLoading,
     AppProcessing,
     // AppListSetting,
     SpacesSearch,
-    SpacesCreate
-    // SpacesLists
+    SpacesCreate,
+    SpacesLists
   },
   mixins: [Application],
 
@@ -103,7 +104,7 @@ export default defineNuxtComponent({
       processing: true,
       reloading: false,
       query: {
-        text: this.$route?.query?.text || '',
+        text: this.$route?.query?.text || null,
         ...publicQuery,
         active: this.$route?.query?.active !== '0',
         destroy: this.$route?.query?.destroy === '1',
@@ -112,7 +113,7 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // Jest用
+      testState: null, // vitest用
       page: 1,
       space: null,
       spaces: null,
@@ -178,7 +179,7 @@ export default defineNuxtComponent({
           nojoin: String(this.params.nojoin)
         }
       }
-      this.$router.push({
+      navigateTo({
         query: {
           ...this.params,
           ...publicQuery,
@@ -195,7 +196,8 @@ export default defineNuxtComponent({
     async getNextSpacesList ($state) {
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextSpacesList', this.page + 1, this.processing, this.error) }
-      if (this.processing || this.error) { return }
+      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+      if (this.processing) { return }
 
       this.page = this.space.current_page + 1
       if (!await this.getSpacesList()) {
@@ -229,6 +231,7 @@ export default defineNuxtComponent({
         }
         this.params = {
           ...this.query,
+          text: this.query.text || '',
           ...publicParams,
           active: Number(this.query.active),
           destroy: Number(this.query.destroy)
@@ -245,20 +248,17 @@ export default defineNuxtComponent({
           nojoin: 1
         }
       }
-      const redirect = this.space == null
-      const url = this.$config.public.spaces.listUrl + '?' + new URLSearchParams({
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.listUrl, 'GET', {
         ...this.params,
         ...privateParams,
         page: this.page
       })
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
 
+      const redirect = this.space == null
       if (response?.ok) {
-        if (this.$config.public.debug) { this.check_search_params(data.search_params) }
-
         if (this.page === 1) {
-          this.uid = response.headers?.uid || null
-        } else if (this.uid !== (response.headers?.uid || null)) {
+          this.uid = response.headers.get('uid')
+        } else if (this.uid !== (response.headers.get('uid'))) {
           this.error = true
           location.reload()
           return false
@@ -272,6 +272,7 @@ export default defineNuxtComponent({
           } else {
             this.spaces.push(...data.spaces)
           }
+          this.appCheckSearchParams(this.params, data.search_params)
         }
       } else {
         this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true })
@@ -281,11 +282,6 @@ export default defineNuxtComponent({
       this.page = this.space?.current_page || 1
       this.processing = false
       return !this.error
-    },
-
-    check_search_params (responseParams) {
-      // eslint-disable-next-line no-console
-      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
     }
   }
 })

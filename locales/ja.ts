@@ -42,36 +42,36 @@ export const ja = {
   },
   items: {
     space: [
-      { text: '名称', value: 'name', required: true },
-      { text: '説明', value: 'description', required: false }
+      { title: '名称', key: 'name', required: true },
+      { title: '説明', key: 'description', required: false }
     ],
     invitation: [
-      { text: '招待URL', value: 'code', required: true },
-      { text: 'ステータス', value: 'status', required: true },
-      { text: 'メールアドレス', value: 'email', required: false },
-      { text: '権限', value: 'power', required: false },
-      { text: '期限', value: 'ended_at', required: false },
-      { text: 'メモ', value: 'memo', required: false },
-      { text: '作成者', value: 'created_user.name', required: false },
-      { text: '作成日時', value: 'created_at', required: false },
-      { text: '更新者', value: 'last_updated_user.name', required: false },
-      { text: '更新日時', value: 'last_updated_at', required: false }
+      { title: '招待URL', key: 'code', required: true },
+      { title: 'ステータス', key: 'status', required: true },
+      { title: 'メールアドレス', key: 'email', required: false },
+      { title: '権限', key: 'power', required: false },
+      { title: '期限', key: 'ended_at', required: false },
+      { title: 'メモ', key: 'memo', required: false },
+      { title: '作成者', key: 'created_user.name', required: false },
+      { title: '作成日時', key: 'created_at', required: false },
+      { title: '更新者', key: 'last_updated_user.name', required: false },
+      { title: '更新日時', key: 'last_updated_at', required: false }
     ],
     member: [
-      { text: 'メンバー', value: 'user.name', required: true, adminOnly: false },
-      { text: 'メールアドレス', value: 'user.email', required: false, adminOnly: true },
-      { text: '権限', value: 'power', required: false, adminOnly: false },
-      { text: '招待者', value: 'invitationed_user.name', required: false, adminOnly: true },
-      { text: '招待日時', value: 'invitationed_at', required: false, adminOnly: false },
-      { text: '更新者', value: 'last_updated_user.name', required: false, adminOnly: true },
-      { text: '更新日時', value: 'last_updated_at', required: false, adminOnly: true }
+      { title: 'メンバー', key: 'user.name', required: true, adminOnly: false },
+      { title: 'メールアドレス', key: 'user.email', required: false, adminOnly: true },
+      { title: '権限', key: 'power', required: false, adminOnly: false },
+      { title: '招待者', key: 'invitationed_user.name', required: false, adminOnly: true },
+      { title: '招待日時', key: 'invitationed_at', required: false, adminOnly: false },
+      { title: '更新者', key: 'last_updated_user.name', required: false, adminOnly: true },
+      { title: '更新日時', key: 'last_updated_at', required: false, adminOnly: true }
     ],
     download: [
-      { text: '依頼日時', value: 'requested_at' },
-      { text: '完了日時', value: 'completed_at' },
-      { text: 'ステータス', value: 'status' },
-      { text: 'ファイル', value: 'file' },
-      { text: '対象・形式等', value: 'target' }
+      { title: '依頼日時', key: 'requested_at' },
+      { title: '完了日時', key: 'completed_at' },
+      { title: 'ステータス', key: 'status' },
+      { title: 'ファイル', key: 'file' },
+      { title: '対象・形式等', key: 'target' }
     ]
   },
   network: {
