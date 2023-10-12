@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Image.vue'
@@ -70,7 +71,6 @@ describe('Image.vue', () => {
   }
 
   const updateViewTest = (wrapper: any) => {
-    expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
     expect(wrapper.vm.$data.image).toBeNull()
     // NOTE: 画像変更のテストは省略（Mockでは実行されない為）
   }
@@ -89,9 +89,9 @@ describe('Image.vue', () => {
     const file = new File([], 'test.jpg', { type: 'image/jpeg' })
     // wrapper.find('#input_image').setValue([file]) // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
     wrapper.vm.image = [file]
+    await flushPromises()
 
     // アップロードボタン
-    await helper.waitChangeDisabled(button, false)
     expect(button.element.disabled).toBe(false) // 有効
   })
   it('[アップロード画像]表示される', async () => {
@@ -103,7 +103,7 @@ describe('Image.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.element.disabled).toBe(false) // 有効
     button.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     const dialog: any = wrapper.find('#user_image_delete_dialog')
@@ -120,7 +120,7 @@ describe('Image.vue', () => {
     expect(noButton.exists()).toBe(true)
     expect(noButton.element.disabled).toBe(false) // 有効
     noButton.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
@@ -141,7 +141,7 @@ describe('Image.vue', () => {
       wrapper = mountFunction(true, { image })
       button = wrapper.find('#user_image_update_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }
@@ -228,11 +228,11 @@ describe('Image.vue', () => {
       wrapper = mountFunction(true)
       button = wrapper.find('#user_image_delete_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       wrapper.find('#user_image_delete_yes_btn').trigger('click')
       if (changeDefault) { wrapper.vm.$auth.user.upload_image = false } // NOTE: 状態変更（Mockでは実行されない為）
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

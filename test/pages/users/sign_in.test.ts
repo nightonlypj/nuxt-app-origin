@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -72,16 +73,16 @@ describe('sign_in.vue', () => {
     // ログインボタン
     const button: any = wrapper.find('#sign_in_btn')
     expect(button.exists()).toBe(true)
-    await helper.waitChangeDisabled(button, true)
+    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
     wrapper.find('#input_email').setValue('user1@example.com')
     wrapper.find('#input_password').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
+    await flushPromises()
 
     // ログインボタン
-    await helper.waitChangeDisabled(button, false)
     expect(button.element.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
@@ -166,7 +167,7 @@ describe('sign_in.vue', () => {
         button = wrapper.find('#sign_in_btn')
         button.trigger('click')
       }
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {

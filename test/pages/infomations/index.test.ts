@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -112,7 +113,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, { query: null })
@@ -133,7 +134,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, { query: null })
@@ -145,7 +146,7 @@ describe('index.vue', () => {
         .mockImplementationOnce(() => [{ ok: true, status: 200 }, dataPage2])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -154,7 +155,7 @@ describe('index.vue', () => {
       // ページネーション（2頁目）
       wrapper.vm.$data.page = 2
       wrapper.find('#pagination2').trigger('click') // NOTE: pagination2でも確認
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(2)
       viewTest(wrapper, dataPage2, '3件中 3-3件を表示')
@@ -165,7 +166,7 @@ describe('index.vue', () => {
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
@@ -178,7 +179,7 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => [{ ok: true, status: 200 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -187,7 +188,7 @@ describe('index.vue', () => {
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
         wrapper.find('#pagination1').trigger('click')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
@@ -200,7 +201,7 @@ describe('index.vue', () => {
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, infomation: { ...dataPage1.infomation, current_page: 9 } }])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
@@ -213,7 +214,7 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => [{ ok: true, status: 200 }, { ...dataPage2, infomation: { ...dataPage2.infomation, current_page: 9 } }])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -222,7 +223,7 @@ describe('index.vue', () => {
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
         wrapper.find('#pagination1').trigger('click')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
@@ -236,7 +237,7 @@ describe('index.vue', () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
@@ -249,7 +250,7 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => [{ ok: false, status: null }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -258,7 +259,7 @@ describe('index.vue', () => {
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
         wrapper.find('#pagination1').trigger('click')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
@@ -271,7 +272,7 @@ describe('index.vue', () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
@@ -284,7 +285,7 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => [{ ok: false, status: 500 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -293,7 +294,7 @@ describe('index.vue', () => {
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
         wrapper.find('#pagination1').trigger('click')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
@@ -306,7 +307,7 @@ describe('index.vue', () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
@@ -319,7 +320,7 @@ describe('index.vue', () => {
           .mockImplementationOnce(() => [{ ok: false, status: 404 }, {}])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
@@ -328,7 +329,7 @@ describe('index.vue', () => {
         // ページネーション（2頁目）
         wrapper.vm.$data.page = 2
         wrapper.find('#pagination1').trigger('click')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
@@ -343,7 +344,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataPage2])
       const wrapper = mountFunction(false, null, { page: '2' })
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1, { page: 2 })
       helper.mockCalledTest(mock.navigateTo, 1, { query: { page: 2 } })
@@ -356,7 +357,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1 }])
       const wrapper = mountFunction(false)
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
@@ -370,7 +371,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, user }])
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
@@ -384,7 +385,7 @@ describe('index.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, user }])
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)

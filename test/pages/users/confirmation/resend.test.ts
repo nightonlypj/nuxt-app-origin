@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -82,14 +83,14 @@ describe('resend.vue', () => {
       // 送信ボタン
       const button: any = wrapper.find('#confirmation_btn')
       expect(button.exists()).toBe(true)
-      await helper.waitChangeDisabled(button, true)
+      await flushPromises()
       expect(button.element.disabled).toBe(true) // 無効
 
       // 入力
       wrapper.find('#input_email').setValue('user1@example.com')
+      await flushPromises()
 
       // 送信ボタン
-      await helper.waitChangeDisabled(button, false)
       expect(button.element.disabled).toBe(false) // 有効
     })
     it('[ログイン中]表示される', () => {
@@ -124,7 +125,7 @@ describe('resend.vue', () => {
         button = wrapper.find('#confirmation_btn')
         button.trigger('click')
       }
-      await helper.sleep(1)
+      await flushPromises()
     }
 
     it('[成功][未ログイン][ボタンクリック]ログインページにリダイレクトされる', async () => {

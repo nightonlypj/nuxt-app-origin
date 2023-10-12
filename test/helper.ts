@@ -3,9 +3,6 @@ import { envConfig } from '../config/test'
 import { commonConfig } from '../config/common'
 import { ja } from '~/locales/ja'
 
-// 一定時間停止
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
 // NuxtLinkのURL一覧を配列で返却
 const getLinks = (wrapper: any) => {
   return wrapper.findAllComponents(RouterLinkStub).map((link: any) => link.props().to)
@@ -62,25 +59,15 @@ const toastMessageTest = (toastMock: any, message: any) => {
   mockCalledTest(toastMock.success, message.success == null ? 0 : 1, message.success)
 }
 
-const disabledTest = async (wrapper: any, AppProcessing: any, button: any, disabled: boolean) => {
+const disabledTest = (wrapper: any, AppProcessing: any, button: any, disabled: boolean) => {
   expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-  await waitChangeDisabled(button, disabled)
   expect(button.element.disabled).toBe(disabled)
-}
-
-// NOTE: 待ち時間を増やさないと状態が変わらない場合に使用
-const waitChangeDisabled = async (button: any, disabled: boolean) => {
-  for (let index = 0; index < 100; index++) {
-    await sleep(1)
-    if (button.element.disabled === disabled) { break }
-  }
 }
 
 export default {
   envConfig,
   commonConfig,
   locales: ja,
-  sleep,
   getLinks,
   loadingTest,
   blankTest,
@@ -90,6 +77,5 @@ export default {
   emitMessageTest,
   mockToast,
   toastMessageTest,
-  disabledTest,
-  waitChangeDisabled
+  disabledTest
 }

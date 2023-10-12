@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import Component from '~/components/app/BackToTop.vue'
 
@@ -25,13 +26,13 @@ describe('BackToTop.vue', () => {
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 200 })
     const item = wrapper.find('#back_to_top_item')
     item.trigger('scroll')
-    await helper.sleep(1)
+    await flushPromises()
     expect(button.attributes('style')).toBe('display: none;') // 非表示
 
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 201 })
     Object.defineProperty(window, 'scrollTo', { configurable: true, value: mock.scrollTo })
     item.trigger('scroll')
-    await helper.sleep(1)
+    await flushPromises()
     expect(button.attributes('style')).not.toBe('display: none;') // 表示
 
     button.trigger('click')

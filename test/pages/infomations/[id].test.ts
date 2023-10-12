@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
@@ -70,7 +71,7 @@ describe('[id].vue', () => {
     const beforeAction = async () => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }

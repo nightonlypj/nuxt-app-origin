@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
@@ -67,7 +68,7 @@ describe('default.vue', () => {
     const button: any = wrapper.find('#user_menu_btn')
     expect(button.exists()).toBe(true)
     button.trigger('click')
-    await helper.sleep(1)
+    await flushPromises()
 
     viewTest(wrapper, true)
   })

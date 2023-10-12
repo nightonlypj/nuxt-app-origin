@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -67,7 +68,7 @@ describe('sign_up.vue', () => {
     // 登録ボタン
     const button: any = wrapper.find('#sign_up_btn')
     expect(button.exists()).toBe(true)
-    await helper.waitChangeDisabled(button, true)
+    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
@@ -76,9 +77,9 @@ describe('sign_up.vue', () => {
     wrapper.find('#input_password').setValue('abc12345')
     wrapper.find('#input_password_confirmation').setValue('abc12345')
     wrapper.vm.$data.showPassword = true
+    await flushPromises()
 
     // 登録ボタン
-    await helper.waitChangeDisabled(button, false)
     expect(button.element.disabled).toBe(false) // 有効
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
@@ -103,7 +104,7 @@ describe('sign_up.vue', () => {
       wrapper = mountFunction(false, { query: params })
       button = wrapper.find('#sign_up_btn')
       button.trigger('click')
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
     }
