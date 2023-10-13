@@ -1,15 +1,10 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Component from '~/components/members/Result.vue'
 
 describe('Result.vue', () => {
-  const mountFunction = (result) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (result: object) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
+      props: {
         result
       }
     })
@@ -18,7 +13,7 @@ describe('Result.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, result) => {
+  const viewTest = (wrapper: any, result: any) => {
     expect(wrapper.text()).toMatch(`${result.email.count}名中`)
     expect(wrapper.text()).toMatch(`${result.email.create_count}名`)
     expect(wrapper.text()).toMatch(`${result.email.exist_count}名`)

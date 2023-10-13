@@ -1,19 +1,16 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Title.vue'
 
 describe('Title.vue', () => {
-  const mountFunction = (space) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (space: object) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        SpacesIcon: true
+      global: {
+        stubs: {
+          SpacesIcon: true
+        }
       },
-      propsData: {
+      props: {
         space
       }
     })
@@ -22,7 +19,7 @@ describe('Title.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, space) => {
+  const viewTest = (wrapper: any, space: any) => {
     expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
     expect(wrapper.html()).toMatch(`"/-/${space.code}"`) // スペーストップ
     expect(wrapper.text()).toMatch(space.name)

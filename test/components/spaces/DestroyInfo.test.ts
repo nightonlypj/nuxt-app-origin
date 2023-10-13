@@ -1,18 +1,11 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import Component from '~/components/spaces/DestroyInfo.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('DestroyInfo.vue', () => {
-  const mountFunction = (space) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (space: object) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
+      props: {
         space
       }
     })
@@ -21,7 +14,7 @@ describe('DestroyInfo.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, space, link) => {
+  const viewTest = (wrapper: any, space: any, link: boolean) => {
     expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes(`/spaces/undo_delete/${space.code}`)).toBe(link) // スペース削除取り消し

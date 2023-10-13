@@ -45,8 +45,8 @@ describe('default.vue', () => {
       expect(wrapper.text()).toMatch('123') // 未ダウンロード数
 
       for (const space of user.spaces) { // 参加スペース
-        expect(wrapper.find(`#space_link_${space.code}`).exists()).toBe(true)
-        expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
+        expect(wrapper.find(`#navigation_space_link_${space.code}`).exists()).toBe(true)
+        expect(wrapper.find(`#navigation_space_image_${space.code}`).exists()).toBe(space.image_url != null)
         expect(wrapper.html()).toMatch(space.name)
       }
     } else {

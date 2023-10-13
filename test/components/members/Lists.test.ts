@@ -1,25 +1,26 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/members/Lists.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members, admin = false, hiddenItems = null, activeUserCodes = []) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (members: object | null, admin = false, hiddenItems: any = null, activeUserCodes: any = []) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        OnlyIcon: true,
-        UsersAvatar: true
+      global: {
+        stubs: {
+          OnlyIcon: true,
+          UsersAvatar: true
+        },
+        mocks: {
+          $auth: {
+            loggedIn: true,
+            user
+          }
+        }
       },
-      propsData: {
+      props: {
         sort: 'invitationed_at',
         desc: true,
         members,
@@ -27,12 +28,6 @@ describe('Lists.vue', () => {
         hiddenItems,
         activeUserCodes,
         admin
-      },
-      mocks: {
-        $auth: {
-          loggedIn: true,
-          user
-        }
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -40,7 +35,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, members, show = { optional: null, admin: null }) => {
+  const viewTest = (wrapper: any, members: any, show: any = { optional: null, admin: null }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('メンバー')
     if (show.optional && show.admin) {
@@ -80,6 +75,12 @@ describe('Lists.vue', () => {
     } else {
       expect(onlyIcons.length).toBe(0)
     }
+
+    // (状態)
+    /* TODO: 背景色が変わらない
+    expect(wrapper.findAll('.row_active').length).toBe(row.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
+    */
 
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     let index = 0
@@ -209,7 +210,7 @@ describe('Lists.vue', () => {
       })
     })
     describe('非表示項目が全項目', () => {
-      const hiddenItems = helper.locales.items.member.map(item => item.value)
+      const hiddenItems = helper.locales.items.member.map(item => item.key)
       it('[管理者]必須項目のみ表示される', () => {
         const wrapper = mountFunction(members, true, hiddenItems)
         viewTest(wrapper, members, { optional: false, admin: true })

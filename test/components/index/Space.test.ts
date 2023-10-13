@@ -1,10 +1,7 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import Component from '~/components/index/Space.vue'
-
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
 
 describe('Space.vue', () => {
   const user = Object.freeze({
@@ -23,17 +20,15 @@ describe('Space.vue', () => {
     ]
   })
   const mountFunction = () => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        SpacesCreate: true
-      },
-      mocks: {
-        $auth: {
-          user: { ...user }
+      global: {
+        stubs: {
+          SpacesCreate: true
+        },
+        mocks: {
+          $auth: {
+            user
+          }
         }
       }
     })
@@ -42,7 +37,7 @@ describe('Space.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper) => {
+  const viewTest = (wrapper: any) => {
     expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
 
     const links = helper.getLinks(wrapper)

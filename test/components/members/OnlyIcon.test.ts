@@ -1,18 +1,11 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import Component from '~/components/members/OnlyIcon.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('OnlyIcon.vue', () => {
-  const mountFunction = (power) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (power: any) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
+      props: {
         power
       }
     })
@@ -21,7 +14,7 @@ describe('OnlyIcon.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, power) => {
+  const viewTest = (wrapper: any, power: any) => {
     expect(wrapper.html()).toMatch(helper.commonConfig.member.powerIcon[power]) // 権限
   }
 

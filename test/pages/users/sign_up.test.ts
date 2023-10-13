@@ -13,6 +13,7 @@ describe('sign_up.vue', () => {
     mock = {
       useApiRequest: null,
       navigateTo: vi.fn(),
+      showError: vi.fn(),
       toast: helper.mockToast
     }
   })
@@ -21,6 +22,7 @@ describe('sign_up.vue', () => {
   const mountFunction = (loggedIn: boolean, values = {}, query = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('showError', mock.showError)
 
     const wrapper = mount(Page, {
       global: {
@@ -65,11 +67,11 @@ describe('sign_up.vue', () => {
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
     viewTest(wrapper)
+    await flushPromises()
 
     // 登録ボタン
     const button: any = wrapper.find('#sign_up_btn')
     expect(button.exists()).toBe(true)
-    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
@@ -90,82 +92,100 @@ describe('sign_up.vue', () => {
   })
 
   describe('招待情報取得', () => {
+    const apiCalledTest = () => {
+      expect(mock.useApiRequest).toBeCalledTimes(1)
+      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userInvitationUrl, 'GET', {
+        code: invitation.code
+      })
+    }
+
     const invitation = Object.freeze({ code: 'invitation000000000000001' })
-    let wrapper
+    let wrapper: any
     const beforeAction = async () => {
       wrapper = mountFunction(false, {}, invitation)
-      await helper.sleep(1)
+      await flushPromises()
 
       apiCalledTest()
-    }
-    const apiCalledTest = () => {
-      expect(axiosGetMock).toBeCalledTimes(1)
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userInvitationUrl, { params: { code: invitation.code } })
     }
 
     it('[メールアドレスあり]表示される', async () => {
       const email = 'user1@example.com'
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { email } } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { email } }])
       await beforeAction()
 
       viewTest(wrapper, { email })
+
+      // 入力（sign_up_email_text除く）
+      wrapper.find('#sign_up_name_text').setValue('user1の氏名')
+      wrapper.find('#sign_up_password_text').setValue('abc12345')
+      wrapper.find('#sign_up_password_confirmation_text').setValue('abc12345')
+      await flushPromises()
+
+      // 登録ボタン
+      const button: any = wrapper.find('#sign_up_btn')
+      expect(button.element.disabled).toBe(false) // 有効
     })
     it('[ドメインあり]表示される', async () => {
       const domains = Object.freeze(['a.example.com', 'b.example.com'])
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { domains } } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { domains } }])
       await beforeAction()
 
       viewTest(wrapper, { email_domain: domains[0], email_local: '' })
+
+      // 入力（sign_up_email_text除く）
+      wrapper.find('#sign_up_name_text').setValue('user1の氏名')
+      wrapper.find('#sign_up_email_local_text').setValue('user1')
+      wrapper.find('#sign_up_password_text').setValue('abc12345')
+      wrapper.find('#sign_up_password_confirmation_text').setValue('abc12345')
+      await flushPromises()
+
+      // 登録ボタン
+      const button: any = wrapper.find('#sign_up_btn')
+      expect(button.element.disabled).toBe(false) // 有効
     })
     it('[データなし]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
     })
     it('[メールアドレス・ドメインなし]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { invitation: { email: null, domains: null } } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { email: null, domains: null } }])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
     })
     it('[存在しない]エラーページが表示される', async () => {
       const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404, data } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, data])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: data.alert, notice: data.notice })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: data.alert, notice: data.notice } })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      helper.mockCalledTest(toastedErrorMock, 0)
-      helper.mockCalledTest(toastedInfoMock, 0)
-      helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
     })
   })
 

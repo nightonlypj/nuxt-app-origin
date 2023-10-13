@@ -91,12 +91,12 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // vitest用
+      testState: null, // Vitest用
       page: 1,
       download: null,
       downloads: null,
-      testDelay: null, // vitest用
-      testElement: null // vitest用
+      testDelay: null, // Vitest用
+      testElement: null // Vitest用
     }
   },
 

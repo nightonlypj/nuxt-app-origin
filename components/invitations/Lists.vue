@@ -169,13 +169,19 @@ export default defineNuxtComponent({
       this.$emit('showUpdate', item.raw)
     },
 
-    copyInvitationURL (code) {
-      navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
-        .then(() => {
-          this.appSetToastedMessage({ success: this.$t('notice.invitation.copy_success') }, false, true)
-        }, () => {
-          this.appSetToastedMessage({ alert: this.$t('alert.invitation.copy_failure') })
-        })
+    async copyInvitationURL (code) {
+      try {
+        await navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
+
+        this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy_success') }, false, true)
+      /* c8 ignore start */
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        if (this.$config.public.debug) { console.log(error) }
+
+        this.appSetToastedMessage({ alert: this.$t('alert.invitation.copy_failure') })
+      }
+      /* c8 ignore stop */
     }
   }
 })

@@ -105,7 +105,7 @@ export const ja = {
     },
     invitation: {
       email_joined: '参加済みの為、この操作はできません。',
-      copy_failure: 'コピーに失敗しました。'
+      copy_failure: 'コピーに失敗しました。しばらく時間をあけてから、やり直してください。'
     }
   },
   notice: {

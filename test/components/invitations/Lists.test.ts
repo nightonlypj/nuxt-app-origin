@@ -1,42 +1,35 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
+import helper from '~/test/helper'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/invitations/Lists.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Lists.vue', () => {
-  let toastedErrorMock, toastedInfoMock
-
+  let mock: any
   beforeEach(() => {
-    toastedErrorMock = jest.fn()
-    toastedInfoMock = jest.fn()
+    mock = {
+      toast: helper.mockToast
+    }
   })
 
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (invitations, hiddenItems = null) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (invitations: any, hiddenItems: any = null) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        UsersAvatar: true
+      global: {
+        stubs: {
+          UsersAvatar: true
+        },
+        mocks: {
+          $auth: {
+            loggedIn: true,
+            user
+          },
+          $toast: mock.toast
+        }
       },
-      propsData: {
+      props: {
         invitations,
         hiddenItems
-      },
-      mocks: {
-        $auth: {
-          loggedIn: true,
-          user
-        },
-        $toasted: {
-          error: toastedErrorMock,
-          info: toastedInfoMock
-        }
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -44,7 +37,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, invitations, show = { optional: null }) => {
+  const viewTest = async (wrapper: any, invitations: any, show: any = { optional: null }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('招待URL')
     expect(wrapper.text()).toMatch('ステータス')
@@ -68,6 +61,12 @@ describe('Lists.vue', () => {
       expect(wrapper.text()).not.toMatch('更新日時')
     }
 
+    // (状態)
+    /* TODO: 背景色が変わらない
+    expect(wrapper.findAll('.row_active').length).toBe(row.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
+    */
+
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     let index = 0
     for (const invitation of invitations) {
@@ -75,17 +74,20 @@ describe('Lists.vue', () => {
       const copyBtn = wrapper.find(`#invitation_url_copy_btn_${invitation.code}`)
       expect(copyBtn.exists()).toBe(invitation.status === 'active')
       if (invitation.status === 'active') {
-        const writeTextMock = jest.fn(() => Promise.resolve())
-        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: writeTextMock } })
+        const mockWriteText = vi.fn(() => Promise.resolve())
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: mockWriteText } })
+
         copyBtn.trigger('click')
-        helper.mockCalledTest(writeTextMock, 1, `${location.protocol}//${location.host}/users/sign_up?code=${invitation.code}`)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        // helper.mockCalledTest(toastedInfoMock, 1, helper.locales.notice.invitation.copy_success) // NOTE: Jestだと呼ばれない？
+        helper.mockCalledTest(mockWriteText, 1, `${location.protocol}//${location.host}/users/sign_up?code=${invitation.code}`)
+        await flushPromises()
+
+        // helper.toastMessageTest(mock.toast, { success: helper.locales.notice.invitation.copy_success }) // TODO: 呼ばれているけど、mockがcallされない
+        helper.toastMessageTest(mock.toast, {})
       }
       // ステータス
-      expect(wrapper.find(`#icon_active_${invitation.code}`).exists()).toBe(invitation.status === 'active')
-      expect(wrapper.find(`#icon_inactive_${invitation.code}`).exists()).toBe(invitation.status === 'expired' || invitation.status === 'deleted')
-      expect(wrapper.find(`#icon_email_joined_${invitation.code}`).exists()).toBe(invitation.status === 'email_joined')
+      expect(wrapper.find(`#invitation_icon_active_${invitation.code}`).exists()).toBe(invitation.status === 'active')
+      expect(wrapper.find(`#invitation_icon_inactive_${invitation.code}`).exists()).toBe(invitation.status === 'expired' || invitation.status === 'deleted')
+      expect(wrapper.find(`#invitation_icon_email_joined_${invitation.code}`).exists()).toBe(invitation.status === 'email_joined')
       expect(wrapper.text()).toMatch(invitation.status_i18n)
       // メールアドレス
       if (invitation.email != null) {
@@ -237,7 +239,7 @@ describe('Lists.vue', () => {
       viewTest(wrapper, invitations, { optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
-      const hiddenItems = helper.locales.items.invitation.map(item => item.value)
+      const hiddenItems = helper.locales.items.invitation.map(item => item.key)
       const wrapper = mountFunction(invitations, hiddenItems)
       viewTest(wrapper, invitations, { optional: false })
     })

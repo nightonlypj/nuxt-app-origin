@@ -1,15 +1,10 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Component from '~/components/spaces/Icon.vue'
 
 describe('Icon.vue', () => {
-  const mountFunction = (space) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (space: object) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
+      props: {
         space
       }
     })
@@ -18,10 +13,10 @@ describe('Icon.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, space, visible) => {
-    expect(wrapper.find(`#space_private_${space.code}`).exists()).toBe(visible) // 非公開
-    expect(wrapper.find(`#space_power_${space.code}`).exists()).toBe(visible) // 権限
-    expect(wrapper.find(`#space_destroy_schedule_${space.code}`).exists()).toBe(visible) // 削除予定
+  const viewTest = (wrapper: any, space: any, visible: boolean) => {
+    expect(wrapper.find(`#space_icon_private_${space.code}`).exists()).toBe(visible) // 非公開
+    expect(wrapper.find(`#space_icon_power_${space.code}`).exists()).toBe(visible) // 権限
+    expect(wrapper.find(`#space_icon_destroy_schedule_${space.code}`).exists()).toBe(visible) // 削除予定
   }
 
   // テストケース

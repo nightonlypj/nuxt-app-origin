@@ -1,5 +1,6 @@
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
+import * as labsComponents from 'vuetify/labs/components'
 import * as directives from 'vuetify/directives'
 import pickBy from 'nuxt-lodash'
 import { config, RouterLinkStub } from '@vue/test-utils'
@@ -13,13 +14,16 @@ afterEach(() => {
 
 // Vuetify
 export const vuetify = createVuetify({
-  components,
+  components: {
+    ...components,
+    ...labsComponents
+  },
   directives
 })
 global.ResizeObserver = require('resize-observer-polyfill')
 config.global.plugins = [vuetify]
 
-// Mock Config/i18n/utils
+// Mock Config/i18n/md(markdownit)
 config.global.mocks = {
   $config: { public: Object.assign(helper.envConfig, helper.commonConfig, { env: { production: false, test: true } }) },
   $t: (key: string) => {
@@ -30,8 +34,25 @@ config.global.mocks = {
       // eslint-disable-next-line no-throw-literal
       if (locale == null) { throw `Not found: i18n(${key})` }
     }
+    // eslint-disable-next-line no-throw-literal
+    if (typeof locale !== 'string') { throw `Type error: i18n(${key})` }
     return locale
   },
+  $tm: (key: string) => {
+    let locale: any = helper.locales
+    const parts = key.split('.')
+    for (const part of parts) {
+      locale = locale[part]
+      // eslint-disable-next-line no-throw-literal
+      if (locale == null) { throw `Not found: i18n(${key})` }
+    }
+    return locale
+  },
+  /*
+  TODO: $md: {
+    render: vi.fn()
+  },
+*/
   ...TestPluginUtils
 }
 vi.stubGlobal('useRuntimeConfig', vi.fn(() => config.global.mocks.$config))

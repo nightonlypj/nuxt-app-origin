@@ -1,20 +1,11 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import Component from '~/components/users/Avatar.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Avatar.vue', () => {
-  const mountFunction = (user) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (props = {}) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
-        user
-      }
+      props
     })
     expect(wrapper.vm).toBeTruthy()
     return wrapper
@@ -22,7 +13,7 @@ describe('Avatar.vue', () => {
 
   // テストケース
   it('[null]表示されない', () => {
-    const wrapper = mountFunction(null)
+    const wrapper = mountFunction({})
     helper.blankTest(wrapper)
   })
   it('[あり]表示される', () => {
@@ -34,7 +25,7 @@ describe('Avatar.vue', () => {
       },
       deleted: false
     })
-    const wrapper = mountFunction(user)
+    const wrapper = mountFunction({ user })
     expect(wrapper.text()).toMatch(user.name) // 氏名
     expect(wrapper.find(`#user_destroy_schedule_${user.code}`).exists()).toBe(false) // 削除予定
   })
@@ -48,7 +39,7 @@ describe('Avatar.vue', () => {
       destroy_schedule_at: '2000-01-08T12:34:56+09:00',
       deleted: false
     })
-    const wrapper = mountFunction(user)
+    const wrapper = mountFunction({ user })
     expect(wrapper.text()).toMatch(user.name) // 氏名
     expect(wrapper.find(`#user_destroy_schedule_${user.code}`).exists()).toBe(true) // 削除予定
   })
@@ -56,7 +47,7 @@ describe('Avatar.vue', () => {
     const user = Object.freeze({
       deleted: true
     })
-    const wrapper = mountFunction(user)
+    const wrapper = mountFunction({ user })
     expect(wrapper.text()).toMatch('N/A')
   })
 })

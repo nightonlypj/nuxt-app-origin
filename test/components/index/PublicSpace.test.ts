@@ -1,30 +1,24 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
-import Loading from '~/components/Loading.vue'
+import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
+import helper from '~/test/helper'
+import AppLoading from '~/components/app/Loading.vue'
 import Component from '~/components/index/PublicSpace.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('PublicSpace.vue', () => {
-  let axiosGetMock
-
+  let mock: any
   beforeEach(() => {
-    axiosGetMock = null
+    mock = {
+      useApiRequest: null
+    }
   })
 
   const mountFunction = () => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+    vi.stubGlobal('useApiRequest', mock.useApiRequest)
+
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        Loading: true
-      },
-      mocks: {
-        $axios: {
-          get: axiosGetMock
+      global: {
+        stubs: {
+          AppLoading: true
         }
       }
     })
@@ -33,8 +27,8 @@ describe('PublicSpace.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, data) => {
-    expect(wrapper.findComponent(Loading).exists()).toBe(false)
+  const viewTest = (wrapper: any, data: any) => {
+    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
 
     const links = helper.getLinks(wrapper)
@@ -46,7 +40,7 @@ describe('PublicSpace.vue', () => {
     }
   }
 
-  const viewErrorTest = (wrapper, errorMessage, localesMessage) => {
+  const viewErrorTest = (wrapper: any, errorMessage: string, localesMessage: string) => {
     expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
     expect(wrapper.text()).toMatch(localesMessage)
   }
@@ -54,25 +48,25 @@ describe('PublicSpace.vue', () => {
   // テストケース
   describe('スペース一覧取得（公開）', () => {
     const apiCalledTest = () => {
-      expect(axiosGetMock).toBeCalledTimes(1)
-      const params = { text: null, public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-      expect(axiosGetMock).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, { params })
+      expect(mock.useApiRequest).toBeCalledTimes(1)
+      const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
+      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, 'GET', params)
     }
 
-    let wrapper
+    let wrapper: any
     const beforeAction = async () => {
       wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       apiCalledTest()
     }
 
     it('[0件]表示されない', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: { spaces: [] } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { spaces: [] }])
       await beforeAction()
 
-      helper.blankTest(wrapper, Loading)
+      helper.blankTest(wrapper, AppLoading)
     })
     it('[2件]表示される', async () => {
       const data = Object.freeze({
@@ -90,32 +84,32 @@ describe('PublicSpace.vue', () => {
           }
         ]
       })
-      axiosGetMock = jest.fn(() => Promise.resolve({ data }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
       viewTest(wrapper, data)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
       viewErrorTest(wrapper, 'system.error', helper.locales.system.error_short)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
       viewErrorTest(wrapper, 'network.failure', helper.locales.network.failure_short)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
       viewErrorTest(wrapper, 'network.error', helper.locales.network.error_short)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
       viewErrorTest(wrapper, 'system.default', helper.locales.system.default_short)

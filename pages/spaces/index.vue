@@ -113,7 +113,7 @@ export default defineNuxtComponent({
       params: null,
       uid: null,
       error: false,
-      testState: null, // vitest用
+      testState: null, // Vitest用
       page: 1,
       space: null,
       spaces: null,

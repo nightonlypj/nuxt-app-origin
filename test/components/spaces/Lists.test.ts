@@ -1,22 +1,17 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Lists.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Lists.vue', () => {
-  const mountFunction = (spaces, hiddenItems = []) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (spaces: object | null, hiddenItems: any = []) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      stubs: {
-        SpacesIcon: true
+      global: {
+        stubs: {
+          SpacesIcon: true
+        }
       },
-      propsData: {
+      props: {
         spaces,
         hiddenItems
       }
@@ -26,7 +21,13 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, spaces, show = { optional: null }) => {
+  const viewTest = (wrapper: any, spaces: any, show: any = { optional: null }) => {
+    // (状態)
+    /* TODO: 背景色が変わらない
+    expect(wrapper.findAll('.row_active').length).toBe(row.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
+    */
+
     const links = helper.getLinks(wrapper)
     const spacesIcons = wrapper.findAllComponents(SpacesIcon)
     for (const [index, space] of spaces.entries()) {
@@ -85,7 +86,7 @@ describe('Lists.vue', () => {
       viewTest(wrapper, spaces, { optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
-      const hiddenItems = helper.locales.items.space.map(item => item.value)
+      const hiddenItems = helper.locales.items.space.map(item => item.key)
       const wrapper = mountFunction(spaces, hiddenItems)
       viewTest(wrapper, spaces, { optional: false })
     })

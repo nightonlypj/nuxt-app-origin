@@ -1,80 +1,69 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
-import InfiniteLoading from 'vue-infinite-loading'
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
-import ListSetting from '~/components/ListSetting.vue'
+import { mount } from '@vue/test-utils'
+import flushPromises from 'flush-promises'
+import InfiniteLoading from 'v3-infinite-loading'
+import helper from '~/test/helper'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
+import AppMessage from '~/components/app/Message.vue'
+import AppListSetting from '~/components/app/ListSetting.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesTitle from '~/components/spaces/Title.vue'
 import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
 import InvitationsLists from '~/components/invitations/Lists.vue'
-import Page from '~/pages/invitations/_code.vue'
+import Page from '~/pages/invitations/[code].vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
-describe('_code.vue', () => {
-  let axiosGetMock, authLogoutMock, toastedErrorMock, toastedInfoMock, nuxtErrorMock
-
+describe('[code].vue', () => {
+  let mock: any
   beforeEach(() => {
-    axiosGetMock = null
-    authLogoutMock = jest.fn()
-    toastedErrorMock = jest.fn()
-    toastedInfoMock = jest.fn()
-    nuxtErrorMock = jest.fn()
-  })
-
-  const beforeLocation = window.location
-  beforeAll(() => {
-    Object.defineProperty(window, 'location', { configurable: true, value: { reload: jest.fn() } })
-  })
-  afterAll(() => {
-    Object.defineProperty(window, 'location', { configurable: true, value: beforeLocation })
+    mock = {
+      useApiRequest: null,
+      useAuthSignOut: vi.fn(),
+      useAuthRedirect: { updateRedirectUrl: vi.fn() },
+      showError: vi.fn(),
+      navigateTo: vi.fn(),
+      toast: helper.mockToast,
+      headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
+    }
   })
 
   const model = 'invitation'
   const space = Object.freeze({ code: 'code0001' })
   const values = Object.freeze({ notice: 'noticeメッセージ' })
-  const mountFunction = (loggedIn = true, query = null) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const fullPath = '/invitations/code0001'
+  const mountFunction = (loggedIn = true, query: object | null = null) => {
+    vi.stubGlobal('useApiRequest', mock.useApiRequest)
+    vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
+    vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
+    vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('showError', mock.showError)
+
     const wrapper = mount(Page, {
-      localVue,
-      vuetify,
-      stubs: {
-        InfiniteLoading: true,
-        Loading: true,
-        Processing: true,
-        Message: true,
-        ListSetting: true,
-        SpacesDestroyInfo: true,
-        SpacesTitle: true,
-        InvitationsCreate: true,
-        InvitationsUpdate: true,
-        InvitationsLists: true
-      },
-      mocks: {
-        $axios: {
-          get: axiosGetMock
+      global: {
+        stubs: {
+          InfiniteLoading: true,
+          AppLoading: true,
+          AppProcessing: true,
+          AppMessage: true,
+          AppListSetting: true,
+          SpacesDestroyInfo: true,
+          SpacesTitle: true,
+          InvitationsCreate: true,
+          InvitationsUpdate: true,
+          InvitationsLists: true
         },
-        $auth: {
-          loggedIn,
-          logout: authLogoutMock
-        },
-        $route: {
-          params: {
-            code: space.code
+        mocks: {
+          $auth: {
+            loggedIn
           },
-          query: { ...query }
-        },
-        $toasted: {
-          error: toastedErrorMock,
-          info: toastedInfoMock
-        },
-        $nuxt: {
-          error: nuxtErrorMock
+          $route: {
+            fullPath,
+            params: {
+              code: space.code
+            },
+            query: { ...query }
+          },
+          $toast: mock.toast
         }
       },
       data () {
@@ -147,16 +136,18 @@ describe('_code.vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = (count) => {
-    expect(axiosGetMock).toBeCalledTimes(count)
+  const apiCalledTest = (count: number) => {
+    expect(mock.useApiRequest).toBeCalledTimes(count)
     const url = helper.commonConfig.invitations.listUrl.replace(':space_code', space.code)
-    expect(axiosGetMock).nthCalledWith(count, helper.envConfig.apiBaseURL + url, { params: { page: count } })
+    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', {
+      page: count
+    })
   }
 
-  const viewTest = (wrapper, data, countView, show = { existInfinite: false, testState: null }, error = false) => {
-    expect(wrapper.findComponent(Loading).exists()).toBe(false)
-    expect(wrapper.findComponent(Processing).exists()).toBe(false)
-    helper.messageTest(wrapper, Message, values)
+  const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error: boolean = false) => {
+    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
+    expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
+    helper.messageTest(wrapper, AppMessage, values)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
@@ -172,7 +163,7 @@ describe('_code.vue', () => {
     expect(spacesTitle.vm.space).toEqual(wrapper.vm.$data.space)
 
     // 設定
-    const listSetting = wrapper.findComponent(ListSetting)
+    const listSetting = wrapper.findComponent(AppListSetting)
     expect(listSetting.vm.model).toBe(model)
     expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
     expect(listSetting.vm.admin).toBe(null)
@@ -201,70 +192,65 @@ describe('_code.vue', () => {
     return infiniteLoading
   }
 
-  const infiniteErrorTest = async (alert, notice) => {
+  const infiniteErrorTest = async (alert: string | null, notice: string | null) => {
     const wrapper = mountFunction()
-    helper.loadingTest(wrapper, Loading)
-    await helper.sleep(1)
+    helper.loadingTest(wrapper, AppLoading)
+    await flushPromises()
 
     apiCalledTest(1)
     const infiniteLoading = viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
-    await helper.sleep(1)
+    await flushPromises()
 
     apiCalledTest(2)
-    if (alert != null) {
-      helper.mockCalledTest(toastedErrorMock, 1, alert)
-    } else {
-      helper.mockCalledTest(toastedErrorMock, 0)
-    }
-    if (notice != null) {
-      helper.mockCalledTest(toastedInfoMock, 1, notice)
-    } else {
-      helper.mockCalledTest(toastedInfoMock, 0)
-    }
+    helper.toastMessageTest(mock.toast, { error: alert, info: notice })
     viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
   }
 
   // テストケース
   describe('未ログイン', () => {
-    it('ログインページにリダイレクトされる', () => {
+    it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
-      helper.loadingTest(wrapper, Loading)
-      expect(wrapper.findComponent(Loading).exists()).toBe(true) // NOTE: Jestでmiddlewareが実行されない為
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
+
+      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
   })
 
   describe('招待URL一覧取得', () => {
     it('[0件]表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount0 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
       const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       apiCalledTest(1)
       viewTest(wrapper, dataCount0, '')
     })
     it('[1件]表示される', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataCount1 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
       const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       apiCalledTest(1)
       viewTest(wrapper, dataCount1, '1件')
     })
     describe('無限スクロール', () => {
-      let wrapper, infiniteLoading
-      const beforeAction = async (uid1, uid2, uid3 = null) => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1, headers: { uid: uid1 } }))
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage2, headers: { uid: uid2 } }))
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage3, headers: { uid: uid3 } }))
+      let wrapper: any, infiniteLoading: any
+      const beforeAction = async (uid1: string | null, uid2: string | null, uid3: string | null = null) => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid1 : null) } }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid2 : null) } }, dataPage2])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid3 : null) } }, dataPage3])
         wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
         infiniteLoading = viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
@@ -272,7 +258,7 @@ describe('_code.vue', () => {
       const completeTestAction = async () => {
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(2)
         const invitations = dataPage1.invitations.concat(dataPage2.invitations)
@@ -280,21 +266,23 @@ describe('_code.vue', () => {
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
+        await flushPromises()
 
         apiCalledTest(3)
         viewTest(wrapper, { ...dataPage3, invitations: invitations.concat(dataPage3.invitations) }, '5件', { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
-        const count = window.location.reload.mock.calls.length
+        const beforeLocation = window.location
+        const mockReload = vi.fn()
+        Object.defineProperty(window, 'location', { value: { reload: mockReload } })
 
         // スクロール（2頁目）
         infiniteLoading.vm.$emit('infinite')
-        await helper.sleep(1)
+        await flushPromises()
 
-        helper.mockCalledTest(window.location.reload, count + 1)
         apiCalledTest(2)
-        viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
+        helper.mockCalledTest(mockReload, 1)
+        Object.defineProperty(window, 'location', { value: beforeLocation })
       }
 
       it('[ログイン中]スクロールで最終頁まで表示される', async () => {
@@ -312,175 +300,167 @@ describe('_code.vue', () => {
     })
     describe('データなし', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.resolve({ data: null }))
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.resolve({ data: null }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, null])
         await infiniteErrorTest(helper.locales.system.error, null)
       })
     })
     describe('スペース情報なし', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, space: null } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, space: null }])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.resolve({ data: { ...dataPage2, space: null } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, space: null }])
         await infiniteErrorTest(helper.locales.system.error, null)
       })
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.resolve({ data: { ...dataPage1, invitation: { ...dataPage1.invitation, current_page: 9 } } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, invitation: { ...dataPage1.invitation, current_page: 9 } }])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.system.error })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.resolve({ data: { ...dataPage2, invitation: { ...dataPage2.invitation, current_page: 9 } } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, invitation: { ...dataPage2.invitation, current_page: 9 } }])
         await infiniteErrorTest(helper.locales.system.error, null)
       })
     })
 
     describe('接続エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: null }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: null, alert: helper.locales.network.failure })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: null }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: null }, null])
         await infiniteErrorTest(helper.locales.network.failure, null)
       })
     })
     describe('認証エラー', () => {
       it('[初期表示]ログインページにリダイレクトされる', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 401 } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(authLogoutMock, 1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 1, helper.locales.auth.unauthenticated)
-        // NOTE: 状態変更・リダイレクトのテストは省略（Mockでは実行されない為）
+        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+        helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
+        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: { status: 401 } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 401 }, null])
         await infiniteErrorTest(null, helper.locales.auth.unauthenticated)
       })
     })
     describe('権限エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 403 } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(authLogoutMock, 0)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 403, alert: helper.locales.auth.forbidden })
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 403 }, null])
         await infiniteErrorTest(helper.locales.auth.forbidden, null)
       })
     })
     describe('存在しない', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 404 } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 404, alert: helper.locales.system.notfound })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: helper.locales.system.notfound, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: { status: 404 } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 404 }, null])
         await infiniteErrorTest(helper.locales.system.notfound, null)
       })
     })
     describe('レスポンスエラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 500 } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 500, alert: helper.locales.network.error })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: { status: 500 } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 500 }, null])
         await infiniteErrorTest(helper.locales.network.error, null)
       })
     })
     describe('その他エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        axiosGetMock = jest.fn(() => Promise.reject({ response: { status: 400, data: {} } }))
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
         const wrapper = mountFunction()
-        helper.loadingTest(wrapper, Loading)
-        await helper.sleep(1)
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
 
         apiCalledTest(1)
-        helper.mockCalledTest(toastedErrorMock, 0)
-        helper.mockCalledTest(toastedInfoMock, 0)
-        helper.mockCalledTest(nuxtErrorMock, 1, { statusCode: 400, alert: helper.locales.system.default })
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
-        axiosGetMock = jest.fn()
-          .mockImplementationOnce(() => Promise.resolve({ data: dataPage1 }))
-          .mockImplementationOnce(() => Promise.reject({ response: { status: 400, data: {} } }))
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 400 }, {}])
         await infiniteErrorTest(helper.locales.system.default, null)
       })
     })
@@ -488,40 +468,40 @@ describe('_code.vue', () => {
 
   describe('表示項目', () => {
     it('null', async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       expect(wrapper.vm.$data.hiddenItems).toEqual([])
     })
     it('空', async () => {
       localStorage.setItem(`${model}.hidden-items`, '')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       expect(wrapper.vm.$data.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
       localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
 
   describe('処理', () => {
-    let wrapper
+    let wrapper: any
     const beforeAction = async () => {
-      axiosGetMock = jest.fn(() => Promise.resolve({ data: dataPage1 }))
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       wrapper = mountFunction()
-      helper.loadingTest(wrapper, Loading)
-      await helper.sleep(1)
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
 
       apiCalledTest(1)
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })

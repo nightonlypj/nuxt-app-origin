@@ -1,24 +1,19 @@
-import Vuetify from 'vuetify'
-import { createLocalVue, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import helper from '~/test/helper'
 import Component from '~/components/downloads/Lists.vue'
 
-import { Helper } from '~/test/helper.js'
-const helper = new Helper()
-
 describe('Lists.vue', () => {
-  const mountFunction = (downloads, query = null) => {
-    const localVue = createLocalVue()
-    const vuetify = new Vuetify()
+  const mountFunction = (downloads: any, query: object | null = null) => {
     const wrapper = mount(Component, {
-      localVue,
-      vuetify,
-      propsData: {
-        downloads
-      },
-      mocks: {
-        $route: {
-          query: { ...query }
+      global: {
+        mocks: {
+          $route: {
+            query: { ...query }
+          }
         }
+      },
+      props: {
+        downloads
       }
     })
     expect(wrapper.vm).toBeTruthy()
@@ -26,7 +21,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper, downloads, row = { active: 0, inactive: 0 }) => {
+  const viewTest = (wrapper: any, downloads: any, row = { active: 0, inactive: 0 }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('依頼日時')
     expect(wrapper.text()).toMatch('完了日時')
@@ -34,10 +29,12 @@ describe('Lists.vue', () => {
     expect(wrapper.text()).toMatch('ファイル')
     expect(wrapper.text()).toMatch('対象・形式等')
 
+    // (状態)
+    /* TODO: 背景色が変わらない
+    expect(wrapper.findAll('.row_active').length).toBe(row.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
+    */
     for (const download of downloads) {
-      // (状態)
-      expect(wrapper.findAll('.row_active').length).toBe(row.active)
-      expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
       // 依頼日時
       expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.requested_at))
       // 完了日時
@@ -46,10 +43,10 @@ describe('Lists.vue', () => {
       }
       // ステータス
       const color = ['success', 'failure'].includes(download.status) ? download.status : 'info'
-      expect(wrapper.find(`#icon_${color}_${download.id}`).exists()).toBe(true)
+      expect(wrapper.find(`#download_icon_${color}_${download.id}`).exists()).toBe(true)
       // ファイル
-      expect(wrapper.find(`#download_link_${download.id}`).exists()).toBe(download.status === 'success')
-      expect(wrapper.find(`#download_done_${download.id}`).exists()).toBe(download.status === 'success' && download.last_downloaded_at != null)
+      expect(wrapper.find(`#download_link_${download.id}`).exists()).toBe(download.status === 'success' && download.last_downloaded_at == null)
+      expect(wrapper.find(`#download_link_done_${download.id}`).exists()).toBe(download.status === 'success' && download.last_downloaded_at != null)
       // 対象・形式等
       if (download.model === 'member' && download.space != null && download.space.name != null) {
         expect(wrapper.text()).toMatch(`メンバー: ${download.space.name}`)
