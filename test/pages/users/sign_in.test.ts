@@ -69,11 +69,11 @@ describe('sign_in.vue', () => {
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
     viewTest(wrapper, null)
+    await flushPromises()
 
     // ログインボタン
     const button: any = wrapper.find('#sign_in_btn')
     expect(button.exists()).toBe(true)
-    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力

@@ -13,8 +13,7 @@ export default defineNuxtConfig({
   },
   modules: [
     '@nuxtjs/i18n',
-    '@sidebase/nuxt-auth',
-    'nuxt-lodash'
+    '@sidebase/nuxt-auth'
   ],
   i18n: {
     vueI18n: './i18n.config.ts'

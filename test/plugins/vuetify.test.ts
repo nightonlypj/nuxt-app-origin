@@ -1,11 +1,12 @@
-import Plugin from '~/plugins/vuetify'
+import helper from '~/test/helper'
+import Plugin, { vuetify } from '~/plugins/vuetify'
 
 describe('vuetify.ts', () => {
   const mock = vi.fn()
   const nuxtApp: any = { vueApp: { use: mock } }
 
-  it('設定される', () => {
+  it('nuxtApp.vueApp.useにvuetifyが設定される', () => {
     Plugin(nuxtApp)
-    expect(mock).toBeCalledTimes(1)
+    helper.mockCalledTest(mock, 1, vuetify)
   })
 })

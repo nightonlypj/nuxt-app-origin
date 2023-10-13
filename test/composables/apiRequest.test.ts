@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import { isEmpty } from 'lodash'
 import helper from '~/test/helper'
 import { useApiRequest } from '~/composables/apiRequest'
 
@@ -34,7 +34,7 @@ describe('apiRequest.ts', () => {
   const beforeAction = (reqToken: any = {}, resToken: any = {}, result = {}, resData: string | null = null, useJson = true) => {
     vi.stubGlobal('localStorage', { getItem: vi.fn((key: string) => reqToken[key]), setItem: mock.setItem })
 
-    if (lodash.isEmpty(resToken) && lodash.isEmpty(result) && resData == null) {
+    if (isEmpty(resToken) && isEmpty(result) && resData == null) {
       mock.fetch = vi.fn(() => null)
     } else {
       const body = useJson ? { json: vi.fn(() => resData) } : { blob: vi.fn(() => resData) }
@@ -128,7 +128,7 @@ describe('apiRequest.ts', () => {
       beforeAction()
       const body = new FormData()
       for (const [key, value] of Object.entries(params)) {
-        body.append(key, value)
+        body.append(key, String(value))
       }
 
       await useApiRequest(url, 'POST', params, 'form')

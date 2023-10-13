@@ -1,8 +1,5 @@
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import pickBy from 'nuxt-lodash'
 import { config, RouterLinkStub } from '@vue/test-utils'
+import { vuetify } from '~/plugins/vuetify'
 import helper from '~/test/helper'
 import { TestPluginUtils } from '~/plugins/utils'
 
@@ -12,10 +9,6 @@ afterEach(() => {
 })
 
 // Vuetify
-export const vuetify = createVuetify({
-  components,
-  directives
-})
 global.ResizeObserver = require('resize-observer-polyfill')
 config.global.plugins = [vuetify]
 
@@ -23,6 +16,18 @@ config.global.plugins = [vuetify]
 config.global.mocks = {
   $config: { public: Object.assign(helper.envConfig, helper.commonConfig, { env: { production: false, test: true } }) },
   $t: (key: string) => {
+    let locale: any = helper.locales
+    const parts = key.split('.')
+    for (const part of parts) {
+      locale = locale[part]
+      // eslint-disable-next-line no-throw-literal
+      if (locale == null) { throw `Not found: i18n(${key})` }
+    }
+    // eslint-disable-next-line no-throw-literal
+    if (typeof locale !== 'string') { throw `Type error: i18n(${key})` }
+    return locale
+  },
+  $tm: (key: string) => {
     let locale: any = helper.locales
     const parts = key.split('.')
     for (const part of parts) {
@@ -42,6 +47,3 @@ config.global.stubs.NuxtLink = RouterLinkStub
 
 // NOTE: [Vuetify] Could not find injected layout
 config.global.stubs.VLayoutItem = true // injection "Symbol(vuetify:layout)" not found. / Component is missing template or render function.
-
-// NOTE: TypeError: Cannot convert undefined or null to object
-vi.stubGlobal('usePickBy', vi.fn(() => pickBy))

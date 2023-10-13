@@ -62,11 +62,11 @@ describe('Data.vue', () => {
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     const wrapper = mountFunction(user)
     viewTest(wrapper, user)
+    await flushPromises()
 
     // 変更ボタン
     const button: any = wrapper.find('#user_update_btn')
     expect(button.exists()).toBe(true)
-    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力

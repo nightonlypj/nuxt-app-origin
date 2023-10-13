@@ -67,11 +67,11 @@ describe('index.vue', () => {
     const query = Object.freeze({ reset_password_token: 'token' })
     const wrapper = mountFunction(false, query)
     viewTest(wrapper)
+    await flushPromises()
 
     // 変更ボタン
     const button: any = wrapper.find('#password_update_btn')
     expect(button.exists()).toBe(true)
-    await flushPromises()
     expect(button.element.disabled).toBe(true) // 無効
 
     // 入力
