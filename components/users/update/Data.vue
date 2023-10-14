@@ -90,6 +90,7 @@
 </template>
 
 <script>
+import { pickBy } from 'lodash'
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
@@ -153,7 +154,7 @@ export default defineNuxtComponent({
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
         this.appSetEmitMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

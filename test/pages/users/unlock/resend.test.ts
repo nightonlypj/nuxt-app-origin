@@ -79,11 +79,11 @@ describe('resend.vue', () => {
     it('[未ログイン]表示される', async () => {
       const wrapper = mountFunction(false, query)
       viewTest(wrapper, query)
+      await flushPromises()
 
       // 送信ボタン
       const button: any = wrapper.find('#unlock_reset_btn')
       expect(button.exists()).toBe(true)
-      await flushPromises()
       expect(button.element.disabled).toBe(true) // 無効
 
       // 入力
