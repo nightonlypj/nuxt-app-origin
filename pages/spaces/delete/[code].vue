@@ -147,8 +147,8 @@ export default defineNuxtComponent({
           await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
           this.navigateToSpace()
         }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, forbidden: true, notfound: true, reserved: true })) {
-        return this.navigateToSpace()
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, forbidden: true, notfound: true, reserved: true })
       }
 
       this.processing = false

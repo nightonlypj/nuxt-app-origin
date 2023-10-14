@@ -192,13 +192,10 @@ describe('[code].vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = (count: number, params: object, page = count) => {
+  const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
     const url = helper.commonConfig.members.listUrl.replace(':space_code', space.code)
-    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', {
-      ...params,
-      page
-    })
+    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string, admin = false, show: any = { existInfinite: false, testState: null }, error = false) => {
@@ -280,14 +277,14 @@ describe('[code].vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    apiCalledTest(1, defaultParams)
+    apiCalledTest(1)
     const infiniteLoading = viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
     await flushPromises()
 
-    apiCalledTest(2, defaultParams)
+    apiCalledTest(2)
     helper.toastMessageTest(mock.toast, { error: alert, info: notice })
     viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: 'error' }, true)
   }
@@ -314,7 +311,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         viewTest(wrapper, data, '', true)
       })
       it('[管理者以外]表示される（招待・変更・ダウンロードを除く）', async () => {
@@ -323,7 +320,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         viewTest(wrapper, dataCount0, '', false)
       })
     })
@@ -335,11 +332,11 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         viewTest(wrapper, data, '1名', true)
 
         // 選択
-        wrapper.vm.selectedMembers = [data.members[0]]
+        wrapper.vm.$data.selectedMembers = [data.members[0]]
         await flushPromises()
 
         // 削除
@@ -349,8 +346,8 @@ describe('[code].vue', () => {
         expect(membersDelete.vm.selectedMembers).toEqual(wrapper.vm.$data.selectedMembers)
 
         // 結果
-        wrapper.vm.createResult = {}
-        wrapper.vm.tabPage = 'result'
+        wrapper.vm.$data.createResult = {}
+        wrapper.vm.$data.tabPage = 'result'
         await flushPromises()
 
         const membersResult = wrapper.findComponent(MembersResult)
@@ -363,7 +360,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         viewTest(wrapper, dataCount1, '1名', false)
       })
     })
@@ -371,14 +368,14 @@ describe('[code].vue', () => {
       let wrapper: any, infiniteLoading: any
       const beforeAction = async (uid1: string | null, uid2: string | null, uid3: string | null = null) => {
         mock.useApiRequest = vi.fn()
-        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid1 : null) } }, dataPage1])
-        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid2 : null) } }, dataPage2])
-        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid3 : null) } }, dataPage3])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid1 : null) } }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid2 : null) } }, dataPage2])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'uid' ? uid3 : null) } }, dataPage3])
         wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         infiniteLoading = viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
@@ -386,7 +383,7 @@ describe('[code].vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(2, defaultParams)
+        apiCalledTest(2)
         const members = dataPage1.members.concat(dataPage2.members)
         infiniteLoading = viewTest(wrapper, { ...dataPage2, members }, '5名', false, { existInfinite: true, testState: 'loaded' })
 
@@ -394,7 +391,7 @@ describe('[code].vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(3, defaultParams)
+        apiCalledTest(3)
         viewTest(wrapper, { ...dataPage3, members: members.concat(dataPage3.members) }, '5名', false, { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
@@ -406,7 +403,7 @@ describe('[code].vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(2, defaultParams)
+        apiCalledTest(2)
         helper.mockCalledTest(mockReload, 1)
         Object.defineProperty(window, 'location', { value: beforeLocation })
       }
@@ -431,7 +428,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
@@ -449,7 +446,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
@@ -467,7 +464,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
       })
@@ -486,7 +483,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
       })
@@ -504,7 +501,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.mockCalledTest(mock.useAuthSignOut, 1, true)
         helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
         helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
@@ -524,7 +521,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden, notice: null } })
@@ -543,7 +540,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: helper.locales.system.notfound, notice: null } })
       })
@@ -561,7 +558,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
       })
@@ -579,7 +576,7 @@ describe('[code].vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
       })
@@ -599,7 +596,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, findParams)
+      apiCalledTest(1, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1名')
     })
   })
@@ -635,12 +632,12 @@ describe('[code].vue', () => {
 
   describe('メンバー一覧検索', () => {
     let wrapper: any
-    const beforeAction = async () => {
+    const beforeAction = async (reloading = false) => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, defaultParams)
+      apiCalledTest(1)
       viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
 
       // メンバー一覧検索
@@ -650,13 +647,12 @@ describe('[code].vue', () => {
         power: findPower,
         active: findParams.active === 1,
         destroy: findParams.destroy === 1,
-        desc: findParams.desc === 1,
+        desc: findParams.desc !== 0,
         option: findQuery.option === '1'
       }
+      wrapper.vm.$data.reloading = reloading
       await wrapper.vm.searchMembersList()
       await flushPromises()
-
-      apiCalledTest(2, findParams, 1)
     }
 
     it('[正常]検索結果が更新され、URLが変更される', async () => {
@@ -665,6 +661,7 @@ describe('[code].vue', () => {
         .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
       await beforeAction()
 
+      apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1名')
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 0)
@@ -676,10 +673,20 @@ describe('[code].vue', () => {
         .mockImplementationOnce(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
+      apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null }, true)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
+    })
+    it('[再取得中]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+      await beforeAction(true)
+
+      expect(mock.useApiRequest).toBeCalledTimes(1)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.system.timeout })
+      helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
+      helper.mockCalledTest(mock.navigateTo, 0)
     })
   })
 
@@ -691,7 +698,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, defaultParams)
+      apiCalledTest(1)
       viewTest(wrapper, dataPage1, '5名', false, { existInfinite: true, testState: null })
     }
 

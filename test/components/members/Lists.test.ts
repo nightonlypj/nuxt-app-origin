@@ -6,7 +6,7 @@ import Component from '~/components/members/Lists.vue'
 
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members: object | null, admin = false, hiddenItems: any = null, activeUserCodes: any = []) => {
+  const mountFunction = (members: object | null, admin = false, hiddenItems: any = [], activeUserCodes: any = []) => {
     const wrapper = mount(Component, {
       global: {
         stubs: {
@@ -218,6 +218,34 @@ describe('Lists.vue', () => {
       it('[管理者以外]必須項目のみ表示される', () => {
         const wrapper = mountFunction(members, false, hiddenItems)
         viewTest(wrapper, members, { optional: false, admin: false })
+      })
+    })
+
+    describe('ソート', () => {
+      it('選択値が設定される', () => {
+        const wrapper = mountFunction(members)
+        const key = wrapper.vm.$props.sort
+        const desc = wrapper.vm.$props.desc
+        wrapper.vm.syncSortBy = [{ key, order: desc ? 'desc' : 'asc' }]
+        expect(wrapper.emitted().reload[0]).toEqual([{ sort: key, desc }])
+
+        // 同じ項目で並び順を2回変えると空になる
+        wrapper.vm.syncSortBy = []
+        expect(wrapper.emitted().reload[1]).toEqual([{ sort: key, desc: !desc }])
+      })
+    })
+
+    describe('チェックボックス', () => {
+      it('[管理者]表示される。選択項目が設定される', () => {
+        const wrapper = mountFunction(members, true)
+        expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).not.toBeUndefined()
+
+        wrapper.vm.syncSelectedMembers = [members[0]]
+        expect(wrapper.emitted()['update:selectedMembers']).toEqual([[[members[0]]]])
+      })
+      it('[管理者以外]表示されない', () => {
+        const wrapper = mountFunction(members, false)
+        expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).toBeUndefined()
       })
     })
   })

@@ -63,6 +63,9 @@ describe('Search.vue', () => {
       wrapper.find('#member_search_text').setValue('a')
       await flushPromises()
 
+      wrapper.vm.syncQuery = { ...wrapper.vm.syncQuery } // NOTE: setValueだとsyncQuery.setが呼ばれない為
+      expect(wrapper.emitted()['update:query']).toEqual([[{ ...query, text: 'a' }]])
+
       // 検索ボタン
       button = wrapper.find('#member_search_btn')
       expect(button.element.disabled).toBe(false) // 有効

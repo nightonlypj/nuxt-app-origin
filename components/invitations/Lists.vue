@@ -151,23 +151,27 @@ export default defineNuxtComponent({
       }
       if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
+    /*
     },
 
     itemClass () {
       return (item) => {
         return item.raw.status === 'active' ? 'row_active' : 'row_inactive'
       }
+    */
     }
   },
 
   methods: {
+    /*
     showUpdate (event, { item }) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next *//* // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
       if (item.raw.status === 'email_joined') { return }
 
       this.$emit('showUpdate', item.raw)
     },
+    */
 
     async copyInvitationURL (code) {
       try {

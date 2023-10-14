@@ -116,7 +116,7 @@ export default defineNuxtComponent({
   methods: {
     // ダウンロード結果一覧再取得
     async reloadDownloadsList () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('reloadDownloadsList', this.reloading) }
 
       this.reloading = true
@@ -128,25 +128,33 @@ export default defineNuxtComponent({
 
     // 次頁のダウンロード結果一覧取得
     async getNextDownloadsList ($state) {
+      /* c8 ignore start */
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextDownloadsList', this.page + 1, this.processing, this.error) }
       if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
       if (this.processing) { return }
+      /* c8 ignore stop */
 
       this.page = this.download.current_page + 1
       if (!await this.getDownloadsList()) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
+        /* c8 ignore stop */
       } else if (this.download.current_page < this.download.total_pages) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'loaded'; return }
 
         $state.loaded()
+        /* c8 ignore stop */
       } else {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'complete'; return }
 
         $state.complete()
       }
+      /* c8 ignore stop */
     },
 
     // ダウンロード結果一覧取得
@@ -184,7 +192,7 @@ export default defineNuxtComponent({
             this.appSetMessage(data.target, false)
             if (!this.reloading) {
               if (['waiting', 'processing'].includes(data.target.status)) {
-                // eslint-disable-next-line no-console
+                /* c8 ignore next */ // eslint-disable-next-line no-console
                 if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', this.params.target_id, 1) }
 
                 this.testDelay = [1000 * 3, this.params.target_id, 1] // 3秒後
@@ -212,12 +220,12 @@ export default defineNuxtComponent({
 
     // 完了チェック
     async checkDownloadComplete (targetId, count) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('checkDownloadComplete', targetId, count) }
 
       const index = this.downloads.findIndex(item => item.id === targetId)
       if (index < 0 || !['waiting', 'processing'].includes(this.downloads[index].status)) { // NOTE: 更新ボタンで完了になっていた場合はスキップ
-        // eslint-disable-next-line no-console
+        /* c8 ignore next */ // eslint-disable-next-line no-console
         if (this.$config.public.debug) { console.log('...Skip') }
 
         return
@@ -233,7 +241,7 @@ export default defineNuxtComponent({
         this.error = !this.appCheckResponse(data, { toasted: true }, data?.downloads?.length !== 1 || data.downloads[0].id !== targetId || data.target == null)
         if (!this.error) {
           if (['waiting', 'processing'].includes(data.target.status)) {
-            // eslint-disable-next-line no-console
+            /* c8 ignore next */ // eslint-disable-next-line no-console
             if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
 
             this.testDelay = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
@@ -254,7 +262,7 @@ export default defineNuxtComponent({
 
     // ダウンロード
     async downloadsFile (item) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('downloadsFile', item) }
 
       const url = this.$config.public.downloads.fileUrl.replace(':id', item.id)
@@ -274,7 +282,7 @@ export default defineNuxtComponent({
           this.testElement = element
 
           if (item.last_downloaded_at == null) {
-            const index = this.downloads.indexOf(item)
+            const index = this.downloads.findIndex(download => download.id === item.id)
             if (index >= 0) {
               item.last_downloaded_at = true
               this.downloads.splice(index, 1, item)

@@ -186,6 +186,7 @@
 </template>
 
 <script>
+import { pickBy } from 'lodash'
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { max } from '@vee-validate/rules'
@@ -235,7 +236,7 @@ export default defineNuxtComponent({
   methods: {
     // ダイアログ表示
     async showDialog (invitation) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('showDialog', invitation) }
 
       if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
@@ -299,7 +300,7 @@ export default defineNuxtComponent({
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
         this.appSetToastedMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

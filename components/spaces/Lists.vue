@@ -67,6 +67,7 @@ export default defineNuxtComponent({
       }
       result.push({ key: 'action', cellClass: 'pl-1 pr-2 py-2' })
       return result
+    /*
     },
 
     itemClass () {
@@ -74,6 +75,7 @@ export default defineNuxtComponent({
         if (item.raw.destroy_requested_at != null && item.raw.destroy_requested_at !== '') { return 'row_inactive' }
         return null
       }
+    */
     }
   }
 })

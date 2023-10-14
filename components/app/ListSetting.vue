@@ -23,6 +23,7 @@
               <h4>
                 表示項目
                 <v-btn
+                  id="list_setting_show_items_set_all_btn"
                   color="secondary"
                   size="small"
                   class="ml-4"
@@ -32,6 +33,7 @@
                   全選択
                 </v-btn>
                 <v-btn
+                  id="list_setting_show_items_clear_btn"
                   color="secondary"
                   size="small"
                   class="ml-1"

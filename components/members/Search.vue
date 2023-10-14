@@ -155,7 +155,7 @@ export default defineNuxtComponent({
     },
 
     error () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('error') }
 
       this.waiting = false

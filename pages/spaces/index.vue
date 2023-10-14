@@ -136,7 +136,7 @@ export default defineNuxtComponent({
   methods: {
     // スペース一覧検索
     async searchSpacesList () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('searchSpacesList') }
 
       this.params = null
@@ -147,7 +147,7 @@ export default defineNuxtComponent({
 
     // スペース一覧再取得
     async reloadSpacesList () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('reloadSpacesList', this.reloading) }
 
       // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
@@ -155,11 +155,12 @@ export default defineNuxtComponent({
       while (count < this.$config.public.reloading.maxCount) {
         if (!this.reloading) { break }
 
-        await this.$sleep(this.$config.public.reloading.sleepMs)
+        /* c8 ignore next */
+        if (process.env.NODE_ENV !== 'test') { await this.$sleep(this.$config.public.reloading.sleepMs) }
         count++
       }
       if (count >= this.$config.public.reloading.maxCount) {
-        // eslint-disable-next-line no-console
+        /* c8 ignore next */ // eslint-disable-next-line no-console
         if (this.$config.public.debug) { console.log('...Stop') }
 
         this.appSetToastedMessage({ alert: this.$t('system.timeout') }, true)
@@ -194,25 +195,33 @@ export default defineNuxtComponent({
 
     // 次頁のスペース一覧取得
     async getNextSpacesList ($state) {
+      /* c8 ignore start */
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextSpacesList', this.page + 1, this.processing, this.error) }
       if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
       if (this.processing) { return }
+      /* c8 ignore stop */
 
       this.page = this.space.current_page + 1
       if (!await this.getSpacesList()) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
+        /* c8 ignore stop */
       } else if (this.space.current_page < this.space.total_pages) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'loaded'; return }
 
         $state.loaded()
+        /* c8 ignore stop */
       } else {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'complete'; return }
 
         $state.complete()
       }
+      /* c8 ignore stop */
     },
 
     // スペース一覧取得

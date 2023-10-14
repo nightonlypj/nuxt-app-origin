@@ -61,6 +61,28 @@ describe('downloads.vue', () => {
     return wrapper
   }
 
+  const dataCount0 = Object.freeze({
+    download: {
+      total_count: 0,
+      current_page: 1,
+      total_pages: 0,
+      limit_value: 2
+    },
+    undownloaded_count: 0
+  })
+  const dataCount1 = Object.freeze({
+    download: {
+      total_count: 1,
+      current_page: 1,
+      total_pages: 1,
+      limit_value: 2
+    },
+    downloads: [
+      { id: 1 }
+    ],
+    undownloaded_count: 1
+  })
+
   const dataPage1 = Object.freeze({
     download: {
       total_count: 5,
@@ -147,7 +169,7 @@ describe('downloads.vue', () => {
   }
 
   // テストケース
-  describe('未ログイン', async () => {
+  describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
       helper.loadingTest(wrapper, AppLoading)
@@ -161,47 +183,26 @@ describe('downloads.vue', () => {
 
   describe('ダウンロード結果一覧取得', () => {
     describe('0件', () => {
-      const data = Object.freeze({
-        download: {
-          total_count: 0,
-          current_page: 1,
-          total_pages: 0,
-          limit_value: 2
-        },
-        undownloaded_count: 0
-      })
       it('表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, data])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
         const wrapper = mountFunction(true, { undownloaded_count: 0 })
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
         apiCalledTest(1)
-        viewTest(wrapper, data, '')
+        viewTest(wrapper, dataCount0, '')
         helper.mockCalledTest(mock.updateUserUndownloadedCount, 0)
       })
     })
     describe('1件', () => {
-      const data = Object.freeze({
-        download: {
-          total_count: 1,
-          current_page: 1,
-          total_pages: 1,
-          limit_value: 2
-        },
-        downloads: [
-          { id: 1 }
-        ],
-        undownloaded_count: 1
-      })
       it('表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, data])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
         const wrapper = mountFunction(true, { undownloaded_count: 0 })
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
         apiCalledTest(1)
-        viewTest(wrapper, data, '1件')
+        viewTest(wrapper, dataCount1, '1件')
         helper.mockCalledTest(mock.updateUserUndownloadedCount, 1, 1)
       })
     })
@@ -375,6 +376,45 @@ describe('downloads.vue', () => {
     })
   })
 
+  describe('ダウンロード結果一覧再取得', () => {
+    let wrapper: any
+    const beforeAction = async (data: object) => {
+      wrapper = mountFunction()
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
+
+      apiCalledTest(1)
+      viewTest(wrapper, data, '')
+
+      // 更新ボタン
+      const button = wrapper.find('#downloads_reload_btn')
+      expect(button.exists()).toBe(true)
+      button.trigger('click')
+      await flushPromises()
+
+      apiCalledTest(2, { page: 1 })
+    }
+
+    it('[成功]表示が更新される', async () => {
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
+      await beforeAction(dataCount0)
+
+      viewTest(wrapper, dataCount1, '')
+      helper.toastMessageTest(mock.toast, {})
+    })
+    it('[接続エラー]表示が更新されない。エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
+        .mockImplementationOnce(() => [{ ok: false, status: null }, null])
+      await beforeAction(dataCount0)
+
+      viewTest(wrapper, dataCount0, '', null, { existInfinite: false, testState: null }, true)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+    })
+  })
+
   describe('完了チェック', () => {
     const targetId = dataPage1.downloads[0].id
     const user = Object.freeze({ undownloaded_count: 1 })
@@ -410,7 +450,7 @@ describe('downloads.vue', () => {
       return wrapper
     }
 
-    it('[対象が成功]実行されない', async () => {
+    it('[対象が成功]成功メッセージが表示される。次回は実行されない', async () => {
       const target = Object.freeze({ status: 'success', notice: 'successメッセージ' })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, target }])
       const wrapper = mountFunction(true, user, { target_id: targetId })
@@ -420,7 +460,7 @@ describe('downloads.vue', () => {
       helper.toastMessageTest(mock.toast, { success: target.notice })
       expect(wrapper.vm.$data.testDelay).toBeNull() // setTimeoutされない
     })
-    it('[対象が失敗]実行されない', async () => {
+    it('[対象が失敗]エラーメッセージが表示される。次回は実行されない', async () => {
       const target = Object.freeze({ status: 'failure', alert: 'failureメッセージ' })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, target }])
       const wrapper = mountFunction(true, user, { target_id: targetId })
@@ -430,11 +470,12 @@ describe('downloads.vue', () => {
       helper.toastMessageTest(mock.toast, { error: target.alert })
       expect(wrapper.vm.$data.testDelay).toBeNull() // setTimeoutされない
     })
+
     it('[対象が処理待ち→処理待ち→成功]成功まで繰り返し実行され、表示が変更される', async () => {
       const target1 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
       const target2 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
       const target3 = Object.freeze({ status: 'success', notice: 'successメッセージ' })
-      const wrapper = await beforeAction(target1, target2, target3, 2)
+      const wrapper = await beforeAction(target1, target2, target3, 1)
 
       helper.messageTest(wrapper, AppMessage, target3)
       helper.toastMessageTest(mock.toast, { success: target3.notice })
@@ -447,6 +488,59 @@ describe('downloads.vue', () => {
 
       helper.messageTest(wrapper, AppMessage, target3)
       helper.toastMessageTest(mock.toast, { error: target3.alert })
+    })
+
+    it('[対象が処理待ち→接続エラー]エラーメッセージが表示される。次回は実行されない', async () => {
+      const target1 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, target: target1 }])
+        .mockImplementationOnce(() => [{ ok: false, status: null }, null])
+      const wrapper = mountFunction(true, user, { target_id: targetId })
+      await flushPromises()
+
+      helper.messageTest(wrapper, AppMessage, target1)
+      helper.toastMessageTest(mock.toast, {})
+      expect(wrapper.vm.$data.testDelay).toEqual([3000, targetId, 1]) // setTimeout: 3秒後、1回目
+      await flushPromises()
+
+      // setTimeoutの処理を実行
+      wrapper.vm.checkDownloadComplete(targetId, 1)
+      await flushPromises()
+
+      apiCalledTest(2, { id: targetId, target_id: targetId })
+      helper.messageTest(wrapper, AppMessage, target1) // 前回と同じ
+      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      expect(wrapper.vm.$data.testDelay).toEqual([3000, targetId, 1]) // setTimeoutされない（前回と同じ）
+    })
+    it('[対象が処理待ち→更新ボタン（成功）]成功メッセージが表示される。次回は実行されない', async () => {
+      const target1 = Object.freeze({ status: 'waiting', notice: 'waitingメッセージ' })
+      const target2 = Object.freeze({ status: 'success', notice: 'successメッセージ' })
+      const downloads = dataPage1.downloads
+      downloads[0].status = 'success'
+
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, target: target1 }])
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, downloads, target: target2 }])
+      const wrapper = mountFunction(true, user, { target_id: targetId })
+      await flushPromises()
+
+      helper.messageTest(wrapper, AppMessage, target1)
+      helper.toastMessageTest(mock.toast, {})
+      expect(wrapper.vm.$data.testDelay).toEqual([3000, targetId, 1]) // setTimeout: 3秒後、1回目
+      await flushPromises()
+
+      // 更新ボタン
+      wrapper.find('#downloads_reload_btn').trigger('click')
+      await flushPromises()
+
+      // setTimeoutの処理を実行
+      wrapper.vm.checkDownloadComplete(targetId, 1)
+      await flushPromises()
+
+      apiCalledTest(2, { page: 1, target_id: targetId })
+      helper.messageTest(wrapper, AppMessage, target2)
+      helper.toastMessageTest(mock.toast, {})
+      expect(wrapper.vm.$data.testDelay).toEqual([3000, targetId, 1]) // setTimeoutされない（前回と同じ）
     })
   })
 
@@ -493,11 +587,12 @@ describe('downloads.vue', () => {
     }
 
     const filename = 'file_12345.csv'
-    const successResponse = [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'content-disposition' ? `attachment; filename="${filename}";` : null) }}, 'test']
+    const successResponse = [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'content-disposition' ? `attachment; filename="${filename}";` : null) } }, 'test']
     it('[パラメータなし、未ダウンロード]ダウンロードされる', async () => {
       await beforeAction(successResponse, null, data.downloads[0])
 
       expect(wrapper.vm.$data.testElement.download).toBe(filename)
+      expect(wrapper.vm.$data.downloads[0].last_downloaded_at).toBe(true) // ダウンロード済みに変更される
       helper.messageTest(wrapper, AppMessage, null)
       helper.mockCalledTest(mock.updateUserUndownloadedCount, 1, 0)
     })
@@ -505,6 +600,7 @@ describe('downloads.vue', () => {
       await beforeAction(successResponse, { target_id: data.downloads[0].id }, data.downloads[0], { notice: 'noticeメッセージ' })
 
       expect(wrapper.vm.$data.testElement.download).toBe(filename)
+      expect(wrapper.vm.$data.downloads[0].last_downloaded_at).toBe(true) // ダウンロード済みに変更される
       helper.messageTest(wrapper, AppMessage, null)
       helper.mockCalledTest(mock.updateUserUndownloadedCount, 1, 0)
     })
@@ -512,6 +608,7 @@ describe('downloads.vue', () => {
       await beforeAction(successResponse, { target_id: data.downloads[1].id }, data.downloads[1])
 
       expect(wrapper.vm.$data.testElement.download).toBe(filename)
+      expect(wrapper.vm.$data.downloads[1].last_downloaded_at).toBe(data.downloads[1].last_downloaded_at) // 変更されない
       helper.messageTest(wrapper, AppMessage, null)
       helper.mockCalledTest(mock.updateUserUndownloadedCount, 0)
     })

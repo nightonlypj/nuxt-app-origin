@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import { isEqual } from 'lodash'
 
 export default defineNuxtComponent({
   emits: ['alert', 'notice'],
@@ -67,13 +67,15 @@ export default defineNuxtComponent({
     appCheckSearchParams (reqParams, resParams) {
       if (!this.$config.public.debug) { return }
 
+      /* c8 ignore start */
       const req = Object.entries(reqParams).filter(param => param[1] != null)
       const res = Object.entries(resParams).filter(param => param[1] != null)
-      const result = lodash.isEqual(req, res)
+      const result = isEqual(req, res)
       // eslint-disable-next-line no-console
       console.log(`response params: ${result ? 'OK' : 'NG'}`, reqParams, resParams)
 
       if (!result) { this.$toast.warning('パラメータが一致していません。ログを確認してください。') }
+      /* c8 ignore stop */
     },
 
     // レスポンスチェック

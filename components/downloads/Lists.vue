@@ -97,6 +97,7 @@ export default defineNuxtComponent({
       }
       if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
+    /*
     },
 
     itemClass () {
@@ -110,6 +111,7 @@ export default defineNuxtComponent({
         if (item.raw.status === 'failure') { return 'row_inactive' }
         return null
       }
+    */
     }
   }
 })

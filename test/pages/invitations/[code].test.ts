@@ -136,12 +136,10 @@ describe('[code].vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = (count: number) => {
+  const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
     const url = helper.commonConfig.invitations.listUrl.replace(':space_code', space.code)
-    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', {
-      page: count
-    })
+    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error: boolean = false) => {
@@ -463,6 +461,43 @@ describe('[code].vue', () => {
           .mockImplementationOnce(() => [{ ok: false, status: 400 }, {}])
         await infiniteErrorTest(helper.locales.system.default, null)
       })
+    })
+  })
+
+  describe('招待URL一覧再取得', () => {
+    let wrapper: any
+    const beforeAction = async (data: object) => {
+      wrapper = mountFunction()
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
+
+      apiCalledTest(1)
+      viewTest(wrapper, data, '')
+
+      // 再取得
+      wrapper.vm.reloadInvitationsList()
+      await flushPromises()
+
+      apiCalledTest(2, { page: 1 })
+    }
+
+    it('[成功]表示が更新される', async () => {
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
+      await beforeAction(dataCount0)
+
+      viewTest(wrapper, dataCount1, '')
+      helper.toastMessageTest(mock.toast, {})
+    })
+    it('[接続エラー]表示が更新されない。エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn()
+        .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
+        .mockImplementationOnce(() => [{ ok: false, status: null }, null])
+      await beforeAction(dataCount0)
+
+      viewTest(wrapper, dataCount0, '', { existInfinite: false, testState: null }, true)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
     })
   })
 

@@ -151,12 +151,9 @@ describe('index.vue', () => {
   })
 
   // テスト内容
-  const apiCalledTest = (count: number, params: object, page = count) => {
+  const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, 'GET', {
-      ...params,
-      page
-    })
+    expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error = false) => {
@@ -199,14 +196,14 @@ describe('index.vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    apiCalledTest(1, defaultParams)
+    apiCalledTest(1)
     const infiniteLoading = viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
 
     // スクロール（2頁目）
     infiniteLoading.vm.$emit('infinite')
     await flushPromises()
 
-    apiCalledTest(2, defaultParams)
+    apiCalledTest(2)
     helper.toastMessageTest(mock.toast, { error: alert, info: notice })
     viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
   }
@@ -219,7 +216,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, defaultParams)
+      apiCalledTest(1)
       viewTest(wrapper, dataCount0, '')
     })
     it('[1件]表示される', async () => {
@@ -228,7 +225,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, defaultParams)
+      apiCalledTest(1)
       viewTest(wrapper, dataCount1, '1件')
     })
     describe('無限スクロール', () => {
@@ -242,7 +239,7 @@ describe('index.vue', () => {
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
-        apiCalledTest(1, defaultParams)
+        apiCalledTest(1)
         infiniteLoading = viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
       }
       const completeTestAction = async () => {
@@ -250,7 +247,7 @@ describe('index.vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(2, defaultParams)
+        apiCalledTest(2)
         const spaces = dataPage1.spaces.concat(dataPage2.spaces)
         viewTest(wrapper, { ...dataPage2, spaces }, '5件', { existInfinite: true, testState: 'loaded' })
 
@@ -258,7 +255,7 @@ describe('index.vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(3, defaultParams)
+        apiCalledTest(3)
         viewTest(wrapper, { ...dataPage3, spaces: spaces.concat(dataPage3.spaces) }, '5件', { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
@@ -270,7 +267,7 @@ describe('index.vue', () => {
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
-        apiCalledTest(2, defaultParams)
+        apiCalledTest(2)
         helper.mockCalledTest(mockReload, 1)
         Object.defineProperty(window, 'location', { value: beforeLocation })
       }
@@ -386,12 +383,12 @@ describe('index.vue', () => {
 
   describe('パラメータあり', () => {
     it('[未ログイン]パラメータがセットされ、表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: { get: vi.fn(() => null) }}, dataCount1])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: { get: vi.fn(() => null) } }, dataCount1])
       const wrapper = mountFunction(false, findQuery)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, findParams)
+      apiCalledTest(1, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1件')
     })
     it('[ログイン中]パラメータがセットされ、表示される', async () => {
@@ -400,7 +397,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, findParams)
+      apiCalledTest(1, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1件')
     })
   })
@@ -438,12 +435,12 @@ describe('index.vue', () => {
 
   describe('スペース一覧検索', () => {
     let wrapper: any
-    const beforeAction = async () => {
+    const beforeAction = async (reloading = false) => {
       wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest(1, defaultParams)
+      apiCalledTest(1)
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
 
       // スペース一覧検索
@@ -461,13 +458,12 @@ describe('index.vue', () => {
         text: findParams.text,
         ...optionQuery,
         active: findParams.active === 1,
-        destroy: findParams.destroy === 1,
+        destroy: findParams.destroy !== 0,
         option: findQuery.option === '1'
       }
+      wrapper.vm.$data.reloading = reloading
       await wrapper.vm.searchSpacesList()
       await flushPromises()
-
-      apiCalledTest(2, findParams, 1)
     }
 
     it('[正常]検索結果が更新され、URLが変更される', async () => {
@@ -476,6 +472,7 @@ describe('index.vue', () => {
         .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
       await beforeAction()
 
+      apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1件')
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 0)
@@ -487,10 +484,20 @@ describe('index.vue', () => {
         .mockImplementationOnce(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
+      apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null }, true)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
       helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
+    })
+    it('[再取得中]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+      await beforeAction(true)
+
+      expect(mock.useApiRequest).toBeCalledTimes(1)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.system.timeout })
+      helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
+      helper.mockCalledTest(mock.navigateTo, 0)
     })
   })
 })

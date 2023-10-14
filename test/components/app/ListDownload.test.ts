@@ -20,7 +20,7 @@ describe('ListDownload.vue', () => {
   const items = helper.locales.items[model]
   const space = Object.freeze({ code: 'code0001' })
   const fullPath = '/members/code0001'
-  const mountFunction = (admin: boolean, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
+  const mountFunction = (admin = false, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -172,17 +172,46 @@ describe('ListDownload.vue', () => {
     const wrapper = mountFunction(false)
     await viewTest(wrapper, false)
   })
-  /* NOTE: 必須がある為、ケースが存在しない
-  it('[出力項目なし]ダウンロードボタンが押せない', async () => {
-    const hiddenItems: any = items.map(item => item.key)
-    const wrapper = mountFunction(false, hiddenItems)
-    await viewTest(wrapper, false, defaultChecked, { ...defaultDisabled, submit: true }, hiddenItems)
+  it('[全解除→全選択ボタン]全て解除され、ダウンロードボタンが押せない。全て選択され、ダウンロードボタンが押せる', async () => {
+    const wrapper = mountFunction(true)
+    wrapper.find('#list_download_btn').trigger('click')
+    await flushPromises()
+
+    // ダウンロードダイアログ
+    const dialog = wrapper.find('#list_download_dialog')
+    expect(dialog.isVisible()).toBe(true) // 表示
+    await flushPromises()
+
+    // 全解除ボタン
+    const clearBtn = wrapper.find('#list_download_output_items_clear_btn')
+    expect(clearBtn.exists()).toBe(true)
+    clearBtn.trigger('click')
+    await flushPromises()
+
+    // 全て解除
+    expect(wrapper.vm.$data.outputItems).toEqual([])
+
+    // ダウンロードボタン
+    const button: any = wrapper.find('#list_download_submit_btn')
+    expect(button.element.disabled).toBe(true) // 無効
+
+    // 全選択ボタン
+    const setAllBtn = wrapper.find('#list_download_output_items_set_all_btn')
+    expect(setAllBtn.exists()).toBe(true)
+    setAllBtn.trigger('click')
+    await flushPromises()
+
+    // 全て選択
+    const allItems = items.map(item => item.key)
+    expect(wrapper.vm.$data.outputItems).toEqual(allItems)
+
+    // ダウンロードボタン
+    expect(button.element.disabled).toBe(false) // 有効
   })
-  */
 
   describe('ダウンロード依頼', () => {
     const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', download: { id: 1 } })
-    const outputItems = items.map(item => item.key)
+    const allItems = items.map(item => item.key)
     const selectItems = Object.freeze(['code000000000000000000001'])
     const searchParams = Object.freeze({ text: 'aaa' })
 
@@ -199,7 +228,7 @@ describe('ListDownload.vue', () => {
           model,
           space_code: space.code || null,
           ...query,
-          output_items: outputItems,
+          output_items: allItems,
           select_items: selectItems,
           search_params: searchParams
         }
@@ -291,6 +320,15 @@ describe('ListDownload.vue', () => {
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[入力エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, Object.assign({ errors: { output_items: ['errorメッセージ'] } }, data)])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {

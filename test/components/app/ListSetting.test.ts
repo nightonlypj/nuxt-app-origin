@@ -102,6 +102,36 @@ describe('ListSetting.vue', () => {
     const wrapper = mountFunction(false)
     await viewTest(wrapper, false)
   })
+  it('[全解除→全選択ボタン]必須項目のみ選択される。全て選択される', async () => {
+    const wrapper = mountFunction(true)
+    wrapper.find('#list_setting_btn').trigger('click')
+    await flushPromises()
+
+    // 変更ダイアログ
+    const dialog = wrapper.find('#list_setting_dialog')
+    expect(dialog.isVisible()).toBe(true) // 表示
+    await flushPromises()
+
+    // 全解除ボタン
+    const clearBtn = wrapper.find('#list_setting_show_items_clear_btn')
+    expect(clearBtn.exists()).toBe(true)
+    clearBtn.trigger('click')
+    await flushPromises()
+
+    // 必須項目のみ選択
+    const requiredItems = items.filter(item => item.required).map(item => item.key)
+    expect(wrapper.vm.$data.showItems).toEqual(requiredItems)
+
+    // 全選択ボタン
+    const setAllBtn = wrapper.find('#list_setting_show_items_set_all_btn')
+    expect(setAllBtn.exists()).toBe(true)
+    setAllBtn.trigger('click')
+    await flushPromises()
+
+    // 全て選択
+    const allItems = items.map(item => item.key)
+    expect(wrapper.vm.$data.showItems).toEqual(allItems)
+  })
 
   describe('変更', () => {
     const allItems = items.map(item => item.key)

@@ -293,16 +293,14 @@ describe('Update.vue', () => {
   })
 
   describe('招待URL設定変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', invitation: invitationActive })
-    const values = Object.freeze({
+    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const defaultValues = Object.freeze({
       ended_date: '9999-12-31',
       ended_time: '23:59',
       ended_zone: helper.envConfig.timeZoneOffset,
-      memo: '更新メモ',
-      delete: true
-      // TODO: undo_delete
+      memo: '更新メモ'
     })
-    const apiCalledTest = () => {
+    const apiCalledTest = (values: object) => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
       const url = helper.commonConfig.invitations.updateUrl.replace(':space_code', space.code).replace(':code', invitationActive.code)
       expect(mock.useApiRequest).nthCalledWith(2, helper.envConfig.apiBaseURL + url, 'POST', {
@@ -311,12 +309,12 @@ describe('Update.vue', () => {
     }
 
     let wrapper: any, dialog: any, button: any
-    const beforeAction = async (updateResponse: any) => {
+    const beforeAction = async (updateResponse: any, invitation: any = invitationActive, values: any = defaultValues) => {
       mock.useApiRequest = vi.fn()
-        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { invitation: { ...invitationActive } }])
+        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { invitation: { ...invitation } }])
         .mockImplementationOnce(() => updateResponse)
       wrapper = mountFunction()
-      wrapper.vm.showDialog(invitationActive)
+      wrapper.vm.showDialog(invitation)
       await flushPromises()
 
       // 変更ダイアログ
@@ -327,7 +325,8 @@ describe('Update.vue', () => {
       wrapper.find('#invitation_update_ended_date_text').setValue(values.ended_date)
       wrapper.find('#invitation_update_ended_time_text').setValue(values.ended_time)
       wrapper.find('#invitation_update_memo_text').setValue(values.memo)
-      wrapper.find('#invitation_update_delete_check').setValue(values.delete)
+      if (values.delete) { wrapper.find('#invitation_update_delete_check').setValue(true) }
+      if (values.undo_delete) { wrapper.find('#invitation_update_undo_delete_check').setValue(true) }
       await flushPromises()
 
       // 変更ボタン
@@ -336,15 +335,31 @@ describe('Update.vue', () => {
       button.trigger('click')
       await flushPromises()
 
-      apiCalledTest()
+      apiCalledTest(values)
     }
 
     it('[成功]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, data])
+      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationActive }], invitationActive, defaultValues)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
-      expect(wrapper.emitted().update).toEqual([[data.invitation]]) // 招待URL情報更新
+      expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
+      expect(dialog.isDisabled()).toBe(false) // 非表示
+    })
+    it('[成功（削除）]一覧の対象データが更新される', async () => {
+      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationDeleted }], invitationActive, { ...defaultValues, delete: true })
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      expect(wrapper.emitted().update).toEqual([[invitationDeleted]]) // 招待URL情報更新
+      expect(dialog.isDisabled()).toBe(false) // 非表示
+    })
+    it('[成功（削除取り消し）]一覧の対象データが更新される', async () => {
+      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationActive }], invitationDeleted, { ...defaultValues, undo_delete: true })
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[データなし]エラーメッセージが表示される', async () => {

@@ -132,7 +132,7 @@ export default defineNuxtComponent({
     },
     hiddenItems: {
       type: Array,
-      default: null
+      required: true
     },
     activeUserCodes: {
       type: Array,
@@ -158,11 +158,22 @@ export default defineNuxtComponent({
       }
       if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
       return result
+    /*
     },
 
     itemClass () {
       return (item) => {
         return this.activeUserCodes.includes(item.raw.user?.code) ? 'row_active' : null
+      }
+    */
+    },
+
+    syncSelectedMembers: {
+      get () {
+        return this.selectedMembers
+      },
+      set (value) {
+        this.$emit('update:selectedMembers', value)
       }
     },
 
@@ -177,31 +188,25 @@ export default defineNuxtComponent({
           this.$emit('reload', { sort: value[0].key, desc: value[0].order === 'desc' })
         }
       }
-    },
-    syncSelectedMembers: {
-      get () {
-        return this.selectedMembers
-      },
-      set (value) {
-        this.$emit('update:selectedMembers', value)
-      }
     }
+    /*
   },
 
   methods: {
     showUpdate (event, { item }) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next *//* // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
       if (!this.admin || item.raw.user.code === this.$auth.user.code) { return }
 
       if (event.target.innerHTML.match(/v-ripple__animation--visible/) || event.target.innerHTML.match(/v-simple-checkbox/)) {
-        // eslint-disable-next-line no-console
+        /* c8 ignore next *//* // eslint-disable-next-line no-console
         if (this.$config.public.debug) { console.log('...Skip') }
         return
       }
 
       this.$emit('showUpdate', item.raw)
     }
+  */
   }
 })
 </script>

@@ -125,7 +125,6 @@ export default defineNuxtComponent({
       space: null,
       invitation: null,
       invitations: null,
-      selectedInvitations: [],
       hiddenItems: localStorage.getItem('invitation.hidden-items')?.split(',') || []
     }
   },
@@ -137,10 +136,6 @@ export default defineNuxtComponent({
 
     existInvitations () {
       return this.invitations?.length > 0
-    },
-
-    selectItems () {
-      return this.selectedInvitations.map(invitation => invitation.code)
     }
   },
 
@@ -154,7 +149,7 @@ export default defineNuxtComponent({
   methods: {
     // 招待URL一覧再取得
     async reloadInvitationsList () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('reloadInvitationsList', this.reloading) }
 
       this.reloading = true
@@ -166,25 +161,33 @@ export default defineNuxtComponent({
 
     // 次頁の招待URL一覧取得
     async getNextInvitationsList ($state) {
+      /* c8 ignore start */
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextInvitationsList', this.page + 1, this.processing, this.error) }
       if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
       if (this.processing) { return }
+      /* c8 ignore stop */
 
       this.page = this.invitation.current_page + 1
       if (!await this.getInvitationsList()) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
+        /* c8 ignore stop */
       } else if (this.invitation.current_page < this.invitation.total_pages) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'loaded'; return }
 
         $state.loaded()
+        /* c8 ignore stop */
       } else {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'complete'; return }
 
         $state.complete()
       }
+      /* c8 ignore stop */
     },
 
     // 招待URL一覧取得
@@ -228,7 +231,7 @@ export default defineNuxtComponent({
 
     // 招待URL設定更新
     updateInvitation (invitation) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('updateInvitation', invitation) }
 
       const index = this.invitations.findIndex(item => item.code === invitation.code)

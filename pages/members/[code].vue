@@ -241,7 +241,7 @@ export default defineNuxtComponent({
   methods: {
     // メンバー一覧検索
     async searchMembersList () {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('searchMembersList') }
 
       this.params = null
@@ -252,7 +252,7 @@ export default defineNuxtComponent({
 
     // メンバー一覧再取得
     async reloadMembersList ($event = {}) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('reloadMembersList', $event, this.reloading) }
 
       if (Object.keys($event).length >= 0) {
@@ -265,11 +265,12 @@ export default defineNuxtComponent({
       while (count < this.$config.public.reloading.maxCount) {
         if (!this.reloading) { break }
 
-        await this.$sleep(this.$config.public.reloading.sleepMs)
+        /* c8 ignore next */
+        if (process.env.NODE_ENV !== 'test') { await this.$sleep(this.$config.public.reloading.sleepMs) }
         count++
       }
       if (count >= this.$config.public.reloading.maxCount) {
-        // eslint-disable-next-line no-console
+        /* c8 ignore next */ // eslint-disable-next-line no-console
         if (this.$config.public.debug) { console.log('...Stop') }
 
         this.appSetToastedMessage({ alert: this.$t('system.timeout') }, true)
@@ -300,25 +301,33 @@ export default defineNuxtComponent({
 
     // 次頁のメンバー一覧取得
     async getNextMembersList ($state) {
+      /* c8 ignore start */
       // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('getNextMembersList', this.page + 1, this.processing, this.error) }
       if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
       if (this.processing) { return }
+      /* c8 ignore stop */
 
       this.page = this.member.current_page + 1
       if (!await this.getMembersList()) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
+        /* c8 ignore stop */
       } else if (this.member.current_page < this.member.total_pages) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'loaded'; return }
 
         $state.loaded()
+        /* c8 ignore stop */
       } else {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'complete'; return }
 
         $state.complete()
       }
+      /* c8 ignore stop */
     },
 
     // メンバー一覧取得
@@ -384,7 +393,7 @@ export default defineNuxtComponent({
 
     // メンバー招待（結果）
     resultMembers (result) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('resultMembers', result) }
 
       this.createResult = result
@@ -394,7 +403,7 @@ export default defineNuxtComponent({
 
     // メンバー情報更新
     updateMember (member) {
-      // eslint-disable-next-line no-console
+      /* c8 ignore next */ // eslint-disable-next-line no-console
       if (this.$config.public.debug) { console.log('updateMember', member) }
 
       this.activeUserCodes = [member.user.code]

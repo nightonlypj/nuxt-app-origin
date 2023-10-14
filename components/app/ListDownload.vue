@@ -121,6 +121,7 @@
                     <h4>
                       出力項目
                       <v-btn
+                        id="list_download_output_items_set_all_btn"
                         color="secondary"
                         size="small"
                         class="ml-4"
@@ -130,6 +131,7 @@
                         全選択
                       </v-btn>
                       <v-btn
+                        id="list_download_output_items_clear_btn"
                         color="secondary"
                         size="small"
                         class="ml-1"
@@ -185,7 +187,7 @@
 </template>
 
 <script>
-
+import { pickBy } from 'lodash'
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
@@ -318,7 +320,7 @@ export default defineNuxtComponent({
       } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, notfound: true })) {
         this.appSetToastedMessage(data, true)
         if (data.errors != null) {
-          setErrors(usePickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
           this.waiting = true
         }
       }

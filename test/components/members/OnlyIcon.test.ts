@@ -14,7 +14,7 @@ describe('OnlyIcon.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, power: any) => {
+  const viewTest = (wrapper: any, power: string) => {
     expect(wrapper.html()).toMatch(helper.commonConfig.member.powerIcon[power]) // 権限
   }
 
