@@ -37,11 +37,6 @@ config.global.mocks = {
     }
     return locale
   },
-  /*
-  TODO: $md: {
-    render: vi.fn()
-  },
-*/
   ...TestPluginUtils
 }
 vi.stubGlobal('useRuntimeConfig', vi.fn(() => config.global.mocks.$config))

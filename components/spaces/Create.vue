@@ -63,10 +63,8 @@
                       />
                     </Field>
                   </span>
-                  <div v-if="tabDescription === 'preview'" class="md-preview mb-2">
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <div class="mx-3 my-2" v-html="(space.description || '')" />
-                    <!-- TODO: div class="mx-3 my-2" v-html="$md.render(space.description || '')" / -->
+                  <div v-show="tabDescription === 'preview'" class="md-preview mb-2">
+                    <AppMarkdown :source="space.description" class="mx-3 my-2" />
                   </div>
                 </v-col>
               </v-row>
@@ -160,6 +158,7 @@ import { required, one_of, min, max, size } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import Application from '~/utils/application.js'
 
 defineRule('required', required)
@@ -175,7 +174,8 @@ export default defineNuxtComponent({
     Form,
     Field,
     AppProcessing,
-    AppRequiredLabel
+    AppRequiredLabel,
+    AppMarkdown
   },
   mixins: [Application],
 

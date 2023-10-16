@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import Component from '~/components/invitations/Create.vue'
 
 describe('Create.vue', () => {
@@ -27,7 +28,8 @@ describe('Create.vue', () => {
     const wrapper = mount(Component, {
       global: {
         stubs: {
-          AppProcessing: true
+          AppProcessing: true,
+          AppRequiredLabel: true
         },
         mocks: {
           $auth: {
@@ -62,6 +64,9 @@ describe('Create.vue', () => {
     const dialog = wrapper.find('#invitation_create_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
+
+    // ラベル
+    expect(wrapper.findComponent(AppRequiredLabel).exists()).toBe(true)
 
     // 権限
     for (const key in helper.locales.enums.invitation.power) {

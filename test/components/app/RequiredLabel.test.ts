@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import Component from '~/components/app/RequiredLabel.vue'
 
-describe('RequiredLabel.test.vue', () => {
+describe('RequiredLabel.vue', () => {
   const mountFunction = (props = {}) => {
     const wrapper = mount(Component, {
       props

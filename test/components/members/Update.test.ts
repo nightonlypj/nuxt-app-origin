@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/members/Update.vue'
 
@@ -53,6 +54,7 @@ describe('Update.vue', () => {
       global: {
         stubs: {
           AppProcessing: true,
+          AppRequiredLabel: true,
           UsersAvatar: true
         },
         mocks: {
@@ -89,6 +91,9 @@ describe('Update.vue', () => {
     const dialog = wrapper.find('#member_update_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
+
+    // ラベル
+    expect(wrapper.findComponent(AppRequiredLabel).exists()).toBe(true)
 
     // メンバー
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)

@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Page from '~/pages/-/[code].vue'
@@ -32,6 +33,7 @@ describe('[code].vue', () => {
       global: {
         stubs: {
           AppLoading: true,
+          AppMarkdown: true,
           SpacesDestroyInfo: true,
           SpacesIcon: true
         },
@@ -74,6 +76,10 @@ describe('[code].vue', () => {
     const spacesIcon = wrapper.findComponent(SpacesIcon)
     expect(spacesIcon.exists()).toBe(true)
     expect(spacesIcon.vm.$props.space).toEqual(data.space)
+
+    const appMarkdown = wrapper.findComponent(AppMarkdown)
+    expect(appMarkdown.exists()).toBe(true)
+    expect(appMarkdown.vm.$props.source).toBe(data.space.description)
   }
 
   // テストケース

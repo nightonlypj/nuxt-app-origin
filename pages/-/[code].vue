@@ -45,10 +45,8 @@
           </v-col>
         </v-row>
       </v-card-title>
-      <v-card-text v-if="space.description != null && space.description !== ''" class="pb-1">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-html="(space.description)" />
-        <!-- TODO: div v-html="$md.render(space.description)" / -->
+      <v-card-text v-if="space.description != null && space.description !== ''">
+        <AppMarkdown :source="space.description" />
       </v-card-text>
     </v-card>
   </template>
@@ -56,6 +54,7 @@
 
 <script>
 import AppLoading from '~/components/app/Loading.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Application from '~/utils/application.js'
@@ -63,6 +62,7 @@ import Application from '~/utils/application.js'
 export default defineNuxtComponent({
   components: {
     AppLoading,
+    AppMarkdown,
     SpacesDestroyInfo,
     SpacesIcon
   },

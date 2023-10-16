@@ -4,6 +4,8 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Page from '~/pages/spaces/update/[code].vue'
@@ -66,6 +68,8 @@ describe('[code].vue', () => {
           AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
+          AppRequiredLabel: true,
+          AppMarkdown: true,
           SpacesDestroyInfo: true,
           UsersAvatar: true
         },
@@ -107,6 +111,14 @@ describe('[code].vue', () => {
     } else {
       expect(usersAvatars.length).toBe(1)
     }
+
+    // ラベル
+    expect(wrapper.findComponent(AppRequiredLabel).exists()).toBe(true)
+
+    // 説明
+    const appMarkdown = wrapper.findComponent(AppMarkdown)
+    expect(appMarkdown.exists()).toBe(true)
+    expect(appMarkdown.vm.$props.source).toBe(space.description)
 
     // 表示
     const privateFalse = wrapper.find('#space_update_private_false')

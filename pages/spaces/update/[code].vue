@@ -79,10 +79,8 @@
                     />
                   </Field>
                 </span>
-                <div v-if="tabDescription === 'preview'" class="md-preview mb-2">
-                  <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div class="mx-3 my-2" v-html="(space.description || '')" />
-                  <!-- TODO: div class="mx-3 my-2" v-html="$md.render(space.description || '')" / -->
+                <div v-show="tabDescription === 'preview'" class="md-preview mb-2">
+                  <AppMarkdown :source="space.description" class="mx-3 my-2" />
                 </div>
               </v-col>
             </v-row>
@@ -193,6 +191,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Application from '~/utils/application.js'
@@ -213,6 +212,7 @@ export default defineNuxtComponent({
     AppProcessing,
     AppMessage,
     AppRequiredLabel,
+    AppMarkdown,
     SpacesDestroyInfo,
     UsersAvatar
   },

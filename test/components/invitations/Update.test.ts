@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/invitations/Update.vue'
 
@@ -79,6 +80,7 @@ describe('Update.vue', () => {
       global: {
         stubs: {
           AppProcessing: true,
+          AppRequiredLabel: true,
           UsersAvatar: true
         },
         mocks: {
@@ -127,6 +129,9 @@ describe('Update.vue', () => {
     } else {
       expect(usersAvatars.length).toBe(1)
     }
+
+    // ラベル
+    expect(wrapper.findComponent(AppRequiredLabel).exists()).toBe(true)
 
     // 招待URL
     expect(dialog.text()).toMatch(`${location.protocol}//${location.host}/users/sign_up?code=${invitation.code}`)

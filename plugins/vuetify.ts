@@ -23,7 +23,9 @@ export const vuetify = createVuetify({
           // info: '#2196F3', // = blue
           // success: '#4CAF50', // = green
           // warning: '#FB8C00' // = orange-darken-1
-          accent: '#FF8F00' // amber-darken-3 <- Nuxt2(blue-accent-1)
+          accent: '#FF8F00', // amber-darken-3 <- Nuxt2(blue-accent-1)
+          'background-1': '#FAFAFA', // grey-lighten-5
+          'background-2': '#E0E0E0' // grey-lighten-2
         }
       },
       dark: {
@@ -37,7 +39,9 @@ export const vuetify = createVuetify({
           // info: '#2196F3', // = blue
           // success: '#4CAF50', // = green
           // warning: '#FB8C00' // = orange-darken-1
-          accent: '#FF8F00' // amber-darken-3 <- Nuxt2(grey.darken3)
+          accent: '#FF8F00', // amber-darken-3 <- Nuxt2(grey.darken3)
+          'background-1': '#424242', // grey-darken-3
+          'background-2': '#616161' // grey-darken-2
         }
       }
     }

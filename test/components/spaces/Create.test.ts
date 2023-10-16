@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
+import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
+import AppMarkdown from '~/components/app/Markdown.vue'
 import Component from '~/components/spaces/Create.vue'
 
 describe('Create.vue', () => {
@@ -28,7 +30,9 @@ describe('Create.vue', () => {
     const wrapper = mount(Component, {
       global: {
         stubs: {
-          AppProcessing: true
+          AppProcessing: true,
+          AppRequiredLabel: true,
+          AppMarkdown: true
         },
         mocks: {
           $auth: {
@@ -60,6 +64,14 @@ describe('Create.vue', () => {
     const dialog = wrapper.find('#space_create_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
+
+    // ラベル
+    expect(wrapper.findComponent(AppRequiredLabel).exists()).toBe(true)
+
+    // 説明
+    const appMarkdown = wrapper.findComponent(AppMarkdown)
+    expect(appMarkdown.exists()).toBe(true)
+    expect(appMarkdown.vm.$props.source).toBe(null)
 
     // 表示
     const privateFalse = wrapper.find('#space_create_private_false')
