@@ -1,4 +1,7 @@
 <template>
+  <Head>
+    <Link v-if="hljsCss != null" :href="hljsCss" rel="stylesheet" />
+  </Head>
   <!-- eslint-disable-next-line vue/no-v-html -->
   <div v-if="props.source != null" v-html="md.render(props.source)" />
 </template>
@@ -16,8 +19,12 @@ import footnote from 'markdown-it-footnote'
 import deflist from 'markdown-it-deflist'
 import abbr from 'markdown-it-abbr'
 import hljs from 'highlight.js'
-// import 'highlight.js/styles/github.min.css'
-import 'highlight.js/styles/github-dark.min.css'
+import { useTheme } from 'vuetify'
+
+const hljsCss = { // % mkdir public/highlight.js; cp -a node_modules/highlight.js/styles/{github,github-dark}.min.css public/highlight.js/
+  light: '/highlight.js/github.min.css',
+  dark: '/highlight.js/github-dark.min.css'
+}[useTheme().name.value]
 
 const props = defineProps({
   source: {
@@ -26,7 +33,7 @@ const props = defineProps({
   }
 })
 
-const md = new MarkdownIt({ // https://github.com/markdown-it/markdown-it, https://markdown-it.github.io/
+const md: any = new MarkdownIt({ // https://github.com/markdown-it/markdown-it, https://markdown-it.github.io/
   html: true,
   breaks: true,
   linkify: true,
