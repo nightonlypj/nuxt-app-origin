@@ -2,50 +2,47 @@
   <Head>
     <Title>メールアドレス確認</Title>
   </Head>
-  <AppLoading v-if="loading" />
-  <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
-    <v-card max-width="480px">
-      <AppProcessing v-if="processing" />
-      <Form v-slot="{ meta, setErrors, values }">
-        <v-form autocomplete="off" @submit.prevent>
-          <v-card-title>メールアドレス確認</v-card-title>
-          <v-card-text
-            id="confirmation_resend_area"
-            @keydown.enter="appSetKeyDownEnter"
-            @keyup.enter="postConfirmation(!meta.valid, true, setErrors, values)"
+  <AppMessage v-model:alert="alert" v-model:notice="notice" />
+  <v-card max-width="480px">
+    <AppProcessing v-if="processing" />
+    <Form v-slot="{ meta, setErrors, values }">
+      <v-form autocomplete="off" @submit.prevent>
+        <v-card-title>メールアドレス確認</v-card-title>
+        <v-card-text
+          id="confirmation_resend_area"
+          @keydown.enter="appSetKeyDownEnter"
+          @keyup.enter="postConfirmation(!meta.valid, true, setErrors, values)"
+        >
+          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+            <v-text-field
+              id="confirmation_resend_email_text"
+              v-model="query.email"
+              label="メールアドレス"
+              prepend-icon="mdi-email"
+              autocomplete="off"
+              :error-messages="errors"
+              @update:model-value="waiting = false"
+            />
+          </Field>
+          <v-btn
+            id="confirmation_resend_btn"
+            color="primary"
+            class="mt-2"
+            :disabled="!meta.valid || processing || waiting"
+            @click="postConfirmation(!meta.valid, false, setErrors, values)"
           >
-            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-              <v-text-field
-                id="confirmation_resend_email_text"
-                v-model="query.email"
-                label="メールアドレス"
-                prepend-icon="mdi-email"
-                autocomplete="off"
-                :error-messages="errors"
-                @update:model-value="waiting = false"
-              />
-            </Field>
-            <v-btn
-              id="confirmation_resend_btn"
-              color="primary"
-              class="mt-2"
-              :disabled="!meta.valid || processing || waiting"
-              @click="postConfirmation(!meta.valid, false, setErrors, values)"
-            >
-              送信
-            </v-btn>
-          </v-card-text>
-          <template v-if="!$auth.loggedIn">
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="confirmation" />
-            </v-card-actions>
-          </template>
-        </v-form>
-      </Form>
-    </v-card>
-  </template>
+            送信
+          </v-btn>
+        </v-card-text>
+        <template v-if="!$auth.loggedIn">
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="confirmation" />
+          </v-card-actions>
+        </template>
+      </v-form>
+    </Form>
+  </v-card>
 </template>
 
 <script>
@@ -54,7 +51,6 @@ import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
-import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
@@ -69,7 +65,6 @@ export default defineNuxtComponent({
   components: {
     Form,
     Field,
-    AppLoading,
     AppProcessing,
     AppMessage,
     ActionLink
@@ -78,8 +73,7 @@ export default defineNuxtComponent({
 
   data () {
     return {
-      loading: true,
-      processing: true,
+      processing: false,
       waiting: false,
       alert: null,
       notice: null,
@@ -92,8 +86,6 @@ export default defineNuxtComponent({
 
   created () {
     this.appSetQueryMessage()
-    this.processing = false
-    this.loading = false
   },
 
   methods: {

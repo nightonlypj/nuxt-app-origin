@@ -2,63 +2,60 @@
   <Head>
     <Title>ログイン</Title>
   </Head>
-  <AppLoading v-if="loading" />
-  <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
-    <v-card max-width="480px">
-      <AppProcessing v-if="processing" />
-      <Form v-slot="{ meta }">
-        <v-form autocomplete="on">
-          <v-card-title>ログイン</v-card-title>
-          <v-card-text
-            id="sign_in_area"
-            @keydown.enter="appSetKeyDownEnter"
-            @keyup.enter="signIn(!meta.valid, true)"
+  <AppMessage v-model:alert="alert" v-model:notice="notice" />
+  <v-card max-width="480px">
+    <AppProcessing v-if="processing" />
+    <Form v-slot="{ meta }">
+      <v-form autocomplete="on">
+        <v-card-title>ログイン</v-card-title>
+        <v-card-text
+          id="sign_in_area"
+          @keydown.enter="appSetKeyDownEnter"
+          @keyup.enter="signIn(!meta.valid, true)"
+        >
+          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+            <v-text-field
+              id="sign_in_email_text"
+              v-model="query.email"
+              label="メールアドレス"
+              prepend-icon="mdi-email"
+              autocomplete="email"
+              :error-messages="errors"
+              @update:model-value="waiting = false"
+            />
+          </Field>
+          <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
+            <v-text-field
+              id="sign_in_password_text"
+              v-model="query.password"
+              :type="showPassword ? 'text' : 'password'"
+              label="パスワード"
+              prepend-icon="mdi-lock"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              autocomplete="current-password"
+              counter
+              :error-messages="errors"
+              @update:model-value="waiting = false"
+              @click:append="showPassword = !showPassword"
+            />
+          </Field>
+          <v-btn
+            id="sign_in_btn"
+            color="primary"
+            class="mt-4"
+            :disabled="!meta.valid || processing || waiting"
+            @click="signIn(!meta.valid, false)"
           >
-            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-              <v-text-field
-                id="sign_in_email_text"
-                v-model="query.email"
-                label="メールアドレス"
-                prepend-icon="mdi-email"
-                autocomplete="email"
-                :error-messages="errors"
-                @update:model-value="waiting = false"
-              />
-            </Field>
-            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
-              <v-text-field
-                id="sign_in_password_text"
-                v-model="query.password"
-                :type="showPassword ? 'text' : 'password'"
-                label="パスワード"
-                prepend-icon="mdi-lock"
-                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                autocomplete="current-password"
-                counter
-                :error-messages="errors"
-                @update:model-value="waiting = false"
-                @click:append="showPassword = !showPassword"
-              />
-            </Field>
-            <v-btn
-              id="sign_in_btn"
-              color="primary"
-              class="mt-4"
-              :disabled="!meta.valid || processing || waiting"
-              @click="signIn(!meta.valid, false)"
-            >
-              ログイン
-            </v-btn>
-          </v-card-text>
-          <v-divider />
-          <v-card-actions>
-            <ActionLink action="sign_in" />
-          </v-card-actions>
-        </v-form>
-      </Form>
-    </v-card>
-  </template>
+            ログイン
+          </v-btn>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <ActionLink action="sign_in" />
+        </v-card-actions>
+      </v-form>
+    </Form>
+  </v-card>
 </template>
 
 <script>
@@ -66,7 +63,6 @@ import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
-import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
@@ -81,7 +77,6 @@ export default defineNuxtComponent({
   components: {
     Form,
     Field,
-    AppLoading,
     AppProcessing,
     AppMessage,
     ActionLink
@@ -90,8 +85,7 @@ export default defineNuxtComponent({
 
   data () {
     return {
-      loading: true,
-      processing: true,
+      processing: false,
       waiting: false,
       alert: null,
       notice: null,
@@ -123,9 +117,6 @@ export default defineNuxtComponent({
       this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
     }
     this.appSetQueryMessage()
-
-    this.processing = false
-    this.loading = false
   },
 
   methods: {

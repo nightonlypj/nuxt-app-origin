@@ -2,8 +2,7 @@
   <Head>
     <Title>ログアウト</Title>
   </Head>
-  <AppLoading v-if="loading" />
-  <v-card v-else max-width="480px">
+  <v-card max-width="480px">
     <AppProcessing v-if="processing" />
     <v-card-title>ログアウトします。よろしいですか？</v-card-title>
     <v-card-text>
@@ -26,29 +25,23 @@
 </template>
 
 <script>
-import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Application from '~/utils/application.js'
 
 export default defineNuxtComponent({
   components: {
-    AppLoading,
     AppProcessing
   },
   mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      processing: true
+      processing: false
     }
   },
 
   created () {
     if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
-
-    this.processing = false
-    this.loading = false
   },
 
   methods: {

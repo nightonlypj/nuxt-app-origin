@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
-import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
@@ -27,7 +26,6 @@ describe('sign_in.vue', () => {
     const wrapper = mount(Page, {
       global: {
         stubs: {
-          AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
@@ -54,7 +52,6 @@ describe('sign_in.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, data: any) => {
-    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
 
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)

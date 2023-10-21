@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
-import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/users/sign_out.vue'
 
@@ -24,7 +23,6 @@ describe('sign_out.vue', () => {
     const wrapper = mount(Page, {
       global: {
         stubs: {
-          AppLoading: true,
           AppProcessing: true
         },
         mocks: {
@@ -41,7 +39,6 @@ describe('sign_out.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any) => {
-    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
 
     // ログアウトボタン
