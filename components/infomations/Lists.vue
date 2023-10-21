@@ -1,6 +1,11 @@
 <template>
-  <div v-if="infomations != null && infomations.length > 0">
-    <article v-for="infomation in infomations" :key="infomation.id" @dblclick="redirectInfomation(infomation)">
+  <template v-if="infomations != null && infomations.length > 0">
+    <article
+      v-for="infomation in infomations"
+      :id="`infomation_list_${infomation.id}`"
+      :key="infomation.id"
+      @dblclick="redirectInfomation(infomation)"
+    >
       <div>
         <InfomationsLabel :infomation="infomation" />
         <span class="ml-1 font-weight-bold">
@@ -16,16 +21,16 @@
         </span>
       </div>
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <div v-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+      <div v-if="infomation.summary" class="ma-2" v-html="infomation.summary" />
       <v-divider class="my-4" />
     </article>
-  </div>
+  </template>
 </template>
 
 <script>
 import InfomationsLabel from '~/components/infomations/Label.vue'
 
-export default {
+export default defineNuxtComponent({
   components: {
     InfomationsLabel
   },
@@ -41,8 +46,8 @@ export default {
     redirectInfomation (infomation) {
       if (!infomation.body_present) { return }
 
-      this.$router.push(`/infomations/${infomation.id}`)
+      navigateTo(`/infomations/${infomation.id}`)
     }
   }
-}
+})
 </script>

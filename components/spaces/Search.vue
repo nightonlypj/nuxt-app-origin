@@ -1,100 +1,118 @@
 <template>
   <v-form autocomplete="on" @submit.prevent>
     <div
-      id="input_area"
+      id="space_search_area"
       @keydown.enter="appSetKeyDownEnter"
       @keyup.enter="search(true)"
     >
-      <div class="d-flex">
-        <v-text-field
-          id="search_text"
-          v-model="syncQuery.text"
-          label="検索"
-          placeholder="名称や説明を入力"
-          autocomplete="on"
-          style="max-width: 400px"
-          dense
-          hide-details
-          maxlength="255"
-          clearable
-          @input="waiting = false"
-        />
-        <v-btn
-          id="search_btn"
-          color="primary"
-          class="ml-1"
-          :disabled="processing || waiting || blank()"
-          @click="search(false)"
-        >
-          <v-icon dense>mdi-magnify</v-icon>
-        </v-btn>
-        <v-btn
-          v-if="$auth.loggedIn"
-          id="option_btn"
-          class="ml-2"
-          rounded
-          @click="syncQuery.option = !syncQuery.option"
-        >
-          <v-icon>{{ syncQuery.option ? 'mdi-menu-up' : 'mdi-menu-down' }}</v-icon>
-          <span class="hidden-sm-and-down">検索オプション</span>
-        </v-btn>
-      </div>
-      <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="option_item" class="py-4">
-        <v-col v-if="$config.enablePublicSpace" cols="auto" class="d-flex py-0">
+      <v-row>
+        <v-col class="d-flex">
+          <v-text-field
+            id="space_search_text"
+            v-model="syncQuery.text"
+            label="検索"
+            placeholder="名称や説明を入力"
+            autocomplete="on"
+            style="max-width: 400px"
+            density="compact"
+            hide-details
+            maxlength="255"
+            clearable
+            @update:model-value="waiting = false"
+          />
+          <v-btn
+            id="space_search_btn"
+            color="primary"
+            class="ml-1 mt-1"
+            :disabled="processing || waiting || blank()"
+            @click="search(false)"
+          >
+            <v-icon size="large">mdi-magnify</v-icon>
+          </v-btn>
+          <v-btn
+            v-if="$auth.loggedIn"
+            id="space_search_option_btn"
+            color="secondary"
+            class="ml-2 mt-1"
+            rounded
+            @click="syncQuery.option = !syncQuery.option"
+          >
+            <v-icon size="x-large">{{ syncQuery.option ? 'mdi-menu-up' : 'mdi-menu-down' }}</v-icon>
+            <span class="hidden-sm-and-down">検索オプション</span>
+          </v-btn>
+        </v-col>
+      </v-row>
+      <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="space_search_option_item">
+        <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
+          <v-chip size="small" class="mt-1">表示</v-chip>
           <v-checkbox
+            id="space_search_public_check"
             v-model="syncQuery.public"
+            color="primary"
             label="公開"
-            dense
+            class="mr-2"
+            density="compact"
             hide-details
             :error="privateBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_private_check"
             v-model="syncQuery.private"
+            color="primary"
             label="非公開"
-            class="ml-2"
-            dense
+            density="compact"
             hide-details
             :error="privateBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
-        <v-col v-if="$config.enablePublicSpace" cols="auto" class="d-flex py-0">
+        <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
+          <v-chip size="small" class="mt-1">状況</v-chip>
           <v-checkbox
+            id="space_search_join_check"
             v-model="syncQuery.join"
+            color="primary"
             label="参加"
-            dense
+            class="mr-2"
+            density="compact"
             hide-details
             :error="joinBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_nojoin_check"
             v-model="syncQuery.nojoin"
+            color="primary"
             label="未参加"
-            class="ml-2"
-            dense
+            density="compact"
             hide-details
             :error="joinBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
         <v-col cols="auto" class="d-flex py-0">
+          <v-chip size="small" class="mt-1">状態</v-chip>
           <v-checkbox
+            id="space_search_active_check"
             v-model="syncQuery.active"
+            color="primary"
             label="有効"
-            dense
+            class="mr-2"
+            density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
           <v-checkbox
+            id="space_search_destroy_check"
             v-model="syncQuery.destroy"
-            label="削除予約"
-            class="ml-2"
-            dense
+            color="primary"
+            label="削除予定"
+            density="compact"
             hide-details
             :error="activeBlank()"
-            @click="waiting = false"
+            @update:model-value="waiting = false"
           />
         </v-col>
       </v-row>
@@ -103,9 +121,9 @@
 </template>
 
 <script>
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   mixins: [Application],
 
   props: {
@@ -118,6 +136,7 @@ export default {
       required: true
     }
   },
+  emits: ['update:query', 'search'],
 
   data () {
     return {
@@ -139,7 +158,7 @@ export default {
 
   methods: {
     blank () {
-      if (this.$config.enablePublicSpace) {
+      if (this.$config.public.enablePublicSpace) {
         return this.privateBlank() || this.joinBlank() || this.activeBlank()
       } else {
         return this.activeBlank()
@@ -165,11 +184,11 @@ export default {
     },
 
     error () {
-      // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('error') }
+      /* c8 ignore next */ // eslint-disable-next-line no-console
+      if (this.$config.public.debug) { console.log('error') }
 
       this.waiting = false
     }
   }
-}
+})
 </script>

@@ -1,96 +1,95 @@
 <template>
-  <div>
-    <Loading v-if="loading" />
-    <v-card v-else max-width="640px">
-      <Processing v-if="processing" />
-      <v-card-title>アカウント削除</v-card-title>
-      <v-card-text>
-        <p>
-          アカウントは{{ $auth.user.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
-          削除されるまではログインできますが、一部機能が制限されます。
-        </p>
-        <v-dialog transition="dialog-top-transition" max-width="600px">
-          <template #activator="{ on, attrs }">
-            <v-btn
-              id="user_delete_btn"
-              color="error"
-              :disabled="processing"
-              v-bind="attrs"
-              v-on="on"
-            >
-              削除
-            </v-btn>
-          </template>
-          <template #default="dialog">
-            <v-card id="user_delete_dialog">
-              <v-toolbar color="error" dense>アカウント削除</v-toolbar>
-              <v-card-text>
-                <div class="text-h6 pa-4">本当に削除しますか？</div>
-              </v-card-text>
-              <v-card-actions class="justify-end">
-                <v-btn
-                  id="user_delete_no_btn"
-                  color="secondary"
-                  @click="dialog.value = false"
-                >
-                  いいえ（キャンセル）
-                </v-btn>
-                <v-btn
-                  id="user_delete_yes_btn"
-                  color="error"
-                  @click="postUserDelete(dialog)"
-                >
-                  はい（削除）
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog>
-      </v-card-text>
-      <v-divider />
-      <v-card-actions>
-        <ul class="my-2">
-          <li><NuxtLink to="/users/update">ユーザー情報</NuxtLink></li>
-        </ul>
-      </v-card-actions>
-    </v-card>
-  </div>
+  <Head>
+    <Title>アカウント削除</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <v-card v-else max-width="640px">
+    <AppProcessing v-if="processing" />
+    <v-card-title>アカウント削除</v-card-title>
+    <v-card-text>
+      <p>
+        アカウントは{{ destroyScheduleDays || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
+        削除されるまではログインできますが、一部機能が制限されます。
+      </p>
+      <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            id="user_delete_btn"
+            color="error"
+            class="mt-4"
+            :disabled="processing"
+          >
+            削除
+          </v-btn>
+        </template>
+        <template #default="{ isActive }">
+          <v-card id="user_delete_dialog">
+            <v-toolbar color="error" density="compact">
+              <span class="ml-4">アカウント削除</span>
+            </v-toolbar>
+            <v-card-text>
+              <div class="text-h6 pa-4">本当に削除しますか？</div>
+            </v-card-text>
+            <v-card-actions class="justify-end mb-2 mr-2">
+              <v-btn
+                id="user_delete_no_btn"
+                color="secondary"
+                variant="elevated"
+                @click="isActive.value = false"
+              >
+                いいえ（キャンセル）
+              </v-btn>
+              <v-btn
+                id="user_delete_yes_btn"
+                color="error"
+                variant="elevated"
+                @click="postUserDelete(isActive)"
+              >
+                はい（削除）
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
+    </v-card-text>
+    <v-divider />
+    <v-card-actions>
+      <ul class="my-2">
+        <li><NuxtLink to="/users/update">ユーザー情報</NuxtLink></li>
+      </ul>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
-    Loading,
-    Processing
+    AppLoading,
+    AppProcessing
   },
   mixins: [Application],
 
   data () {
     return {
       loading: true,
-      processing: true
-    }
-  },
-
-  head () {
-    return {
-      title: 'アカウント削除'
+      processing: true,
+      destroyScheduleDays: this.$auth.user?.destroy_schedule_days
     }
   },
 
   async created () {
-    // トークン検証
-    try {
-      await this.$auth.fetchUser()
-    } catch (error) {
-      return this.appCheckErrorResponse(error, { redirect: true, require: true }, { auth: true })
-    }
-
     if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
+
+    // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
+    const [response, data] = await useAuthUser()
+    if (!response?.ok) {
+      return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
+    }
     if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
 
     this.processing = false
@@ -99,24 +98,25 @@ export default {
 
   methods: {
     // アカウント削除
-    async postUserDelete ($dialog) {
+    async postUserDelete (isActive) {
       this.processing = true
-      $dialog.value = false
+      isActive.value = false
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userDeleteUrl, {
-        undo_delete_url: this.$config.frontBaseURL + this.$config.userSendUndoDeleteUrl
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDeleteUrl, 'POST', {
+        undo_delete_url: this.$config.public.frontBaseURL + this.$config.public.userSendUndoDeleteUrl
       })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appSignOut(null, '/users/sign_in', response.data)
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { toasted: true, require: true }, { auth: true, reserved: true })
-        })
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { toasted: true })) {
+          await useAuthSignOut()
+          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+        }
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, reserved: true })
+      }
 
       this.processing = false
     }
   }
-}
+})
 </script>

@@ -9,12 +9,12 @@
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     action: {
       type: String,
       default: null
     }
   }
-}
+})
 </script>

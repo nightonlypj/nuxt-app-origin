@@ -2,6 +2,9 @@
 
 ## 1.3.0 (Sprint 5)
 
+- Nuxt3にバージョンアップしたい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/507/
+
 ### spaceブランチ
 
 - メンバー一覧の検索条件に有効と削除予約を追加したい

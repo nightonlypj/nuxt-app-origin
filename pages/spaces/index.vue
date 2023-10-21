@@ -1,86 +1,88 @@
 <template>
-  <div>
-    <Loading v-if="loading" />
-    <template v-else>
-      <v-card>
-        <v-card-title>スペース</v-card-title>
-        <v-card-text>
-          <SpacesSearch
-            ref="search"
-            :processing="processing || reloading"
-            :query.sync="query"
-            @search="searchSpacesList"
-          />
-        </v-card-text>
-      </v-card>
+  <Head>
+    <Title>スペース</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <v-card>
+      <v-card-title>スペース</v-card-title>
+      <v-card-text>
+        <SpacesSearch
+          ref="search"
+          v-model:query="query"
+          :processing="processing || reloading"
+          @search="searchSpacesList"
+        />
+      </v-card-text>
+    </v-card>
 
-      <v-card class="mt-2">
-        <Processing v-if="reloading" />
-        <v-card-text>
-          <v-row>
-            <v-col class="d-flex align-self-center text-no-wrap">
-              {{ $localeString('ja', space.total_count, 'N/A') }}件
-            </v-col>
-            <v-col class="d-flex justify-end">
-              <div v-if="$auth.loggedIn" class="mr-1">
-                <SpacesCreate />
-              </div>
-              <!-- ListSetting
-                model="space"
-                :hidden-items.sync="hiddenItems"
-              / -->
-            </v-col>
-          </v-row>
-
-          <template v-if="!processing && !existSpaces">
-            <v-divider class="my-4" />
-            <span class="ml-1">スペースが見つかりません。</span>
-            <v-divider class="my-4" />
-          </template>
-          <template v-if="existSpaces">
-            <v-divider class="my-2" />
-            <SpacesLists
-              :spaces="spaces"
-              :hidden-items="hiddenItems"
-            />
-            <v-divider class="my-2" />
-          </template>
-
-          <InfiniteLoading
-            v-if="!reloading && space != null && space.current_page < space.total_pages"
-            :identifier="page"
-            @infinite="getNextSpacesList"
-          >
-            <div slot="no-more" />
-            <div slot="no-results" />
-            <div slot="error" slot-scope="{ trigger }">
-              取得できませんでした。
-              <v-btn @click="error = false; trigger()">再取得</v-btn>
+    <v-card class="mt-2">
+      <AppProcessing v-if="reloading" />
+      <v-card-text>
+        <v-row>
+          <v-col class="d-flex align-self-center text-no-wrap">
+            {{ $localeString('ja', space.total_count, 'N/A') }}件
+          </v-col>
+          <v-col class="d-flex justify-end">
+            <div v-if="$auth.loggedIn" class="mr-1">
+              <SpacesCreate />
             </div>
-          </InfiniteLoading>
-        </v-card-text>
-      </v-card>
-    </template>
-  </div>
+            <!-- AppListSetting
+              v-model:hidden-items="hiddenItems"
+              model="space"
+            / -->
+          </v-col>
+        </v-row>
+
+        <template v-if="!processing && !existSpaces">
+          <v-divider class="my-4" />
+          <span class="ml-1">スペースが見つかりません。</span>
+          <v-divider class="my-4" />
+        </template>
+        <template v-if="existSpaces">
+          <v-divider class="my-2" />
+          <SpacesLists
+            :spaces="spaces"
+            :hidden-items="hiddenItems"
+          />
+        </template>
+
+        <InfiniteLoading
+          v-if="!reloading && space != null && space.current_page < space.total_pages"
+          :identifier="page"
+          @infinite="getNextSpacesList"
+        >
+          <template #spinner>
+            <AppLoading height="10vh" class="mt-4" />
+          </template>
+          <template #complete />
+          <template #error="{ retry }">
+            <AppErrorRetry class="mt-4" @retry="error = false; retry()" />
+          </template>
+        </InfiniteLoading>
+      </v-card-text>
+    </v-card>
+  </template>
 </template>
 
 <script>
-import lodash from 'lodash'
-import InfiniteLoading from 'vue-infinite-loading'
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-// import ListSetting from '~/components/ListSetting.vue'
+import InfiniteLoading from 'v3-infinite-loading'
+import AppErrorRetry from '~/components/app/ErrorRetry.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
+// import AppListSetting from '~/components/app/ListSetting.vue' // NOTE: 項目が少ないので未使用
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
     InfiniteLoading,
-    Loading,
-    Processing,
-    // ListSetting,
+    AppErrorRetry,
+    AppLoading,
+    AppProcessing,
+    // AppListSetting,
     SpacesSearch,
     SpacesCreate,
     SpacesLists
@@ -89,7 +91,7 @@ export default {
 
   data () {
     let publicQuery = {}
-    if (this.$config.enablePublicSpace) {
+    if (this.$config.public.enablePublicSpace) {
       publicQuery = {
         public: this.$route?.query?.public !== '0',
         private: this.$route?.query?.private !== '0',
@@ -102,7 +104,7 @@ export default {
       processing: true,
       reloading: false,
       query: {
-        text: this.$route?.query?.text || '',
+        text: this.$route?.query?.text || null,
         ...publicQuery,
         active: this.$route?.query?.active !== '0',
         destroy: this.$route?.query?.destroy === '1',
@@ -111,17 +113,11 @@ export default {
       params: null,
       uid: null,
       error: false,
-      testState: null, // Jest用
+      testState: null, // Vitest用
       page: 1,
       space: null,
       spaces: null,
       hiddenItems: [] // localStorage.getItem('space.hidden-items')?.split(',') || []
-    }
-  },
-
-  head () {
-    return {
-      title: 'スペース'
     }
   },
 
@@ -140,8 +136,8 @@ export default {
   methods: {
     // スペース一覧検索
     async searchSpacesList () {
-      // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('searchSpacesList') }
+      /* c8 ignore next */ // eslint-disable-next-line no-console
+      if (this.$config.public.debug) { console.log('searchSpacesList') }
 
       this.params = null
       if (!await this.reloadSpacesList()) {
@@ -151,20 +147,21 @@ export default {
 
     // スペース一覧再取得
     async reloadSpacesList () {
-      // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('reloadSpacesList', this.reloading) }
+      /* c8 ignore next */ // eslint-disable-next-line no-console
+      if (this.$config.public.debug) { console.log('reloadSpacesList', this.reloading) }
 
       // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
       let count = 0
-      while (count < this.$config.reloading.maxCount) {
+      while (count < this.$config.public.reloading.maxCount) {
         if (!this.reloading) { break }
 
-        await this.$sleep(this.$config.reloading.sleepMs)
+        /* c8 ignore next */
+        if (process.env.NODE_ENV !== 'test') { await this.$sleep(this.$config.public.reloading.sleepMs) }
         count++
       }
-      if (count >= this.$config.reloading.maxCount) {
-        // eslint-disable-next-line no-console
-        if (this.$config.debug) { console.log('...Stop') }
+      if (count >= this.$config.public.reloading.maxCount) {
+        /* c8 ignore next */ // eslint-disable-next-line no-console
+        if (this.$config.public.debug) { console.log('...Stop') }
 
         this.appSetToastedMessage({ alert: this.$t('system.timeout') }, true)
         return false
@@ -175,7 +172,7 @@ export default {
       const result = await this.getSpacesList()
 
       let publicQuery = {}
-      if (this.$config.enablePublicSpace) {
+      if (this.$config.public.enablePublicSpace) {
         publicQuery = {
           public: String(this.params.public),
           private: String(this.params.private),
@@ -183,7 +180,7 @@ export default {
           nojoin: String(this.params.nojoin)
         }
       }
-      this.$router.push({
+      navigateTo({
         query: {
           ...this.params,
           ...publicQuery,
@@ -198,34 +195,42 @@ export default {
 
     // 次頁のスペース一覧取得
     async getNextSpacesList ($state) {
+      /* c8 ignore start */
       // eslint-disable-next-line no-console
-      if (this.$config.debug) { console.log('getNextSpacesList', this.page + 1, this.processing, this.error) }
-      if (this.processing || this.error) { return }
+      if (this.$config.public.debug) { console.log('getNextSpacesList', this.page + 1, this.processing, this.error) }
+      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+      if (this.processing) { return }
+      /* c8 ignore stop */
 
       this.page = this.space.current_page + 1
       if (!await this.getSpacesList()) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'error'; return }
 
         $state.error()
+        /* c8 ignore stop */
       } else if (this.space.current_page < this.space.total_pages) {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'loaded'; return }
 
         $state.loaded()
+        /* c8 ignore stop */
       } else {
+        /* c8 ignore start */
         if ($state == null) { this.testState = 'complete'; return }
 
         $state.complete()
       }
+      /* c8 ignore stop */
     },
 
     // スペース一覧取得
     async getSpacesList () {
       this.processing = true
-      let result = false
 
       if (this.params == null) {
         let publicParams = {}
-        if (this.$config.enablePublicSpace) {
+        if (this.$config.public.enablePublicSpace) {
           publicParams = {
             public: Number(this.query.public),
             private: Number(this.query.private),
@@ -235,6 +240,7 @@ export default {
         }
         this.params = {
           ...this.query,
+          text: this.query.text || '',
           ...publicParams,
           active: Number(this.query.active),
           destroy: Number(this.query.destroy)
@@ -243,7 +249,7 @@ export default {
       }
 
       let privateParams = {}
-      if (!this.$config.enablePublicSpace) {
+      if (!this.$config.public.enablePublicSpace) {
         privateParams = {
           public: 1,
           private: 1,
@@ -251,51 +257,41 @@ export default {
           nojoin: 1
         }
       }
-      const redirect = this.space == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.spaces.listUrl, {
-        params: {
-          ...this.params,
-          ...privateParams,
-          page: this.page
-        }
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.listUrl, 'GET', {
+        ...this.params,
+        ...privateParams,
+        page: this.page
       })
-        .then((response) => {
-          if (this.$config.debug) { this.check_search_params(response.data.search_params) }
 
-          if (this.page === 1) {
-            this.uid = response.headers?.uid || null
-          } else if (this.uid !== (response.headers?.uid || null)) {
-            this.error = true
-            location.reload()
-            return
-          }
-
-          this.error = !this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.space?.current_page !== this.page)
-          if (this.error) { return }
-
-          this.space = response.data.space
-          if (this.reloading || this.spaces == null) {
-            this.spaces = response.data.spaces?.slice()
-          } else {
-            this.spaces.push(...response.data.spaces)
-          }
-
-          result = true
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true })
+      const redirect = this.space == null
+      if (response?.ok) {
+        if (this.page === 1) {
+          this.uid = response.headers.get('uid')
+        } else if (this.uid !== (response.headers.get('uid'))) {
           this.error = true
-        })
+          location.reload()
+          return false
+        }
+
+        this.error = !this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.space?.current_page !== this.page)
+        if (!this.error) {
+          this.space = data.space
+          if (this.reloading || this.spaces == null) {
+            this.spaces = data.spaces?.slice()
+          } else {
+            this.spaces.push(...data.spaces)
+          }
+          this.appCheckSearchParams(this.params, data.search_params)
+        }
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true })
+        this.error = true
+      }
 
       this.page = this.space?.current_page || 1
       this.processing = false
-      return result
-    },
-
-    check_search_params (responseParams) {
-      // eslint-disable-next-line no-console
-      console.log('response params: ' + (lodash.isEqual(this.params, responseParams) ? 'OK' : 'NG'), this.params, responseParams)
+      return !this.error
     }
   }
-}
+})
 </script>

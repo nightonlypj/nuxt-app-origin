@@ -1,19 +1,19 @@
 <template>
-  <v-tooltip v-if="power != null" bottom>
-    <template #activator="{ on, attrs }">
-      <v-icon dense v-bind="attrs" v-on="on">{{ $config.member.powerIcon[power] }}</v-icon>
-    </template>
-    「{{ $t('enums.member.power')[power] }}」のみ表示
-  </v-tooltip>
+  <span v-if="power != null">
+    <v-icon size="x-small">{{ $config.public.member.powerIcon[power] }}</v-icon>
+    <v-tooltip activator="parent" location="bottom">
+      「{{ $t(`enums.member.power.${power}`) }}」のみ表示
+    </v-tooltip>
+  </span>
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     power: {
       type: String,
       default: null
     }
   }
-}
+})
 </script>
