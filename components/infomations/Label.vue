@@ -1,9 +1,16 @@
 <template>
-  <v-chip v-if="infomation != null && infomation.label !== 'not'" small :color="labelColor">{{ infomation.label_i18n }}</v-chip>
+  <v-chip
+    v-if="infomation != null && infomation.label !== 'not'"
+    :color="labelColor"
+    size="small"
+    variant="elevated"
+  >
+    {{ infomation.label_i18n }}
+  </v-chip>
 </template>
 
 <script>
-export default {
+export default defineNuxtComponent({
   props: {
     infomation: {
       type: Object,
@@ -23,5 +30,5 @@ export default {
       }
     }
   }
-}
+})
 </script>

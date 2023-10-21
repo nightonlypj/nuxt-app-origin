@@ -1,63 +1,57 @@
 <template>
-  <div>
-    <Loading v-if="loading" />
-    <v-card v-else max-width="480px">
-      <Processing v-if="processing" />
-      <v-card-title>ログアウトします。よろしいですか？</v-card-title>
-      <v-card-text>
-        <v-btn to="/" nuxt>いいえ（トップページ）</v-btn>
-        <v-btn
-          id="sign_out_btn"
-          class="ml-1"
-          color="primary"
-          :disabled="processing"
-          @click="signOut()"
-        >
-          はい（ログアウト）
+  <Head>
+    <Title>ログアウト</Title>
+  </Head>
+  <v-card max-width="480px">
+    <AppProcessing v-if="processing" />
+    <v-card-title>ログアウトします。よろしいですか？</v-card-title>
+    <v-card-text>
+      <NuxtLink to="/">
+        <v-btn color="secondary" class="mb-2 mr-1">
+          いいえ（トップページ）
         </v-btn>
-      </v-card-text>
-    </v-card>
-  </div>
+      </NuxtLink>
+      <v-btn
+        id="sign_out_btn"
+        color="primary"
+        class="mb-2"
+        :disabled="processing"
+        @click="signOut()"
+      >
+        はい（ログアウト）
+      </v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import AppProcessing from '~/components/app/Processing.vue'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
-    Loading,
-    Processing
+    AppProcessing
   },
   mixins: [Application],
 
   data () {
     return {
-      loading: true,
-      processing: true
-    }
-  },
-
-  head () {
-    return {
-      title: 'ログアウト'
+      processing: false
     }
   },
 
   created () {
     if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
-
-    this.processing = false
-    this.loading = false
   },
 
   methods: {
     // ログアウト
-    signOut () {
+    async signOut () {
       this.processing = true
-      this.appSignOut('auth.signed_out')
+      await useAuthSignOut()
+      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false, true)
+      navigateTo(this.$config.public.authRedirectLogOutURL)
     }
   }
-}
+})
 </script>

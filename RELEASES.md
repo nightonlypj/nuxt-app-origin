@@ -1,5 +1,10 @@
 # リリースノート
 
+## 1.3.0 (Sprint 5)
+
+- Nuxt3にバージョンアップしたい
+  - https://dev.azure.com/nightonly/nuxt-app-origin/_workitems/edit/507/
+
 ## 1.1.0 (Sprint 3)
 
 - Nuxt Bridgeに移行したい
