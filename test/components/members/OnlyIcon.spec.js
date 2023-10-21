@@ -22,7 +22,7 @@ describe('OnlyIcon.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper, power) => {
-    expect(wrapper.html()).toMatch(helper.commonConfig.enum.member.powerIcon[power]) // 権限
+    expect(wrapper.html()).toMatch(helper.commonConfig.member.powerIcon[power]) // 権限
   }
 
   // テストケース

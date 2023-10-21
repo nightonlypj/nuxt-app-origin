@@ -7,23 +7,26 @@ module.exports = {
     maxCount: 50,
     sleepMs: 100
   },
-  enum: {
-    member: {
-      powerIcon: {
-        admin: 'mdi-account-cog',
-        writer: 'mdi-account-edit',
-        default: 'mdi-account'
-      },
-      createIcon: {
-        create: 'mdi-check-circle',
-        exist: 'mdi-information',
-        notfound: 'mdi-alert'
-      },
-      createColor: {
-        create: 'success',
-        exist: 'info',
-        notfound: 'error'
-      }
+
+  member: {
+    power: {
+      writerUp: ['admin', 'writer'],
+      readerUp: ['admin', 'writer', 'reader']
+    },
+    powerIcon: {
+      admin: 'mdi-account-cog',
+      writer: 'mdi-account-edit',
+      default: 'mdi-account'
+    },
+    createIcon: {
+      create: 'mdi-check-circle',
+      exist: 'mdi-information',
+      notfound: 'mdi-alert'
+    },
+    createColor: {
+      create: 'success',
+      exist: 'info',
+      notfound: 'error'
     }
   },
 

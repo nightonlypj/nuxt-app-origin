@@ -17,7 +17,7 @@
         </v-card-title>
         <v-card-text>
           <v-row>
-            <v-col v-show="tabPage === 'list'" cols="12" sm="9">
+            <v-col v-show="tabPage === 'list'" cols="12" md="8">
               <MembersSearch
                 ref="search"
                 :processing="processing || reloading"
@@ -26,7 +26,7 @@
                 @search="searchMembersList"
               />
             </v-col>
-            <v-col v-if="admin" cols="12" :sm="tabPage === 'list' ? 3 : 12" class="d-flex justify-end">
+            <v-col v-if="admin" cols="12" :md="tabPage === 'list' ? 4 : 12" class="d-flex justify-end">
               <MembersCreate
                 :space="space"
                 @result="resultMembers"
@@ -73,7 +73,7 @@
                 :space="space"
                 :hidden-items="hiddenItems"
                 :select-items="selectItems"
-                :search-params="$route.query"
+                :search-params="params"
               />
               <div class="ml-1">
                 <ListSetting
@@ -193,6 +193,8 @@ export default {
       query: {
         text: this.$route?.query?.text || '',
         power,
+        active: this.$route?.query?.active !== '0',
+        destroy: this.$route?.query?.destroy !== '0',
         sort: this.$route?.query?.sort || 'invitationed_at',
         desc: this.$route?.query?.desc !== '0',
         option: this.$route?.query?.option === '1'
@@ -293,7 +295,16 @@ export default {
       for (const key in this.query.power) {
         power += Number(this.query.power[key])
       }
-      this.$router.push({ query: { ...this.params, power, desc: String(this.params.desc), option: String(Number(this.query.option)) } })
+      this.$router.push({
+        query: {
+          ...this.params,
+          power,
+          active: String(this.params.active),
+          destroy: String(this.params.destroy),
+          desc: String(this.params.desc),
+          option: String(Number(this.query.option))
+        }
+      })
       this.reloading = false
       return result
     },
@@ -330,7 +341,13 @@ export default {
         for (const key in this.query.power) {
           if (this.query.power[key]) { power.push(key) }
         }
-        this.params = { ...this.query, power: power.join(), desc: Number(this.query.desc) }
+        this.params = {
+          ...this.query,
+          power: power.join(),
+          active: Number(this.query.active),
+          destroy: Number(this.query.destroy),
+          desc: Number(this.query.desc)
+        }
         delete this.params.option
       } else {
         this.params.sort = this.query.sort
