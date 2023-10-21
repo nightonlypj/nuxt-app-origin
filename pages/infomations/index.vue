@@ -1,46 +1,47 @@
 <template>
-  <div>
-    <Loading v-if="loading" />
-    <v-card v-else>
-      <Processing v-if="processing" />
-      <v-card-title>お知らせ</v-card-title>
-      <v-card-text>
-        <v-row v-if="existInfomations">
-          <v-col class="align-self-center text-no-wrap">
-            {{ $localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString('ja', $pageFirstNumber(infomation), 'N/A') }}-{{ $localeString('ja', $pageLastNumber(infomation), 'N/A') }}件を表示</template>
-          </v-col>
-          <v-col v-if="enablePagination" class="px-0 py-0">
-            <div class="d-flex justify-end">
-              <v-pagination id="pagination1" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
-            </div>
-          </v-col>
-        </v-row>
+  <Head>
+    <Title>お知らせ</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <v-card v-else>
+    <AppProcessing v-if="processing" />
+    <v-card-title>お知らせ</v-card-title>
+    <v-card-text>
+      <v-row v-if="existInfomations">
+        <v-col class="align-self-center text-no-wrap">
+          {{ $localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ $localeString('ja', $pageFirstNumber(infomation), 'N/A') }}-{{ $localeString('ja', $pageLastNumber(infomation), 'N/A') }}件を表示</template>
+        </v-col>
+        <v-col v-if="enablePagination" class="pa-0">
+          <div class="d-flex justify-end">
+            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+          </div>
+        </v-col>
+      </v-row>
 
+      <v-divider class="my-4" />
+      <template v-if="!existInfomations">
+        <span class="ml-1">お知らせはありません。</span>
         <v-divider class="my-4" />
-        <template v-if="!existInfomations">
-          <span class="ml-1">お知らせはありません。</span>
-          <v-divider class="my-4" />
-        </template>
-        <InfomationsLists v-else :infomations="infomations" />
+      </template>
+      <InfomationsLists v-else :infomations="infomations" />
 
-        <template v-if="enablePagination">
-          <v-pagination id="pagination2" v-model="page" :length="infomation.total_pages" @input="getInfomationsList()" />
-        </template>
-      </v-card-text>
-    </v-card>
-  </div>
+      <template v-if="enablePagination">
+        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+      </template>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-export default {
+export default defineNuxtComponent({
   components: {
-    Loading,
-    Processing,
+    AppLoading,
+    AppProcessing,
     InfomationsLists
   },
   mixins: [Application],
@@ -52,12 +53,6 @@ export default {
       page: Number(this.$route?.query?.page) || 1,
       infomation: null,
       infomations: null
-    }
-  },
-
-  head () {
-    return {
-      title: 'お知らせ'
     }
   },
 
@@ -73,10 +68,7 @@ export default {
   async created () {
     if (!await this.getInfomationsList()) { return }
 
-    if (this.$auth.loggedIn && this.$auth.user.infomation_unread_count !== 0) {
-      this.$auth.setUser({ ...this.$auth.user, infomation_unread_count: 0 })
-    }
-
+    if (this.$auth.loggedIn) { this.$auth.resetUserInfomationUnreadCount() }
     this.loading = false
   },
 
@@ -86,29 +78,25 @@ export default {
       this.processing = true
       let result = false
 
-      const redirect = this.infomation == null
-      await this.$axios.get(this.$config.apiBaseURL + this.$config.infomations.listUrl, { params: { page: this.page } })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { redirect, toasted: !redirect }, response.data?.infomation?.current_page !== this.page)) { return }
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.infomations.listUrl, 'GET', { page: this.page })
 
-          this.infomation = response.data.infomation
-          this.infomations = response.data.infomations
+      const redirect = this.infomation == null
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.infomation?.current_page !== this.page)) {
+          this.infomation = data.infomation
+          this.infomations = data.infomations
           result = true
-        },
-        (error) => {
-          this.appCheckErrorResponse(error, { redirect, toasted: !redirect, require: true })
-        })
+        }
+      } else {
+        this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true })
+      }
 
       this.page = this.infomation?.current_page || 1
-      if (this.page === 1) {
-        this.$router.push({ query: null })
-      } else {
-        this.$router.push({ query: { page: this.page } })
-      }
+      navigateTo({ query: this.page === 1 ? null : { page: this.page } })
 
       this.processing = false
       return result
     }
   }
-}
+})
 </script>

@@ -1,69 +1,75 @@
 <template>
-  <div>
-    <Loading v-if="loading" />
-    <template v-else>
-      <Message :alert.sync="alert" :notice.sync="notice" />
-      <v-card max-width="480px">
-        <Processing v-if="processing" />
-        <validation-observer v-slot="{ invalid }" ref="observer">
-          <v-form autocomplete="off" @submit.prevent>
-            <v-card-title>アカウントロック解除</v-card-title>
-            <v-card-text
-              id="input_area"
-              @keydown.enter="appSetKeyDownEnter"
-              @keyup.enter="postUnlockNew(invalid, true)"
+  <Head>
+    <Title>アカウントロック解除</Title>
+  </Head>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="off" @submit.prevent>
+          <v-card-title>アカウントロック解除</v-card-title>
+          <v-card-text
+            id="unlock_reset_area"
+            @keydown.enter="appSetKeyDownEnter"
+            @keyup.enter="postUnlock(!meta.valid, true, setErrors, values)"
+          >
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                id="unlock_reset_email_text"
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="off"
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+              />
+            </Field>
+            <v-btn
+              id="unlock_reset_btn"
+              color="primary"
+              class="mt-2"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postUnlock(!meta.valid, false, setErrors, values)"
             >
-              <validation-provider v-slot="{ errors }" name="email" rules="required|email">
-                <v-text-field
-                  v-model="query.email"
-                  label="メールアドレス"
-                  prepend-icon="mdi-email"
-                  autocomplete="off"
-                  :error-messages="errors"
-                  @input="waiting = false"
-                />
-              </validation-provider>
-              <v-btn
-                id="unlock_btn"
-                color="primary"
-                class="mt-2"
-                :disabled="invalid || processing || waiting"
-                @click="postUnlockNew(invalid, false)"
-              >
-                送信
-              </v-btn>
-            </v-card-text>
-            <v-divider />
-            <v-card-actions>
-              <ActionLink action="unlock" />
-            </v-card-actions>
-          </v-form>
-        </validation-observer>
-      </v-card>
-    </template>
-  </div>
+              送信
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="unlock" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { required, email } from 'vee-validate/dist/rules'
-import Loading from '~/components/Loading.vue'
-import Processing from '~/components/Processing.vue'
-import Message from '~/components/Message.vue'
+import { pickBy } from 'lodash'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import { required, email } from '@vee-validate/rules'
+import ja from '~/locales/validate.ja'
+import AppLoading from '~/components/app/Loading.vue'
+import AppProcessing from '~/components/app/Processing.vue'
+import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/plugins/application.js'
+import Application from '~/utils/application.js'
 
-extend('required', required)
-extend('email', email)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('required', required)
+defineRule('email', email)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
-    ValidationObserver,
-    ValidationProvider,
-    Loading,
-    Processing,
-    Message,
+    Form,
+    Field,
+    AppLoading,
+    AppProcessing,
+    AppMessage,
     ActionLink
   },
   mixins: [Application],
@@ -82,12 +88,6 @@ export default {
     }
   },
 
-  head () {
-    return {
-      title: 'アカウントロック解除'
-    }
-  },
-
   created () {
     if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
 
@@ -98,33 +98,31 @@ export default {
 
   methods: {
     // アカウントロック解除
-    async postUnlockNew (invalid, keydown) {
+    async postUnlock (invalid, keydown, setErrors, values) {
       const enter = this.keyDownEnter
       this.keyDownEnter = false
       if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
 
       this.processing = true
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.unlockUrl, {
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.unlockUrl, 'POST', {
         ...this.query,
-        redirect_url: this.$config.frontBaseURL + this.$config.unlockRedirectUrl
+        redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
       })
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
 
-          this.appRedirectSignIn(response.data)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true })) { return }
-
-          this.appSetMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { toasted: true })) {
+          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
+        this.appSetMessage(data, true)
+        if (data.errors != null) {
+          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     }
   }
-}
+})
 </script>
