@@ -1,90 +1,98 @@
 <template>
-  <div>
-    <Processing v-if="processing" />
-    <validation-observer v-slot="{ invalid }" ref="observer">
-      <v-form autocomplete="off">
-        <v-card-text>
-          <v-avatar size="256px">
-            <v-img :src="$auth.user.image_url.xlarge" />
-          </v-avatar>
-          <validation-provider v-slot="{ errors }" name="image" rules="size_20MB:20480">
-            <v-file-input
-              v-model="image"
-              accept="image/jpeg,image/gif,image/png"
-              label="画像ファイル"
-              prepend-icon="mdi-camera"
-              show-size
-              :error-messages="errors"
-              @click="waiting = false"
-            />
-          </validation-provider>
-          <v-btn
-            id="user_image_update_btn"
-            color="primary"
+  <AppProcessing v-if="processing" />
+  <Form v-slot="{ meta, setErrors, values }">
+    <v-form autocomplete="off">
+      <v-card-text>
+        <v-avatar size="256px">
+          <v-img :src="$auth.user.image_url.xlarge" />
+        </v-avatar>
+        <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
+          <v-file-input
+            id="user_update_image_file"
+            v-model="image"
+            accept="image/jpeg,image/gif,image/png"
+            label="画像ファイル"
+            prepend-icon="mdi-camera"
+            show-size
             class="mt-2"
-            :disabled="invalid || image == null || processing || waiting"
-            @click="postUserImageUpdate()"
-          >
-            アップロード
-          </v-btn>
-          <v-dialog transition="dialog-top-transition" max-width="600px">
-            <template #activator="{ on, attrs }">
-              <v-btn
-                id="user_image_delete_btn"
-                color="secondary"
-                class="mt-2"
-                :disabled="!$auth.user.upload_image || processing"
-                v-bind="attrs"
-                v-on="on"
-              >
-                画像削除
-              </v-btn>
-            </template>
-            <template #default="dialog">
-              <v-card id="user_image_delete_dialog">
-                <v-toolbar color="secondary" dense>画像削除</v-toolbar>
-                <v-card-text>
-                  <div class="text-h6 pa-4">本当に削除しますか？</div>
-                </v-card-text>
-                <v-card-actions class="justify-end">
-                  <v-btn
-                    id="user_image_delete_no_btn"
-                    color="secondary"
-                    @click="dialog.value = false"
-                  >
-                    いいえ（キャンセル）
-                  </v-btn>
-                  <v-btn
-                    id="user_image_delete_yes_btn"
-                    color="primary"
-                    @click="postUserImageDelete(dialog)"
-                  >
-                    はい（削除）
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </template>
-          </v-dialog>
-        </v-card-text>
-      </v-form>
-    </validation-observer>
-  </div>
+            density="compact"
+            :error-messages="errors"
+            @update:model-value="waiting = false"
+          />
+        </Field>
+        <v-btn
+          id="user_update_image_btn"
+          color="primary"
+          class="mt-2 mr-2"
+          :disabled="!meta.valid || image == null || image.length === 0 || processing || waiting"
+          @click="postUserImageUpdate(setErrors, values)"
+        >
+          アップロード
+        </v-btn>
+        <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              id="user_delete_image_btn"
+              color="secondary"
+              class="mt-2"
+              :disabled="!$auth.user.upload_image || processing"
+            >
+              画像削除
+            </v-btn>
+          </template>
+          <template #default="{ isActive }">
+            <v-card id="user_delete_image_dialog">
+              <v-toolbar color="warning" density="compact">
+                <span class="ml-4">画像削除</span>
+              </v-toolbar>
+              <v-card-text>
+                <div class="text-h6 pa-4">本当に削除しますか？</div>
+              </v-card-text>
+              <v-card-actions class="justify-end mb-2 mr-2">
+                <v-btn
+                  id="user_delete_image_no_btn"
+                  color="secondary"
+                  variant="elevated"
+                  @click="isActive.value = false"
+                >
+                  いいえ（キャンセル）
+                </v-btn>
+                <v-btn
+                  id="user_delete_image_yes_btn"
+                  color="warning"
+                  variant="elevated"
+                  @click="postUserImageDelete(isActive)"
+                >
+                  はい（削除）
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </template>
+        </v-dialog>
+      </v-card-text>
+    </v-form>
+  </Form>
 </template>
 
 <script>
-import { ValidationObserver, ValidationProvider, extend, configure, localize } from 'vee-validate'
-import { size } from 'vee-validate/dist/rules'
-import Processing from '~/components/Processing.vue'
-import Application from '~/plugins/application.js'
+import { pickBy } from 'lodash'
+import { Form, Field, defineRule, configure } from 'vee-validate'
+import { localize, setLocale } from '@vee-validate/i18n'
+import { size } from '@vee-validate/rules'
+import ja from '~/locales/validate.ja'
+import AppProcessing from '~/components/app/Processing.vue'
+import Application from '~/utils/application.js'
 
-extend('size_20MB', size)
-configure({ generateMessage: localize('ja', require('~/locales/validate.ja.js')) })
+defineRule('size_20MB', size)
+configure({ generateMessage: localize({ ja }) })
+setLocale('ja')
 
-export default {
+export default defineNuxtComponent({
   components: {
-    ValidationObserver,
-    ValidationProvider,
-    Processing
+    Form,
+    Field,
+    AppProcessing
   },
   mixins: [Application],
 
@@ -98,58 +106,52 @@ export default {
 
   methods: {
     // ユーザー画像変更
-    async postUserImageUpdate () {
+    async postUserImageUpdate (setErrors, values) {
       this.processing = true
 
-      const params = new FormData()
-      params.append('image', this.image)
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageUpdateUrl, params)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST', {
+        image: this.image[0]
+      }, 'form')
 
-          this.setUser(response)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
-
-          this.appSetEmitMessage(error.response.data, true)
-          if (error.response.data.errors != null) {
-            this.$refs.observer.setErrors(error.response.data.errors)
-            this.waiting = true
-          }
-        })
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.successAction(data)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
+        this.appSetEmitMessage(data, true)
+        if (data.errors != null) {
+          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
+          this.waiting = true
+        }
+      }
 
       this.processing = false
     },
 
     // ユーザー画像削除
-    async postUserImageDelete ($dialog) {
+    async postUserImageDelete (isActive) {
       this.processing = true
-      $dialog.value = false
+      isActive.value = false
 
-      await this.$axios.post(this.$config.apiBaseURL + this.$config.userImageDeleteUrl)
-        .then((response) => {
-          if (!this.appCheckResponse(response, { toasted: true })) { return }
+      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
 
-          this.setUser(response)
-        },
-        (error) => {
-          if (!this.appCheckErrorResponse(error, { toasted: true }, { auth: true, reserved: true })) { return }
-
-          this.appSetEmitMessage(error.response.data, true)
-        })
+      if (response?.ok) {
+        if (this.appCheckResponse(data, { toasted: true })) {
+          this.successAction(data)
+        }
+      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
+        this.appSetEmitMessage(data, true)
+      }
 
       this.processing = false
     },
 
-    // ユーザー情報更新
-    setUser (response) {
-      this.$auth.setUser(response.data.user)
-      this.appSetToastedMessage(response.data, false)
+    successAction (data) {
+      this.$auth.setData(data)
+      this.appSetToastedMessage(data, false, true)
       this.image = null
-
       this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }
   }
-}
+})
 </script>
