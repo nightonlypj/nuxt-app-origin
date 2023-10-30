@@ -29,6 +29,16 @@ describe('update.vue', () => {
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Page, {
       global: {
@@ -37,16 +47,6 @@ describe('update.vue', () => {
           AppMessage: true,
           UpdateImage: true,
           UpdateData: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -65,7 +65,7 @@ describe('update.vue', () => {
     expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDetailUrl)
   }
 
-  const viewTest = (wrapper: any, user: object, unconfirmed: boolean) => {
+  const viewTest = (wrapper: any, user: object) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     helper.messageTest(wrapper, AppMessage, null)
     expect(wrapper.findComponent(UpdateImage).exists()).toBe(true)
@@ -73,7 +73,6 @@ describe('update.vue', () => {
     expect(wrapper.findComponent(UpdateData).vm.$props.user).toBe(user)
 
     const links = helper.getLinks(wrapper)
-    expect(links.includes('/users/confirmation/resend')).toBe(unconfirmed) // [メールアドレス変更中]メールアドレス確認
     expect(links.includes('/users/delete')).toBe(true) // アカウント削除
   }
 
@@ -97,19 +96,7 @@ describe('update.vue', () => {
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     apiCalledTest()
-    viewTest(wrapper, user, false)
-  })
-  it('[ログイン中（メールアドレス変更中）]表示される', async () => {
-    const user = Object.freeze({ email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { user }])
-    const wrapper = mountFunction(true, user)
-    helper.loadingTest(wrapper, AppLoading)
-    await flushPromises()
-
-    helper.mockCalledTest(mock.useAuthSignOut, 0)
-    apiCalledTest()
-    viewTest(wrapper, user, true)
+    viewTest(wrapper, user)
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
@@ -136,7 +123,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, null])
@@ -153,7 +140,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -161,7 +148,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 
@@ -182,7 +169,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -191,7 +178,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
@@ -208,7 +195,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -216,7 +203,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 })

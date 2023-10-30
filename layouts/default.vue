@@ -150,36 +150,24 @@
   </v-app>
 </template>
 
-<script>
+<script setup lang="ts">
+import { useDisplay } from 'vuetify'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
-export default defineNuxtComponent({
-  components: {
-    UsersDestroyInfo,
-    AppBackToTop
-  },
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth } = useNuxtApp()
 
-  data () {
-    return {
-      drawer: null
-    }
-  },
-
-  /* c8 ignore start */
-  head () {
-    const { t: $t } = useI18n()
-    const $config = useRuntimeConfig()
-    return {
-      titleTemplate: `%s - ${$t('app_name')}${$config.public.envName}`
-    }
-  },
-  /* c8 ignore stop */
-
-  created () {
-    this.drawer = !this.$vuetify.display.mobile
-  }
+useHead({
+  titleTemplate
 })
+function titleTemplate (title: string | undefined) {
+  const name = `${$t('app_name')}${$config.public.envName}`
+  return title == null ? name : `${title} - ${name}`
+}
+
+const drawer = ref(!useDisplay().mobile.value)
 </script>
 
 <style scoped>

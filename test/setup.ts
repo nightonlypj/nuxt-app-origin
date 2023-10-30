@@ -1,7 +1,6 @@
 import { config, RouterLinkStub } from '@vue/test-utils'
 import { vuetify } from '~/plugins/vuetify'
 import helper from '~/test/helper'
-import { TestPluginUtils } from '~/plugins/utils'
 
 // NOTE: 他のテストの影響を受けないようにする
 afterEach(() => {
@@ -12,7 +11,7 @@ afterEach(() => {
 global.ResizeObserver = require('resize-observer-polyfill')
 config.global.plugins = [vuetify]
 
-// Mock Config/i18n/utils
+// Mock Config/i18n
 config.global.mocks = {
   $config: { public: Object.assign(helper.envConfig, helper.commonConfig, { env: { production: false, test: true } }) },
   $t: (key: string) => {
@@ -36,11 +35,10 @@ config.global.mocks = {
       if (locale == null) { throw `Not found: i18n(${key})` }
     }
     return locale
-  },
-  ...TestPluginUtils
+  }
 }
 vi.stubGlobal('useRuntimeConfig', vi.fn(() => config.global.mocks.$config))
-vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t })))
+vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t, tm: config.global.mocks.$tm })))
 
 // NOTE: Failed to resolve component: NuxtLink
 config.global.stubs.NuxtLink = RouterLinkStub

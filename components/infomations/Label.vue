@@ -9,26 +9,17 @@
   </v-chip>
 </template>
 
-<script>
-export default defineNuxtComponent({
-  props: {
-    infomation: {
-      type: Object,
-      default: null
-    }
-  },
-
-  computed: {
-    labelColor () {
-      switch (this.infomation.label) {
-        case 'maintenance':
-          return 'error'
-        case 'hindrance':
-          return 'warning'
-        default:
-          return 'info'
-      }
-    }
+<script setup lang="ts">
+const $props = defineProps({
+  infomation: {
+    type: Object,
+    default: null
   }
+})
+
+const labelColor = computed(() => {
+  if ($props.infomation.label === 'maintenance') { return 'error' }
+  if ($props.infomation.label === 'hindrance') { return 'warning' }
+  return 'info'
 })
 </script>

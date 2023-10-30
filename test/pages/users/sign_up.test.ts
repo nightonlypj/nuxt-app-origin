@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
@@ -16,26 +17,23 @@ describe('sign_up.vue', () => {
     }
   })
 
-  const fullPath = '/users/sign_up'
   const mountFunction = (loggedIn: boolean, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
+          AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       data () {
@@ -43,18 +41,20 @@ describe('sign_up.vue', () => {
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any) => {
+    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
 
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_up')
 
     helper.messageTest(wrapper, AppMessage, null)
-    expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '' })
+    expect(wrapper.vm.query).toEqual({ name: '', email: '', password: '', password_confirmation: '' })
   }
 
   // テストケース
@@ -73,7 +73,7 @@ describe('sign_up.vue', () => {
     wrapper.find('#sign_up_email_text').setValue('user1@example.com')
     wrapper.find('#sign_up_password_text').setValue('abc12345')
     wrapper.find('#sign_up_password_confirmation_text').setValue('abc12345')
-    wrapper.vm.$data.showPassword = true
+    wrapper.vm.showPassword = true
     await flushPromises()
 
     // 登録ボタン

@@ -31,7 +31,7 @@ describe('Infomations.vue', () => {
   // テスト内容
   const viewTest = (wrapper: any, data: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
+    expect(wrapper.vm.infomations).toEqual(data.infomations)
 
     const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
@@ -40,13 +40,13 @@ describe('Infomations.vue', () => {
       expect(labels[index].vm.$props.infomation).toEqual(infomation)
       expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
-      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', infomation.started_at)) // 開始日
+      expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
     }
   }
 
-  const viewErrorTest = (wrapper: any, errorMessage: string, localesMessage: string) => {
-    expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
-    expect(wrapper.text()).toMatch(localesMessage)
+  const viewErrorTest = (wrapper: any, alert: string) => {
+    expect(wrapper.vm.alert).toBe(alert)
+    expect(wrapper.text()).toMatch(alert)
   }
 
   // テストケース
@@ -89,26 +89,26 @@ describe('Infomations.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.error', helper.locales.system.error_short)
+      viewErrorTest(wrapper, helper.locales.system.error_short)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.failure', helper.locales.network.failure_short)
+      viewErrorTest(wrapper, helper.locales.network.failure_short)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.error', helper.locales.network.error_short)
+      viewErrorTest(wrapper, helper.locales.network.error_short)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.default', helper.locales.system.default_short)
+      viewErrorTest(wrapper, helper.locales.system.default_short)
     })
   })
 })

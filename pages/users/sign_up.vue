@@ -2,95 +2,99 @@
   <Head>
     <Title>アカウント登録</Title>
   </Head>
-  <AppMessage v-model:alert="alert" v-model:notice="notice" />
-  <v-card max-width="480px">
-    <AppProcessing v-if="processing" />
-    <Form v-slot="{ meta, setErrors, values }">
-      <v-form autocomplete="on">
-        <v-card-title>アカウント登録</v-card-title>
-        <v-card-text>
-          <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
-            <v-text-field
-              id="sign_up_name_text"
-              v-model="query.name"
-              label="氏名"
-              prepend-icon="mdi-account"
-              autocomplete="name"
-              counter="32"
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-            />
-          </Field>
-          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-            <v-text-field
-              id="sign_up_email_text"
-              v-model="query.email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              autocomplete="email"
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-            />
-          </Field>
-          <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
-            <v-text-field
-              id="sign_up_password_text"
-              v-model="query.password"
-              :type="showPassword ? 'text' : 'password'"
-              label="パスワード [8文字以上]"
-              prepend-icon="mdi-lock"
-              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              autocomplete="new-password"
-              counter
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-              @click:append="showPassword = !showPassword"
-            />
-          </Field>
-          <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
-            <v-text-field
-              id="sign_up_password_confirmation_text"
-              v-model="query.password_confirmation"
-              :type="showPassword ? 'text' : 'password'"
-              label="パスワード(確認)"
-              prepend-icon="mdi-lock"
-              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              autocomplete="new-password"
-              counter
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-              @click:append="showPassword = !showPassword"
-            />
-          </Field>
-          <v-btn
-            id="sign_up_btn"
-            color="primary"
-            class="mt-4"
-            :disabled="!meta.valid || processing || waiting"
-            @click="postSingUp(setErrors, values)"
-          >
-            登録
-          </v-btn>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <ActionLink action="sign_up" />
-        </v-card-actions>
-      </v-form>
-    </Form>
-  </v-card>
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="on">
+          <v-card-title>アカウント登録</v-card-title>
+          <v-card-text>
+            <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
+              <v-text-field
+                id="sign_up_name_text"
+                v-model="query.name"
+                label="氏名"
+                prepend-icon="mdi-account"
+                autocomplete="name"
+                counter="32"
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                id="sign_up_email_text"
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="email"
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required|min:8">
+              <v-text-field
+                id="sign_up_password_text"
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード [8文字以上]"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password_confirmation" name="password_confirmation" rules="required|confirmed_password:@password">
+              <v-text-field
+                id="sign_up_password_confirmation_text"
+                v-model="query.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード(確認)"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="new-password"
+                counter
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <v-btn
+              id="sign_up_btn"
+              color="primary"
+              class="mt-4"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postSingUp(setErrors, values)"
+            >
+              登録
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="sign_up" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/utils/application.js'
+import { redirectAlreadyAuth, redirectSignIn } from '~/utils/auth'
+import { existKeyErrors } from '~/utils/helper'
 
 defineRule('required', required)
 defineRule('email', email)
@@ -100,60 +104,58 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppMessage,
-    ActionLink
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      alert: null,
-      notice: null,
-      query: {
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: ''
-      },
-      showPassword: false
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(false)
+const alert = ref('')
+const notice = ref('')
+const query = ref({
+  name: '',
+  email: '',
+  password: '',
+  password_confirmation: ''
+})
+const showPassword = ref(false)
+
+created()
+function created () {
+  if ($auth.loggedIn) { return redirectAlreadyAuth($t) }
+
+  loading.value = false
+}
+
+// アカウント登録
+async function postSingUp (setErrors: any, values: any) {
+  processing.value = true
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.singUpUrl, 'POST', {
+    ...query.value,
+    confirm_success_url: $config.public.frontBaseURL + $config.public.singUpSuccessUrl
+  })
+
+  if (response?.ok) {
+    if (data == null) {
+      $toast.error($t('system.error'))
+    } else {
+      return redirectSignIn(data)
     }
-  },
-
-  created () {
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
-  },
-
-  methods: {
-    // アカウント登録
-    async postSingUp (setErrors, values) {
-      this.processing = true
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST', {
-        ...this.query,
-        confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-        this.appSetMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
+  } else {
+    if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      alert.value = data.alert || $t('system.default')
+      notice.value = data.notice || ''
+      if (data.errors != null) {
+        setErrors(existKeyErrors(data.errors, values))
+        waiting.value = true
       }
-
-      this.processing = false
     }
   }
-})
+
+  processing.value = false
+}
 </script>

@@ -8,13 +8,11 @@
   </ul>
 </template>
 
-<script>
-export default defineNuxtComponent({
-  props: {
-    action: {
-      type: String,
-      default: null
-    }
+<script setup lang="ts">
+defineProps({
+  action: {
+    type: String,
+    default: null
   }
 })
 </script>

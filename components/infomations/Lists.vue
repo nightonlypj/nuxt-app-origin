@@ -1,5 +1,5 @@
 <template>
-  <template v-if="infomations != null && infomations.length > 0">
+  <template v-if="infomations?.length > 0">
     <article
       v-for="infomation in infomations"
       :id="`infomation_list_${infomation.id}`"
@@ -17,7 +17,7 @@
           </template>
         </span>
         <span class="ml-1">
-          ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
         </span>
       </div>
       <!-- eslint-disable-next-line vue/no-v-html -->
@@ -27,27 +27,20 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import InfomationsLabel from '~/components/infomations/Label.vue'
+import { dateFormat } from '~/utils/helper'
 
-export default defineNuxtComponent({
-  components: {
-    InfomationsLabel
-  },
-
-  props: {
-    infomations: {
-      type: Array,
-      default: null
-    }
-  },
-
-  methods: {
-    redirectInfomation (infomation) {
-      if (!infomation.body_present) { return }
-
-      navigateTo(`/infomations/${infomation.id}`)
-    }
+defineProps({
+  infomations: {
+    type: [Object],
+    default: null
   }
 })
+
+function redirectInfomation (infomation: any) {
+  if (!infomation.body_present) { return }
+
+  navigateTo(`/infomations/${infomation.id}`)
+}
 </script>

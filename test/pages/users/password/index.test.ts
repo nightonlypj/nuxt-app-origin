@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
@@ -17,46 +18,44 @@ describe('index.vue', () => {
     }
   })
 
-  const fullPath = '/users/password'
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        setData: mock.setData
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
+          AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            setData: mock.setData
-          },
-          $route: {
-            fullPath,
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any) => {
+    expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
     expect(wrapper.findComponent(ActionLink).exists()).toBe(true)
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
     helper.messageTest(wrapper, AppMessage, null)
-    expect(wrapper.vm.$data.query).toEqual({ password: '', password_confirmation: '' })
+    expect(wrapper.vm.query).toEqual({ password: '', password_confirmation: '' })
   }
 
   // テストケース
@@ -74,7 +73,7 @@ describe('index.vue', () => {
     // 入力
     wrapper.find('#password_update_password_text').setValue('abc12345')
     wrapper.find('#password_update_password_confirmation_text').setValue('abc12345')
-    wrapper.vm.$data.showPassword = true
+    wrapper.vm.showPassword = true
     await flushPromises()
 
     // 変更ボタン

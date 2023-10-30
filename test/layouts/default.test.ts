@@ -6,18 +6,27 @@ import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
 
 describe('default.vue', () => {
+  let mock: any
+  beforeEach(() => {
+    mock = {
+      useHead: vi.fn()
+    }
+  })
+
   const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+    vi.stubGlobal('useHead', mock.useHead)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      }
+    })))
+
     const wrapper = mount(Layout, {
       global: {
         stubs: {
           UsersDestroyInfo: true,
           AppBackToTop: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          }
         }
       }
     })
@@ -29,6 +38,11 @@ describe('default.vue', () => {
   const viewTest = (wrapper: any, loggedIn: boolean) => {
     expect(wrapper.findComponent(UsersDestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.findComponent(AppBackToTop).exists()).toBe(true) // 上に戻る
+
+    // タイトル
+    helper.mockCalledTest(mock.useHead, 1, { titleTemplate: wrapper.vm.titleTemplate })
+    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${helper.envConfig.envName}`)
+    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${helper.envConfig.envName}`)
 
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ

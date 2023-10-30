@@ -8,9 +8,16 @@
 ```
 yarn install
 yarn dev -o
-yarn test
+
+yarn test （ファイル名）
+yarn test:coverage （ファイル名）
+yarn test:watch （ファイル名）
+open coverage/index.html
+
 yarn lint
-yarn lint --fix
+yarn lint:fix
+yarn eslint ファイル名
+yarn eslint:fix ファイル名
 ```
 ```
 yarn generate

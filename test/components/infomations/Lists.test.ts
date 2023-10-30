@@ -11,7 +11,7 @@ describe('Lists.vue', () => {
     }
   })
 
-  const mountFunction = (infomations: object | null) => {
+  const mountFunction = (infomations: any) => {
     vi.stubGlobal('navigateTo', mock.navigateTo)
 
     const wrapper = mount(Component, {
@@ -40,7 +40,7 @@ describe('Lists.vue', () => {
       if (infomation.summary != null) {
         expect(wrapper.text()).toMatch(infomation.summary) // 概要
       }
-      expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', infomation.started_at)) // 開始日
+      expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
     }
   }
 

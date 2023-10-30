@@ -4,26 +4,24 @@ import Component from '~/components/users/DestroyInfo.vue'
 
 describe('DestroyInfo.vue', () => {
   const mountFunction = (loggedIn: boolean, path = '/', user: object | null = null) => {
-    const wrapper = mount(Component, {
-      global: {
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            path
-          }
-        }
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
       }
-    })
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      path
+    })))
+
+    const wrapper = mount(Component)
     expect(wrapper.vm).toBeTruthy()
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any, user: any) => {
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes('/users/undo_delete')).toBe(true) // アカウント削除取り消し
   }

@@ -62,7 +62,7 @@
                   id="user_delete_image_yes_btn"
                   color="warning"
                   variant="elevated"
-                  @click="postUserImageDelete(isActive)"
+                  @click="postUserImageDelete(isActive, setErrors, values)"
                 >
                   はい（削除）
                 </v-btn>
@@ -75,83 +75,78 @@
   </Form>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { size } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth } from '~/utils/auth'
+import { existKeyErrors } from '~/utils/helper'
 
 defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing
-  },
-  mixins: [Application],
+const $emit = defineEmits(['alert', 'notice'])
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      image: null
+const processing = ref(false)
+const waiting = ref(false)
+const image = ref<any>(null)
+
+// ユーザー画像変更
+async function postUserImageUpdate (setErrors: any, values: any) {
+  processing.value = true
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageUpdateUrl, 'POST', {
+    image: image.value[0]
+  }, 'form')
+  responseAction(response, data, setErrors, values)
+}
+
+// ユーザー画像削除
+async function postUserImageDelete (isActive: any, setErrors: any, values: any) {
+  processing.value = true
+  isActive.value = false
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageDeleteUrl, 'POST')
+  responseAction(response, data, setErrors, values)
+}
+
+function responseAction (response: any, data: any, setErrors: any, values: any) {
+  if (response?.ok) {
+    if (data == null) {
+      $toast.error($t('system.error'))
+    } else {
+      $auth.setData(data)
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      image.value = null
+      $emit('alert', '') // NOTE: Data.vueのalertを消す為
+      $emit('notice', '')
     }
-  },
-
-  methods: {
-    // ユーザー画像変更
-    async postUserImageUpdate (setErrors, values) {
-      this.processing = true
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageUpdateUrl, 'POST', {
-        image: this.image[0]
-      }, 'form')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.successAction(data)
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
-        this.appSetEmitMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth($t)
+    } else if (response?.status === 406) {
+      $toast.error($t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $emit('alert', data.alert || $t('system.default'))
+      $emit('notice', data.notice || '')
+      if (data.errors != null) {
+        setErrors(existKeyErrors(data.errors, values))
+        waiting.value = true
       }
-
-      this.processing = false
-    },
-
-    // ユーザー画像削除
-    async postUserImageDelete (isActive) {
-      this.processing = true
-      isActive.value = false
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userImageDeleteUrl, 'POST')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.successAction(data)
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
-        this.appSetEmitMessage(data, true)
-      }
-
-      this.processing = false
-    },
-
-    successAction (data) {
-      this.$auth.setData(data)
-      this.appSetToastedMessage(data, false, true)
-      this.image = null
-      this.appSetEmitMessage(null) // NOTE: Data.vueのalertを消す為
     }
   }
-})
+
+  processing.value = false
+}
 </script>

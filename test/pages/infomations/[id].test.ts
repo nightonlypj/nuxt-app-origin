@@ -15,22 +15,21 @@ describe('[id].vue', () => {
     }
   })
 
-  const params = { id: '1' }
-  const mountFunction = () => {
+  const mountFunction = (params: any) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      params
+    })))
 
     const wrapper = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           InfomationsLabel: true
-        },
-        mocks: {
-          $route: {
-            params
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -41,13 +40,13 @@ describe('[id].vue', () => {
   // テスト内容
   const viewTest = (wrapper: any, data: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
+    expect(wrapper.vm.infomation).toEqual(data.infomation)
 
     expect(wrapper.findComponent(InfomationsLabel).exists()).toBe(true) // ラベル
     expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(data.infomation)
 
     expect(wrapper.text()).toMatch(data.infomation.title) // タイトル
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', data.infomation.started_at)) // 開始日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', data.infomation.started_at)) // 開始日
     if (data.infomation.body != null) {
       expect(wrapper.text()).toMatch(data.infomation.body) // 本文
       expect(wrapper.text()).not.toMatch(data.infomation.summary) // 概要
@@ -61,21 +60,39 @@ describe('[id].vue', () => {
 
   // テストケース
   describe('お知らせ詳細取得', () => {
-    const apiCalledTest = () => {
+    const apiCalledTest = (params: any) => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       const url = helper.commonConfig.infomations.detailUrl.replace(':id', params.id)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
     let wrapper: any
-    const beforeAction = async () => {
-      wrapper = mountFunction()
+    const beforeAction = async (params = { id: '1' }, apiCalled = true) => {
+      wrapper = mountFunction(params)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      apiCalledTest()
+      if (apiCalled) {
+        apiCalledTest(params)
+      } else {
+        expect(mock.useApiRequest).toBeCalledTimes(0)
+      }
     }
 
+    it('[パラメータ不正（文字）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn()
+      await beforeAction({ id: 'x' }, false)
+
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
+    })
+    it('[パラメータ不正（0始まり）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn()
+      await beforeAction({ id: '01' }, false)
+
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
+    })
     it('[ラベル・本文あり]表示される', async () => {
       const data = Object.freeze({
         infomation: {
@@ -111,7 +128,7 @@ describe('[id].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -119,7 +136,7 @@ describe('[id].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[存在しない]エラーページが表示される', async () => {
       const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
@@ -134,14 +151,14 @@ describe('[id].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 })

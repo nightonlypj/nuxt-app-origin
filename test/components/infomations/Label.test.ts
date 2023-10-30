@@ -3,7 +3,7 @@ import helper from '~/test/helper'
 import Component from '~/components/infomations/Label.vue'
 
 describe('Label.vue', () => {
-  const mountFunction = (infomation: object | null) => {
+  const mountFunction = (infomation: any) => {
     const wrapper = mount(Component, {
       props: {
         infomation

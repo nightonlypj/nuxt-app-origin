@@ -33,9 +33,11 @@
 
 <script setup lang="ts">
 const loading = ref(true)
+
+/* c8 ignore start */
 if (process.env.NODE_ENV === 'production') {
-  /* c8 ignore next */
   showError({ statusCode: 404 })
+  /* c8 ignore stop */
 } else {
   loading.value = false
 
