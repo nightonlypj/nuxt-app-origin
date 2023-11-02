@@ -23,32 +23,29 @@ describe('sign_in.vue', () => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        setData: mock.setData
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            setData: mock.setData
-          },
-          $route: {
-            path: '/users/sign_in',
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -61,13 +58,13 @@ describe('sign_in.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_in')
 
     helper.messageTest(wrapper, AppMessage, data)
-    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, '/users/sign_in')
-    expect(wrapper.vm.$data.query).toEqual({ email: '', password: '' })
+    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, {})
+    expect(wrapper.vm.query).toEqual({ email: '', password: '' })
   }
 
   // テストケース
   it('[未ログイン]表示される', async () => {
-    const wrapper = mountFunction(false)
+    const wrapper: any = mountFunction(false)
     viewTest(wrapper, null)
     await flushPromises()
 
@@ -79,7 +76,7 @@ describe('sign_in.vue', () => {
     // 入力
     wrapper.find('#sign_in_email_text').setValue('user1@example.com')
     wrapper.find('#sign_in_password_text').setValue('abc12345')
-    wrapper.vm.$data.showPassword = true
+    wrapper.vm.showPassword = true
     await flushPromises()
 
     // ログインボタン

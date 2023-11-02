@@ -20,8 +20,8 @@ describe('error.vue', () => {
   const viewTest = (wrapper: any, data: any = null) => {
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
-    expect(wrapper.vm.alertMessage).toBe(data.alert)
-    expect(wrapper.vm.noticeMessage).toBe(data.notice)
+    expect(wrapper.vm.alert).toBe(data.alert)
+    expect(wrapper.vm.notice).toBe(data.notice)
   }
 
   // テストケース
@@ -36,7 +36,7 @@ describe('error.vue', () => {
     })
   })
   describe('alertなし/noticeあり', () => {
-    const data = { alert: null, notice: 'noticeメッセージ' }
+    const data = { notice: 'noticeメッセージ' }
     it('[404]表示される', () => {
       const wrapper = mountFunction(404, { data })
       viewTest(wrapper, { alert: helper.locales.system.notfound, notice: data.notice })
@@ -47,7 +47,7 @@ describe('error.vue', () => {
     })
   })
   describe('alertあり/noticeなし', () => {
-    const data = { alert: 'alertメッセージ', notice: null }
+    const data = { alert: 'alertメッセージ' }
     it('[404]表示される', () => {
       const wrapper = mountFunction(404, { data })
       viewTest(wrapper, data)

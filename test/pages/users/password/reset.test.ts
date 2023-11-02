@@ -17,37 +17,31 @@ describe('reset.vue', () => {
     }
   })
 
-  const path = '/users/password/reset'
-  const fullPath = `${path}?full`
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            path,
-            fullPath,
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -59,8 +53,8 @@ describe('reset.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('password')
 
     helper.messageTest(wrapper, AppMessage, data)
-    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, path) // NOTE: URLパラメータを消す為
-    expect(wrapper.vm.$data.query).toEqual({ email: '' })
+    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, {}) // NOTE: URLパラメータを消す為
+    expect(wrapper.vm.query).toEqual({ email: '' })
   }
 
   // テストケース

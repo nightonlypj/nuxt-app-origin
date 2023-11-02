@@ -22,6 +22,7 @@
     "@nuxtjs/i18n": "^8.0.0-rc.3",
     "@sidebase/nuxt-auth": "^0.6.0-beta.4",
     "@types/highlight.js": "^10.1.0",
+    "@types/lodash": "^4.14.200",
     "@types/markdown-it": "^13.0.2",
     "@types/markdown-it-footnote": "^3.0.1",
     "@types/node": "^18.17.3",

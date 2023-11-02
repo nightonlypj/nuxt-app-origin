@@ -30,7 +30,7 @@ export default defineConfig({
       imports: [
         // presets
         'vue',
-        'vue-router',
+        // 'vue-router', // NOTE: useRouteのstubGlobalがundefinedになる為
         // custom
         {
           '#app': [

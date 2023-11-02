@@ -8,9 +8,9 @@
     <v-card-title>アカウント削除取り消し</v-card-title>
     <v-card-text>
       <p>
-        このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+        このアカウントは{{ dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
         <template v-if="$auth.user.destroy_requested_at != null">
-          （{{ $timeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+          （{{ dateTimeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
         </template>
       </p>
       <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
@@ -58,58 +58,55 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { dateFormat, dateTimeFormat } from '~/utils/helper'
+import { redirectAuth, updateAuthUser, redirectNotDestroyReserved, redirectTop } from '~/utils/auth'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    AppProcessing
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      loading: true,
-      processing: true
+const loading = ref(true)
+const processing = ref(false)
+
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth($t) }
+
+  if (!await updateAuthUser($t)) { return } // NOTE: 最新の状態が削除予約済みか確認する為
+  if ($auth.user.destroy_schedule_at == null) { return redirectNotDestroyReserved($t) }
+
+  loading.value = false
+}
+
+// アカウント削除取り消し
+async function postUserUndoDelete (isActive: any) {
+  processing.value = true
+  isActive.value = false
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
+
+  if (response?.ok) {
+    if (data == null) {
+      $toast.error($t('system.error'))
+    } else {
+      $auth.setData(data)
+      return redirectTop(data, true)
     }
-  },
-
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-
-    // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
-    const [response, data] = await useAuthUser()
-    if (!response?.ok) {
-      return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth($t)
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
     }
-    if (this.$auth.user.destroy_schedule_at == null) { return this.appRedirectNotDestroyReserved() }
-
-    this.processing = false
-    this.loading = false
-  },
-
-  methods: {
-    // アカウント削除取り消し
-    async postUserUndoDelete (isActive) {
-      this.processing = true
-      isActive.value = false
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userUndoDeleteUrl, 'POST')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.$auth.setData(data)
-          return this.appRedirectTop(data, true)
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })
-      }
-
-      this.processing = false
-    }
+    if (data?.notice != null) { $toast.info(data.notice) }
   }
-})
+
+  processing.value = false
+}
 </script>

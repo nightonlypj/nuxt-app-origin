@@ -12,7 +12,7 @@
           <v-card-title>ログイン</v-card-title>
           <v-card-text
             id="sign_in_area"
-            @keydown.enter="appSetKeyDownEnter"
+            @keydown.enter="keyDownEnter = completInputKey($event)"
             @keyup.enter="signIn(!meta.valid, true)"
           >
             <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
@@ -61,7 +61,7 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
@@ -70,94 +70,79 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/utils/application.js'
+import { completInputKey } from '~/utils/helper'
+import { redirectTop, redirectConfirmationReset, redirectAlreadyAuth } from '~/utils/auth'
 
 defineRule('required', required)
 defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppLoading,
-    AppProcessing,
-    AppMessage,
-    ActionLink
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      processing: true,
-      waiting: false,
-      alert: null,
-      notice: null,
-      query: {
-        email: '',
-        password: ''
-      },
-      showPassword: false,
-      keyDownEnter: false
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(false)
+const alert = ref(String($route.query.alert || ''))
+const notice = ref(String($route.query.notice || ''))
+const query = ref({
+  email: '',
+  password: ''
+})
+const showPassword = ref(false)
+const keyDownEnter = ref(false)
+
+created()
+function created () {
+  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectTop($route.query) }
+  if ($route.query.account_confirmation_success === 'false') { return redirectConfirmationReset($route.query) }
+  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectTop($route.query) }
+  if ($auth.loggedIn) { return redirectAlreadyAuth($t) }
+
+  if ($route.query.account_confirmation_success === 'true' || $route.query.unlock === 'true') { notice.value += $t('auth.unauthenticated') }
+  if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
+
+  loading.value = false
+}
+
+// ログイン
+async function signIn (invalid: boolean, keydown: boolean) {
+  const enter = keyDownEnter.value
+  keyDownEnter.value = false
+  if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
+
+  processing.value = true
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authSignInURL, 'POST', {
+    ...query.value,
+    unlock_redirect_url: $config.public.frontBaseURL + $config.public.unlockRedirectUrl
+  })
+
+  if (response?.ok) {
+    if (data == null) {
+      $toast.error($t('system.error'))
+    } else {
+      $auth.setData(data)
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
+      navigateTo(redirectUrl.value || $config.public.authRedirectHomeURL)
+      updateRedirectUrl(null)
+      return
     }
-  },
-
-  created () {
-    switch (this.$route.query.account_confirmation_success) {
-      case 'true':
-        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
-        break
-      case 'false':
-        return navigateTo({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
-    }
-    switch (this.$route.query.unlock) {
-      case 'true':
-      case 'false':
-        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
-    }
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
-
-    if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
-      this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
-    }
-    this.appSetQueryMessage()
-
-    this.processing = false
-    this.loading = false
-  },
-
-  methods: {
-    // ログイン
-    async signIn (invalid, keydown) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
-
-      this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.authSignInURL, 'POST', {
-        ...this.query,
-        unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.$auth.setData(data)
-          this.appSetToastedMessage(data, false, true)
-
-          const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
-          navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
-          updateRedirectUrl(null)
-          return
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-        this.appSetMessage(data, true)
-        this.waiting = true
-      }
-
-      this.processing = false
+  } else {
+    if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      alert.value = data.alert || $t('system.default')
+      notice.value = data.notice || ''
+      waiting.value = true
     }
   }
-})
+
+  processing.value = false
+}
 </script>

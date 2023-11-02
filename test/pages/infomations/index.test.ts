@@ -24,31 +24,29 @@ describe('index.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user,
+        resetUserInfomationUnreadCount: mock.resetUserInfomationUnreadCount
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true,
           InfomationsLists: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user,
-            resetUserInfomationUnreadCount: mock.resetUserInfomationUnreadCount
-          },
-          $route: {
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -85,9 +83,9 @@ describe('index.vue', () => {
   const viewTest = (wrapper: any, data: any, countView: string) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.vm.$data.page).toBe(data.infomation.current_page)
-    expect(wrapper.vm.$data.infomation).toEqual(data.infomation)
-    expect(wrapper.vm.$data.infomations).toEqual(data.infomations)
+    expect(wrapper.vm.page).toBe(data.infomation.current_page)
+    expect(wrapper.vm.infomation).toEqual(data.infomation)
+    expect(wrapper.vm.infomations).toEqual(data.infomations)
 
     if (data.infomations?.length === 0) {
       expect(wrapper.text()).toMatch('お知らせはありません。')
@@ -116,7 +114,7 @@ describe('index.vue', () => {
       await flushPromises()
 
       apiCalledTest(1)
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
       viewTest(wrapper, data, '')
     })
     it('[1件]表示される', async () => {
@@ -137,7 +135,7 @@ describe('index.vue', () => {
       await flushPromises()
 
       apiCalledTest(1)
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
       viewTest(wrapper, data, '1件')
     })
     it('[ページネーション]表示される', async () => {
@@ -150,10 +148,10 @@ describe('index.vue', () => {
 
       apiCalledTest(1)
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
 
       // ページネーション（2頁目）
-      wrapper.vm.$data.page = 2
+      wrapper.vm.page = 2
       wrapper.find('#infomation_pagination2').trigger('click') // NOTE: pagination2でも確認
       await flushPromises()
 
@@ -170,8 +168,8 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
@@ -183,16 +181,16 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
 
         // ページネーション（2頁目）
-        wrapper.vm.$data.page = 2
+        wrapper.vm.page = 2
         wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
-        helper.mockCalledTest(mock.navigateTo, 2, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })
     })
@@ -205,8 +203,8 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
@@ -218,16 +216,16 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
 
         // ページネーション（2頁目）
-        wrapper.vm.$data.page = 2
+        wrapper.vm.page = 2
         wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
-        helper.mockCalledTest(mock.navigateTo, 2, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })
     })
@@ -241,8 +239,8 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
@@ -254,16 +252,16 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
 
         // ページネーション（2頁目）
-        wrapper.vm.$data.page = 2
+        wrapper.vm.page = 2
         wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
-        helper.mockCalledTest(mock.navigateTo, 2, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })
     })
@@ -276,8 +274,8 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
@@ -289,16 +287,16 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
 
         // ページネーション（2頁目）
-        wrapper.vm.$data.page = 2
+        wrapper.vm.page = 2
         wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
-        helper.mockCalledTest(mock.navigateTo, 2, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })
     })
@@ -311,8 +309,8 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
       })
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
@@ -324,16 +322,16 @@ describe('index.vue', () => {
 
         apiCalledTest(1)
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
-        helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 1, {})
 
         // ページネーション（2頁目）
-        wrapper.vm.$data.page = 2
+        wrapper.vm.page = 2
         wrapper.find('#infomation_pagination1').trigger('click')
         await flushPromises()
 
         apiCalledTest(2)
         helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
-        helper.mockCalledTest(mock.navigateTo, 2, { query: null })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })
     })
@@ -362,7 +360,7 @@ describe('index.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
       helper.mockCalledTest(mock.resetUserInfomationUnreadCount, 0)
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
     })
@@ -376,7 +374,7 @@ describe('index.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
       helper.mockCalledTest(mock.resetUserInfomationUnreadCount, 1)
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
     })
@@ -390,7 +388,7 @@ describe('index.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { query: null })
+      helper.mockCalledTest(mock.navigateTo, 1, {})
       helper.mockCalledTest(mock.resetUserInfomationUnreadCount, 1)
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
     })

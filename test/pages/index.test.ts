@@ -7,6 +7,12 @@ import Page from '~/pages/index.vue'
 
 describe('index.vue', () => {
   const mountFunction = (loggedIn: boolean) => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      }
+    })))
+
     const wrapper = mount(Page, {
       global: {
         stubs: {
@@ -14,11 +20,6 @@ describe('index.vue', () => {
           IndexSpace: true,
           IndexPublicSpace: true,
           IndexInfomations: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          }
         }
       }
     })

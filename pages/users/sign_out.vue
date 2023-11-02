@@ -25,40 +25,30 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectAlreadySignedOut } from '~/utils/auth'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    AppProcessing
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      loading: true,
-      processing: true
-    }
-  },
+const loading = ref(true)
+const processing = ref(false)
 
-  created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
+created()
+function created () {
+  if (!$auth.loggedIn) { return redirectAlreadySignedOut($t) }
 
-    this.processing = false
-    this.loading = false
-  },
+  loading.value = false
+}
 
-  methods: {
-    // ログアウト
-    async signOut () {
-      this.processing = true
-      await useAuthSignOut()
-      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false, true)
-      navigateTo(this.$config.public.authRedirectLogOutURL)
-    }
-  }
-})
+// ログアウト
+async function signOut () {
+  processing.value = true
+  await useAuthSignOut()
+  $toast.success($t('auth.signed_out'))
+  navigateTo($config.public.authRedirectLogOutURL)
+}
 </script>

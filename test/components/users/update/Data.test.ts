@@ -23,43 +23,43 @@ describe('Data.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true,
+        setData: mock.setData
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
-    const wrapper = mount(Component, {
+    const wrapper: any = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true,
-            setData: mock.setData
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       props: {
         user
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any, user: any) => {
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.vm.$data.query).toEqual({ name: user.name, email: user.email, password: '', password_confirmation: '', current_password: '' })
+    expect(wrapper.vm.query).toEqual({ name: user.name, email: user.email, password: '', password_confirmation: '', current_password: '' })
+
+    if (user.unconfirmed_email != null) { expect(wrapper.text()).toMatch(user.unconfirmed_email) }
   }
 
   // テストケース
-  it('表示される', async () => {
-    const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
+  it('表示される（メール確認済み）', async () => {
+    const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: null })
     const wrapper = mountFunction(user)
     viewTest(wrapper, user)
     await flushPromises()
@@ -71,7 +71,7 @@ describe('Data.vue', () => {
 
     // 入力
     wrapper.find('#user_update_current_password_text').setValue('abc12345')
-    wrapper.vm.$data.showPassword = true
+    wrapper.vm.showPassword = true
     await flushPromises()
 
     // 変更ボタン
@@ -86,6 +86,11 @@ describe('Data.vue', () => {
 
     // 変更ボタン
     expect(button.element.disabled).toBe(false) // 有効
+  })
+  it('表示される（メールアドレス変更中）', () => {
+    const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
+    const wrapper = mountFunction(user)
+    viewTest(wrapper, user)
   })
 
   describe('ユーザー情報変更', () => {
@@ -102,7 +107,7 @@ describe('Data.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      wrapper = mountFunction(user, { query: params })
+      wrapper = mountFunction(user, { query: params, alert: data.alert, notice: data.notice })
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
       await flushPromises()
@@ -174,7 +179,7 @@ describe('Data.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: null })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: '' })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })
