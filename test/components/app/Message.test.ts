@@ -3,9 +3,11 @@ import helper from '~/test/helper'
 import Component from '~/components/app/Message.vue'
 
 describe('Message.vue', () => {
-  const mountFunction = (props = {}) => {
+  const mountFunction = (messages: any) => {
     const wrapper = mount(Component, {
-      props
+      props: {
+        messages
+      }
     })
     expect(wrapper.vm).toBeTruthy()
     return wrapper

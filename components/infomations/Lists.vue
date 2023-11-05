@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import { dateFormat } from '~/utils/helper'
+import { dateFormat } from '~/utils/display'
 
 defineProps({
   infomations: {

@@ -95,8 +95,8 @@ import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
-import { redirectTop, redirectAuth } from '~/utils/auth'
-import { existKeyErrors } from '~/utils/helper'
+import { redirectPath, redirectAuth } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required', required)
 defineRule('email', email)
@@ -112,7 +112,7 @@ const $props = defineProps({
     required: true
   }
 })
-const $emit = defineEmits(['alert', 'notice'])
+const $emit = defineEmits(['messages'])
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
 const { $auth, $toast } = useNuxtApp()
@@ -142,21 +142,20 @@ async function postUserUpdate (setErrors: any, values: any) {
       $toast.error($t('system.error'))
     } else {
       $auth.setData(data)
-      return redirectTop(data, true)
+      return redirectPath('/', data, true)
     }
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth($t)
+      redirectAuth({ notice: $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
-      $toast.error($t('auth.destroy_reserved'))
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
-      $emit('alert', data.alert || $t('system.default'))
-      $emit('notice', data.notice || '')
+      $emit('messages', { alert: data.alert || $t('system.default'), notice: data.notice || '' })
       if (data.errors != null) {
-        setErrors(existKeyErrors(data.errors, values))
+        setErrors(existKeyErrors.value(data.errors, values))
         waiting.value = true
       }
     }

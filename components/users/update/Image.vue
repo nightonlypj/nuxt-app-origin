@@ -7,6 +7,7 @@
           <v-img :src="$auth.user.image_url.xlarge" />
         </v-avatar>
         <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
+          <!-- /* c8 ignore start */ -->
           <v-file-input
             id="user_update_image_file"
             v-model="image"
@@ -19,6 +20,7 @@
             :error-messages="errors"
             @update:model-value="waiting = false"
           />
+          <!-- /* c8 ignore stop */ -->
         </Field>
         <v-btn
           id="user_update_image_btn"
@@ -81,14 +83,14 @@ import { localize, setLocale } from '@vee-validate/i18n'
 import { size } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
-import { redirectAuth } from '~/utils/auth'
-import { existKeyErrors } from '~/utils/helper'
+import { redirectAuth } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-const $emit = defineEmits(['alert', 'notice'])
+const $emit = defineEmits(['messages'])
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
 const { $auth, $toast } = useNuxtApp()
@@ -126,22 +128,20 @@ function responseAction (response: any, data: any, setErrors: any, values: any) 
       if (data.notice != null) { $toast.success(data.notice) }
 
       image.value = null
-      $emit('alert', '') // NOTE: Data.vueのalertを消す為
-      $emit('notice', '')
+      $emit('messages', { alert: '', notice: '' }) // NOTE: Data.vueがセットした値を消す為
     }
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth($t)
+      redirectAuth({ notice: $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
-      $toast.error($t('auth.destroy_reserved'))
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
-      $emit('alert', data.alert || $t('system.default'))
-      $emit('notice', data.notice || '')
+      $emit('messages', { alert: data.alert || $t('system.default'), notice: data.notice || '' })
       if (data.errors != null) {
-        setErrors(existKeyErrors(data.errors, values))
+        setErrors(existKeyErrors.value(data.errors, values))
         waiting.value = true
       }
     }

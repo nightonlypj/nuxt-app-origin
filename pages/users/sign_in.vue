@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta }">
@@ -70,8 +70,8 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import { completInputKey } from '~/utils/helper'
-import { redirectTop, redirectConfirmationReset, redirectAlreadyAuth } from '~/utils/auth'
+import { completInputKey } from '~/utils/input'
+import { redirectPath, redirectConfirmationReset } from '~/utils/redirect'
 
 defineRule('required', required)
 defineRule('email', email)
@@ -86,8 +86,10 @@ const $route = useRoute()
 const loading = ref(true)
 const processing = ref(false)
 const waiting = ref(false)
-const alert = ref(String($route.query.alert || ''))
-const notice = ref(String($route.query.notice || ''))
+const messages = ref({
+  alert: String($route.query.alert || ''),
+  notice: String($route.query.notice || '')
+})
 const query = ref({
   email: '',
   password: ''
@@ -97,12 +99,12 @@ const keyDownEnter = ref(false)
 
 created()
 function created () {
-  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectTop($route.query) }
+  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectPath('/', $route.query) }
   if ($route.query.account_confirmation_success === 'false') { return redirectConfirmationReset($route.query) }
-  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectTop($route.query) }
-  if ($auth.loggedIn) { return redirectAlreadyAuth($t) }
+  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectPath('/', $route.query) }
+  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
 
-  if ($route.query.account_confirmation_success === 'true' || $route.query.unlock === 'true') { notice.value += $t('auth.unauthenticated') }
+  if ($route.query.account_confirmation_success === 'true' || $route.query.unlock === 'true') { messages.value.notice += $t('auth.unauthenticated') }
   if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
 
   loading.value = false
@@ -137,8 +139,10 @@ async function signIn (invalid: boolean, keydown: boolean) {
     if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
-      alert.value = data.alert || $t('system.default')
-      notice.value = data.notice || ''
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
+      }
       waiting.value = true
     }
   }

@@ -5,5 +5,5 @@ export const envConfig = {
   frontBaseURL: 'https://front.example.com',
 
   timeZoneOffset: '+09:00',
-  timeZoneShort: 'JST'
+  timeZoneShortName: 'JST'
 }

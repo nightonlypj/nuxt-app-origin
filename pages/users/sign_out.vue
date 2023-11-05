@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import { redirectAlreadySignedOut } from '~/utils/auth'
+import { redirectPath } from '~/utils/redirect'
 
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
@@ -39,7 +39,7 @@ const processing = ref(false)
 
 created()
 function created () {
-  if (!$auth.loggedIn) { return redirectAlreadySignedOut($t) }
+  if (!$auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_signed_out') }) }
 
   loading.value = false
 }

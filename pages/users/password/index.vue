@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
@@ -74,8 +74,8 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import { completInputKey, existKeyErrors } from '~/utils/helper'
-import { redirectAlreadyAuth, redirectPasswordReset, redirectTop } from '~/utils/auth'
+import { completInputKey, existKeyErrors } from '~/utils/input'
+import { redirectPath, redirectPasswordReset } from '~/utils/redirect'
 
 defineRule('required', required)
 defineRule('min', min)
@@ -91,8 +91,10 @@ const $route = useRoute()
 const loading = ref(true)
 const processing = ref(false)
 const waiting = ref(false)
-const alert = ref('')
-const notice = ref('')
+const messages = ref({
+  alert: '',
+  notice: ''
+})
 const query = ref({
   password: '',
   password_confirmation: ''
@@ -102,7 +104,7 @@ const keyDownEnter = ref(false)
 
 created()
 function created () {
-  if ($auth.loggedIn) { return redirectAlreadyAuth($t) }
+  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
   if ($route.query.reset_password === 'false') { return redirectPasswordReset($route.query) }
   if (!$route.query.reset_password_token) { return redirectPasswordReset({ alert: $t('auth.reset_password_token_blank') }) }
 
@@ -126,7 +128,7 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
       $toast.error($t('system.error'))
     } else {
       $auth.setData(data)
-      return redirectTop(data, true)
+      return redirectPath('/', data, true)
     }
   } else {
     if (data == null) {
@@ -134,10 +136,12 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
     } else if (data.errors == null) {
       return redirectPasswordReset({ alert: data.alert || $t('system.default'), notice: data.notice })
     } else {
-      alert.value = data.alert || $t('system.default')
-      notice.value = data.notice || ''
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
+      }
       if (data.errors != null) {
-        setErrors(existKeyErrors(data.errors, values))
+        setErrors(existKeyErrors.value(data.errors, values))
         waiting.value = true
       }
     }

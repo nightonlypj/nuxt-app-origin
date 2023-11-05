@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
@@ -57,8 +57,8 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import { completInputKey, existKeyErrors } from '~/utils/helper'
-import { redirectTop, redirectSignIn } from '~/utils/auth'
+import { completInputKey, existKeyErrors } from '~/utils/input'
+import { redirectPath, redirectSignIn } from '~/utils/redirect'
 
 defineRule('required', required)
 defineRule('email', email)
@@ -73,8 +73,10 @@ const $route = useRoute()
 const loading = ref(true)
 const processing = ref(false)
 const waiting = ref(false)
-const alert = ref(String($route.query.alert || ''))
-const notice = ref(String($route.query.notice || ''))
+const messages = ref({
+  alert: String($route.query.alert || ''),
+  notice: String($route.query.notice || '')
+})
 const query = ref({
   email: ''
 })
@@ -103,16 +105,18 @@ async function postConfirmation (invalid: boolean, keydown: boolean, setErrors: 
     if (data == null) {
       $toast.error($t('system.error'))
     } else {
-      return $auth.loggedIn ? redirectTop(data, true) : redirectSignIn(data)
+      return $auth.loggedIn ? redirectPath('/', data, true) : redirectSignIn(data)
     }
   } else {
     if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
-      alert.value = data.alert || $t('system.default')
-      notice.value = data.notice || ''
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
+      }
       if (data.errors != null) {
-        setErrors(existKeyErrors(data.errors, values))
+        setErrors(existKeyErrors.value(data.errors, values))
         waiting.value = true
       }
     }

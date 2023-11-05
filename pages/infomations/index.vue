@@ -36,8 +36,8 @@
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
-import { localeString, pageFirstNumber, pageLastNumber } from '~/utils/helper'
-import { redirectError } from '~/utils/auth'
+import { localeString, pageFirstNumber, pageLastNumber } from '~/utils/display'
+import { redirectError } from '~/utils/redirect'
 
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
@@ -46,7 +46,7 @@ const $route = useRoute()
 
 const loading = ref(true)
 const processing = ref(false)
-const page = ref(Number($route?.query?.page) || 1)
+const page = ref(Number($route.query?.page) || 1)
 const infomation = ref<any>(null)
 const infomations = ref<any>(null)
 
@@ -75,7 +75,7 @@ async function getInfomationsList () {
     if (data == null) {
       alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
     } else {
-      alert = $t('system.default')
+      alert = data.alert || $t('system.default')
     }
   }
   if (alert === '') {
@@ -83,9 +83,10 @@ async function getInfomationsList () {
     infomations.value = data.infomations
   } else {
     if (infomation.value == null) {
-      redirectError(response?.ok ? null : response?.status, { alert })
+      redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
     } else {
       $toast.error(alert)
+      if (data?.notice != null) { $toast.info(data.notice) }
     }
   }
 

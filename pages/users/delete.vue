@@ -65,7 +65,8 @@
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import { redirectAuth, updateAuthUser, redirectDestroyReserved, redirectSignIn } from '~/utils/auth'
+import { redirectAuth, redirectPath, redirectSignIn } from '~/utils/redirect'
+import { updateAuthUser } from '~/utils/auth'
 
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
@@ -77,10 +78,10 @@ const destroyScheduleDays = $auth.user?.destroy_schedule_days
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth($t) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
 
   if (!await updateAuthUser($t)) { return } // NOTE: 最新の状態が削除予約済みか確認する為
-  if ($auth.user.destroy_schedule_at != null) { return redirectDestroyReserved($t) }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
 
   loading.value = false
 }
@@ -104,9 +105,9 @@ async function postUserDelete (isActive: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth($t)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
-      $toast.error($t('auth.destroy_reserved'))
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
