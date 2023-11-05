@@ -35,9 +35,6 @@ describe('sign_up.vue', () => {
           AppMessage: true,
           ActionLink: true
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()

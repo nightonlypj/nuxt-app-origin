@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import { dateFormat } from '~/utils/helper'
+import { dateFormat } from '~/utils/display'
 
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()

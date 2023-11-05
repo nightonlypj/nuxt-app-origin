@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { dateFormat } from '~/utils/helper'
+import { dateFormat } from '~/utils/display'
 
 const { $auth } = useNuxtApp()
 const $route = useRoute()

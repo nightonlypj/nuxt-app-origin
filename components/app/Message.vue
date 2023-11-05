@@ -1,35 +1,31 @@
 <template>
   <v-alert
-    v-if="alert != null && alert !== ''"
+    v-if="messages.alert != null && messages.alert !== ''"
     type="error"
     icon="mdi-alert"
     closable
     class="mb-4"
-    @update:model-value="$emit('update:alert', '')"
+    @update:model-value="$emit('update:messages', { ...messages, alert: '' })"
   >
-    {{ alert }}
+    {{ messages.alert }}
   </v-alert>
   <v-alert
-    v-if="notice != null && notice !== ''"
+    v-if="messages.notice != null && messages.notice !== ''"
     type="info"
     closable
     class="mb-4"
-    @update:model-value="$emit('update:notice', '')"
+    @update:model-value="$emit('update:messages', { ...messages, notice: '' })"
   >
-    {{ notice }}
+    {{ messages.notice }}
   </v-alert>
 </template>
 
 <script setup lang="ts">
 defineProps({
-  alert: {
-    type: String,
-    default: ''
-  },
-  notice: {
-    type: String,
-    default: ''
+  messages: {
+    type: Object,
+    required: true
   }
 })
-const $emit = defineEmits(['update:alert', 'update:notice'])
+const $emit = defineEmits(['update:messages'])
 </script>

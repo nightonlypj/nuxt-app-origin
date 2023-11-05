@@ -33,8 +33,8 @@
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import { dateFormat } from '~/utils/helper'
-import { redirectError } from '~/utils/auth'
+import { dateFormat } from '~/utils/display'
+import { redirectError } from '~/utils/redirect'
 
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
@@ -74,7 +74,7 @@ async function getInfomationsDetail (id: number) {
     }
   } else {
     if (response?.status === 404) {
-      redirectError(404, { alert: data.alert || $t('system.default'), notice: data.notice })
+      redirectError(404, { alert: data?.alert || $t('system.default'), notice: data?.notice })
     } else if (data == null) {
       redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
     } else {
