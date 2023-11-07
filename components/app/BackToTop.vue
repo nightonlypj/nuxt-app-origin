@@ -1,4 +1,5 @@
 <template>
+  <!-- /* c8 ignore next 2 */ -->
   <component
     :is="$config.public.env.test ? 'div' : 'v-layout-item'"
     id="back_to_top_item"

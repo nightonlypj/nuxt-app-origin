@@ -1,6 +1,6 @@
 import { completInputKey, existKeyErrors } from '~/utils/input'
 
-describe('helper.ts', () => {
+describe('input.ts', () => {
   // 入力が完了しているかを返却 // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
   describe('completInputKey', () => {
     it('[全てfalse]true', () => {

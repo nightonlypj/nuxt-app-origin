@@ -80,7 +80,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
 
-  if (!await updateAuthUser($t)) { return } // NOTE: 最新の状態が削除予約済みか確認する為
+  if (!await updateAuthUser($t)) { return }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
 
   loading.value = false
@@ -96,11 +96,11 @@ async function postUserDelete (isActive: any) {
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       await useAuthSignOut()
       return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {

@@ -101,10 +101,10 @@ async function postUnlock (invalid: boolean, keydown: boolean, setErrors: any, v
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {

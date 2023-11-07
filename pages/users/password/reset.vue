@@ -101,10 +101,10 @@ async function postPassword (invalid: boolean, keydown: boolean, setErrors: any,
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {

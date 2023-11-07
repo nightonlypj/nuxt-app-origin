@@ -1,7 +1,7 @@
 import { dateFormat, dateTimeFormat, pageFirstNumber, pageLastNumber, localeString, textTruncate, tableHeight, timeZoneOffset, timeZoneShortName } from '~/utils/display'
 import helper from '~/test/helper'
 
-describe('helper.ts', () => {
+describe('display.ts', () => {
   // 日付/時間を言語のフォーマットで返却
   describe('dateFormat/dateTimeFormat', () => {
     it('[null]nullが返却される', () => {

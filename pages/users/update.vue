@@ -48,7 +48,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
 
-  if (!await updateAuthUser($t)) { return } // NOTE: 最新の状態が削除予約済みか確認する為
+  if (!await updateAuthUser($t)) { return }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
 
   if (!await getUserDetail()) { return }
@@ -61,11 +61,11 @@ async function getUserDetail () {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userDetailUrl)
 
   if (response?.ok) {
-    if (data?.user == null) {
-      redirectError(null, { alert: $t('system.error') })
-    } else {
+    if (data?.user != null) {
       user.value = data.user
       return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
   } else {
     if (response?.status === 401) {

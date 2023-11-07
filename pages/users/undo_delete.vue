@@ -76,7 +76,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
 
-  if (!await updateAuthUser($t)) { return } // NOTE: 最新の状態が削除予約済みか確認する為
+  if (!await updateAuthUser($t)) { return }
   if ($auth.user.destroy_schedule_at == null) { return redirectPath('/', { alert: $t('auth.not_destroy_reserved') }) }
 
   loading.value = false
@@ -90,11 +90,11 @@ async function postUserUndoDelete (isActive: any) {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       $auth.setData(data)
       return redirectPath('/', data, true)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {

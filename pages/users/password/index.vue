@@ -124,11 +124,11 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       $auth.setData(data)
       return redirectPath('/', data, true)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {
@@ -140,10 +140,8 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
         alert: data.alert || $t('system.default'),
         notice: data.notice || ''
       }
-      if (data.errors != null) {
-        setErrors(existKeyErrors.value(data.errors, values))
-        waiting.value = true
-      }
+      setErrors(existKeyErrors.value(data.errors, values))
+      waiting.value = true
     }
   }
 

@@ -14,10 +14,12 @@
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
+        <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" text rounded>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
         </component>
+        <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" text rounded>
           <v-icon>mdi-account-plus</v-icon>
           <div class="hidden-sm-and-down">アカウント登録</div>
@@ -40,12 +42,14 @@
             </v-btn>
           </template>
           <v-list>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
             </component>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
@@ -54,6 +58,7 @@
             </component>
           </v-list>
         </v-menu>
+        <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" text rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
@@ -70,12 +75,14 @@
     <v-navigation-drawer v-model="drawer" width="300">
       <v-list>
         <template v-if="!$auth.loggedIn">
+          <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_in">
             <v-list-item-title>
               <v-icon>mdi-login</v-icon>
               ログイン
             </v-list-item-title>
           </component>
+          <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_up">
             <v-list-item-title>
               <v-icon>mdi-account-plus</v-icon>
@@ -95,12 +102,14 @@
                 </v-list-item-title>
               </v-list-item>
             </template>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
             </component>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
@@ -110,6 +119,7 @@
           </v-list-group>
         </template>
         <v-divider />
+        <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/infomations">
           <v-list-item-title>
             <template v-if="$auth.loggedIn">

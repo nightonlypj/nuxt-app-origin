@@ -1,7 +1,7 @@
 import { sleep, checkSearchParams } from '~/utils/search'
 import helper from '~/test/helper'
 
-describe('helper.ts', () => {
+describe('search.ts', () => {
   // 一定時間停止
   describe('sleep', () => {
     it.skip('[10]10ミリ秒停止する', async () => { // NOTE: 時々、失敗する為

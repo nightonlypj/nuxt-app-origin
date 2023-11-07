@@ -1,6 +1,6 @@
 <template>
   <AppLoading v-if="loading" height="20vh" />
-  <v-card v-else-if="alert !== '' || infomations?.length > 0">
+  <v-card v-else-if="alert !== '' || (infomations != null && infomations.length > 0)">
     <v-card-title>大切なお知らせ</v-card-title>
     <v-card-text v-if="alert !== ''">
       <v-icon color="warning">mdi-alert</v-icon>
@@ -48,10 +48,10 @@ async function getInfomationsImportant () {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.infomations.importantUrl)
 
   if (response?.ok) {
-    if (data?.infomations == null) {
-      alert.value = $t('system.error_short')
-    } else {
+    if (data?.infomations != null) {
       infomations.value = data.infomations
+    } else {
+      alert.value = $t('system.error_short')
     }
   } else {
     if (data == null) {

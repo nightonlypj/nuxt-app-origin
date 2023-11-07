@@ -102,10 +102,10 @@ async function postConfirmation (invalid: boolean, keydown: boolean, setErrors: 
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       return $auth.loggedIn ? redirectPath('/', data, true) : redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {
