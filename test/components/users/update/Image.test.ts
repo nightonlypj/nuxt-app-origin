@@ -284,6 +284,15 @@ describe('Image.vue', () => {
       helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
+    it('[削除予約済み（メッセージあり）]エラーメッセージが表示される', async () => {
+      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, data])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()

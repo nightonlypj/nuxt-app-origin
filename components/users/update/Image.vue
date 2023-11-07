@@ -7,7 +7,6 @@
           <v-img :src="$auth.user.image_url.xlarge" />
         </v-avatar>
         <Field v-slot="{ errors }" v-model="image" name="image" rules="size_20MB:20480">
-          <!-- /* c8 ignore start */ -->
           <v-file-input
             id="user_update_image_file"
             v-model="image"
@@ -20,7 +19,6 @@
             :error-messages="errors"
             @update:model-value="waiting = false"
           />
-          <!-- /* c8 ignore stop */ -->
         </Field>
         <v-btn
           id="user_update_image_btn"
@@ -106,7 +104,7 @@ async function postUserImageUpdate (setErrors: any, values: any) {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageUpdateUrl, 'POST', {
     image: image.value[0]
   }, 'form')
-  responseAction(response, data, setErrors, values)
+  responseUserImage(response, data, setErrors, values)
 }
 
 // ユーザー画像削除
@@ -115,20 +113,20 @@ async function postUserImageDelete (isActive: any, setErrors: any, values: any) 
   isActive.value = false
 
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageDeleteUrl, 'POST')
-  responseAction(response, data, setErrors, values)
+  responseUserImage(response, data, setErrors, values)
 }
 
-function responseAction (response: any, data: any, setErrors: any, values: any) {
+function responseUserImage (response: any, data: any, setErrors: any, values: any) {
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       $auth.setData(data)
       if (data.alert != null) { $toast.error(data.alert) }
       if (data.notice != null) { $toast.success(data.notice) }
 
       image.value = null
       $emit('messages', { alert: '', notice: '' }) // NOTE: Data.vueがセットした値を消す為
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
@@ -136,6 +134,7 @@ function responseAction (response: any, data: any, setErrors: any, values: any) 
       redirectAuth({ notice: $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
+      if (data?.notice != null) { $toast.info(data.notice) }
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {

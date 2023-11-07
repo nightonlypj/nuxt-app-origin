@@ -1,5 +1,5 @@
 <template>
-  <template v-if="infomations?.length > 0">
+  <template v-if="infomations != null && infomations.length > 0">
     <article
       v-for="infomation in infomations"
       :id="`infomation_list_${infomation.id}`"

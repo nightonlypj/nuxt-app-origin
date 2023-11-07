@@ -1,6 +1,6 @@
 import { redirectAuth, redirectError } from '~/utils/redirect'
 
-// ユーザー情報更新
+// ユーザー情報更新 // NOTE: 最新の状態で確認する為
 async function updateAuthUser ($t: any) {
   const [response, data] = await useAuthUser()
   if (response?.ok) { return true }
@@ -16,6 +16,20 @@ async function updateAuthUser ($t: any) {
   return false
 }
 
+// レスポンスのuidチェック // NOTE: 無限スクロールの途中で未ログインや別ユーザーに変わったらリロードする
+function checkHeadersUid (response: any, page: Ref<number>, uid: Ref<string | null>) {
+  if (!response?.ok) { return true }
+
+  if (page.value === 1) {
+    uid.value = response.headers.get('uid')
+  } else if (uid.value !== (response.headers.get('uid'))) {
+    location.reload()
+    return false
+  }
+  return true
+}
+
 export {
-  updateAuthUser
+  updateAuthUser,
+  checkHeadersUid
 }

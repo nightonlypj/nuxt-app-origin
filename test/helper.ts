@@ -5,7 +5,7 @@ import { ja } from '~/locales/ja'
 
 // NuxtLinkのURL一覧を配列で返却
 const getLinks = (wrapper: any) => {
-  return wrapper.findAllComponents(RouterLinkStub).map((link: any) => link.props().to)
+  return wrapper.findAllComponents(RouterLinkStub).map((item: any) => item.props().to)
 }
 
 // テスト内容

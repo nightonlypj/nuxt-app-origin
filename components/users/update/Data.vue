@@ -138,11 +138,11 @@ async function postUserUpdate (setErrors: any, values: any) {
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       $auth.setData(data)
       return redirectPath('/', data, true)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
@@ -150,6 +150,7 @@ async function postUserUpdate (setErrors: any, values: any) {
       redirectAuth({ notice: $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
+      if (data?.notice != null) { $toast.info(data.notice) }
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {

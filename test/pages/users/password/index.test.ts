@@ -213,6 +213,14 @@ describe('index.vue', () => {
       helper.messageTest(wrapper, AppMessage, data)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
+    it('[入力エラー（メッセージなし）]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, alert: null, notice: null, errors: { password: ['errorメッセージ'] } }])
+      await beforeAction()
+
+      apiCalledTest(1, params)
+      helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
+      helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
+    })
     it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()

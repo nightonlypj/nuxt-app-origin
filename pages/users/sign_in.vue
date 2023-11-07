@@ -123,9 +123,7 @@ async function signIn (invalid: boolean, keydown: boolean) {
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       $auth.setData(data)
       if (data.alert != null) { $toast.error(data.alert) }
       if (data.notice != null) { $toast.success(data.notice) }
@@ -134,6 +132,8 @@ async function signIn (invalid: boolean, keydown: boolean) {
       navigateTo(redirectUrl.value || $config.public.authRedirectHomeURL)
       updateRedirectUrl(null)
       return
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {

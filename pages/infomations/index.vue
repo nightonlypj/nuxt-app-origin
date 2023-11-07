@@ -68,7 +68,10 @@ async function getInfomationsList () {
 
   let alert = ''
   if (response?.ok) {
-    if (data?.infomation?.current_page !== page.value) {
+    if (data?.infomation?.current_page === page.value) {
+      infomation.value = data.infomation
+      infomations.value = data.infomations
+    } else {
       alert = $t('system.error')
     }
   } else {
@@ -78,19 +81,17 @@ async function getInfomationsList () {
       alert = data.alert || $t('system.default')
     }
   }
-  if (alert === '') {
-    infomation.value = data.infomation
-    infomations.value = data.infomations
-  } else {
+  if (alert !== '') {
     if (infomation.value == null) {
       redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
+      return false
     } else {
       $toast.error(alert)
       if (data?.notice != null) { $toast.info(data.notice) }
     }
   }
 
-  page.value = infomation.value?.current_page || 1
+  page.value = infomation.value.current_page
   navigateTo(page.value === 1 ? {} : { query: { page: page.value } }) // NOTE: URLパラメータを変更する為
 
   processing.value = false

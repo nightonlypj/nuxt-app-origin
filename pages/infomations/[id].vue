@@ -66,15 +66,15 @@ async function getInfomationsDetail (id: number) {
   const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
 
   if (response?.ok) {
-    if (data?.infomation == null) {
-      redirectError(null, { alert: $t('system.error') })
-    } else {
+    if (data?.infomation != null) {
       infomation.value = data.infomation
       return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
   } else {
     if (response?.status === 404) {
-      redirectError(404, { alert: data?.alert || $t('system.default'), notice: data?.notice })
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
     } else if (data == null) {
       redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
     } else {

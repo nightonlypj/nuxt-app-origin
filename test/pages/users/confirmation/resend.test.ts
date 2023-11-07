@@ -17,7 +17,6 @@ describe('resend.vue', () => {
     }
   })
 
-  const path = '/users/confirmation/resend'
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
@@ -28,7 +27,6 @@ describe('resend.vue', () => {
       $toast: mock.toast
     })))
     vi.stubGlobal('useRoute', vi.fn(() => ({
-      path,
       query: { ...query }
     })))
 

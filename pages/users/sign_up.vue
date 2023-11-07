@@ -140,10 +140,10 @@ async function postSingUp (setErrors: any, values: any) {
   })
 
   if (response?.ok) {
-    if (data == null) {
-      $toast.error($t('system.error'))
-    } else {
+    if (data != null) {
       return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
   } else {
     if (data == null) {
