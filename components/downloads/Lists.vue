@@ -7,7 +7,7 @@
     :items-length="downloads.length"
     density="comfortable"
     fixed-header
-    :height="appTableHeight"
+    :height="tableHeight($vuetify.display.height)"
   >
     <!--
     :item-class="itemClass"  TODO: 背景色が変わらない
@@ -20,13 +20,13 @@
     </template>
     <template #[`item.requested_at`]="{ item }">
       <div class="text-no-wrap">
-        {{ $timeFormat('ja', item.raw.requested_at) }}
+        {{ dateTimeFormat('ja', item.raw.requested_at) }}
       </div>
     </template>
     <!-- 完了日時 -->
     <template #[`item.completed_at`]="{ item }">
       <div class="text-no-wrap">
-        {{ $timeFormat('ja', item.raw.completed_at) }}
+        {{ dateTimeFormat('ja', item.raw.completed_at) }}
       </div>
     </template>
     <!-- ステータス -->
@@ -64,7 +64,7 @@
     <template #[`item.target`]="{ item }">
       <div class="my-2">
         <template v-if="item.raw.model === 'member' && item.raw.space != null && item.raw.space.name != null">
-          メンバー: {{ $textTruncate(item.raw.space.name, 64) }}
+          メンバー: {{ textTruncate(item.raw.space.name, 64) }}
         </template>
         <template v-else>
           {{ item.raw.model_i18n }}
@@ -75,46 +75,39 @@
   </v-data-table-server>
 </template>
 
-<script>
-import Application from '~/utils/application.js'
+<script setup lang="ts">
+import { tableHeight, dateTimeFormat, textTruncate } from '~/utils/display'
 
-export default defineNuxtComponent({
-  mixins: [Application],
-
-  props: {
-    downloads: {
-      type: Array,
-      default: null
-    }
-  },
-  emits: ['downloadsFile'],
-
-  computed: {
-    headers () {
-      const result = []
-      for (const item of this.$tm('items.download')) {
-        result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
-      }
-      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-      return result
-    /*
-    },
-
-    itemClass () {
-      return (item) => {
-        if (this.$route?.query?.target_id != null) {
-          if (item.raw.id === Number(this.$route.query.target_id)) { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
-          return null
-        }
-
-        if (item.raw.status === 'success') { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
-        if (item.raw.status === 'failure') { return 'row_inactive' }
-        return null
-      }
-    */
-    }
+defineProps({
+  downloads: {
+    type: Array,
+    default: null
   }
 })
+const $emit = defineEmits(['downloadsFile'])
+const { tm: $tm } = useI18n()
+// const $route = useRoute()
+
+const headers = computed(() => {
+  const result = []
+  for (const item of ($tm('items.download') as any)) {
+    result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
+  }
+  if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
+  return result
+})
+/*
+const itemClass = computed(() => (item: any) => {
+  if ($route.query?.target_id != null) {
+    if (item.raw.id === Number($route.query.target_id)) { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
+    return null
+  }
+
+  if (item.raw.status === 'success') { return item.raw.last_downloaded_at == null ? 'row_active' : 'row_inactive' }
+  if (item.raw.status === 'failure') { return 'row_inactive' }
+  return null
+})
+*/
 </script>
 
 <style scoped>

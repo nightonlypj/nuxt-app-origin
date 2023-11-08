@@ -15,7 +15,7 @@
                   作成
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', invitation.created_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', invitation.created_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.created_user" />
                 </v-col>
               </v-row>
@@ -24,7 +24,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', invitation.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="invitation.last_updated_user" />
                 </v-col>
               </v-row>
@@ -66,7 +66,7 @@
                   権限
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
-                  <v-icon size="small">{{ appMemberPowerIcon(invitation.power) }}</v-icon>
+                  <v-icon size="small">{{ memberPowerIcon(invitation.power) }}</v-icon>
                   {{ invitation.power_i18n }}
                 </v-col>
               </v-row>
@@ -100,7 +100,7 @@
                     />
                   </Field>
                   <div class="ml-2 mt-2">
-                    {{ appTimeZoneOffset }}<span v-if="appTimeZoneShort != null">({{ appTimeZoneShort }})</span>
+                    {{ timeZoneOffset() }}<span v-if="timeZoneShortName() != null">({{ timeZoneShortName() }})</span>
                   </div>
                 </v-col>
               </v-row>
@@ -153,7 +153,7 @@
                       @update:model-value="waiting = false"
                     />
                     <div class="mt-2">
-                      削除予定: {{ $dateFormat('ja', invitation.destroy_schedule_at, 'N/A') }}（{{ $timeFormat('ja', invitation.destroy_requested_at) }}に削除を受け付けています）
+                      削除予定: {{ dateFormat('ja', invitation.destroy_schedule_at, 'N/A') }}（{{ dateTimeFormat('ja', invitation.destroy_requested_at) }}に削除を受け付けています）
                     </div>
                   </template>
                 </v-col>
@@ -185,8 +185,7 @@
   </v-dialog>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { max } from '@vee-validate/rules'
@@ -194,119 +193,134 @@ import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/utils/application.js'
+import { dateFormat, dateTimeFormat, timeZoneOffset, timeZoneShortName } from '~/utils/display'
+import { memberPowerIcon } from '~/utils/members'
+import { redirectAuth, redirectError } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('max', max)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppRequiredLabel,
-    UsersAvatar
-  },
-  mixins: [Application],
-
-  props: {
-    space: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['update'],
-
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      dialog: false,
-      invitation: null
-    }
-  },
-
-  computed: {
-    invitationURL () {
-      return `${location.protocol}//${location.host}/users/sign_up?code=${this.invitation.code}`
-    }
-  },
-
-  methods: {
-    // ダイアログ表示
-    async showDialog (invitation) {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('showDialog', invitation) }
-
-      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
-
-      if (!await this.getInvitationsDetail(invitation)) { return }
-      if (this.invitation.status === 'email_joined') { return this.appSetToastedMessage({ alert: this.$t('alert.invitation.email_joined') }) }
-
-      this.waiting = true
-      this.dialog = true
-    },
-
-    // 招待URL詳細取得
-    async getInvitationsDetail (invitation) {
-      const url = this.$config.public.invitations.detailUrl.replace(':space_code', this.space.code).replace(':code', invitation.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.invitation == null)) {
-          this.invitation = data.invitation
-          if (this.invitation.ended_at != null) {
-            const date = new Date(this.invitation.ended_at)
-            this.invitation.ended_date = date.getFullYear() + '-' + `0${date.getMonth() + 1}`.slice(-2) + '-' + `0${date.getDate()}`.slice(-2)
-            this.invitation.ended_time = `0${date.getHours()}`.slice(-2) + ':' + `0${date.getMinutes()}`.slice(-2)
-          } else {
-            this.invitation.ended_time = '23:59'
-          }
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true, forbidden: true, notfound: true })
-      }
-
-      return false
-    },
-
-    // 招待URL設定変更
-    async postInvitationsUpdate (setErrors, values) {
-      this.processing = true
-
-      let params = {}
-      if (this.invitation.delete) { params = { delete: true } }
-      if (this.invitation.undo_delete) { params = { undo_delete: true } }
-      const url = this.$config.public.invitations.updateUrl.replace(':space_code', this.space.code).replace(':code', this.invitation.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'POST', {
-        invitation: {
-          ended_date: this.invitation.ended_date,
-          ended_time: this.invitation.ended_time,
-          ended_zone: this.appTimeZoneOffset,
-          memo: this.invitation.memo,
-          ...params
-        }
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.appSetToastedMessage(data, false, true)
-          this.$emit('update', data.invitation)
-          this.dialog = false
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
-        this.appSetToastedMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
-    }
+const $props = defineProps({
+  space: {
+    type: Object,
+    required: true
   }
 })
+defineExpose({ showDialog })
+const $emit = defineEmits(['update'])
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+const processing = ref(false)
+const waiting = ref(false)
+const dialog = ref(false)
+const invitation = ref<any>(null)
+
+const invitationURL = computed(() => `${location.protocol}//${location.host}/users/sign_up?code=${invitation.value.code}`)
+
+// ダイアログ表示
+async function showDialog (item: any) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('showDialog', item) }
+
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
+
+  if (!await getInvitationsDetail(item)) { return }
+  if (invitation.value.status === 'email_joined') { return $toast.error($t('alert.invitation.email_joined')) }
+
+  waiting.value = true
+  dialog.value = true
+}
+
+// 招待URL詳細取得
+async function getInvitationsDetail (item: any) {
+  const url = $config.public.invitations.detailUrl.replace(':space_code', $props.space.code).replace(':code', item.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+
+  if (response?.ok) {
+    if (data?.invitation != null) {
+      invitation.value = data.invitation
+      if (invitation.value.ended_at != null) {
+        const date = new Date(invitation.value.ended_at)
+        invitation.value.ended_date = date.getFullYear() + '-' + `0${date.getMonth() + 1}`.slice(-2) + '-' + `0${date.getDate()}`.slice(-2)
+        invitation.value.ended_time = `0${date.getHours()}`.slice(-2) + ':' + `0${date.getMinutes()}`.slice(-2)
+      } else {
+        invitation.value.ended_time = '23:59'
+      }
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
+    } else if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
+    }
+  }
+
+  return false
+}
+
+// 招待URL設定変更
+async function postInvitationsUpdate (setErrors: any, values: any) {
+  processing.value = true
+
+  let params = {}
+  if (invitation.value.delete) { params = { delete: true } }
+  if (invitation.value.undo_delete) { params = { undo_delete: true } }
+  const url = $config.public.invitations.updateUrl.replace(':space_code', $props.space.code).replace(':code', invitation.value.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+    invitation: {
+      ended_date: invitation.value.ended_date,
+      ended_time: invitation.value.ended_time,
+      ended_zone: timeZoneOffset.value(),
+      memo: invitation.value.memo,
+      ...params
+    }
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      $emit('update', data.invitation)
+      dialog.value = false
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>

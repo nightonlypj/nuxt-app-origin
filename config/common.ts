@@ -9,10 +9,6 @@ export const commonConfig = {
   },
 
   member: {
-    power: {
-      writerUp: ['admin', 'writer'],
-      readerUp: ['admin', 'writer', 'reader']
-    },
     powerIcon: {
       admin: 'mdi-account-cog',
       writer: 'mdi-account-edit',
@@ -115,8 +111,8 @@ export const commonConfig = {
   downloads: {
     // ダウンロード結果一覧API
     listUrl: '/downloads.json',
-    // ダウンロードAPI
-    fileUrl: '/downloads/file/:id.json',
+    // ダウンロードファイル取得
+    fileUrl: '/downloads/file/:id.csv',
     // ダウンロード依頼API
     createUrl: '/downloads/create.json'
   }

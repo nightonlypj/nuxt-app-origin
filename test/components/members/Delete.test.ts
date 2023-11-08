@@ -29,21 +29,21 @@ describe('Delete.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       props: {

@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card>
       <v-card-title>ダウンロード結果</v-card-title>
     </v-card>
@@ -13,7 +13,7 @@
         <AppProcessing v-if="reloading" />
         <v-row>
           <v-col class="d-flex align-self-center text-no-wrap">
-            {{ $localeString('ja', download.total_count, 'N/A') }}件
+            {{ localeString('ja', download.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
             <v-btn
@@ -28,16 +28,16 @@
           </v-col>
         </v-row>
 
-        <template v-if="!existDownloads">
+        <template v-if="downloads == null || downloads.length === 0">
           <v-divider class="my-4" />
           <span class="ml-1">ダウンロード結果が見つかりません。</span>
           <v-divider class="my-4" />
         </template>
-        <template v-if="existDownloads">
+        <template v-if="downloads != null && downloads.length > 0">
           <v-divider class="my-2" />
           <DownloadsLists
             :downloads="downloads"
-            @downloads-file="downloadsFile"
+            @downloads-file="getDownloadsFile"
           />
           <v-divider class="my-2" />
         </template>
@@ -60,245 +60,281 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import InfiniteLoading from 'v3-infinite-loading'
 import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import DownloadsLists from '~/components/downloads/Lists.vue'
-import Application from '~/utils/application.js'
+import { localeString } from '~/utils/display'
+import { redirectAuth, redirectError } from '~/utils/redirect'
+import { checkHeadersUid } from '~/utils/auth'
+import { checkSearchParams } from '~/utils/search'
 
-export default defineNuxtComponent({
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  components: {
-    InfiniteLoading,
-    AppErrorRetry,
-    AppLoading,
-    AppProcessing,
-    AppMessage,
-    DownloadsLists
-  },
-  mixins: [Application],
+const loading = ref(true)
+const processing = ref(false)
+const reloading = ref(false)
+const messages = ref({
+  alert: '',
+  notice: ''
+})
+const params = ref<any>(null)
+const uid = ref<string | null>(null)
+const error = ref(false)
+const testState = ref<string | null>(null) // Vitest用
+const page = ref(1)
+const download = ref<any>(null)
+const downloads = ref<any>(null)
+const testDelay = ref<any>(null) // Vitest用
+const testElement = ref<any>(null) // Vitest用
 
-  data () {
-    return {
-      loading: true,
-      processing: true,
-      reloading: false,
-      alert: null,
-      notice: null,
-      params: null,
-      uid: null,
-      error: false,
-      testState: null, // Vitest用
-      page: 1,
-      download: null,
-      downloads: null,
-      testDelay: null, // Vitest用
-      testElement: null // Vitest用
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!await getDownloadsList()) { return }
+
+  loading.value = false
+}
+
+// ダウンロード結果一覧再取得
+async function reloadDownloadsList () {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('reloadDownloadsList', reloading.value) }
+
+  reloading.value = true
+  page.value = 1
+
+  await getDownloadsList()
+  reloading.value = false
+}
+
+// 次頁のダウンロード結果一覧取得
+async function getNextDownloadsList ($state: any) {
+  /* c8 ignore start */
+  // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('getNextDownloadsList', page.value + 1, processing.value, error.value) }
+  if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+  if (processing.value) { return }
+  /* c8 ignore stop */
+
+  page.value = download.value.current_page + 1
+  if (!await getDownloadsList()) {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'error'; return }
+
+    $state.error()
+    /* c8 ignore stop */
+  } else if (download.value.current_page < download.value.total_pages) {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'loaded'; return }
+
+    $state.loaded()
+    /* c8 ignore stop */
+  } else {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'complete'; return }
+
+    $state.complete()
+  }
+  /* c8 ignore stop */
+}
+
+// ダウンロード結果一覧取得
+async function getDownloadsList () {
+  processing.value = true
+
+  params.value = {}
+  if ($route.query?.target_id != null) { params.value.target_id = Number($route.query.target_id) }
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.listUrl, 'GET', {
+    ...params.value,
+    page: page.value
+  })
+  if (!checkHeadersUid(response, page, uid)) { return false }
+
+  let alert: string | null = null
+  if (response?.ok) {
+    if (data?.download?.current_page === page.value) {
+      successDownloadsList(data)
+    } else {
+      alert = $t('system.error')
     }
-  },
-
-  computed: {
-    existDownloads () {
-      return this.downloads?.length > 0
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ notice: $t('auth.unauthenticated') })
+      return false
+    } else if (data == null) {
+      alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
+    } else {
+      alert = $t('system.default')
     }
-  },
+  }
+  if (alert != null) {
+    if (download.value == null) {
+      redirectError(response?.ok ? null : response?.status, { alert })
+      return false
+    } else {
+      $toast.error(alert)
+      if (data?.notice != null) { $toast.info(data.notice) }
+    }
+  }
 
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-    if (!await this.getDownloadsList()) { return }
+  page.value = download.value.current_page
+  error.value = alert != null
 
-    this.loading = false
-  },
+  processing.value = false
+  return alert == null
+}
+function successDownloadsList (data: any) {
+  download.value = data.download
+  if (reloading.value || downloads.value == null) {
+    downloads.value = data.downloads?.slice()
+  } else {
+    downloads.value.push(...data.downloads)
+  }
 
-  methods: {
-    // ダウンロード結果一覧再取得
-    async reloadDownloadsList () {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('reloadDownloadsList', this.reloading) }
-
-      this.reloading = true
-      this.page = 1
-
-      await this.getDownloadsList()
-      this.reloading = false
-    },
-
-    // 次頁のダウンロード結果一覧取得
-    async getNextDownloadsList ($state) {
-      /* c8 ignore start */
-      // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('getNextDownloadsList', this.page + 1, this.processing, this.error) }
-      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
-      if (this.processing) { return }
-      /* c8 ignore stop */
-
-      this.page = this.download.current_page + 1
-      if (!await this.getDownloadsList()) {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'error'; return }
-
-        $state.error()
-        /* c8 ignore stop */
-      } else if (this.download.current_page < this.download.total_pages) {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'loaded'; return }
-
-        $state.loaded()
-        /* c8 ignore stop */
-      } else {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'complete'; return }
-
-        $state.complete()
-      }
-      /* c8 ignore stop */
-    },
-
-    // ダウンロード結果一覧取得
-    async getDownloadsList () {
-      this.processing = true
-
-      this.params = {}
-      if (this.$route?.query?.target_id != null) { this.params.target_id = Number(this.$route.query.target_id) }
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.listUrl, 'GET', {
-        ...this.params,
-        page: this.page
-      })
-
-      const redirect = this.download == null
-      if (response?.ok) {
-        if (this.page === 1) {
-          this.uid = response.headers.get('uid')
-        } else if (this.uid !== response.headers.get('uid')) {
-          this.error = true
-          location.reload()
-          return false
-        }
-
-        this.error = !this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.download?.current_page !== this.page)
-        if (!this.error) {
-          this.download = data.download
-          if (this.reloading || this.downloads == null) {
-            this.downloads = data.downloads?.slice()
-          } else {
-            this.downloads.push(...data.downloads)
-          }
-
-          if (this.params.target_id != null && this.page === 1 && data.target != null && data.target.last_downloaded_at == null) {
-            this.appSetMessage(data.target, false)
-            if (!this.reloading) {
-              if (['waiting', 'processing'].includes(data.target.status)) {
-                /* c8 ignore next */ // eslint-disable-next-line no-console
-                if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', this.params.target_id, 1) }
-
-                this.testDelay = [1000 * 3, this.params.target_id, 1] // 3秒後
-                setTimeout(this.checkDownloadComplete, ...this.testDelay)
-              } else {
-                this.appSetToastedMessage(data.target, false, true)
-              }
-            }
-          }
-
-          if (data.undownloaded_count != null && data.undownloaded_count !== this.$auth.user.undownloaded_count) {
-            this.$auth.updateUserUndownloadedCount(data.undownloaded_count)
-          }
-          this.appCheckSearchParams(this.params, data.search_params)
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true }, { auth: true })
-        this.error = true
-      }
-
-      this.page = this.download?.current_page || 1
-      this.processing = false
-      return !this.error
-    },
-
-    // 完了チェック
-    async checkDownloadComplete (targetId, count) {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('checkDownloadComplete', targetId, count) }
-
-      const index = this.downloads.findIndex(item => item.id === targetId)
-      if (index < 0 || !['waiting', 'processing'].includes(this.downloads[index].status)) { // NOTE: 更新ボタンで完了になっていた場合はスキップ
+  if (params.value.target_id != null && page.value === 1 && data.target != null && data.target.last_downloaded_at == null) {
+    messages.value = {
+      alert: data.target.alert || '',
+      notice: data.target.notice || ''
+    }
+    if (!reloading.value) {
+      if (['waiting', 'processing'].includes(data.target.status)) {
         /* c8 ignore next */ // eslint-disable-next-line no-console
-        if (this.$config.public.debug) { console.log('...Skip') }
+        if ($config.public.debug) { console.log('setTimeout: checkDownloadComplete', params.value.target_id, 1) }
 
-        return
-      }
-
-      this.params = {
-        id: targetId,
-        target_id: targetId
-      }
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.listUrl, 'GET', this.params)
-
-      if (response?.ok) {
-        this.error = !this.appCheckResponse(data, { toasted: true }, data?.downloads?.length !== 1 || data.downloads[0].id !== targetId || data.target == null)
-        if (!this.error) {
-          if (['waiting', 'processing'].includes(data.target.status)) {
-            /* c8 ignore next */ // eslint-disable-next-line no-console
-            if (this.$config.public.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
-
-            this.testDelay = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
-            setTimeout(this.checkDownloadComplete, ...this.testDelay)
-            return
-          }
-
-          this.downloads.splice(index, 1, data.downloads[0])
-          this.appSetMessage(data.target, false)
-          this.appSetToastedMessage(data.target, false, true)
-          this.$auth.updateUserUndownloadedCount(data.undownloaded_count)
-          this.appCheckSearchParams(this.params, data.search_params)
-        }
+        testDelay.value = [1000 * 3, params.value.target_id, 1] // 3秒後
+        setTimeout(checkDownloadComplete, ...testDelay.value)
       } else {
-        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true })
-      }
-    },
-
-    // ダウンロード
-    async downloadsFile (item) {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('downloadsFile', item) }
-
-      const url = this.$config.public.downloads.fileUrl.replace(':id', item.id)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'GET', null, null, 'text/csv')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          const element = document.createElement('a')
-          element.href = (window.URL || window.webkitURL).createObjectURL(data)
-
-          const contentDisposition = response.headers.get('content-disposition').match(/filename="([^"]*)"/) || []
-          if (contentDisposition.length >= 2) { element.download = contentDisposition[1] }
-
-          document.body.appendChild(element)
-          element.click()
-          document.body.removeChild(element)
-          this.testElement = element
-
-          if (item.last_downloaded_at == null) {
-            const index = this.downloads.findIndex(download => download.id === item.id)
-            if (index >= 0) {
-              item.last_downloaded_at = true
-              this.downloads.splice(index, 1, item)
-            }
-
-            if (item.id === Number(this.$route?.query?.target_id)) { this.notice = null }
-
-            if (this.$auth.user?.undownloaded_count > 0) {
-              this.$auth.updateUserUndownloadedCount(this.$auth.user.undownloaded_count - 1)
-            }
-          }
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, forbidden: true, notfound: true })
+        if (data.target.alert != null) { $toast.error(data.target.alert) }
+        if (data.target.notice != null) { $toast.success(data.target.notice) }
       }
     }
   }
-})
+
+  if (data.undownloaded_count != null && data.undownloaded_count !== $auth.user.undownloaded_count) {
+    $auth.updateUserUndownloadedCount(data.undownloaded_count)
+  }
+  checkSearchParams(params.value, data.search_params)
+}
+
+// 完了チェック
+async function checkDownloadComplete (targetId: number, count: number) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('checkDownloadComplete', targetId, count) }
+
+  const index = downloads.value.findIndex((element: any) => element.id === targetId)
+  if (index < 0 || !['waiting', 'processing'].includes(downloads.value[index].status)) { // NOTE: 更新ボタンで完了になっていた場合はスキップ
+    /* c8 ignore next */ // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log('...Skip') }
+
+    return
+  }
+
+  params.value = {
+    id: targetId,
+    target_id: targetId
+  }
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.listUrl, 'GET', params.value)
+
+  if (response?.ok) {
+    if (data?.downloads?.length === 1 && data.downloads[0].id === targetId && data.target != null) {
+      successDownloadComplete(targetId, count, index, data)
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+}
+function successDownloadComplete (targetId: number, count: number, index: number, data: any) {
+  if (['waiting', 'processing'].includes(data.target.status)) {
+    /* c8 ignore next */ // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log('setTimeout: checkDownloadComplete', targetId, count + 1) }
+
+    testDelay.value = [1000 * (count + 1) * 3, targetId, count + 1] // 回数×3秒後（6、9、12・・・）
+    setTimeout(checkDownloadComplete, ...testDelay.value)
+    return
+  }
+
+  downloads.value.splice(index, 1, data.downloads[0])
+  messages.value = {
+    alert: data.target.alert || '',
+    notice: data.target.notice || ''
+  }
+  if (data.target.alert != null) { $toast.error(data.target.alert) }
+  if (data.target.notice != null) { $toast.success(data.target.notice) }
+  $auth.updateUserUndownloadedCount(data.undownloaded_count)
+  checkSearchParams(params.value, data.search_params)
+}
+
+// ダウンロード
+async function getDownloadsFile (item: any) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('getDownloadsFile', item) }
+
+  const url = $config.public.downloads.fileUrl.replace(':id', item.id)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'GET', null, null, 'text/csv')
+
+  if (response?.ok) {
+    if (data != null) {
+      successDownloadsFile(response, data, item)
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 404) {
+      $toast.error(data?.alert || $t('system.notfound'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+}
+function successDownloadsFile (response: any, data: any, item: any) {
+  const element = document.createElement('a')
+  element.href = (window.URL || window.webkitURL).createObjectURL(data)
+
+  const contentDisposition = response.headers.get('content-disposition').match(/filename="([^"]*)"/) || []
+  if (contentDisposition.length >= 2) { element.download = contentDisposition[1] }
+
+  document.body.appendChild(element)
+  element.click()
+  document.body.removeChild(element)
+  testElement.value = element
+
+  if (item.last_downloaded_at != null) { return }
+
+  const index = downloads.value.findIndex((element: any) => element.id === item.id)
+  if (index >= 0) {
+    item.last_downloaded_at = true
+    downloads.value.splice(index, 1, item)
+  }
+
+  if (item.id === Number($route.query?.target_id)) { messages.value.notice = '' }
+
+  if ($auth.user?.undownloaded_count > 0) {
+    $auth.updateUserUndownloadedCount($auth.user.undownloaded_count - 1)
+  }
+}
 </script>

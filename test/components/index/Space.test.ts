@@ -20,15 +20,16 @@ describe('Space.vue', () => {
     ]
   })
   const mountFunction = () => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        user
+      }
+    })))
+
     const wrapper = mount(Component, {
       global: {
         stubs: {
           SpacesCreate: true
-        },
-        mocks: {
-          $auth: {
-            user
-          }
         }
       }
     })

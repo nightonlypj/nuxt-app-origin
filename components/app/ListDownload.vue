@@ -39,10 +39,10 @@
                         @update:model-value="waiting = false"
                       >
                         <v-radio
-                          v-for="(label, key) in targets"
+                          v-for="(label, key) in $tm('enums.download.target')"
                           :id="`list_download_target_${key}`"
                           :key="key"
-                          :label="label"
+                          :label="String(label)"
                           :value="key"
                           class="mr-2"
                           :disabled="!enableTarget.includes(key)"
@@ -62,10 +62,10 @@
                         @update:model-value="waiting = false"
                       >
                         <v-radio
-                          v-for="(label, key) in formats"
+                          v-for="(label, key) in $tm('enums.download.format')"
                           :id="`list_download_format_${key}`"
                           :key="key"
-                          :label="label"
+                          :label="String(label)"
                           :value="key"
                           class="mr-2"
                         />
@@ -84,10 +84,10 @@
                         @update:model-value="waiting = false"
                       >
                         <v-radio
-                          v-for="(label, key) in charCodes"
+                          v-for="(label, key) in $tm('enums.download.char_code')"
                           :id="`list_download_char_code_${key}`"
                           :key="key"
-                          :label="label"
+                          :label="String(label)"
                           :value="key"
                           class="mr-2"
                         />
@@ -106,10 +106,10 @@
                         @update:model-value="waiting = false"
                       >
                         <v-radio
-                          v-for="(label, key) in newlineCodes"
+                          v-for="(label, key) in $tm('enums.download.newline_code')"
                           :id="`list_download_newline_code_${key}`"
                           :key="key"
-                          :label="label"
+                          :label="String(label)"
                           :value="key"
                           class="mr-2"
                         />
@@ -150,7 +150,7 @@
                           :label="item.title"
                           :value="item.key"
                           density="compact"
-                          :hide-details="index + 1 < items.length ? 'true' : 'auto'"
+                          :hide-details="index + 1 < items.length ? true : 'auto'"
                           :error-messages="errors"
                           @update:model-value="waiting = false"
                         />
@@ -186,147 +186,133 @@
   </v-dialog>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required_select', required)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing
+const $props = defineProps({
+  admin: {
+    type: Boolean,
+    default: null
   },
-  mixins: [Application],
-
-  props: {
-    admin: {
-      type: Boolean,
-      default: null
-    },
-    model: {
-      type: String,
-      required: true
-    },
-    space: {
-      type: Object,
-      default: null
-    },
-    hiddenItems: {
-      type: Array,
-      required: true
-    },
-    selectItems: {
-      type: Array,
-      default: null
-    },
-    searchParams: {
-      type: Object,
-      default: null
-    }
+  model: {
+    type: String,
+    required: true
   },
-
-  data () {
-    return {
-      processing: false,
-      waiting: null,
-      query: null,
-      outputItems: null,
-      enableTarget: null
-    }
+  space: {
+    type: Object,
+    default: null
   },
-
-  computed: {
-    items () {
-      return this.$tm(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
-    },
-    targets () {
-      return this.$tm('enums.download.target')
-    },
-    formats () {
-      return this.$tm('enums.download.format')
-    },
-    charCodes () {
-      return this.$tm('enums.download.char_code')
-    },
-    newlineCodes () {
-      return this.$tm('enums.download.newline_code')
-    }
+  hiddenItems: {
+    type: Array,
+    required: true
   },
-
-  methods: {
-    initialize () {
-      this.waiting = false
-      this.query = {
-        target: null,
-        format: localStorage.getItem('download.format'),
-        char_code: localStorage.getItem('download.char_code'),
-        newline_code: localStorage.getItem('download.newline_code')
-      }
-      this.outputItems = this.items.filter(item => !this.hiddenItems.includes(item.key)).map(item => item.key)
-
-      this.enableTarget = []
-      if (this.selectItems != null && this.selectItems.length > 0) { this.enableTarget.push('select') }
-      if (this.searchParams != null && Object.keys(this.searchParams).length > 0) { this.enableTarget.push('search') }
-      this.enableTarget.push('all')
-
-      if (!this.enableTarget.includes(this.query.target)) { this.query.target = this.enableTarget[0] }
-      if (this.formats[this.query.format] == null) { this.query.format = 'csv' }
-      if (this.charCodes[this.query.char_code] == null) { this.query.char_code = 'sjis' }
-      if (this.newlineCodes[this.query.newline_code] == null) { this.query.newline_code = 'crlf' }
-    },
-
-    setAllOutputItems () {
-      this.outputItems = this.items.map(item => item.key)
-      this.waiting = false
-    },
-    clearOutputItems (setErrors) {
-      this.outputItems = []
-      this.waiting = false
-      setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
-    },
-
-    // ダウンロード依頼
-    async postDownloadsCreate (isActive, setErrors, values) {
-      this.processing = true
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.downloads.createUrl, 'POST', {
-        download: {
-          model: this.model,
-          space_code: this.space?.code || null,
-          ...this.query,
-          output_items: this.items.filter(item => this.outputItems.includes(item.key)).map(item => item.key),
-          select_items: this.selectItems,
-          search_params: this.searchParams
-        }
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          localStorage.setItem('download.format', this.query.format)
-          localStorage.setItem('download.char_code', this.query.char_code)
-          localStorage.setItem('download.newline_code', this.query.newline_code)
-          isActive.value = false
-          navigateTo({ path: '/downloads', query: { target_id: data.download?.id || null } })
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, notfound: true })) {
-        this.appSetToastedMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
-    }
+  selectItems: {
+    type: Array,
+    default: null
+  },
+  searchParams: {
+    type: Object,
+    default: null
   }
 })
+const $config = useRuntimeConfig()
+const { t: $t, tm: $tm } = useI18n()
+const { $toast } = useNuxtApp()
+
+const processing = ref(false)
+const waiting = ref(false)
+const query = ref<any>(null)
+const outputItems = ref<any>([])
+const enableTarget = ref<any>([])
+
+const items = computed(() => ($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin))
+
+function initialize () {
+  waiting.value = false
+  query.value = {
+    target: null,
+    format: localStorage.getItem('download.format'),
+    char_code: localStorage.getItem('download.char_code'),
+    newline_code: localStorage.getItem('download.newline_code')
+  }
+  outputItems.value = items.value.filter((item: any) => !$props.hiddenItems.includes(item.key)).map((item: any) => item.key)
+
+  enableTarget.value = []
+  if ($props.selectItems != null && $props.selectItems.length > 0) { enableTarget.value.push('select') }
+  if ($props.searchParams != null && Object.keys($props.searchParams).length > 0) { enableTarget.value.push('search') }
+  enableTarget.value.push('all')
+
+  if (!enableTarget.value.includes(query.value.target)) { query.value.target = enableTarget.value[0] }
+  if (($tm('enums.download.format') as any)[query.value.format] == null) { query.value.format = 'csv' }
+  if (($tm('enums.download.char_code') as any)[query.value.char_code] == null) { query.value.char_code = 'sjis' }
+  if (($tm('enums.download.newline_code') as any)[query.value.newline_code] == null) { query.value.newline_code = 'crlf' }
+}
+
+function setAllOutputItems () {
+  outputItems.value = items.value.map((item: any) => item.key)
+  waiting.value = false
+}
+function clearOutputItems (setErrors: any) {
+  outputItems.value = []
+  waiting.value = false
+  setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
+}
+
+// ダウンロード依頼
+async function postDownloadsCreate (isActive: any, setErrors: any, values: any) {
+  processing.value = true
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.createUrl, 'POST', {
+    download: {
+      model: $props.model,
+      space_code: $props.space?.code || null,
+      ...query.value,
+      output_items: items.value.filter((item: any) => outputItems.value.includes(item.key)).map((item: any) => item.key),
+      select_items: $props.selectItems,
+      search_params: $props.searchParams
+    }
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      localStorage.setItem('download.format', query.value.format)
+      localStorage.setItem('download.char_code', query.value.char_code)
+      localStorage.setItem('download.newline_code', query.value.newline_code)
+      isActive.value = false
+      navigateTo({ path: '/downloads', query: { target_id: data.download?.id || null } })
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 404) {
+      $toast.error(data?.alert || $t('system.notfound'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>

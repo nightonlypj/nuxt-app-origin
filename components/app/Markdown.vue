@@ -3,7 +3,7 @@
     <Link v-if="hljsCss != null" :href="hljsCss" rel="stylesheet" />
   </Head>
   <!-- eslint-disable-next-line vue/no-v-html -->
-  <div v-if="props.source != null" v-html="md.render(props.source)" />
+  <div v-if="source != null && source !== ''" v-html="md.render(source)" />
 </template>
 
 <script setup lang="ts">
@@ -26,7 +26,7 @@ const hljsCss = { // % mkdir public/highlight.js; cp -a node_modules/highlight.j
   dark: '/highlight.js/github-dark.min.css'
 }[useTheme().name.value]
 
-const props = defineProps({
+defineProps({
   source: {
     type: String,
     default: null

@@ -26,6 +26,16 @@ describe('Create.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Component, {
       global: {
@@ -33,16 +43,6 @@ describe('Create.vue', () => {
           AppProcessing: true,
           AppRequiredLabel: true,
           AppMarkdown: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -196,7 +196,7 @@ describe('Create.vue', () => {
       helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
       helper.mockCalledTest(mock.navigateTo, 0)
       expect(dialog.isDisabled()).toBe(false) // 非表示
-      expect(wrapper.vm.$data.space).toEqual(helper.commonConfig.enablePublicSpace ? { private: true } : {}) // 初期化
+      expect(wrapper.vm.space).toEqual(helper.commonConfig.enablePublicSpace ? { private: true } : {}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])

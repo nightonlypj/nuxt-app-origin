@@ -29,7 +29,7 @@ describe('PublicSpace.vue', () => {
   // テスト内容
   const viewTest = (wrapper: any, data: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
+    expect(wrapper.vm.spaces).toEqual(data.spaces)
 
     const links = helper.getLinks(wrapper)
     for (const space of data.spaces) {
@@ -40,9 +40,9 @@ describe('PublicSpace.vue', () => {
     }
   }
 
-  const viewErrorTest = (wrapper: any, errorMessage: string, localesMessage: string) => {
-    expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
-    expect(wrapper.text()).toMatch(localesMessage)
+  const viewErrorTest = (wrapper: any, alert: string) => {
+    expect(wrapper.vm.alert).toBe(alert)
+    expect(wrapper.text()).toMatch(alert)
   }
 
   // テストケース
@@ -93,26 +93,26 @@ describe('PublicSpace.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.error', helper.locales.system.error_short)
+      viewErrorTest(wrapper, helper.locales.system.error_short)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.failure', helper.locales.network.failure_short)
+      viewErrorTest(wrapper, helper.locales.network.failure_short)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.error', helper.locales.network.error_short)
+      viewErrorTest(wrapper, helper.locales.network.error_short)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.default', helper.locales.system.default_short)
+      viewErrorTest(wrapper, helper.locales.system.default_short)
     })
   })
 })

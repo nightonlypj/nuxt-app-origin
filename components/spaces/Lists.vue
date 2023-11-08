@@ -18,13 +18,13 @@
         <v-avatar v-if="item.raw.image_url != null" :id="`space_image_${item.raw.code}`" size="32px" class="mr-1">
           <v-img :src="item.raw.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="`/-/${item.raw.code}`">{{ $textTruncate(item.raw.name, 64) }}</NuxtLink>
+        <NuxtLink :to="`/-/${item.raw.code}`">{{ textTruncate(item.raw.name, 64) }}</NuxtLink>
         <SpacesIcon :space="item.raw" />
       </div>
     </template>
     <!-- 説明 -->
     <template #[`item.description`]="{ item }">
-      {{ $textTruncate(item.raw.description, 128) }}
+      {{ textTruncate(item.raw.description, 128) }}
     </template>
     <!-- (アクション) -->
     <template #[`item.action`]="{ item }">
@@ -38,47 +38,38 @@
   </v-data-table-server>
 </template>
 
-<script>
+<script setup lang="ts">
 import SpacesIcon from '~/components/spaces/Icon.vue'
+import { textTruncate } from '~/utils/display'
 
-export default defineNuxtComponent({
-  components: {
-    SpacesIcon
+const $props = defineProps({
+  spaces: {
+    type: Array,
+    default: null
   },
-
-  props: {
-    spaces: {
-      type: Array,
-      default: null
-    },
-    hiddenItems: {
-      type: Array,
-      default: null
-    }
-  },
-
-  computed: {
-    headers () {
-      const result = []
-      for (const item of this.$tm('items.space')) {
-        if (item.required || !this.hiddenItems.includes(item.key)) {
-          result.push({ title: item.title, key: item.key, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
-        }
-      }
-      result.push({ key: 'action', cellClass: 'pl-1 pr-2 py-2' })
-      return result
-    /*
-    },
-
-    itemClass () {
-      return (item) => {
-        if (item.raw.destroy_requested_at != null && item.raw.destroy_requested_at !== '') { return 'row_inactive' }
-        return null
-      }
-    */
-    }
+  hiddenItems: {
+    type: Array,
+    default: null
   }
 })
+const { tm: $tm } = useI18n()
+
+const headers: any = computed(() => {
+  const result = []
+  for (const item of ($tm('items.space') as any)) {
+    if (item.required || !$props.hiddenItems.includes(item.key)) {
+      result.push({ title: item.title, key: item.key, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
+    }
+  }
+  result.push({ key: 'action', cellClass: 'pl-1 pr-2 py-2' })
+  return result
+})
+/*
+const itemClass = computed(() => (item: any) => {
+  if (item.raw.destroy_requested_at != null && item.raw.destroy_requested_at !== '') { return 'row_inactive' }
+  return null
+})
+*/
 </script>
 
 <style scoped>

@@ -10,14 +10,13 @@ describe('Search.vue', () => {
   }
   const defaultQuery = Object.freeze({ text: '', option: false, ...optionQuery, active: true, destroy: false })
   const mountFunction = (loggedIn = false, query = defaultQuery) => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      }
+    })))
+
     const wrapper = mount(Component, {
-      global: {
-        mocks: {
-          $auth: {
-            loggedIn
-          }
-        }
-      },
       props: {
         processing: false,
         query: { ...query }
@@ -87,23 +86,23 @@ describe('Search.vue', () => {
     it('[ボタンクリック]検索される', async () => {
       await beforeAction()
 
-      expect(wrapper.vm.$data.waiting).toBe(true)
+      expect(wrapper.vm.waiting).toBe(true)
       expect(wrapper.emitted().search).toEqual([[]]) // 検索
 
       // $refsで受け取り
-      wrapper.vm.error()
-      expect(wrapper.vm.$data.waiting).toBe(false)
+      wrapper.vm.setError()
+      expect(wrapper.vm.waiting).toBe(false)
     })
     it('[Enter送信]検索される', async () => {
       await beforeAction({ keydown: true, isComposing: false })
 
-      expect(wrapper.vm.$data.waiting).toBe(true)
+      expect(wrapper.vm.waiting).toBe(true)
       expect(wrapper.emitted().search).toEqual([[]]) // 検索
     })
     it('[IME確定のEnter]検索されない', async () => {
       await beforeAction({ keydown: true, isComposing: true })
 
-      expect(wrapper.vm.$data.waiting).toBe(false)
+      expect(wrapper.vm.waiting).toBe(false)
     })
   })
 

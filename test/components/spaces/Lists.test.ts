@@ -4,7 +4,7 @@ import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Lists.vue'
 
 describe('Lists.vue', () => {
-  const mountFunction = (spaces: object | null, hiddenItems: any = []) => {
+  const mountFunction = (spaces: any, hiddenItems: any = []) => {
     const wrapper = mount(Component, {
       global: {
         stubs: {

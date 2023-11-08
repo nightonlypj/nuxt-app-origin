@@ -15,7 +15,7 @@ describe('DestroyInfo.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, space: any, link: boolean) => {
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes(`/spaces/undo_delete/${space.code}`)).toBe(link) // スペース削除取り消し
   }

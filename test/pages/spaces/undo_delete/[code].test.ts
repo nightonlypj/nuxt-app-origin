@@ -39,25 +39,25 @@ describe('[code].vue', () => {
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath,
+      params: {
+        code: space.code
+      }
+    })))
 
     const wrapper = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            fullPath,
-            params: {
-              code: space.code
-            }
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -69,8 +69,8 @@ describe('[code].vue', () => {
   const viewTest = (wrapper: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', space.destroy_requested_at)) // 削除依頼日時
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', space.destroy_requested_at)) // 削除依頼日時
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
   }
 
   // テストケース
@@ -168,7 +168,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -177,7 +177,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
@@ -194,7 +194,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -202,7 +202,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 

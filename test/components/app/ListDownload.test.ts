@@ -25,20 +25,20 @@ describe('ListDownload.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       props: {
@@ -57,7 +57,7 @@ describe('ListDownload.vue', () => {
   // テスト内容
   const defaultChecked = { target: 'all', format: 'csv', charCode: 'sjis', newlineCode: 'crlf' }
   const defaultDisabled = { select: true, search: true, all: false, submit: false }
-  const viewTest = async (wrapper: any, admin: boolean, checked = defaultChecked, disabled: any = defaultDisabled, hiddenItems = []) => {
+  const viewTest = async (wrapper: any, admin: boolean, checked = defaultChecked, disabled: any = defaultDisabled, hiddenItems: any = []) => {
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
 
     // 表示ボタン
@@ -173,7 +173,7 @@ describe('ListDownload.vue', () => {
     await viewTest(wrapper, false)
   })
   it('[全解除→全選択ボタン]全て解除され、ダウンロードボタンが押せない。全て選択され、ダウンロードボタンが押せる', async () => {
-    const wrapper = mountFunction(true)
+    const wrapper: any = mountFunction(true)
     wrapper.find('#list_download_btn').trigger('click')
     await flushPromises()
 
@@ -189,7 +189,7 @@ describe('ListDownload.vue', () => {
     await flushPromises()
 
     // 全て解除
-    expect(wrapper.vm.$data.outputItems).toEqual([])
+    expect(wrapper.vm.outputItems).toEqual([])
 
     // ダウンロードボタン
     const button: any = wrapper.find('#list_download_submit_btn')
@@ -203,7 +203,7 @@ describe('ListDownload.vue', () => {
 
     // 全て選択
     const allItems = items.map(item => item.key)
-    expect(wrapper.vm.$data.outputItems).toEqual(allItems)
+    expect(wrapper.vm.outputItems).toEqual(allItems)
 
     // ダウンロードボタン
     expect(button.element.disabled).toBe(false) // 有効

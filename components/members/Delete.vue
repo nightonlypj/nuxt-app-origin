@@ -43,66 +43,70 @@
   </v-dialog>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth } from '~/utils/redirect'
 
-export default defineNuxtComponent({
-  components: {
-    AppProcessing
+const $props = defineProps({
+  space: {
+    type: Object,
+    required: true
   },
-  mixins: [Application],
-
-  props: {
-    space: {
-      type: Object,
-      required: true
-    },
-    selectedMembers: {
-      type: Array,
-      required: true
-    }
-  },
-  emits: ['clear', 'reload'],
-
-  data () {
-    return {
-      processing: false,
-      dialog: false
-    }
-  },
-
-  methods: {
-    // ダイアログ表示
-    showDialog () {
-      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
-
-      this.dialog = true
-    },
-
-    // メンバー解除
-    async postMembersDelete () {
-      this.processing = true
-
-      const url = this.$config.public.members.deleteUrl.replace(':space_code', this.space.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'POST', {
-        codes: this.selectedMembers.map(member => member.user.code)
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.appSetEmitMessage(data, false)
-          this.$emit('clear')
-          this.$emit('reload')
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
-        this.appSetToastedMessage(data, true)
-      }
-
-      this.dialog = false // NOTE: 失敗しても閉じる為
-      this.processing = false
-    }
+  selectedMembers: {
+    type: Array,
+    required: true
   }
 })
+const $emit = defineEmits(['messages', 'clear', 'reload'])
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+const processing = ref(false)
+const dialog = ref(false)
+
+// ダイアログ表示
+function showDialog () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
+
+  dialog.value = true
+}
+
+// メンバー解除
+async function postMembersDelete () {
+  processing.value = true
+
+  const url = $config.public.members.deleteUrl.replace(':space_code', $props.space.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+    codes: $props.selectedMembers.map((item: any) => item.user.code)
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      $emit('messages', { alert: data.alert || '', notice: data.notice || '' })
+      $emit('clear')
+      $emit('reload')
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  dialog.value = false // NOTE: 失敗しても閉じる
+  processing.value = false
+}
 </script>

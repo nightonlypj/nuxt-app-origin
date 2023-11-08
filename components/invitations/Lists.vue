@@ -7,7 +7,7 @@
     :items-length="invitations.length"
     density="comfortable"
     fixed-header
-    :height="appTableHeight"
+    :height="tableHeight($vuetify.display.height)"
   >
     <!--
     :item-class="itemClass"  TODO: 背景色が変わらない
@@ -72,14 +72,14 @@
     <!-- 権限 -->
     <template #[`item.power`]="{ item }">
       <div class="text-no-wrap">
-        <v-icon size="small">{{ appMemberPowerIcon(item.raw.power) }}</v-icon>
+        <v-icon size="small">{{ memberPowerIcon(item.raw.power) }}</v-icon>
         {{ item.raw.power_i18n }}
       </div>
     </template>
     <!-- 期限 -->
     <template #[`item.ended_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat('ja', item.raw.ended_at) }}
+        {{ dateTimeFormat('ja', item.raw.ended_at) }}
       </div>
     </template>
     <!-- 作成者 -->
@@ -98,7 +98,7 @@
     </template>
     <template #[`item.created_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat('ja', item.raw.created_at) }}
+        {{ dateTimeFormat('ja', item.raw.created_at) }}
       </div>
     </template>
     <!-- 更新者 -->
@@ -113,82 +113,68 @@
     <!-- 更新日時 -->
     <template #[`item.last_updated_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat('ja', item.raw.last_updated_at) }}
+        {{ dateTimeFormat('ja', item.raw.last_updated_at) }}
       </div>
     </template>
   </v-data-table-server>
 </template>
 
-<script>
+<script setup lang="ts">
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/utils/application.js'
+import { tableHeight, dateTimeFormat } from '~/utils/display'
+import { memberPowerIcon } from '~/utils/members'
 
-export default defineNuxtComponent({
-  components: {
-    UsersAvatar
+const $props = defineProps({
+  invitations: {
+    type: Array,
+    default: null
   },
-  mixins: [Application],
-
-  props: {
-    invitations: {
-      type: Array,
-      default: null
-    },
-    hiddenItems: {
-      type: Array,
-      default: null
-    }
-  },
-  emits: ['showUpdate'],
-
-  computed: {
-    headers () {
-      const result = []
-      for (const item of this.$tm('items.invitation')) {
-        if (item.required || !this.hiddenItems.includes(item.key)) {
-          result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
-        }
-      }
-      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-      return result
-    /*
-    },
-
-    itemClass () {
-      return (item) => {
-        return item.raw.status === 'active' ? 'row_active' : 'row_inactive'
-      }
-    */
-    }
-  },
-
-  methods: {
-    /*
-    showUpdate (event, { item }) {
-      /* c8 ignore next *//* // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
-      if (item.raw.status === 'email_joined') { return }
-
-      this.$emit('showUpdate', item.raw)
-    },
-    */
-
-    async copyInvitationURL (code) {
-      try {
-        await navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
-
-        this.appSetToastedMessage({ notice: this.$t('notice.invitation.copy_success') }, false, true)
-      /* c8 ignore start */
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        if (this.$config.public.debug) { console.log(error) }
-
-        this.appSetToastedMessage({ alert: this.$t('alert.invitation.copy_failure') })
-      }
-      /* c8 ignore stop */
-    }
+  hiddenItems: {
+    type: Array,
+    default: null
   }
 })
+const $emit = defineEmits(['showUpdate'])
+const $config = useRuntimeConfig()
+const { t: $t, tm: $tm } = useI18n()
+const { $toast } = useNuxtApp()
+
+const headers = computed(() => {
+  const result = []
+  for (const item of ($tm('items.invitation') as any)) {
+    if (item.required || !$props.hiddenItems.includes(item.key)) {
+      result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
+    }
+  }
+  if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
+  return result
+})
+/*
+const itemClass = computed(() => (item: any) => item.raw.status === 'active' ? 'row_active' : 'row_inactive')
+
+function showUpdate (event: any, { item }) {
+  /* c8 ignore next *//* // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
+  if (item.raw.status === 'email_joined') { return }
+
+  $emit('showUpdate', item.raw)
+})
+*/
+
+async function copyInvitationURL (code: string) {
+  try {
+    await navigator.clipboard.writeText(`${location.protocol}//${location.host}/users/sign_up?code=${code}`)
+
+    $toast.success($t('notice.invitation.copy_success'))
+  /* c8 ignore start */
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log(error) }
+
+    $toast.error($t('alert.invitation.copy_failure'))
+  }
+  /* c8 ignore stop */
+}
 </script>
 
 <style scoped>

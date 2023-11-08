@@ -9,7 +9,7 @@
     :items-length="members.length"
     density="comfortable"
     fixed-header
-    :height="appTableHeight"
+    :height="tableHeight($vuetify.display.height)"
     :show-select="admin"
     :item-value="item => item"
   >
@@ -37,7 +37,7 @@
         class="mr-1"
         @click="$emit('showUpdate', item.raw)"
       >
-        {{ appMemberPowerIcon(item.raw.power) }}
+        {{ memberPowerIcon(item.raw.power) }}
       </v-icon>
       <a
         v-if="admin && item.raw.user.code !== $auth.user.code"
@@ -49,7 +49,7 @@
         {{ item.raw.power_i18n }}
       </a>
       <div v-else class="text-no-wrap">
-        <v-icon size="small">{{ appMemberPowerIcon(item.raw.power) }}</v-icon>
+        <v-icon size="small">{{ memberPowerIcon(item.raw.power) }}</v-icon>
         {{ item.raw.power_i18n }}
       </div>
     </template>
@@ -70,7 +70,7 @@
     <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat('ja', item.raw.invitationed_at) }}
+        {{ dateTimeFormat('ja', item.raw.invitationed_at) }}
       </div>
     </template>
     <!-- 更新者 -->
@@ -95,120 +95,96 @@
     </template>
     <template #[`item.last_updated_at`]="{ item }">
       <div class="text-center">
-        {{ $timeFormat('ja', item.raw.last_updated_at) }}
+        {{ dateTimeFormat('ja', item.raw.last_updated_at) }}
       </div>
     </template>
   </v-data-table-server>
 </template>
 
-<script>
+<script setup lang="ts">
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/utils/application.js'
+import { tableHeight, dateTimeFormat } from '~/utils/display'
+import { memberPowerIcon } from '~/utils/members'
 
-export default defineNuxtComponent({
-  components: {
-    OnlyIcon,
-    UsersAvatar
+const $props = defineProps({
+  sort: {
+    type: String,
+    required: true
   },
-  mixins: [Application],
-
-  props: {
-    sort: {
-      type: String,
-      required: true
-    },
-    desc: {
-      type: Boolean,
-      required: true
-    },
-    members: {
-      type: Array,
-      default: null
-    },
-    selectedMembers: {
-      type: Array,
-      required: true
-    },
-    hiddenItems: {
-      type: Array,
-      required: true
-    },
-    activeUserCodes: {
-      type: Array,
-      required: true
-    },
-    admin: {
-      type: Boolean,
-      default: null
-    }
+  desc: {
+    type: Boolean,
+    required: true
   },
-  emits: ['update:selectedMembers', 'reload', 'showUpdate'],
-
-  computed: {
-    headers () {
-      const result = []
-      if (this.admin) {
-        result.push({ key: 'data-table-select', class: 'pl-3 pr-0', cellClass: 'pl-3 pr-0 py-2' }) // TODO: class/cellClassが効かない
-      }
-      for (const item of this.$tm('items.member')) {
-        if ((item.required || !this.hiddenItems.includes(item.key)) && (!item.adminOnly || this.admin)) {
-          result.push({ title: item.title, key: item.key, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
-        }
-      }
-      if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-      return result
-    /*
-    },
-
-    itemClass () {
-      return (item) => {
-        return this.activeUserCodes.includes(item.raw.user?.code) ? 'row_active' : null
-      }
-    */
-    },
-
-    syncSelectedMembers: {
-      get () {
-        return this.selectedMembers
-      },
-      set (value) {
-        this.$emit('update:selectedMembers', value)
-      }
-    },
-
-    syncSortBy: {
-      get () {
-        return [{ key: this.sort, order: this.desc ? 'desc' : 'asc' }]
-      },
-      set (value) {
-        if (value.length === 0) {
-          this.$emit('reload', { sort: this.sort, desc: !this.desc }) // NOTE: 同じ項目で並び順を2回変えると空になる為
-        } else {
-          this.$emit('reload', { sort: value[0].key, desc: value[0].order === 'desc' })
-        }
-      }
-    }
-    /*
+  members: {
+    type: Array,
+    default: null
   },
-
-  methods: {
-    showUpdate (event, { item }) {
-      /* c8 ignore next *//* // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
-      if (!this.admin || item.raw.user.code === this.$auth.user.code) { return }
-
-      if (event.target.innerHTML.match(/v-ripple__animation--visible/) || event.target.innerHTML.match(/v-simple-checkbox/)) {
-        /* c8 ignore next *//* // eslint-disable-next-line no-console
-        if (this.$config.public.debug) { console.log('...Skip') }
-        return
-      }
-
-      this.$emit('showUpdate', item.raw)
-    }
-  */
+  selectedMembers: {
+    type: Array,
+    required: true
+  },
+  hiddenItems: {
+    type: Array,
+    required: true
+  },
+  activeUserCodes: {
+    type: Array,
+    required: true
+  },
+  admin: {
+    type: Boolean,
+    default: null
   }
 })
+const syncSelectedMembers = computed({
+  get: () => $props.selectedMembers,
+  set: (value: any) => $emit('update:selectedMembers', value)
+})
+const syncSortBy: any = computed({
+  get: () => [{ key: $props.sort, order: $props.desc ? 'desc' : 'asc' }],
+  set: (value: any) => {
+    if (value.length === 0) {
+      $emit('reload', { sort: $props.sort, desc: !$props.desc }) // NOTE: 同じ項目で並び順を2回変えると空になる為
+    } else {
+      $emit('reload', { sort: value[0].key, desc: value[0].order === 'desc' })
+    }
+  }
+})
+const $emit = defineEmits(['update:selectedMembers', 'reload', 'showUpdate'])
+const { tm: $tm } = useI18n()
+const { $auth } = useNuxtApp()
+
+const headers: any = computed(() => {
+  const result = []
+  if ($props.admin) {
+    result.push({ key: 'data-table-select', class: 'pl-3 pr-0', cellClass: 'pl-3 pr-0 py-2' }) // TODO: class/cellClassが効かない
+  }
+  for (const item of ($tm('items.member') as any)) {
+    if ((item.required || !$props.hiddenItems.includes(item.key)) && (!item.adminOnly || $props.admin)) {
+      result.push({ title: item.title, key: item.key, class: 'text-no-wrap', cellClass: 'px-1 py-2' })
+    }
+  }
+  if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
+  return result
+})
+/*
+const itemClass = computed(() => (item: any) => $props.activeUserCodes.includes(item.raw.user?.code) ? 'row_active' : null)
+
+function showUpdate (event: any, { item }) {
+  /* c8 ignore next *//* // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
+  if (!$props.admin || item.raw.user.code === $auth.user.code) { return }
+
+  if (event.target.innerHTML.match(/v-ripple__animation--visible/) || event.target.innerHTML.match(/v-simple-checkbox/)) {
+    /* c8 ignore next *//* // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log('...Skip') }
+    return
+  }
+
+  $emit('showUpdate', item.raw)
+}
+*/
 </script>
 
 <style scoped>

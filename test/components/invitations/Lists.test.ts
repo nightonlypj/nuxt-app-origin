@@ -14,17 +14,18 @@ describe('Lists.vue', () => {
 
   const user = Object.freeze({ code: 'code000000000000000000001' })
   const mountFunction = (invitations: any, hiddenItems: any = null) => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true,
+        user
+      },
+      $toast: mock.toast
+    })))
+
     const wrapper = mount(Component, {
       global: {
         stubs: {
           UsersAvatar: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true,
-            user
-          },
-          $toast: mock.toast
         }
       },
       props: {
@@ -114,9 +115,9 @@ describe('Lists.vue', () => {
       // 期限
       if (invitation.ended_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', invitation.ended_at))
+          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.ended_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', invitation.ended_at))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.ended_at))
         }
       }
       // 作成者
@@ -132,9 +133,9 @@ describe('Lists.vue', () => {
       // 作成日時
       if (invitation.created_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', invitation.created_at))
+          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.created_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', invitation.created_at))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.created_at))
         }
       }
       // 更新者
@@ -150,9 +151,9 @@ describe('Lists.vue', () => {
       // 更新日時
       if (invitation.last_updated_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', invitation.last_updated_at))
+          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.last_updated_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', invitation.last_updated_at))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.last_updated_at))
         }
       }
     }

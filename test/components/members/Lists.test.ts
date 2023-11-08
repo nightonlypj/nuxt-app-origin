@@ -6,18 +6,19 @@ import Component from '~/components/members/Lists.vue'
 
 describe('Lists.vue', () => {
   const user = Object.freeze({ code: 'code000000000000000000001' })
-  const mountFunction = (members: object | null, admin = false, hiddenItems: any = [], activeUserCodes: any = []) => {
+  const mountFunction = (members: any, admin = false, hiddenItems: any = [], activeUserCodes: any = []) => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true,
+        user
+      }
+    })))
+
     const wrapper = mount(Component, {
       global: {
         stubs: {
           OnlyIcon: true,
           UsersAvatar: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true,
-            user
-          }
         }
       },
       props: {
@@ -116,9 +117,9 @@ describe('Lists.vue', () => {
       // 招待日時
       if (member.invitationed_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
+          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', member.invitationed_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', member.invitationed_at))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', member.invitationed_at))
         }
       }
       // 更新者
@@ -134,9 +135,9 @@ describe('Lists.vue', () => {
       // 更新日時
       if (member.last_updated_at != null) {
         if (show.optional && show.admin) {
-          expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
+          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', member.last_updated_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.$timeFormat('ja', member.last_updated_at))
+          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', member.last_updated_at))
         }
       }
     }
@@ -223,7 +224,7 @@ describe('Lists.vue', () => {
 
     describe('ソート', () => {
       it('選択値が設定される', () => {
-        const wrapper = mountFunction(members)
+        const wrapper: any = mountFunction(members)
         const key = wrapper.vm.$props.sort
         const desc = wrapper.vm.$props.desc
         wrapper.vm.syncSortBy = [{ key, order: desc ? 'desc' : 'asc' }]
@@ -237,14 +238,14 @@ describe('Lists.vue', () => {
 
     describe('チェックボックス', () => {
       it('[管理者]表示される。選択項目が設定される', () => {
-        const wrapper = mountFunction(members, true)
+        const wrapper: any = mountFunction(members, true)
         expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).not.toBeUndefined()
 
         wrapper.vm.syncSelectedMembers = [members[0]]
         expect(wrapper.emitted()['update:selectedMembers']).toEqual([[[members[0]]]])
       })
       it('[管理者以外]表示されない', () => {
-        const wrapper = mountFunction(members, false)
+        const wrapper: any = mountFunction(members, false)
         expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).toBeUndefined()
       })
     })

@@ -4,14 +4,11 @@ import Component from '~/components/downloads/Lists.vue'
 
 describe('Lists.vue', () => {
   const mountFunction = (downloads: any, query: object | null = null) => {
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
+
     const wrapper = mount(Component, {
-      global: {
-        mocks: {
-          $route: {
-            query: { ...query }
-          }
-        }
-      },
       props: {
         downloads
       }
@@ -36,10 +33,10 @@ describe('Lists.vue', () => {
     */
     for (const download of downloads) {
       // 依頼日時
-      expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.requested_at))
+      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', download.requested_at))
       // 完了日時
       if (download.completed_at != null) {
-        expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', download.completed_at))
+        expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', download.completed_at))
       }
       // ステータス
       const color = ['success', 'failure'].includes(download.status) ? download.status : 'info'

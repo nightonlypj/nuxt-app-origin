@@ -29,7 +29,7 @@ describe('[code].vue', () => {
 
   const model = 'invitation'
   const space = Object.freeze({ code: 'code0001' })
-  const values = Object.freeze({ notice: 'noticeメッセージ' })
+  const values = Object.freeze({ messages: { alert: '', notice: 'noticeメッセージ' } })
   const fullPath = '/invitations/code0001'
   const mountFunction = (loggedIn = true, query: object | null = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -37,8 +37,21 @@ describe('[code].vue', () => {
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath,
+      params: {
+        code: space.code
+      },
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           InfiniteLoading: true,
@@ -51,26 +64,11 @@ describe('[code].vue', () => {
           InvitationsCreate: true,
           InvitationsUpdate: true,
           InvitationsLists: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            fullPath,
-            params: {
-              code: space.code
-            },
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return { ...values }
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -145,34 +143,34 @@ describe('[code].vue', () => {
   const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error: boolean = false) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    helper.messageTest(wrapper, AppMessage, values)
+    helper.messageTest(wrapper, AppMessage, values.messages)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
-    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.space)
 
-    expect(wrapper.vm.$data.error).toBe(error)
-    expect(wrapper.vm.$data.testState).toBe(show.testState)
-    expect(wrapper.vm.$data.page).toBe(data.invitation.current_page)
-    expect(wrapper.vm.$data.space).toEqual(data.space)
-    expect(wrapper.vm.$data.invitation).toEqual(data.invitation)
-    expect(wrapper.vm.$data.invitations).toEqual(data.invitations)
+    expect(wrapper.vm.error).toBe(error)
+    expect(wrapper.vm.testState).toBe(show.testState)
+    expect(wrapper.vm.page).toBe(data.invitation.current_page)
+    expect(wrapper.vm.space).toEqual(data.space)
+    expect(wrapper.vm.invitation).toEqual(data.invitation)
+    expect(wrapper.vm.invitations).toEqual(data.invitations)
 
     const spacesTitle = wrapper.findComponent(SpacesTitle)
-    expect(spacesTitle.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(spacesTitle.vm.space).toEqual(wrapper.vm.space)
 
     // 設定
     const listSetting = wrapper.findComponent(AppListSetting)
     expect(listSetting.vm.model).toBe(model)
-    expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+    expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.hiddenItems)
     expect(listSetting.vm.admin).toBe(null)
 
     // 招待URL作成・変更
     const invitationsCreate = wrapper.findComponent(InvitationsCreate)
     const invitationsUpdate = wrapper.findComponent(InvitationsUpdate)
     expect(invitationsCreate.exists()).toBe(true)
-    expect(invitationsCreate.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(invitationsCreate.vm.space).toEqual(wrapper.vm.space)
     expect(invitationsUpdate.exists()).toBe(true)
-    expect(invitationsUpdate.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(invitationsUpdate.vm.space).toEqual(wrapper.vm.space)
 
     // 一覧
     const invitationsLists = wrapper.findComponent(InvitationsLists)
@@ -180,8 +178,8 @@ describe('[code].vue', () => {
       expect(wrapper.text()).toMatch('対象の招待URLが見つかりません。')
       expect(invitationsLists.exists()).toBe(false)
     } else {
-      expect(invitationsLists.vm.invitations).toBe(wrapper.vm.$data.invitations)
-      expect(invitationsLists.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+      expect(invitationsLists.vm.invitations).toBe(wrapper.vm.invitations)
+      expect(invitationsLists.vm.hiddenItems).toBe(wrapper.vm.hiddenItems)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数
 
@@ -190,7 +188,7 @@ describe('[code].vue', () => {
     return infiniteLoading
   }
 
-  const infiniteErrorTest = async (alert: string | null, notice: string | null) => {
+  const infiniteErrorTest = async (messages = {}, checkViewTest = true) => {
     const wrapper = mountFunction()
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
@@ -203,8 +201,10 @@ describe('[code].vue', () => {
     await flushPromises()
 
     apiCalledTest(2)
-    helper.toastMessageTest(mock.toast, { error: alert, info: notice })
-    viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
+    helper.toastMessageTest(mock.toast, messages)
+    if (checkViewTest) {
+      viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
+    }
   }
 
   // テストケース
@@ -305,13 +305,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, null])
-        await infiniteErrorTest(helper.locales.system.error, null)
+        await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
     describe('スペース情報なし', () => {
@@ -323,13 +323,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, space: null }])
-        await infiniteErrorTest(helper.locales.system.error, null)
+        await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
     describe('現在ページが異なる', () => {
@@ -341,13 +341,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, invitation: { ...dataPage2.invitation, current_page: 9 } }])
-        await infiniteErrorTest(helper.locales.system.error, null)
+        await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
 
@@ -360,13 +360,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: null }, null])
-        await infiniteErrorTest(helper.locales.network.failure, null)
+        await infiniteErrorTest({ error: helper.locales.network.failure })
       })
     })
     describe('認証エラー', () => {
@@ -382,11 +382,14 @@ describe('[code].vue', () => {
         helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
         helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
       })
-      it('[無限スクロール]エラーメッセージが表示される', async () => {
+      it('[無限スクロール]ログインページにリダイレクトされる', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 401 }, null])
-        await infiniteErrorTest(null, helper.locales.auth.unauthenticated)
+        await infiniteErrorTest({ info: helper.locales.auth.unauthenticated }, false)
+        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
       })
     })
     describe('権限エラー', () => {
@@ -399,13 +402,13 @@ describe('[code].vue', () => {
         apiCalledTest(1)
         helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 403 }, null])
-        await infiniteErrorTest(helper.locales.auth.forbidden, null)
+        await infiniteErrorTest({ error: helper.locales.auth.forbidden })
       })
     })
     describe('存在しない', () => {
@@ -417,13 +420,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: helper.locales.system.notfound, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: helper.locales.system.notfound } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 404 }, null])
-        await infiniteErrorTest(helper.locales.system.notfound, null)
+        await infiniteErrorTest({ error: helper.locales.system.notfound })
       })
     })
     describe('レスポンスエラー', () => {
@@ -435,13 +438,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 500 }, null])
-        await infiniteErrorTest(helper.locales.network.error, null)
+        await infiniteErrorTest({ error: helper.locales.network.error })
       })
     })
     describe('その他エラー', () => {
@@ -453,13 +456,13 @@ describe('[code].vue', () => {
 
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 400 }, {}])
-        await infiniteErrorTest(helper.locales.system.default, null)
+        await infiniteErrorTest({ error: helper.locales.system.default })
       })
     })
   })
@@ -508,7 +511,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual([])
+      expect(wrapper.vm.hiddenItems).toEqual([])
     })
     it('空', async () => {
       localStorage.setItem(`${model}.hidden-items`, '')
@@ -517,7 +520,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual([''])
+      expect(wrapper.vm.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
       localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
@@ -526,7 +529,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
 
@@ -547,12 +550,12 @@ describe('[code].vue', () => {
       const invitations = Object.freeze([invitation, dataPage1.invitations[1]])
       it('情報が更新され、対象メンバーのコードがセットされる', async () => {
         await beforeAction()
-        expect(wrapper.vm.$data.invitations).not.toEqual(invitations)
+        expect(wrapper.vm.invitations).not.toEqual(invitations)
 
         // 招待URL設定更新
         wrapper.vm.updateInvitation(invitation)
 
-        expect(wrapper.vm.$data.invitations).toEqual(invitations)
+        expect(wrapper.vm.invitations).toEqual(invitations)
       })
     })
   })

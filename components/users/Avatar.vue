@@ -8,7 +8,7 @@
       <span v-if="user.destroy_schedule_at != null" :id="`user_destroy_schedule_${user.code}`">
         <v-icon class="ml-1">mdi-delete-clock</v-icon>
         <v-tooltip activator="parent" location="bottom">
-          {{ $dateFormat('ja', user.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
+          {{ dateFormat('ja', user.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
         </v-tooltip>
       </span>
     </template>
@@ -18,13 +18,13 @@
   </div>
 </template>
 
-<script>
-export default defineNuxtComponent({
-  props: {
-    user: {
-      type: Object,
-      default: null
-    }
+<script setup lang="ts">
+import { dateFormat } from '~/utils/display'
+
+defineProps({
+  user: {
+    type: Object,
+    default: null
   }
 })
 </script>

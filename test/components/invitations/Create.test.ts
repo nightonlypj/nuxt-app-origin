@@ -24,22 +24,22 @@ describe('Create.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true,
           AppRequiredLabel: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       props: {
@@ -76,7 +76,7 @@ describe('Create.vue', () => {
     }
 
     // 期限
-    expect(dialog.text()).toMatch(`${helper.envConfig.timeZoneOffset}(${helper.envConfig.timeZoneShort})`)
+    expect(dialog.text()).toMatch(`${helper.envConfig.timeZoneOffset}(${helper.envConfig.timeZoneShortName})`)
     await flushPromises()
 
     // 作成ボタン
@@ -176,7 +176,7 @@ describe('Create.vue', () => {
       helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
       expect(wrapper.emitted().reload).toEqual([[]]) // 招待URL一覧再取得
       expect(dialog.isDisabled()).toBe(false) // 非表示
-      expect(wrapper.vm.$data.invitation).toEqual({ ended_time: '23:59' }) // 初期化
+      expect(wrapper.vm.invitation).toEqual({ ended_time: '23:59' }) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])

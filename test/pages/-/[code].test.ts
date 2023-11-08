@@ -28,6 +28,16 @@ describe('[code].vue', () => {
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath,
+      params
+    })))
 
     const wrapper = mount(Page, {
       global: {
@@ -36,16 +46,6 @@ describe('[code].vue', () => {
           AppMarkdown: true,
           SpacesDestroyInfo: true,
           SpacesIcon: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            fullPath,
-            params
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -65,10 +65,10 @@ describe('[code].vue', () => {
   // テスト内容
   const viewTest = (wrapper: any, data: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.$data.space).toEqual(data.space)
+    expect(wrapper.vm.space).toEqual(data.space)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
-    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.$data.space)
+    expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.space)
 
     expect(wrapper.find('#space_image').exists()).toBe(true)
     expect(wrapper.text()).toMatch(data.space.name)
@@ -90,7 +90,7 @@ describe('[code].vue', () => {
     }
 
     let wrapper: any
-    const beforeAction = async (loggedIn = true) => {
+    const beforeAction = async (loggedIn = false) => {
       wrapper = mountFunction(loggedIn)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
@@ -108,7 +108,7 @@ describe('[code].vue', () => {
         }
       })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      await beforeAction()
+      await beforeAction(true)
 
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
@@ -124,7 +124,7 @@ describe('[code].vue', () => {
         }
       })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      await beforeAction()
+      await beforeAction(true)
 
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
@@ -140,7 +140,7 @@ describe('[code].vue', () => {
         }
       })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      await beforeAction()
+      await beforeAction(true)
 
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
@@ -149,7 +149,7 @@ describe('[code].vue', () => {
     it('[未参加]表示される（メンバー一覧・設定変更は非表示）', async () => {
       const data = Object.freeze({ space })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
-      await beforeAction()
+      await beforeAction(true)
 
       viewTest(wrapper, data)
       expect(wrapper.find('#members_btn').exists()).toBe(false) // 非表示
@@ -160,7 +160,7 @@ describe('[code].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -168,20 +168,11 @@ describe('[code].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
-    it('[認証エラー][未ログイン]ログインページにリダイレクトされる', async () => {
+    it('[認証エラー]ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
-      await beforeAction(false)
-
-      helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: { alert: helper.locales.auth.unauthenticated } })
-      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
-    })
-    it('[認証エラー][ログイン中]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
-      await beforeAction()
+      await beforeAction(true)
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
@@ -190,11 +181,11 @@ describe('[code].vue', () => {
     })
     it('[権限エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
-      await beforeAction()
+      await beforeAction(true)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
     })
     it('[存在しない]エラーページが表示される', async () => {
       const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
@@ -209,14 +200,14 @@ describe('[code].vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 })

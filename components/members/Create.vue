@@ -59,7 +59,7 @@
                         v-for="(value, key) in $tm('enums.member.power')"
                         :id="`member_create_power_${key}`"
                         :key="key"
-                        :label="value"
+                        :label="String(value)"
                         :value="key"
                         class="mr-2"
                       />
@@ -94,88 +94,87 @@
   </v-dialog>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required', required)
 defineRule('required_select', required)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppRequiredLabel
-  },
-  mixins: [Application],
-
-  props: {
-    space: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['result', 'reload'],
-
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      dialog: false,
-      member: this.initialMember()
-    }
-  },
-
-  methods: {
-    // 初期値
-    initialMember () {
-      return {}
-    },
-
-    // ダイアログ表示
-    showDialog () {
-      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
-
-      this.dialog = true
-    },
-
-    // メンバー招待
-    async postMembersCreate (setErrors, values) {
-      this.processing = true
-
-      const url = this.$config.public.members.createUrl.replace(':space_code', this.space.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'POST', {
-        member: this.member
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.appSetToastedMessage(data, false, true)
-          this.$emit('result', data)
-          this.$emit('reload')
-          this.dialog = false
-          this.member = this.initialMember()
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
-        this.appSetToastedMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
-    }
+const $props = defineProps({
+  space: {
+    type: Object,
+    required: true
   }
 })
+const $emit = defineEmits(['result', 'reload'])
+const $config = useRuntimeConfig()
+const { t: $t, tm: $tm } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+const processing = ref(false)
+const waiting = ref(false)
+const dialog = ref(false)
+const member = ref<any>(initMember())
+function initMember () { return {} }
+
+// ダイアログ表示
+function showDialog () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
+
+  dialog.value = true
+}
+
+// メンバー招待
+async function postMembersCreate (setErrors: any, values: any) {
+  processing.value = true
+
+  const url = $config.public.members.createUrl.replace(':space_code', $props.space.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+    member: member.value
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      $emit('result', data)
+      $emit('reload')
+      dialog.value = false
+      member.value = initMember()
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ notice: $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>
