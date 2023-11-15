@@ -215,7 +215,7 @@ async function postInvitationsCreate (setErrors: any, values: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

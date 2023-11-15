@@ -146,11 +146,7 @@ const waiting = ref(true)
 const keyDownEnter = ref(false)
 
 function blank () {
-  if ($config.public.enablePublicSpace) {
-    return privateBlank() || joinBlank() || activeBlank()
-  } else {
-    return activeBlank()
-  }
+  return (!$config.public.enablePublicSpace || privateBlank() || joinBlank()) || activeBlank()
 }
 function privateBlank () {
   return !$props.query.public && !$props.query.private

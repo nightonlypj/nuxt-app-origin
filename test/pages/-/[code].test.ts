@@ -83,6 +83,7 @@ describe('[code].vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('スペース情報取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -171,6 +172,15 @@ describe('[code].vue', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction(true)
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction(true)
 
@@ -180,6 +190,14 @@ describe('[code].vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+      await beforeAction(true)
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: messages })
+    })
+    it('[権限エラー（メッセージなし）]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
       await beforeAction(true)
 
@@ -188,12 +206,18 @@ describe('[code].vue', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
     })
     it('[存在しない]エラーページが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
+    })
+    it('[存在しない（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
+      await beforeAction()
+
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])

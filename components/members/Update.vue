@@ -161,7 +161,7 @@ async function getMembersDetail (item: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {
@@ -198,7 +198,7 @@ async function postMembersUpdate (setErrors: any, values: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

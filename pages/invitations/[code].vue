@@ -197,7 +197,7 @@ async function getInvitationsList () {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
       return false
     } else if (response?.status === 403) {
       alert = data?.alert || $t('auth.forbidden')
@@ -206,12 +206,12 @@ async function getInvitationsList () {
     } else if (data == null) {
       alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
     } else {
-      alert = $t('system.default')
+      alert = data.alert || $t('system.default')
     }
   }
   if (alert != null) {
     if (invitation.value == null) {
-      redirectError(response?.ok ? null : response?.status, { alert })
+      redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
       return false
     } else {
       $toast.error(alert)

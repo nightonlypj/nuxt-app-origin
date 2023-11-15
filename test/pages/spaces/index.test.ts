@@ -209,6 +209,7 @@ describe('index.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('スペース一覧取得', () => {
     it('[0件]表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
@@ -363,6 +364,23 @@ describe('index.vue', () => {
       })
     })
     describe('その他エラー', () => {
+      it('[初期表示]エラーページが表示される', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, messages])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: messages })
+      })
+      it('[無限スクロール]エラーメッセージが表示される', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 400 }, messages])
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice })
+      })
+    })
+    describe('その他エラー（メッセージなし）', () => {
       it('[初期表示]エラーページが表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
         const wrapper = mountFunction()

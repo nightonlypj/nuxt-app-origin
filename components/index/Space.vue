@@ -18,6 +18,7 @@
           新しいスペースを作成するか、参加したいスペースの管理者に連絡して追加して貰いましょう！
         </v-alert>
         <template v-else>
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces"

@@ -275,7 +275,7 @@ async function postDownloadsCreate (isActive: any, setErrors: any, values: any) 
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.createUrl, 'POST', {
     download: {
       model: $props.model,
-      space_code: $props.space?.code || null,
+      space_code: $props.space?.code,
       ...query.value,
       output_items: items.value.filter((item: any) => outputItems.value.includes(item.key)).map((item: any) => item.key),
       select_items: $props.selectItems,
@@ -289,14 +289,14 @@ async function postDownloadsCreate (isActive: any, setErrors: any, values: any) 
       localStorage.setItem('download.char_code', query.value.char_code)
       localStorage.setItem('download.newline_code', query.value.newline_code)
       isActive.value = false
-      navigateTo({ path: '/downloads', query: { target_id: data.download?.id || null } })
+      navigateTo({ path: '/downloads', query: { target_id: data.download?.id } })
     } else {
       $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 404) {

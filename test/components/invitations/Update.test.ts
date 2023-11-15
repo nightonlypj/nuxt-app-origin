@@ -181,6 +181,7 @@ describe('Update.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
@@ -271,6 +272,15 @@ describe('Update.vue', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -278,6 +288,38 @@ describe('Update.vue', () => {
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: messages })
+    })
+    it('[権限エラー（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
+    })
+    it('[存在しない]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
+    })
+    it('[存在しない（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
@@ -298,7 +340,6 @@ describe('Update.vue', () => {
   })
 
   describe('招待URL設定変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const defaultValues = Object.freeze({
       ended_date: '9999-12-31',
       ended_time: '23:59',
@@ -344,26 +385,26 @@ describe('Update.vue', () => {
     }
 
     it('[成功]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationActive }], invitationActive, defaultValues)
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationActive }], invitationActive, defaultValues)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[成功（削除）]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationDeleted }], invitationActive, { ...defaultValues, delete: true })
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationDeleted }], invitationActive, { ...defaultValues, delete: true })
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       expect(wrapper.emitted().update).toEqual([[invitationDeleted]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[成功（削除取り消し）]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...data, invitation: invitationActive }], invitationDeleted, { ...defaultValues, undo_delete: true })
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationActive }], invitationDeleted, { ...defaultValues, undo_delete: true })
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
@@ -385,6 +426,14 @@ describe('Update.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      await beforeAction([{ ok: false, status: 401 }, messages])
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       await beforeAction([{ ok: false, status: 401 }, null])
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
@@ -393,6 +442,14 @@ describe('Update.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 403 }, messages])
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[権限エラー（メッセージなし）]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: false, status: 403 }, null])
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
@@ -401,6 +458,14 @@ describe('Update.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 406 }, messages])
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: false, status: 406 }, null])
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
@@ -417,10 +482,10 @@ describe('Update.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      await beforeAction([{ ok: false, status: 422 }, Object.assign({ errors: { email: ['errorメッセージ'] } }, data)])
+      await beforeAction([{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(dialog.isVisible()).toBe(true) // 表示
     })

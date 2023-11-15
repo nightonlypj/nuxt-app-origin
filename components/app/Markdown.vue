@@ -1,5 +1,6 @@
 <template>
   <Head>
+    <!-- /* c8 ignore next */ -->
     <Link v-if="hljsCss != null" :href="hljsCss" rel="stylesheet" />
   </Head>
   <!-- eslint-disable-next-line vue/no-v-html -->

@@ -168,17 +168,17 @@ async function getDownloadsList () {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
       return false
     } else if (data == null) {
       alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
     } else {
-      alert = $t('system.default')
+      alert = data.alert || $t('system.default')
     }
   }
   if (alert != null) {
     if (download.value == null) {
-      redirectError(response?.ok ? null : response?.status, { alert })
+      redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
       return false
     } else {
       $toast.error(alert)
@@ -251,7 +251,7 @@ async function checkDownloadComplete (targetId: number, count: number) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
@@ -298,7 +298,7 @@ async function getDownloadsFile (item: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 404) {

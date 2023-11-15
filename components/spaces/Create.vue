@@ -227,7 +227,7 @@ async function postSpacesCreate (setErrors: any, values: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
     } else if (data == null) {

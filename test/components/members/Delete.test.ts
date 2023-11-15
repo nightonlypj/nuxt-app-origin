@@ -87,6 +87,7 @@ describe('Delete.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
@@ -147,13 +148,24 @@ describe('Delete.vue', () => {
     }
 
     it('[成功]選択メンバーがクリアされ、一覧が再取得される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      const data = Object.freeze({ ...messages, count: 1 })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.emitMessageTest(wrapper, data)
+      helper.emitMessageTest(wrapper, messages)
+      expect(wrapper.emitted().clear).toEqual([[]])
+      expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
+      expect(dialog.isDisabled()).toBe(false) // 非表示
+    })
+    it('[成功（メッセージなし）]選択メンバーがクリアされ、一覧が再取得される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, {}])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.emitMessageTest(wrapper, { alert: '', notice: helper.locales.notice.member.destroy })
       expect(wrapper.emitted().clear).toEqual([[]])
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
       expect(dialog.isDisabled()).toBe(false) // 非表示
@@ -178,6 +190,15 @@ describe('Delete.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -187,6 +208,15 @@ describe('Delete.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[権限エラー（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
       await beforeAction()
 
@@ -196,6 +226,15 @@ describe('Delete.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, null])
       await beforeAction()
 

@@ -140,6 +140,7 @@
             </template>
           </v-list-item-title>
         </component>
+        <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn"
@@ -157,6 +158,7 @@
             <span class="ml-8">ダウンロード結果</span>
           </v-list-item-title>
         </component>
+        <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn || $config.public.enablePublicSpace"
@@ -168,6 +170,7 @@
           </v-list-item-title>
         </component>
         <template v-if="$auth.loggedIn">
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces" :id="`navigation_space_link_${space.code}`"

@@ -84,7 +84,7 @@ async function postMembersDelete () {
 
   if (response?.ok) {
     if (data != null) {
-      $emit('messages', { alert: data.alert || '', notice: data.notice || '' })
+      $emit('messages', { alert: data.alert || '', notice: data.notice || $t('notice.member.destroy') })
       $emit('clear')
       $emit('reload')
     } else {
@@ -93,7 +93,7 @@ async function postMembersDelete () {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

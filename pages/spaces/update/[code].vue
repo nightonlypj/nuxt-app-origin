@@ -252,7 +252,7 @@ async function getSpacesDetail () {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {
@@ -295,16 +295,13 @@ async function postSpacesUpdate (setErrors: any, values: any) {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      return redirectAuth({ notice: $t('auth.unauthenticated') })
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
-      if (data?.notice != null) { $toast.info(data.notice) }
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
-      if (data?.notice != null) { $toast.info(data.notice) }
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
-      if (data?.notice != null) { $toast.info(data.notice) }
     } else {
       messages.value = {
         alert: data.alert || $t('system.default'),
@@ -314,7 +311,10 @@ async function postSpacesUpdate (setErrors: any, values: any) {
         setErrors(existKeyErrors.value(data.errors, values))
         waiting.value = true
       }
+      processing.value = false
+      return
     }
+    if (data?.notice != null) { $toast.info(data.notice) }
   }
 
   processing.value = false

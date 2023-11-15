@@ -4,22 +4,7 @@ import SpacesCreate from '~/components/spaces/Create.vue'
 import Component from '~/components/index/Space.vue'
 
 describe('Space.vue', () => {
-  const user = Object.freeze({
-    spaces: [
-      {
-        code: 'code0001',
-        image_url: {
-          mini: 'https://example.com/images/space/mini_noimage.jpg'
-        },
-        name: 'スペース1'
-      },
-      {
-        code: 'code0002',
-        name: 'スペース2'
-      }
-    ]
-  })
-  const mountFunction = () => {
+  const mountFunction = (user: any) => {
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
       $auth: {
         user
@@ -38,7 +23,7 @@ describe('Space.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any) => {
+  const viewTest = (wrapper: any, user: any) => {
     expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
 
     const links = helper.getLinks(wrapper)
@@ -51,8 +36,31 @@ describe('Space.vue', () => {
   }
 
   // テストケース
-  it('表示される', () => {
-    const wrapper = mountFunction()
-    viewTest(wrapper)
+  it('[参加スペースあり]一覧が表示される', () => {
+    const user = Object.freeze({
+      spaces: [
+        {
+          code: 'code0001',
+          image_url: {
+            mini: 'https://example.com/images/space/mini_noimage.jpg'
+          },
+          name: 'スペース1'
+        },
+        {
+          code: 'code0002',
+          name: 'スペース2'
+        }
+      ]
+    })
+    const wrapper = mountFunction(user)
+    viewTest(wrapper, user)
+  })
+  it('[参加スペースなし]メッセージが表示される', () => {
+    const user = Object.freeze({
+      spaces: []
+    })
+    const wrapper = mountFunction(user)
+    expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
+    expect(wrapper.text()).toMatch('新しいスペースを作成するか、参加したいスペースの管理者に連絡して追加して貰いましょう！')
   })
 })

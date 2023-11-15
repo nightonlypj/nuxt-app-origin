@@ -74,6 +74,7 @@ describe('[code].vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
@@ -180,6 +181,15 @@ describe('[code].vue', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -187,6 +197,38 @@ describe('[code].vue', () => {
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: messages })
+    })
+    it('[権限エラー（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
+    })
+    it('[存在しない]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
+    })
+    it('[存在しない（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
@@ -207,7 +249,7 @@ describe('[code].vue', () => {
   })
 
   describe('スペース削除取り消し', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const data = Object.freeze({ ...messages, space: {} })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
       const url = helper.commonConfig.spaces.undoDeleteUrl.replace(':code', space.code)
@@ -239,7 +281,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
@@ -260,6 +302,15 @@ describe('[code].vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      await beforeAction([{ ok: false, status: 401 }, messages])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       await beforeAction([{ ok: false, status: 401 }, null])
 
       helper.mockCalledTest(mock.useAuthUser, 0)
@@ -268,7 +319,47 @@ describe('[code].vue', () => {
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
+    it('[権限エラー]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 403 }, messages])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[権限エラー（メッセージなし）]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 403 }, null])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[存在しない]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 404 }, messages])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[存在しない（メッセージなし）]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 404 }, null])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: helper.locales.system.notfound })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      await beforeAction([{ ok: false, status: 406 }, messages])
+
+      helper.mockCalledTest(mock.useAuthUser, 0)
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: false, status: 406 }, null])
 
       helper.mockCalledTest(mock.useAuthUser, 0)

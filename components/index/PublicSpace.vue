@@ -23,6 +23,7 @@
       </v-card-text>
       <v-card-text v-else>
         <v-list class="overflow-auto py-0" style="max-height: 200px">
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in spaces"

@@ -269,7 +269,7 @@ async function getSpacesList () {
     if (data == null) {
       alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
     } else {
-      alert = $t('system.default')
+      alert = data.alert || $t('system.default')
     }
   }
   if (alert != null) {

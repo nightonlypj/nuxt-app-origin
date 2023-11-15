@@ -132,6 +132,7 @@ describe('ListDownload.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[管理者]全て表示される', async () => {
     const wrapper = mountFunction(true)
     await viewTest(wrapper, true)
@@ -210,7 +211,7 @@ describe('ListDownload.vue', () => {
   })
 
   describe('ダウンロード依頼', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', download: { id: 1 } })
+    const data = Object.freeze({ ...messages, download: {} })
     const allItems = items.map(item => item.key)
     const selectItems = Object.freeze(['code000000000000000000001'])
     const searchParams = Object.freeze({ text: 'aaa' })
@@ -226,7 +227,7 @@ describe('ListDownload.vue', () => {
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.createUrl, 'POST', {
         download: {
           model,
-          space_code: space.code || null,
+          space_code: space.code,
           ...query,
           output_items: allItems,
           select_items: selectItems,
@@ -287,6 +288,15 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -296,6 +306,15 @@ describe('ListDownload.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, data])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[権限エラー（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
       await beforeAction()
 
@@ -305,6 +324,15 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[存在しない]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[存在しない（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
       await beforeAction()
 
@@ -323,11 +351,11 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, Object.assign({ errors: { output_items: ['errorメッセージ'] } }, data)])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { output_items: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(dialog.isVisible()).toBe(true) // 表示
     })

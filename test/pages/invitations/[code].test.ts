@@ -208,6 +208,7 @@ describe('[code].vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
@@ -371,6 +372,29 @@ describe('[code].vue', () => {
     })
     describe('認証エラー', () => {
       it('[初期表示]ログインページにリダイレクトされる', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+        helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+      })
+      it('[無限スクロール]ログインページにリダイレクトされる', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 401 }, messages])
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice }, false)
+        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+      })
+    })
+    describe('認証エラー（メッセージなし）', () => {
+      it('[初期表示]ログインページにリダイレクトされる', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
@@ -394,6 +418,25 @@ describe('[code].vue', () => {
     })
     describe('権限エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: messages })
+      })
+      it('[無限スクロール]エラーメッセージが表示される', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 403 }, messages])
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice })
+      })
+    })
+    describe('権限エラー（メッセージなし）', () => {
+      it('[初期表示]エラーページが表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
@@ -412,6 +455,24 @@ describe('[code].vue', () => {
       })
     })
     describe('存在しない', () => {
+      it('[初期表示]エラーページが表示される', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        apiCalledTest(1)
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
+      })
+      it('[無限スクロール]エラーメッセージが表示される', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 404 }, messages])
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice })
+      })
+    })
+    describe('存在しない（メッセージなし）', () => {
       it('[初期表示]エラーページが表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
         const wrapper = mountFunction()
