@@ -16,6 +16,7 @@ describe('resend.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -58,15 +59,13 @@ describe('resend.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('パラメータなし', () => {
-    const query = Object.freeze({})
     it('[未ログイン]表示される', () => {
-      const wrapper = mountFunction(false, query)
+      const wrapper = mountFunction(false, {})
       viewTest(wrapper, null)
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
-      mountFunction(true, query)
+      mountFunction(true, {})
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })

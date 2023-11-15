@@ -4,6 +4,7 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/index/Infomations.vue'
+import { listCount4 } from '~/test/data/infomations'
 
 describe('Infomations.vue', () => {
   let mock: any
@@ -29,13 +30,13 @@ describe('Infomations.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any) => {
+  const viewTest = (wrapper: any, infomations: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.infomations).toEqual(data.infomations)
+    expect(wrapper.vm.infomations).toEqual(infomations)
 
     const labels = wrapper.findAllComponents(InfomationsLabel)
     const links = helper.getLinks(wrapper)
-    for (const [index, infomation] of data.infomations.entries()) {
+    for (const [index, infomation] of infomations.entries()) {
       expect(labels[index].exists()).toBe(true) // ラベル
       expect(labels[index].vm.$props.infomation).toEqual(infomation)
       expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
@@ -72,18 +73,10 @@ describe('Infomations.vue', () => {
       helper.blankTest(wrapper, AppLoading)
     })
     it('[4件]表示される', async () => { // 本文あり・なし × 概要あり・なし
-      const data = Object.freeze({
-        infomations: [
-          { id: 1, title: 'タイトル1', summary: '概要1', body_present: true, started_at: '2000-01-01T12:34:56+09:00' },
-          { id: 2, title: 'タイトル2', summary: '概要2', body_present: false, started_at: '2000-01-02T12:34:56+09:00' },
-          { id: 3, title: 'タイトル3', summary: null, body_present: true, started_at: '2000-01-03T12:34:56+09:00' },
-          { id: 4, title: 'タイトル4', summary: null, body_present: false, started_at: '2000-01-04T12:34:56+09:00' }
-        ]
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { infomations: listCount4 }])
       await beforeAction()
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, listCount4)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])

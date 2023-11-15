@@ -5,6 +5,8 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Page from '~/pages/infomations/index.vue'
+import { activeUser } from '~/test/data/user'
+import { dataCount0, dataCount1, dataPage1, dataPage2, dataPageMiss1, dataPageMiss2 } from '~/test/data/infomations'
 
 describe('index.vue', () => {
   let mock: any
@@ -18,6 +20,7 @@ describe('index.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (loggedIn = false, user: object | null = null, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -50,30 +53,6 @@ describe('index.vue', () => {
     return wrapper
   }
 
-  const dataPage1 = Object.freeze({
-    infomation: {
-      total_count: 3,
-      current_page: 1,
-      total_pages: 2,
-      limit_value: 2
-    },
-    infomations: [
-      { id: 1 },
-      { id: 2 }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    infomation: {
-      total_count: 3,
-      current_page: 2,
-      total_pages: 2,
-      limit_value: 2
-    },
-    infomations: [
-      { id: 3 }
-    ]
-  })
-
   // テスト内容
   const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -98,46 +77,26 @@ describe('index.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('お知らせ一覧取得', () => {
     it('[0件]表示される', async () => {
-      const data = Object.freeze({
-        infomation: {
-          total_count: 0,
-          current_page: 1,
-          total_pages: 0,
-          limit_value: 2
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataCount0])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, {})
-      viewTest(wrapper, data, '')
+      viewTest(wrapper, dataCount0, '')
     })
     it('[1件]表示される', async () => {
-      const data = Object.freeze({
-        infomation: {
-          total_count: 1,
-          current_page: 1,
-          total_pages: 1,
-          limit_value: 2
-        },
-        infomations: [
-          { id: 1 }
-        ]
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataCount1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, {})
-      viewTest(wrapper, data, '1件')
+      viewTest(wrapper, dataCount1, '1件')
     })
     it('[ページネーション]表示される', async () => {
       mock.useApiRequest = vi.fn()
@@ -197,7 +156,7 @@ describe('index.vue', () => {
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, infomation: { ...dataPage1.infomation, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -210,7 +169,7 @@ describe('index.vue', () => {
       it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200 }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200 }, { ...dataPage2, infomation: { ...dataPage2.infomation, current_page: 9 } }])
+          .mockImplementationOnce(() => [{ ok: true, status: 200 }, dataPageMiss2])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -401,7 +360,7 @@ describe('index.vue', () => {
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
     })
     it('[ログイン中（未読なし）]表示される', async () => {
-      const user = Object.freeze({ infomation_unread_count: 0 })
+      const user = Object.freeze({ ...activeUser, infomation_unread_count: 0 })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, user }])
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, AppLoading)
@@ -415,7 +374,7 @@ describe('index.vue', () => {
       viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
     })
     it('[ログイン中（未読あり）]表示される', async () => {
-      const user = Object.freeze({ infomation_unread_count: 1 })
+      const user = Object.freeze({ ...activeUser, infomation_unread_count: 1 })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...dataPage1, user }])
       const wrapper = mountFunction(true, user)
       helper.loadingTest(wrapper, AppLoading)

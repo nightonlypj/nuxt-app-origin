@@ -1,8 +1,8 @@
 import Plugin from '~/plugins/auth'
+import { activeUser } from '~/test/data/user'
 
 describe('auth.ts', () => {
   const _nuxtApp: any = null
-  const user = Object.freeze({ name: 'user1の氏名' })
 
   describe('loggedIn', () => {
     const responseTest = (status: string, result: boolean) => {
@@ -28,7 +28,7 @@ describe('auth.ts', () => {
       responseTest(undefined, undefined)
     })
     it('[ログイン中]ユーザー情報が返却される', () => {
-      responseTest({ user }, { user })
+      responseTest({ user: activeUser }, { user: activeUser })
     })
   })
 
@@ -42,7 +42,7 @@ describe('auth.ts', () => {
       responseTest(undefined, undefined)
     })
     it('[ログイン中]ユーザー情報が返却される', () => {
-      responseTest({ user }, user)
+      responseTest({ user: activeUser }, activeUser)
     })
   })
 
@@ -51,8 +51,8 @@ describe('auth.ts', () => {
       const authData = ref(null)
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      expect((Plugin(_nuxtApp) as any).provide.auth.setData({ user, other: 1 })).toBeUndefined()
-      expect(authData.value).toEqual({ user, other: 1 })
+      expect((Plugin(_nuxtApp) as any).provide.auth.setData({ user: activeUser, other: 1 })).toBeUndefined()
+      expect(authData.value).toEqual({ user: activeUser, other: 1 })
     })
   })
 
@@ -61,18 +61,18 @@ describe('auth.ts', () => {
       const authData = ref({ other: 1 })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      expect((Plugin(_nuxtApp) as any).provide.auth.setUser(user)).toBeUndefined()
-      expect(authData.value).toEqual({ user, other: 1 })
+      expect((Plugin(_nuxtApp) as any).provide.auth.setUser(activeUser)).toBeUndefined()
+      expect(authData.value).toEqual({ user: activeUser, other: 1 })
     })
   })
 
   describe('resetUserInfomationUnreadCount', () => {
     it('1から0に変更される', () => {
-      const authData = ref({ user: { ...user, infomation_unread_count: 1 } })
+      const authData = ref({ user: { ...activeUser, infomation_unread_count: 1 } })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
       expect((Plugin(_nuxtApp) as any).provide.auth.resetUserInfomationUnreadCount()).toBeUndefined()
-      expect(authData.value).toEqual({ user: { ...user, infomation_unread_count: 0 } })
+      expect(authData.value).toEqual({ user: { ...activeUser, infomation_unread_count: 0 } })
     })
   })
 })

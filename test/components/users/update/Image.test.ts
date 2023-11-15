@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Image.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('Image.vue', () => {
   let mock: any
@@ -16,8 +17,10 @@ describe('Image.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const data = Object.freeze({ ...messages, user: activeUser })
   const fullPath = '/users/update'
+
   const mountFunction = (uploadImage: boolean, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -27,9 +30,7 @@ describe('Image.vue', () => {
       $auth: {
         loggedIn: true,
         user: {
-          image_url: {
-            xlarge: 'https://example.com/images/user/xlarge_noimage.jpg'
-          },
+          ...activeUser,
           upload_image: uploadImage
         },
         setData: mock.setData
@@ -69,8 +70,6 @@ describe('Image.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-  const data = Object.freeze({ ...messages, user: {} })
   it('[デフォルト画像]表示される', async () => {
     const wrapper: any = mountFunction(false)
     viewTest(wrapper, false)
@@ -221,7 +220,7 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { image: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { image: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)

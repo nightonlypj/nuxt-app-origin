@@ -5,7 +5,6 @@ import helper from '~/test/helper'
 describe('auth.ts', () => {
   // ユーザー情報更新 // NOTE: 最新の状態で確認する為
   describe('updateAuthUser', () => {
-    const fullPath = '/path'
     let mock: any
     beforeEach(() => {
       mock = {
@@ -30,8 +29,9 @@ describe('auth.ts', () => {
         fullPath
       })))
     })
-
     const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const fullPath = '/path'
+
     it('[成功]trueが返却される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: true, status: 200 }, {}]))
       expect(await updateAuthUser(config.global.mocks.$t)).toBe(true)

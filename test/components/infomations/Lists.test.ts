@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/infomations/Lists.vue'
+import { listCount2 } from '~/test/data/infomations'
 
 describe('Lists.vue', () => {
   let mock: any
@@ -54,32 +55,16 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[2件]表示される。ダブルクリックで、本文ありは遷移し、本文なしは遷移しない', () => {
-    const infomations = Object.freeze([
-      {
-        id: 1,
-        title: 'タイトル1',
-        summary: '概要1',
-        body_present: true,
-        started_at: '2000-01-01T12:34:56+09:00'
-      },
-      {
-        id: 2,
-        title: 'タイトル2',
-        summary: null,
-        body_present: false,
-        started_at: '2000-01-02T12:34:56+09:00'
-      }
-    ])
-    const wrapper = mountFunction(infomations)
-    viewTest(wrapper, infomations)
+    const wrapper = mountFunction(listCount2)
+    viewTest(wrapper, listCount2)
 
     // ダブルクリックで、本文ありは遷移する
-    const bodyPresentList = wrapper.find(`#infomation_list_${infomations[0].id}`)
+    const bodyPresentList = wrapper.find(`#infomation_list_${listCount2[0].id}`)
     bodyPresentList.trigger('dblclick')
-    helper.mockCalledTest(mock.navigateTo, 1, `/infomations/${infomations[0].id}`)
+    helper.mockCalledTest(mock.navigateTo, 1, `/infomations/${listCount2[0].id}`)
 
     // ダブルクリックで、本文なしは遷移しない
-    const bodyBlankList = wrapper.find(`#infomation_list_${infomations[1].id}`)
+    const bodyBlankList = wrapper.find(`#infomation_list_${listCount2[1].id}`)
     bodyBlankList.trigger('dblclick')
     expect(mock.navigateTo).toBeCalledTimes(1) // NOTE: 上で呼ばれている為
   })

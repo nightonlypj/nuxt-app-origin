@@ -4,6 +4,7 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/users/delete.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
 
 describe('delete.vue', () => {
   let mock: any
@@ -18,9 +19,10 @@ describe('delete.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/users/delete'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -54,11 +56,10 @@ describe('delete.vue', () => {
   const viewTest = (wrapper: any, user: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(String(user.destroy_schedule_days)) // アカウント削除の猶予期間
+    expect(wrapper.text()).toMatch(user.destroy_schedule_days != null ? String(user.destroy_schedule_days) : 'N/A') // アカウント削除の猶予期間
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
@@ -69,7 +70,7 @@ describe('delete.vue', () => {
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中]表示される', async () => {
-    const user = Object.freeze({ destroy_schedule_at: null, destroy_schedule_days: 789 })
+    const user = Object.freeze({ ...activeUser, destroy_schedule_days: 789 })
     mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
     const wrapper = mountFunction(true, user)
     helper.loadingTest(wrapper, AppLoading)
@@ -105,10 +106,18 @@ describe('delete.vue', () => {
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
   })
-  it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-    const user = Object.freeze({ destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
+  it('[ログイン中（アカウント削除の猶予期間なし）]表示される', async () => {
+    const user = Object.freeze({ ...activeUser, destroy_schedule_days: null })
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, user])
     const wrapper = mountFunction(true, user)
+    helper.loadingTest(wrapper, AppLoading)
+    await flushPromises()
+
+    viewTest(wrapper, user)
+  })
+  it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: destroyUser }])
+    const wrapper = mountFunction(true, destroyUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
@@ -120,8 +129,7 @@ describe('delete.vue', () => {
   describe('ユーザー情報更新', () => {
     let wrapper: any
     const beforeAction = async () => {
-      const user = Object.freeze({ destroy_schedule_at: null, destroy_schedule_days: 789 })
-      wrapper = mountFunction(true, user)
+      wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
     }
@@ -180,7 +188,7 @@ describe('delete.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, {}])
+      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, activeUser])
       wrapper = mountFunction()
       await flushPromises()
 
@@ -197,8 +205,7 @@ describe('delete.vue', () => {
     }
 
     it('[成功]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
-      const data = Object.freeze({ ...messages, user: {} })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...messages, user: activeUser }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1)

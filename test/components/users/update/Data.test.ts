@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Data.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('Data.vue', () => {
   let mock: any
@@ -16,8 +17,9 @@ describe('Data.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/users/update'
+
   const mountFunction = (user: object, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -58,7 +60,6 @@ describe('Data.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('表示される（メール確認済み）', async () => {
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: null })
     const wrapper = mountFunction(user)
@@ -95,7 +96,6 @@ describe('Data.vue', () => {
   })
 
   describe('ユーザー情報変更', () => {
-    const data = Object.freeze({ ...messages, user: {} })
     const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
     const params = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
     const apiCalledTest = () => {
@@ -108,7 +108,7 @@ describe('Data.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      wrapper = mountFunction(user, { query: params, alert: data.alert, notice: data.notice })
+      wrapper = mountFunction(user, { query: params, ...messages })
       button = wrapper.find('#user_update_btn')
       button.trigger('click')
       await flushPromises()
@@ -117,6 +117,7 @@ describe('Data.vue', () => {
     }
 
     it('[成功]トップページにリダイレクトされる', async () => {
+      const data = Object.freeze({ ...messages, user: activeUser })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
@@ -185,7 +186,7 @@ describe('Data.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { password: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { password: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)

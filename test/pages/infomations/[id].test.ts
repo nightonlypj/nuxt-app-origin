@@ -4,6 +4,7 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/[id].vue'
+import { detail } from '~/test/data/infomations'
 
 describe('[id].vue', () => {
   let mock: any
@@ -14,6 +15,7 @@ describe('[id].vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (params: any) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -35,20 +37,20 @@ describe('[id].vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any) => {
+  const viewTest = (wrapper: any, infomation: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.infomation).toEqual(data.infomation)
+    expect(wrapper.vm.infomation).toEqual(infomation)
 
     expect(wrapper.findComponent(InfomationsLabel).exists()).toBe(true) // ラベル
-    expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(data.infomation)
+    expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(infomation)
 
-    expect(wrapper.text()).toMatch(data.infomation.title) // タイトル
-    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', data.infomation.started_at)) // 開始日
-    if (data.infomation.body != null) {
-      expect(wrapper.text()).toMatch(data.infomation.body) // 本文
-      expect(wrapper.text()).not.toMatch(data.infomation.summary) // 概要
+    expect(wrapper.text()).toMatch(infomation.title) // タイトル
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
+    if (infomation.body != null) {
+      expect(wrapper.text()).toMatch(infomation.body) // 本文
+      expect(wrapper.text()).not.toMatch(infomation.summary) // 概要
     } else {
-      expect(wrapper.text()).toMatch(data.infomation.summary)
+      expect(wrapper.text()).toMatch(infomation.summary)
     }
 
     const links = helper.getLinks(wrapper)
@@ -56,7 +58,6 @@ describe('[id].vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[パラメータ不正（文字）]エラーページが表示される', () => {
     const wrapper = mountFunction({ id: 'x' })
     helper.loadingTest(wrapper, AppLoading)
@@ -85,34 +86,18 @@ describe('[id].vue', () => {
     }
 
     it('[ラベル・本文あり]表示される', async () => {
-      const data = Object.freeze({
-        infomation: {
-          label_i18n: 'メンテナンス',
-          title: 'タイトル1',
-          summary: '概要1',
-          body: '本文1',
-          started_at: '2000-01-01T12:34:56+09:00'
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      const infomation = Object.freeze({ ...detail, label_i18n: 'メンテナンス', body: '本文1' })
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { infomation }])
       await beforeAction()
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, infomation)
     })
     it('[ラベル・本文なし]表示される', async () => {
-      const data = Object.freeze({
-        infomation: {
-          label_i18n: null,
-          title: 'タイトル1',
-          summary: '概要1',
-          body: null,
-          started_at: '2000-01-01T12:34:56+09:00'
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      const infomation = Object.freeze({ ...detail, label_i18n: null, body: null })
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { infomation }])
       await beforeAction()
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, infomation)
     })
     it('[データなし]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])

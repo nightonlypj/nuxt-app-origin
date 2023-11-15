@@ -17,11 +17,11 @@ describe('error.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any = null) => {
+  const viewTest = (wrapper: any, messages: any = null) => {
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
-    expect(wrapper.vm.alert).toBe(data.alert)
-    expect(wrapper.vm.notice).toBe(data.notice)
+    expect(wrapper.vm.alert).toBe(messages.alert)
+    expect(wrapper.vm.notice).toBe(messages.notice)
   }
 
   // テストケース

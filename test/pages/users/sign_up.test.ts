@@ -6,6 +6,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/sign_up.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('sign_up.vue', () => {
   let mock: any
@@ -16,6 +17,7 @@ describe('sign_up.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (loggedIn: boolean, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -55,7 +57,6 @@ describe('sign_up.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
     viewTest(wrapper)
@@ -104,8 +105,7 @@ describe('sign_up.vue', () => {
     }
 
     it('[成功]ログインページにリダイレクトされる', async () => {
-      const data = Object.freeze({ ...messages, user: {} })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...messages, user: activeUser }])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})

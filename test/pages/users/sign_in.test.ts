@@ -6,6 +6,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/sign_in.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('sign_in.vue', () => {
   let mock: any
@@ -18,6 +19,7 @@ describe('sign_in.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -63,7 +65,6 @@ describe('sign_in.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]表示される', async () => {
     const wrapper: any = mountFunction(false)
     viewTest(wrapper, null)
@@ -169,7 +170,7 @@ describe('sign_in.vue', () => {
       await flushPromises()
     }
 
-    const data = Object.freeze({ ...messages, user: {} })
+    const data = Object.freeze({ ...messages, user: activeUser })
     it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       mock.useAuthRedirect = { redirectUrl: ref('/users/update'), updateRedirectUrl: vi.fn() } // NOTE: URLがある場合

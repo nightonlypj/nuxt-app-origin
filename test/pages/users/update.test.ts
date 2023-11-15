@@ -6,6 +6,7 @@ import AppMessage from '~/components/app/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
 import Page from '~/pages/users/update.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
 
 describe('update.vue', () => {
   let mock: any
@@ -20,9 +21,10 @@ describe('update.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/users/update'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -54,11 +56,6 @@ describe('update.vue', () => {
     return wrapper
   }
 
-  const userDestroy = Object.freeze({
-    destroy_requested_at: '2000-01-01T12:34:56+09:00',
-    destroy_schedule_at: '2000-01-08T12:34:56+09:00'
-  })
-
   // テスト内容
   const apiCalledTest = () => {
     expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -77,7 +74,6 @@ describe('update.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
@@ -88,20 +84,19 @@ describe('update.vue', () => {
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中]表示される', async () => {
-    const user = Object.freeze({ email: 'user1@example.com', unconfirmed_email: null })
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { user }])
-    const wrapper = mountFunction(true, user)
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: activeUser }])
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { user: activeUser }])
+    const wrapper = mountFunction(true, activeUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
     apiCalledTest()
-    viewTest(wrapper, user)
+    viewTest(wrapper, activeUser)
   })
   it('[ログイン中（削除予約済み）]トップページにリダイレクトされる', async () => {
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
-    const wrapper = mountFunction(true, userDestroy)
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: destroyUser }])
+    const wrapper = mountFunction(true, destroyUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
@@ -165,7 +160,7 @@ describe('update.vue', () => {
   describe('ユーザー情報詳細取得', () => {
     let wrapper: any
     const beforeAction = async () => {
-      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, {}])
+      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, activeUser])
       wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
