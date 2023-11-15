@@ -9,7 +9,7 @@
     <v-card max-width="850px">
       <AppProcessing v-if="processing" />
       <v-tabs v-model="tabPage" color="primary">
-        <v-tab :to="`/-/${code}`">スペース</v-tab>
+        <v-tab :to="spacePath">スペース</v-tab>
         <v-tab value="active">スペース設定</v-tab>
       </v-tabs>
       <Form v-slot="{ meta, setErrors, values }">
@@ -224,15 +224,16 @@ const tabPage = ref('active')
 const tabDescription = ref('input')
 const space = ref<any>(null)
 const code = String($route.params.code)
+const spacePath = `/-/${code}`
 
 created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
-  if ($auth.user.destroy_schedule_at != null) { return redirectPath(`/-/${code}`, { alert: $t('auth.destroy_reserved') }) }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('auth.destroy_reserved') }) }
 
   if (!await getSpacesDetail()) { return }
-  if (!currentMemberAdmin.value(space.value)) { return redirectPath(`/-/${code}`, { alert: $t('auth.forbidden') }) }
-  if (space.value.destroy_schedule_at != null) { return redirectPath(`/-/${code}`, { alert: $t('alert.space.destroy_reserved') }) }
+  if (!currentMemberAdmin.value(space.value)) { return redirectPath(spacePath, { alert: $t('auth.forbidden') }) }
+  if (space.value.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('alert.space.destroy_reserved') }) }
 
   loading.value = false
 }
@@ -288,7 +289,7 @@ async function postSpacesUpdate (setErrors: any, values: any) {
       if (data.notice != null) { $toast.success(data.notice) }
 
       await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
-      return navigateTo(`/-/${code}`)
+      return navigateTo(spacePath)
     } else {
       $toast.error($t('system.error'))
     }

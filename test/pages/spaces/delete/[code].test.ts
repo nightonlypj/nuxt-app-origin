@@ -4,6 +4,8 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/spaces/delete/[code].vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail, detailPower, detailDestroy } from '~/test/data/spaces'
 
 describe('[code].vue', () => {
   let mock: any
@@ -18,20 +20,11 @@ describe('[code].vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/spaces/delete/${detail.code}`
+  const spacePath = `/-/${detail.code}`
 
-  const space = Object.freeze({
-    code: 'code0001',
-    destroy_schedule_days: 789
-  })
-  const spaceAdmin = Object.freeze({
-    ...space,
-    current_member: {
-      power: 'admin'
-    }
-  })
-
-  const fullPath = '/spaces/delete/code0001'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -48,7 +41,7 @@ describe('[code].vue', () => {
     vi.stubGlobal('useRoute', vi.fn(() => ({
       fullPath,
       params: {
-        code: space.code
+        code: detail.code
       }
     })))
 
@@ -65,16 +58,15 @@ describe('[code].vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any) => {
+  const viewTest = (wrapper: any, space: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(String(space.destroy_schedule_days)) // スペース削除の猶予期間
+    expect(wrapper.text()).toMatch(space.destroy_schedule_days != null ? String(space.destroy_schedule_days) : 'N/A') // スペース削除の猶予期間
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
-    const wrapper = mountFunction(false)
+    const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
@@ -82,14 +74,17 @@ describe('[code].vue', () => {
     helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
-  it('[ログイン中（管理者）]表示される', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: spaceAdmin }])
-    const user = Object.freeze({ destroy_schedule_at: null })
-    const wrapper = mountFunction(true, user)
+  it('[ログイン中][管理者、削除予定なし]表示される', async () => {
+    const space = Object.freeze({
+      ...detailPower.value('admin'),
+      destroy_schedule_days: 789
+    })
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space }])
+    const wrapper = mountFunction(true)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    viewTest(wrapper)
+    viewTest(wrapper, space)
 
     // 削除ボタン
     const button: any = wrapper.find('#space_delete_btn')
@@ -118,40 +113,49 @@ describe('[code].vue', () => {
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
   })
-  it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
+  it('[ログイン中][管理者、削除予定なし（スペース削除の猶予期間なし）]表示される', async () => {
+    const space = Object.freeze({
+      ...detailPower.value('admin'),
+      destroy_schedule_days: null
+    })
     mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space }])
-    const user = Object.freeze({ destroy_schedule_at: null })
-    const wrapper = mountFunction(true, user)
+    const wrapper = mountFunction(true)
+    helper.loadingTest(wrapper, AppLoading)
+    await flushPromises()
+
+    viewTest(wrapper, space)
+  })
+  it('[ログイン中][管理者以外、削除予定なし]スペーストップにリダイレクトされる', async () => {
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('writer') }])
+    const wrapper = mountFunction(true)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
   it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
-    const user = Object.freeze({ destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
-    const wrapper = mountFunction(true, user)
+    const wrapper = mountFunction(true, destroyUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
-  it('[ログイン中][スペース削除予定]スペーストップにリダイレクトされる', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: { ...spaceAdmin, destroy_schedule_at: '2000-01-08T12:34:56+09:00' } }])
-    const user = Object.freeze({ destroy_schedule_at: null })
-    const wrapper = mountFunction(true, user)
+  it('[ログイン中][管理者、削除予定あり]スペーストップにリダイレクトされる', async () => {
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailDestroy.value('admin') }])
+    const wrapper = mountFunction(true)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.alert.space.destroy_reserved })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
 
   describe('スペース詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', space.code))
+      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', detail.code))
     }
 
     const beforeAction = async () => {
@@ -247,17 +251,16 @@ describe('[code].vue', () => {
   })
 
   describe('スペース削除', () => {
-    const data = Object.freeze({ ...messages, space: {} })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      const url = helper.commonConfig.spaces.deleteUrl.replace(':code', space.code)
+      const url = helper.commonConfig.spaces.deleteUrl.replace(':code', detail.code)
       expect(mock.useApiRequest).nthCalledWith(2, helper.envConfig.apiBaseURL + url, 'POST')
     }
 
     let wrapper: any, button: any
     const beforeAction = async (deleteResponse: any) => {
       mock.useApiRequest = vi.fn()
-        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { space: spaceAdmin }])
+        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { space: detailPower.value('admin') }])
         .mockImplementationOnce(() => deleteResponse)
       wrapper = mountFunction()
       await flushPromises()
@@ -275,12 +278,12 @@ describe('[code].vue', () => {
     }
 
     it('[成功]スペーストップにリダイレクトされる', async () => {
-      await beforeAction([{ ok: true, status: 200 }, data])
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, space: detailPower.value('admin') }])
 
       helper.mockCalledTest(mock.useAuthUser, 1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
+      helper.mockCalledTest(mock.navigateTo, 1, spacePath)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: true, status: 200 }, null])

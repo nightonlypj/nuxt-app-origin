@@ -5,6 +5,7 @@ import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
 import { activeUser } from '~/test/data/user'
+import { listMiniCount2 } from '~/test/data/spaces'
 
 describe('default.vue', () => {
   let mock: any
@@ -57,7 +58,7 @@ describe('default.vue', () => {
     if (loggedIn) {
       expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
       expect(wrapper.text()).toMatch('9+') // お知らせの未読数
-      expect(wrapper.text()).toMatch('123') // 未ダウンロード数
+      expect(wrapper.text()).toMatch(String(user.undownloaded_count)) // 未ダウンロード数
 
       for (const space of user.spaces) { // 参加スペース
         expect(wrapper.find(`#navigation_space_link_${space.code}`).exists()).toBe(true)
@@ -66,7 +67,6 @@ describe('default.vue', () => {
       }
     } else {
       expect(wrapper.text()).not.toMatch('9+')
-      expect(wrapper.text()).not.toMatch('123')
     }
     expect(wrapper.find('#header_menu_user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
     expect(wrapper.find('#navigation_user_image').exists()).toBe(loggedIn)
@@ -80,7 +80,9 @@ describe('default.vue', () => {
   it('[ログイン中]表示される', async () => {
     const user = Object.freeze({
       ...activeUser,
-      infomation_unread_count: 10 // -> 9+
+      infomation_unread_count: 10, // -> 9+
+      undownloaded_count: 123,
+      spaces: listMiniCount2
     })
     const wrapper = mountFunction(true, user)
 

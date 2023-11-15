@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Component from '~/components/spaces/DestroyInfo.vue'
+import { detail, detailDestroy } from '~/test/data/spaces'
 
 describe('DestroyInfo.vue', () => {
   const mountFunction = (space: object) => {
@@ -22,27 +23,15 @@ describe('DestroyInfo.vue', () => {
 
   // テストケース
   it('[削除予定なし]表示されない', () => {
-    const space = Object.freeze({ destroy_schedule_at: null })
-    const wrapper = mountFunction(space)
+    const wrapper = mountFunction(detail)
     helper.blankTest(wrapper)
   })
   it('[削除予定あり（管理者）]取り消しリンクも表示される', () => {
-    const space = Object.freeze({
-      code: 'code0001',
-      destroy_schedule_at: '2000-01-01T12:34:56+09:00',
-      current_member: {
-        power: 'admin'
-      }
-    })
-    const wrapper = mountFunction(space)
-    viewTest(wrapper, space, true)
+    const wrapper = mountFunction(detailDestroy.value('admin'))
+    viewTest(wrapper, detailDestroy.value('admin'), true)
   })
   it('[削除予定あり（管理者以外）]取り消しリンクは表示されない', () => {
-    const space = Object.freeze({
-      code: 'code0001',
-      destroy_schedule_at: '2000-01-01T12:34:56+09:00'
-    })
-    const wrapper = mountFunction(space)
-    viewTest(wrapper, space, false)
+    const wrapper = mountFunction(detailDestroy.value('writer'))
+    viewTest(wrapper, detailDestroy.value('writer'), false)
   })
 })

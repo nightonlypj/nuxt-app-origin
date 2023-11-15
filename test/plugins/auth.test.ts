@@ -78,11 +78,11 @@ describe('auth.ts', () => {
 
   describe('updateUserUndownloadedCount', () => {
     it('2から1に変更される', () => {
-      const authData = ref({ user: { ...user, undownloaded_count: 2 } })
+      const authData = ref({ user: { ...activeUser, undownloaded_count: 2 } })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      Plugin(_nuxtApp).provide.auth.updateUserUndownloadedCount(1)
-      expect(authData.value).toEqual({ user: { ...user, undownloaded_count: 1 } })
+      expect((Plugin(_nuxtApp) as any).provide.auth.updateUserUndownloadedCount(1)).toBeUndefined()
+      expect(authData.value).toEqual({ user: { ...activeUser, undownloaded_count: 1 } })
     })
   })
 })

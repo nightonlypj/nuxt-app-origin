@@ -12,6 +12,8 @@ import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
 import InvitationsLists from '~/components/invitations/Lists.vue'
 import Page from '~/pages/invitations/[code].vue'
+import { detail as space } from '~/test/data/spaces'
+import { dataCount0, dataCount1, dataPage1, dataPage2, dataPage3, dataPageTo2, dataPageTo3, dataPageMiss1, dataPageMiss2 } from '~/test/data/invitations'
 
 describe('[code].vue', () => {
   let mock: any
@@ -26,12 +28,11 @@ describe('[code].vue', () => {
       headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/invitations/${space.code}`
   const model = 'invitation'
-  const space = Object.freeze({ code: 'code0001' })
-  const values = Object.freeze({ messages: { alert: '', notice: 'noticeメッセージ' } })
-  const fullPath = '/invitations/code0001'
-  const mountFunction = (loggedIn = true, query: object | null = null) => {
+
+  const mountFunction = (loggedIn = true, query: object | null = null, values = { messages }) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -72,67 +73,6 @@ describe('[code].vue', () => {
     return wrapper
   }
 
-  const dataCount0 = Object.freeze({
-    space,
-    invitation: {
-      total_count: 0,
-      current_page: 1,
-      total_pages: 0,
-      limit_value: 2
-    }
-  })
-  const dataCount1 = Object.freeze({
-    space,
-    invitation: {
-      total_count: 1,
-      current_page: 1,
-      total_pages: 1,
-      limit_value: 2
-    },
-    invitations: [
-      { code: 'invitation000000000000001' }
-    ]
-  })
-
-  const dataPage1 = Object.freeze({
-    space,
-    invitation: {
-      total_count: 5,
-      current_page: 1,
-      total_pages: 3,
-      limit_value: 2
-    },
-    invitations: [
-      { code: 'invitation000000000000001' },
-      { code: 'invitation000000000000002' }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    space,
-    invitation: {
-      total_count: 5,
-      current_page: 2,
-      total_pages: 3,
-      limit_value: 2
-    },
-    invitations: [
-      { code: 'invitation000000000000003' },
-      { code: 'invitation000000000000004' }
-    ]
-  })
-  const dataPage3 = Object.freeze({
-    space,
-    invitation: {
-      total_count: 5,
-      current_page: 3,
-      total_pages: 3,
-      limit_value: 2
-    },
-    invitations: [
-      { code: 'invitation000000000000005' }
-    ]
-  })
-
   // テスト内容
   const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -143,7 +83,7 @@ describe('[code].vue', () => {
   const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error: boolean = false) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    helper.messageTest(wrapper, AppMessage, values.messages)
+    helper.messageTest(wrapper, AppMessage, messages)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.space)
@@ -208,7 +148,6 @@ describe('[code].vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
@@ -260,15 +199,14 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        const invitations = dataPage1.invitations.concat(dataPage2.invitations)
-        infiniteLoading = viewTest(wrapper, { ...dataPage2, invitations }, '5件', { existInfinite: true, testState: 'loaded' })
+        infiniteLoading = viewTest(wrapper, dataPageTo2, '5件', { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
         apiCalledTest(3)
-        viewTest(wrapper, { ...dataPage3, invitations: invitations.concat(dataPage3.invitations) }, '5件', { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, dataPageTo3, '5件', { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const beforeLocation = window.location
@@ -335,7 +273,7 @@ describe('[code].vue', () => {
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, invitation: { ...dataPage1.invitation, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -347,7 +285,7 @@ describe('[code].vue', () => {
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, invitation: { ...dataPage2.invitation, current_page: 9 } }])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss2])
         await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
@@ -607,7 +545,7 @@ describe('[code].vue', () => {
     }
 
     describe('招待URL設定更新', () => {
-      const invitation = Object.freeze({ ...dataPage1.invitations[0], power: 'test' })
+      const invitation = Object.freeze({ ...dataPage1.invitations[0], power: 'admin' })
       const invitations = Object.freeze([invitation, dataPage1.invitations[1]])
       it('情報が更新され、対象メンバーのコードがセットされる', async () => {
         await beforeAction()

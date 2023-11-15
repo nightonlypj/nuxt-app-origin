@@ -4,15 +4,20 @@ const activeUser = Object.freeze({
   image_url: {
     small: 'https://example.com/images/user/small_noimage.jpg',
     xlarge: 'https://example.com/images/user/xlarge_noimage.jpg'
-  }
+  },
+  deleted: false
 })
 const destroyUser = Object.freeze({
   ...activeUser,
   destroy_requested_at: '2000-01-01T12:34:56+09:00',
   destroy_schedule_at: '2000-01-08T12:34:56+09:00'
 })
+const deletedUser = Object.freeze({
+  deleted: true
+})
 
 export {
   activeUser,
-  destroyUser
+  destroyUser,
+  deletedUser
 }

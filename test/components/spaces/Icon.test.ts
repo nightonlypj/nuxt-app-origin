@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Component from '~/components/spaces/Icon.vue'
+import { detail, detailDestroy } from '~/test/data/spaces'
 
 describe('Icon.vue', () => {
   const mountFunction = (space: object) => {
@@ -22,7 +23,7 @@ describe('Icon.vue', () => {
   // テストケース
   it('[未参加スペース]表示されない', () => {
     const space = Object.freeze({
-      code: 'code0001',
+      ...detail,
       private: false
     })
     const wrapper = mountFunction(space)
@@ -30,13 +31,8 @@ describe('Icon.vue', () => {
   })
   it('[参加スペース]表示される', () => {
     const space = Object.freeze({
-      code: 'code0001',
-      private: true,
-      destroy_schedule_at: '2000-01-01T12:34:56+09:00',
-      current_member: {
-        power: 'admin',
-        power_i18n: '管理者'
-      }
+      ...detailDestroy.value('admin'),
+      private: true
     })
     const wrapper = mountFunction(space)
     viewTest(wrapper, space, true)

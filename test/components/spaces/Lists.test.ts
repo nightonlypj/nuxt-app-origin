@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Lists.vue'
+import { listCount2 } from '~/test/data/spaces'
 
 describe('Lists.vue', () => {
   const mountFunction = (spaces: any, hiddenItems: any = []) => {
@@ -58,37 +59,14 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   describe('2件', () => {
-    const spaces = Object.freeze([
-      {
-        code: 'code0001',
-        image_url: {
-          small: 'https://example.com/images/space/small_noimage.jpg'
-        },
-        name: '非公開スペース1',
-        description: '非公開スペース1の説明',
-        private: true,
-        destroy_schedule_at: '2000-01-01T12:34:56+09:00',
-        current_member: {
-          power: 'admin',
-          power_i18n: '管理者'
-        }
-      },
-      {
-        code: 'code0002',
-        name: '公開スペース2',
-        description: '公開スペース2の説明',
-        private: false
-      }
-    ])
-
     it('[非表示項目が空]全て表示される', () => {
-      const wrapper = mountFunction(spaces, [])
-      viewTest(wrapper, spaces, { optional: true })
+      const wrapper = mountFunction(listCount2, [])
+      viewTest(wrapper, listCount2, { optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
       const hiddenItems = helper.locales.items.space.map(item => item.key)
-      const wrapper = mountFunction(spaces, hiddenItems)
-      viewTest(wrapper, spaces, { optional: false })
+      const wrapper = mountFunction(listCount2, hiddenItems)
+      viewTest(wrapper, listCount2, { optional: false })
     })
   })
 })

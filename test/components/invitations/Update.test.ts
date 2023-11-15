@@ -5,6 +5,9 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/invitations/Update.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail as space } from '~/test/data/spaces'
+import { detailActive, detailExpired, detailDeleted, detailEmailJoined } from '~/test/data/invitations'
 
 describe('Update.vue', () => {
   let mock: any
@@ -18,58 +21,10 @@ describe('Update.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/invitations/${space.code}`
 
-  const space = Object.freeze({ code: 'code0001' })
-  const defaultInvitation = Object.freeze({
-    code: 'invitation000000000000001',
-    power: 'admin',
-    power_i18n: '管理者',
-    created_user: {
-      code: 'code000000000000000000001'
-    },
-    created_at: '2000-01-01T12:34:56+09:00',
-    destroy_schedule_days: 789
-  })
-  const invitationActive = Object.freeze({
-    ...defaultInvitation,
-    status: 'active',
-    domains: ['a.example.com', 'b.example.com'],
-    memo: 'メモ'
-  })
-  const invitationExpired = Object.freeze({
-    ...defaultInvitation,
-    status: 'expired',
-    domains: ['example.com'],
-    ended_at: '2000-01-31T12:34:56+09:00',
-    last_updated_user: {
-      code: 'code000000000000000000002'
-    },
-    last_updated_at: '2000-01-02T12:34:56+09:00'
-  })
-  const invitationDeleted = Object.freeze({
-    ...defaultInvitation,
-    status: 'deleted',
-    domains: ['example.com'],
-    memo: 'メモ',
-    destroy_requested_at: '2000-01-02T12:34:56+09:00',
-    destroy_schedule_at: '2000-01-09T12:34:56+09:00',
-    created_user: {
-      deleted: true
-    },
-    last_updated_user: {
-      deleted: true
-    },
-    last_updated_at: '2000-01-02T12:34:56+09:00'
-  })
-  const invitationEmailJoined = Object.freeze({
-    ...defaultInvitation,
-    status: 'email_joined',
-    email: 'user1@example.com',
-    email_joined_at: '2000-01-02T12:34:56+09:00'
-  })
-
-  const fullPath = '/invitations/code0001'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -181,12 +136,11 @@ describe('Update.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
     // ダイアログ表示
-    wrapper.vm.showDialog(invitationActive)
+    wrapper.vm.showDialog(detailActive)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
@@ -195,26 +149,26 @@ describe('Update.vue', () => {
   })
   describe('ログイン中', () => {
     it('[有効]表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...invitationActive } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...detailActive } }])
       const wrapper = mountFunction(true)
-      await viewTest(wrapper, invitationActive, { delete: true, undoDelete: false })
+      await viewTest(wrapper, detailActive, { delete: true, undoDelete: false })
     })
     it('[期限切れ]表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...invitationExpired } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...detailExpired } }])
       const wrapper = mountFunction(true)
-      await viewTest(wrapper, invitationExpired, { delete: false, undoDelete: false })
+      await viewTest(wrapper, detailExpired, { delete: false, undoDelete: false })
     })
     it('[削除済み]表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...invitationDeleted } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...detailDeleted } }])
       const wrapper = mountFunction(true)
-      await viewTest(wrapper, invitationDeleted, { delete: false, undoDelete: true })
+      await viewTest(wrapper, detailDeleted, { delete: false, undoDelete: true })
     })
     it('[参加済み]表示されない', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...invitationEmailJoined } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...detailEmailJoined } }])
       const wrapper = mountFunction(true)
 
       // ダイアログ表示
-      wrapper.vm.showDialog(invitationEmailJoined)
+      wrapper.vm.showDialog(detailEmailJoined)
       await flushPromises()
 
       helper.toastMessageTest(mock.toast, { error: helper.locales.alert.invitation.email_joined })
@@ -224,11 +178,11 @@ describe('Update.vue', () => {
     })
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...invitationActive } }])
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { ...detailActive } }])
+    const wrapper = mountFunction(true, destroyUser)
 
     // ダイアログ表示
-    wrapper.vm.showDialog(invitationActive)
+    wrapper.vm.showDialog(detailActive)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
@@ -240,7 +194,7 @@ describe('Update.vue', () => {
   describe('招待URL詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      const url = helper.commonConfig.invitations.detailUrl.replace(':space_code', space.code).replace(':code', invitationActive.code)
+      const url = helper.commonConfig.invitations.detailUrl.replace(':space_code', space.code).replace(':code', detailActive.code)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
     }
 
@@ -248,7 +202,7 @@ describe('Update.vue', () => {
       const wrapper = mountFunction()
 
       // ダイアログ表示
-      wrapper.vm.showDialog(invitationActive)
+      wrapper.vm.showDialog(detailActive)
       await flushPromises()
 
       apiCalledTest()
@@ -348,14 +302,14 @@ describe('Update.vue', () => {
     })
     const apiCalledTest = (values: object) => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      const url = helper.commonConfig.invitations.updateUrl.replace(':space_code', space.code).replace(':code', invitationActive.code)
+      const url = helper.commonConfig.invitations.updateUrl.replace(':space_code', space.code).replace(':code', detailActive.code)
       expect(mock.useApiRequest).nthCalledWith(2, helper.envConfig.apiBaseURL + url, 'POST', {
         invitation: values
       })
     }
 
     let wrapper: any, dialog: any, button: any
-    const beforeAction = async (updateResponse: any, invitation: any = invitationActive, values: any = defaultValues) => {
+    const beforeAction = async (updateResponse: any, invitation: any = detailActive, values: any = defaultValues) => {
       mock.useApiRequest = vi.fn()
         .mockImplementationOnce(() => [{ ok: true, status: 200 }, { invitation: { ...invitation } }])
         .mockImplementationOnce(() => updateResponse)
@@ -385,27 +339,27 @@ describe('Update.vue', () => {
     }
 
     it('[成功]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationActive }], invitationActive, defaultValues)
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: detailActive }], detailActive, defaultValues)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
-      expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
+      expect(wrapper.emitted().update).toEqual([[detailActive]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[成功（削除）]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationDeleted }], invitationActive, { ...defaultValues, delete: true })
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: detailDeleted }], detailActive, { ...defaultValues, delete: true })
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
-      expect(wrapper.emitted().update).toEqual([[invitationDeleted]]) // 招待URL情報更新
+      expect(wrapper.emitted().update).toEqual([[detailDeleted]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[成功（削除取り消し）]一覧の対象データが更新される', async () => {
-      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: invitationActive }], invitationDeleted, { ...defaultValues, undo_delete: true })
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, invitation: detailActive }], detailDeleted, { ...defaultValues, undo_delete: true })
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
-      expect(wrapper.emitted().update).toEqual([[invitationActive]]) // 招待URL情報更新
+      expect(wrapper.emitted().update).toEqual([[detailActive]]) // 招待URL情報更新
       expect(dialog.isDisabled()).toBe(false) // 非表示
     })
     it('[データなし]エラーメッセージが表示される', async () => {

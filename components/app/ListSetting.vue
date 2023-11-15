@@ -110,7 +110,7 @@ const requiredShowItems = computed(() => items.value.filter((item: any) => item.
 
 function initialize () {
   waiting.value = true
-  showItems.value = items.value.filter((item: { required: any; key: any; }) => item.required || !$props.hiddenItems.includes(item.key)).map((item: any) => item.key)
+  showItems.value = items.value.filter((item: any) => item.required || !$props.hiddenItems.includes(item.key)).map((item: any) => item.key)
 }
 
 function setAllShowItems () {

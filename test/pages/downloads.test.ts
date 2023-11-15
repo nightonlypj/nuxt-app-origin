@@ -7,6 +7,8 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import DownloadsLists from '~/components/downloads/Lists.vue'
 import Page from '~/pages/downloads.vue'
+import { activeUser } from '~/test/data/user'
+import { dataCount0, dataCount1, dataPage1, dataPage2, dataPage3, dataPageTo2, dataPageTo3, dataPageMiss1, dataPageMiss2 } from '~/test/data/downloads'
 
 describe('downloads.vue', () => {
   let mock: any
@@ -22,9 +24,10 @@ describe('downloads.vue', () => {
       headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/downloads'
-  const mountFunction = (loggedIn = true, user: object | null = {}, query: object | null = null, values = {}) => {
+
+  const mountFunction = (loggedIn = true, user: object | null = activeUser, query: object | null = null, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -58,64 +61,6 @@ describe('downloads.vue', () => {
     for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
-
-  const dataCount0 = Object.freeze({
-    download: {
-      total_count: 0,
-      current_page: 1,
-      total_pages: 0,
-      limit_value: 2
-    },
-    undownloaded_count: 0
-  })
-  const dataCount1 = Object.freeze({
-    download: {
-      total_count: 1,
-      current_page: 1,
-      total_pages: 1,
-      limit_value: 2
-    },
-    downloads: [
-      { id: 1 }
-    ],
-    undownloaded_count: 1
-  })
-
-  const dataPage1 = Object.freeze({
-    download: {
-      total_count: 5,
-      current_page: 1,
-      total_pages: 3,
-      limit_value: 2
-    },
-    downloads: [
-      { id: 5, status: 'waiting' },
-      { id: 4, status: 'success' }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    download: {
-      total_count: 5,
-      current_page: 2,
-      total_pages: 3,
-      limit_value: 2
-    },
-    downloads: [
-      { id: 3, status: 'success' },
-      { id: 2, status: 'processing' }
-    ]
-  })
-  const dataPage3 = Object.freeze({
-    download: {
-      total_count: 5,
-      current_page: 3,
-      total_pages: 3,
-      limit_value: 2
-    },
-    downloads: [
-      { id: 1, status: 'failure' }
-    ]
-  })
 
   // テスト内容
   const apiCalledTest = (count: number, params: any = { page: count }) => {
@@ -169,7 +114,6 @@ describe('downloads.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
@@ -186,7 +130,7 @@ describe('downloads.vue', () => {
     describe('0件', () => {
       it('表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
-        const wrapper = mountFunction(true, { undownloaded_count: 0 })
+        const wrapper = mountFunction(true, { ...activeUser, undownloaded_count: 0 })
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
@@ -198,7 +142,7 @@ describe('downloads.vue', () => {
     describe('1件', () => {
       it('表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
-        const wrapper = mountFunction(true, { undownloaded_count: 0 })
+        const wrapper = mountFunction(true, { ...activeUser, undownloaded_count: 0 })
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
@@ -227,15 +171,14 @@ describe('downloads.vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        const downloads = dataPage1.downloads.concat(dataPage2.downloads)
-        infiniteLoading = viewTest(wrapper, { ...dataPage2, downloads }, '5件', {}, { existInfinite: true, testState: 'loaded' })
+        infiniteLoading = viewTest(wrapper, dataPageTo2, '5件', {}, { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
         apiCalledTest(3)
-        viewTest(wrapper, { ...dataPage3, downloads: downloads.concat(dataPage3.downloads) }, '5件', {}, { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, dataPageTo3, '5件', {}, { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const beforeLocation = window.location
@@ -284,7 +227,7 @@ describe('downloads.vue', () => {
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, download: { ...dataPage1.download, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -296,7 +239,7 @@ describe('downloads.vue', () => {
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, download: { ...dataPage2.download, current_page: 9 } }])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss2])
         await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
@@ -461,8 +404,8 @@ describe('downloads.vue', () => {
   })
 
   describe('完了チェック', () => {
+    const user = Object.freeze({ ...activeUser, undownloaded_count: 1 })
     const targetId = dataPage1.downloads[0].id
-    const user = Object.freeze({ undownloaded_count: 1 })
     let wrapper: any
     describe('0回', () => {
       const beforeAction = async (target: object) => {
@@ -655,7 +598,6 @@ describe('downloads.vue', () => {
   })
 
   describe('ダウンロード', () => {
-    const user = Object.freeze({ undownloaded_count: 1 })
     const data = Object.freeze({
       download: {
         total_count: 2,
@@ -674,7 +616,7 @@ describe('downloads.vue', () => {
       mock.useApiRequest = vi.fn()
         .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, data])
         .mockImplementationOnce(() => downloadResponse)
-      wrapper = mountFunction(true, user, query, values)
+      wrapper = mountFunction(true, { ...activeUser, undownloaded_count: 1 }, query, values)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
@@ -697,7 +639,11 @@ describe('downloads.vue', () => {
     }
 
     const filename = 'file_12345.csv'
-    const successResponse = [{ ok: true, status: 200, headers: { get: vi.fn((key: string) => key === 'content-disposition' ? `attachment; filename="${filename}";` : null) } }, 'test']
+    const successResponse = [{
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn((key: string) => key === 'content-disposition' ? `attachment; filename="${filename}";` : null) }
+    }, 'test']
     it('[パラメータなし、未ダウンロード]ダウンロードされる', async () => {
       await beforeAction(successResponse, null, data.downloads[0])
 

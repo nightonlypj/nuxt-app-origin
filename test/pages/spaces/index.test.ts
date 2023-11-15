@@ -8,6 +8,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Page from '~/pages/spaces/index.vue'
+import { defaultParams, findParams, findQuery, findData, dataCount0, dataCount1, dataPage1, dataPage2, dataPage3, dataPageTo2, dataPageTo3, dataPageMiss1, dataPageMiss2 } from '~/test/data/spaces'
 
 describe('index.vue', () => {
   let mock: any
@@ -20,8 +21,9 @@ describe('index.vue', () => {
       headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   // const model = 'space'
+
   const mountFunction = (loggedIn = false, query: object | null = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
@@ -51,104 +53,6 @@ describe('index.vue', () => {
     expect(wrapper.vm).toBeTruthy()
     return wrapper
   }
-
-  let optionParams = {
-    public: 1,
-    private: 1,
-    join: 1,
-    nojoin: 1
-  }
-  const defaultParams = Object.freeze({
-    text: '',
-    ...optionParams,
-    active: 1,
-    destroy: 0
-  })
-
-  let optionQuery = {}
-  if (helper.commonConfig.enablePublicSpace) {
-    optionParams = {
-      public: 1,
-      private: 0,
-      join: 1,
-      nojoin: 0
-    }
-    optionQuery = {
-      public: String(optionParams.public),
-      private: String(optionParams.private),
-      join: String(optionParams.join),
-      nojoin: String(optionParams.nojoin)
-    }
-  }
-  const findParams = Object.freeze({
-    text: 'aaa',
-    ...optionParams,
-    active: 1,
-    destroy: 0
-  })
-  const findQuery = Object.freeze({
-    text: 'aaa',
-    ...optionQuery,
-    active: String(findParams.active),
-    destroy: String(findParams.destroy),
-    option: '1'
-  })
-
-  const dataCount0 = Object.freeze({
-    space: {
-      total_count: 0,
-      current_page: 1,
-      total_pages: 0,
-      limit_value: 2
-    }
-  })
-  const dataCount1 = Object.freeze({
-    space: {
-      total_count: 1,
-      current_page: 1,
-      total_pages: 1,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0001' }
-    ]
-  })
-
-  const dataPage1 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 1,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0001' },
-      { code: 'code0002' }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 2,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0003' },
-      { code: 'code0004' }
-    ]
-  })
-  const dataPage3 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 3,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0005' }
-    ]
-  })
 
   // テスト内容
   const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
@@ -209,7 +113,6 @@ describe('index.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('スペース一覧取得', () => {
     it('[0件]表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount0])
@@ -249,15 +152,14 @@ describe('index.vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        const spaces = dataPage1.spaces.concat(dataPage2.spaces)
-        viewTest(wrapper, { ...dataPage2, spaces }, '5件', { existInfinite: true, testState: 'loaded' })
+        viewTest(wrapper, dataPageTo2, '5件', { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
         apiCalledTest(3)
-        viewTest(wrapper, { ...dataPage3, spaces: spaces.concat(dataPage3.spaces) }, '5件', { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, dataPageTo3, '5件', { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const beforeLocation = window.location
@@ -313,7 +215,7 @@ describe('index.vue', () => {
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, space: { ...dataPage1.space, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -324,7 +226,7 @@ describe('index.vue', () => {
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, space: { ...dataPage2.space, current_page: 9 } }])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss2])
         await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
@@ -463,22 +365,7 @@ describe('index.vue', () => {
 
       // スペース一覧検索
       wrapper.vm.$refs.spacesSearch.setError = vi.fn()
-      let optionQuery = {}
-      if (helper.commonConfig.enablePublicSpace) {
-        optionQuery = {
-          public: findParams.public === 1,
-          private: findParams.private === 1,
-          join: findParams.join === 1,
-          nojoin: findParams.nojoin === 1
-        }
-      }
-      wrapper.vm.query = {
-        text: findParams.text,
-        ...optionQuery,
-        active: findParams.active === 1,
-        destroy: findParams.destroy !== 0,
-        option: findQuery.option === '1'
-      }
+      wrapper.vm.query = findData
       wrapper.vm.reloading = reloading
       await wrapper.vm.searchSpacesList()
       await flushPromises()

@@ -6,6 +6,7 @@ import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Page from '~/pages/-/[code].vue'
+import { detail, detailPower } from '~/test/data/spaces'
 
 describe('[code].vue', () => {
   let mock: any
@@ -19,9 +20,10 @@ describe('[code].vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/-/${detail.code}`
+  const params = Object.freeze({ code: detail.code })
 
-  const params = Object.freeze({ code: 'code0001' })
-  const fullPath = `/-/${params.code}`
   const mountFunction = (loggedIn: boolean) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -53,37 +55,27 @@ describe('[code].vue', () => {
     return wrapper
   }
 
-  const space = Object.freeze({
-    code: 'code0001',
-    image_url: {
-      small: 'https://example.com/images/space/small_noimage.jpg'
-    },
-    name: 'スペース1',
-    description: 'スペース1の説明'
-  })
-
   // テスト内容
-  const viewTest = (wrapper: any, data: any) => {
+  const viewTest = (wrapper: any, space: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.space).toEqual(data.space)
+    expect(wrapper.vm.space).toEqual(space)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.space)
 
     expect(wrapper.find('#space_image').exists()).toBe(true)
-    expect(wrapper.text()).toMatch(data.space.name)
+    expect(wrapper.text()).toMatch(space.name)
 
     const spacesIcon = wrapper.findComponent(SpacesIcon)
     expect(spacesIcon.exists()).toBe(true)
-    expect(spacesIcon.vm.$props.space).toEqual(data.space)
+    expect(spacesIcon.vm.$props.space).toEqual(space)
 
     const appMarkdown = wrapper.findComponent(AppMarkdown)
     expect(appMarkdown.exists()).toBe(true)
-    expect(appMarkdown.vm.$props.source).toBe(data.space.description)
+    expect(appMarkdown.vm.$props.source).toBe(space.description)
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('スペース情報取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -100,59 +92,34 @@ describe('[code].vue', () => {
     }
 
     it('[管理者]表示される（メンバー一覧・設定変更も表示）', async () => {
-      const data = Object.freeze({
-        space: {
-          ...space,
-          current_member: {
-            power: 'admin'
-          }
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('admin') }])
       await beforeAction(true)
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, detailPower.value('admin'))
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(true) // 表示
     })
     it('[投稿者]表示される（メンバー一覧は表示、設定変更は非表示）', async () => {
-      const data = Object.freeze({
-        space: {
-          ...space,
-          current_member: {
-            power: 'writer'
-          }
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('writer') }])
       await beforeAction(true)
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, detailPower.value('writer'))
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
     })
     it('[閲覧者]表示される（メンバー一覧は表示、設定変更は非表示）', async () => {
-      const data = Object.freeze({
-        space: {
-          ...space,
-          current_member: {
-            power: 'reader'
-          }
-        }
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('reader') }])
       await beforeAction(true)
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, detailPower.value('reader'))
       expect(wrapper.find('#members_btn').exists()).toBe(true) // 表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
     })
     it('[未参加]表示される（メンバー一覧・設定変更は非表示）', async () => {
-      const data = Object.freeze({ space })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detail }])
       await beforeAction(true)
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, detail)
       expect(wrapper.find('#members_btn').exists()).toBe(false) // 非表示
       expect(wrapper.find('#space_update_btn').exists()).toBe(false) // 非表示
     })

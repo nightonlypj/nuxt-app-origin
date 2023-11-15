@@ -3,6 +3,8 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/members/Delete.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail as space } from '~/test/data/spaces'
 
 describe('Delete.vue', () => {
   let mock: any
@@ -15,16 +17,15 @@ describe('Delete.vue', () => {
       toast: helper.mockToast
     }
   })
-
-  const space = Object.freeze({ code: 'code0001' })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/members/${space.code}`
   const codes = Object.freeze(['code000000000000000000001', 'code000000000000000000002'])
   const selectedMembers = Object.freeze([
     { user: { code: codes[0] } },
     { user: { code: codes[1] } }
   ])
 
-  const fullPath = '/members/code0001'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -87,7 +88,6 @@ describe('Delete.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
@@ -106,7 +106,7 @@ describe('Delete.vue', () => {
     await viewTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    const wrapper = mountFunction(true, destroyUser)
 
     // 表示ボタン
     const button = wrapper.find('#member_delete_btn')
@@ -148,8 +148,7 @@ describe('Delete.vue', () => {
     }
 
     it('[成功]選択メンバーがクリアされ、一覧が再取得される', async () => {
-      const data = Object.freeze({ ...messages, count: 1 })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...messages, count: 1 }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Title.vue'
+import { detail } from '~/test/data/spaces'
 
 describe('Title.vue', () => {
   const mountFunction = (space: object) => {
@@ -30,14 +31,7 @@ describe('Title.vue', () => {
 
   // テストケース
   it('表示される', () => {
-    const space = Object.freeze({
-      code: 'code0001',
-      name: 'スペース1',
-      image_url: {
-        small: 'https://example.com/images/space/small_noimage.jpg'
-      }
-    })
-    const wrapper = mountFunction(space)
-    viewTest(wrapper, space)
+    const wrapper = mountFunction(detail)
+    viewTest(wrapper, detail)
   })
 })

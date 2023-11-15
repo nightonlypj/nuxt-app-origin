@@ -3,6 +3,8 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/invitations/Lists.vue'
+import { activeUser } from '~/test/data/user'
+import { listCount4 } from '~/test/data/invitations'
 
 describe('Lists.vue', () => {
   let mock: any
@@ -12,12 +14,11 @@ describe('Lists.vue', () => {
     }
   })
 
-  const user = Object.freeze({ code: 'code000000000000000000001' })
   const mountFunction = (invitations: any, hiddenItems: any = null) => {
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
       $auth: {
         loggedIn: true,
-        user
+        user: activeUser
       },
       $toast: mock.toast
     })))
@@ -170,79 +171,14 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   describe('4件', () => {
-    const invitations = Object.freeze([
-      {
-        status: 'email_joined',
-        status_i18n: '参加済み',
-        code: 'invitation000000000000004',
-        email: 'user1@example.com',
-        power: 'admin',
-        power_i18n: '管理者',
-        email_joined_at: '2000-04-02T12:34:56+09:00',
-        created_user: {
-          name: 'user4の氏名'
-        },
-        created_at: '2000-04-01T12:34:56+09:00'
-      },
-      {
-        status: 'deleted',
-        status_i18n: '削除済み',
-        code: 'invitation000000000000003',
-        domains: ['d.example.com'],
-        power: 'reader',
-        power_i18n: '閲覧者',
-        memo: 'メモ3',
-        destroy_requested_at: '2000-03-02T12:34:56+09:00',
-        destroy_schedule_at: '2000-03-09T12:34:56+09:00',
-        created_user: {
-          deleted: true
-        },
-        last_updated_user: {
-          deleted: true
-        },
-        created_at: '2000-03-01T12:34:56+09:00',
-        last_updated_at: '2000-03-03T12:34:56+09:00'
-      },
-      {
-        status: 'expired',
-        status_i18n: '期限切れ',
-        code: 'invitation000000000000002',
-        domains: ['c.example.com'],
-        power: 'writer',
-        power_i18n: '投稿者',
-        ended_at: '2000-02-31T12:34:56+09:00',
-        created_user: {
-          name: 'user2の氏名'
-        },
-        last_updated_user: {
-          name: 'user3の氏名'
-        },
-        created_at: '2000-02-01T12:34:56+09:00',
-        last_updated_at: '2000-02-02T12:34:56+09:00'
-      },
-      {
-        status: 'active',
-        status_i18n: '有効',
-        code: 'invitation000000000000001',
-        domains: ['a.example.com', 'b.example.com'],
-        power: 'admin',
-        power_i18n: '管理者',
-        memo: 'メモ1',
-        created_user: {
-          name: 'user1の氏名'
-        },
-        created_at: '2000-01-01T12:34:56+09:00'
-      }
-    ])
-
     it('[非表示項目が空]全て表示される', () => {
-      const wrapper = mountFunction(invitations, [])
-      viewTest(wrapper, invitations, { optional: true })
+      const wrapper = mountFunction(listCount4, [])
+      viewTest(wrapper, listCount4, { optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
       const hiddenItems = helper.locales.items.invitation.map(item => item.key)
-      const wrapper = mountFunction(invitations, hiddenItems)
-      viewTest(wrapper, invitations, { optional: false })
+      const wrapper = mountFunction(listCount4, hiddenItems)
+      viewTest(wrapper, listCount4, { optional: false })
     })
   })
 })

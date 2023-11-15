@@ -4,6 +4,8 @@ import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import Component from '~/components/members/Create.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail as space } from '~/test/data/spaces'
 
 describe('Create.vue', () => {
   let mock: any
@@ -16,10 +18,10 @@ describe('Create.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/members/${space.code}`
 
-  const space = Object.freeze({ code: 'code0001' })
-  const fullPath = '/members/code0001'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -93,7 +95,6 @@ describe('Create.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
@@ -112,7 +113,7 @@ describe('Create.vue', () => {
     await viewTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    const wrapper = mountFunction(true, destroyUser)
 
     // 表示ボタン
     const button = wrapper.find('#member_create_btn')

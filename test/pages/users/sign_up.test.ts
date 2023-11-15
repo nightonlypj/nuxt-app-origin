@@ -164,12 +164,11 @@ describe('sign_up.vue', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[存在しない]エラーページが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: messages.alert, notice: messages.notice } })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])

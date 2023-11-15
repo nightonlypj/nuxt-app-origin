@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import Component from '~/components/index/PublicSpace.vue'
+import { listMiniCount2 } from '~/test/data/spaces'
 
 describe('PublicSpace.vue', () => {
   let mock: any
@@ -27,12 +28,12 @@ describe('PublicSpace.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any) => {
+  const viewTest = (wrapper: any, spaces: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.spaces).toEqual(data.spaces)
+    expect(wrapper.vm.spaces).toEqual(spaces)
 
     const links = helper.getLinks(wrapper)
-    for (const space of data.spaces) {
+    for (const space of spaces) {
       expect(links.includes(`/-/${space.code}`)).toBe(true)
       expect(wrapper.find(`#public_space_link_${space.code}`).exists()).toBe(true)
       expect(wrapper.find(`#public_space_image_${space.code}`).exists()).toBe(space.image_url != null)
@@ -69,25 +70,10 @@ describe('PublicSpace.vue', () => {
       helper.blankTest(wrapper, AppLoading)
     })
     it('[2件]表示される', async () => {
-      const data = Object.freeze({
-        spaces: [
-          {
-            code: 'code0001',
-            image_url: {
-              mini: 'https://example.com/images/space/mini_noimage.jpg'
-            },
-            name: 'スペース1'
-          },
-          {
-            code: 'code0002',
-            name: 'スペース2'
-          }
-        ]
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { spaces: listMiniCount2 }])
       await beforeAction()
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, listMiniCount2)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])

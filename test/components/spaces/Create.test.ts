@@ -5,6 +5,8 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import AppMarkdown from '~/components/app/Markdown.vue'
 import Component from '~/components/spaces/Create.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail as space } from '~/test/data/spaces'
 
 describe('Create.vue', () => {
   let mock: any
@@ -18,9 +20,10 @@ describe('Create.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/spaces'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -101,7 +104,6 @@ describe('Create.vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
 
@@ -120,7 +122,7 @@ describe('Create.vue', () => {
     await viewTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示されない', async () => {
-    const wrapper = mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    const wrapper = mountFunction(true, destroyUser)
 
     // 表示ボタン
     const button = wrapper.find('#space_create_btn')
@@ -135,8 +137,6 @@ describe('Create.vue', () => {
   })
 
   describe('スペース作成', () => {
-    const data = Object.freeze({ ...messages, space: {} })
-    const space = Object.freeze({ code: 'code0001' })
     const values = Object.freeze({ name: 'スペース1', description: 'スペース1の説明', private: true, image: {} })
     const apiCalledTest = () => {
       const params: any = {
@@ -180,7 +180,7 @@ describe('Create.vue', () => {
     }
 
     it('[成功（コードあり）]作成したスペースにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...data, space }])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...messages, space }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthUser, 1)
@@ -189,7 +189,7 @@ describe('Create.vue', () => {
       helper.mockCalledTest(mock.navigateTo, 1, `/-/${space.code}`)
     })
     it('[成功（コードなし）]ダイアログが閉じられる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthUser, 1)
@@ -271,7 +271,7 @@ describe('Create.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthUser, 0)

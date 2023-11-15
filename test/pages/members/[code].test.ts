@@ -16,6 +16,8 @@ import MembersDelete from '~/components/members/Delete.vue'
 import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
 import Page from '~/pages/members/[code].vue'
+import { detail as space, detailPower } from '~/test/data/spaces'
+import { defaultParams, findParams, findQuery, findData, dataCount0, dataCount1, dataPage1, dataPage2, dataPage3, dataPageTo2, dataPageTo3, dataPageMiss1, dataPageMiss2 } from '~/test/data/members'
 
 describe('[code].vue', () => {
   let mock: any
@@ -30,21 +32,11 @@ describe('[code].vue', () => {
       headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
     }
   })
-
-  const space = Object.freeze({
-    code: 'code0001'
-  })
-  const adminSpace = Object.freeze({
-    ...space,
-    current_member: {
-      power: 'admin'
-    }
-  })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/members/${space.code}`
   const model = 'member'
-  const values = Object.freeze({ messages: { alert: 'alertメッセージ', notice: 'noticeメッセージ' } })
-  const fullPath = '/members/code0001'
-  const mountFunction = (loggedIn = true, query: object | null = null) => {
+
+  const mountFunction = (loggedIn = true, query: object | null = null, values = { messages }) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -89,106 +81,6 @@ describe('[code].vue', () => {
     return wrapper
   }
 
-  const defaultPowers = []
-  const findPower: any = {}
-  const findPowers = []
-  let findPowerQuery = ''
-  let index = 0
-  for (const key in helper.locales.enums.member.power) {
-    defaultPowers.push(key)
-    findPower[key] = index % 2 === 0
-    if (findPower[key]) { findPowers.push(key) }
-    findPowerQuery += String(Number(findPower[key]))
-    index++
-  }
-
-  const defaultParams = Object.freeze({
-    text: '',
-    power: defaultPowers.join(),
-    active: 1,
-    destroy: 1,
-    sort: 'invitationed_at',
-    desc: 1
-  })
-
-  const findParams = Object.freeze({
-    text: 'aaa',
-    power: findPowers.join(),
-    active: 1,
-    destroy: 1,
-    sort: 'user.name',
-    desc: 0
-  })
-  const findQuery = Object.freeze({
-    ...findParams,
-    power: findPowerQuery,
-    active: String(findParams.active),
-    destroy: String(findParams.destroy),
-    desc: String(findParams.desc),
-    option: '1'
-  })
-
-  const dataCount0 = Object.freeze({
-    space,
-    member: {
-      total_count: 0,
-      current_page: 1,
-      total_pages: 0,
-      limit_value: 2
-    }
-  })
-  const dataCount1 = Object.freeze({
-    space,
-    member: {
-      total_count: 1,
-      current_page: 1,
-      total_pages: 1,
-      limit_value: 2
-    },
-    members: [
-      { user: { code: 'code000000000000000000001' } }
-    ]
-  })
-
-  const dataPage1 = Object.freeze({
-    space,
-    member: {
-      total_count: 5,
-      current_page: 1,
-      total_pages: 3,
-      limit_value: 2
-    },
-    members: [
-      { user: { code: 'code000000000000000000001' } },
-      { user: { code: 'code000000000000000000002' } }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    space,
-    member: {
-      total_count: 5,
-      current_page: 2,
-      total_pages: 3,
-      limit_value: 2
-    },
-    members: [
-      { user: { code: 'code000000000000000000003' } },
-      { user: { code: 'code000000000000000000004' } }
-    ]
-  })
-  const dataPage3 = Object.freeze({
-    space,
-    member: {
-      total_count: 5,
-      current_page: 3,
-      total_pages: 3,
-      limit_value: 2
-    },
-    members: [
-      { user: { code: 'code000000000000000000005' } }
-    ]
-  })
-
   // テスト内容
   const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -199,7 +91,7 @@ describe('[code].vue', () => {
   const viewTest = (wrapper: any, data: any, countView: string, admin = false, show: any = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    helper.messageTest(wrapper, AppMessage, values.messages)
+    helper.messageTest(wrapper, AppMessage, messages)
 
     const spacesDestroyInfo = wrapper.findComponent(SpacesDestroyInfo)
     expect(spacesDestroyInfo.vm.space).toEqual(wrapper.vm.space)
@@ -290,7 +182,6 @@ describe('[code].vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('未ログイン', () => {
     it('ログインページにリダイレクトされる', async () => {
       const wrapper = mountFunction(false)
@@ -306,7 +197,7 @@ describe('[code].vue', () => {
   describe('メンバー一覧取得', () => {
     describe('0件', () => {
       it('[管理者]表示される（招待・変更・ダウンロードも含む）', async () => {
-        const data = Object.freeze({ ...dataCount0, space: adminSpace })
+        const data = Object.freeze({ ...dataCount0, space: detailPower.value('admin') })
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, data])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
@@ -327,7 +218,7 @@ describe('[code].vue', () => {
     })
     describe('1件', () => {
       it('[管理者]表示される（招待・変更・ダウンロード・削除・結果も含む）', async () => {
-        const data = Object.freeze({ ...dataCount1, space: adminSpace })
+        const data = Object.freeze({ ...dataCount1, space: detailPower.value('admin') })
         mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, data])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
@@ -385,15 +276,14 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        const members = dataPage1.members.concat(dataPage2.members)
-        infiniteLoading = viewTest(wrapper, { ...dataPage2, members }, '5名', false, { existInfinite: true, testState: 'loaded' })
+        infiniteLoading = viewTest(wrapper, dataPageTo2, '5名', false, { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
         apiCalledTest(3)
-        viewTest(wrapper, { ...dataPage3, members: members.concat(dataPage3.members) }, '5名', false, { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, dataPageTo3, '5名', false, { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const beforeLocation = window.location
@@ -460,7 +350,7 @@ describe('[code].vue', () => {
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, member: { ...dataPage1.member, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -472,7 +362,7 @@ describe('[code].vue', () => {
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, member: { ...dataPage2.member, current_page: 9 } }])
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss2])
         await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
@@ -724,14 +614,7 @@ describe('[code].vue', () => {
 
       // メンバー一覧検索
       wrapper.vm.$refs.membersSearch.setError = vi.fn()
-      wrapper.vm.query = {
-        ...findParams,
-        power: findPower,
-        active: findParams.active === 1,
-        destroy: findParams.destroy === 1,
-        desc: findParams.desc !== 0,
-        option: findQuery.option === '1'
-      }
+      wrapper.vm.query = findData
       wrapper.vm.reloading = reloading
       await wrapper.vm.searchMembersList()
       await flushPromises()
@@ -785,11 +668,10 @@ describe('[code].vue', () => {
     }
 
     describe('メンバー招待（結果）', () => {
-      const result = Object.freeze({
-        user_codes: ['newcode1', 'newcode2']
-      })
       it('結果と招待メンバーのコードがセットされる', async () => {
+        const result = Object.freeze({ user_codes: ['newcode1', 'newcode2'] })
         await beforeAction()
+
         expect(wrapper.vm.createResult).not.toEqual(result)
         expect(wrapper.vm.activeUserCodes).not.toEqual(result.user_codes)
         expect(wrapper.vm.tabPage).not.toBe('result')
@@ -804,10 +686,11 @@ describe('[code].vue', () => {
     })
 
     describe('メンバー情報更新', () => {
-      const member = Object.freeze({ ...dataPage1.members[0], power: 'test' })
-      const members = Object.freeze([member, dataPage1.members[1]])
       it('情報が更新され、対象メンバーのコードがセットされる', async () => {
+        const member = Object.freeze({ ...dataPage1.members[0], power: 'admin' })
+        const members = Object.freeze([member, dataPage1.members[1]])
         await beforeAction()
+
         expect(wrapper.vm.activeUserCodes).not.toEqual([member.user.code])
         expect(wrapper.vm.members).not.toEqual(members)
 

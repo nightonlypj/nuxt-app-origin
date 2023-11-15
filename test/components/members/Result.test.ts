@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import Component from '~/components/members/Result.vue'
+import { createResult } from '~/test/data/members'
 
 describe('Result.vue', () => {
   const mountFunction = (result: object) => {
@@ -32,32 +33,7 @@ describe('Result.vue', () => {
     expect(wrapper.text()).toMatch('No data available')
   })
   it('[3件]表示される', () => {
-    const result = Object.freeze({
-      email: {
-        count: 3,
-        create_count: 1,
-        exist_count: 2,
-        notfound_count: 0
-      },
-      emails: [
-        {
-          email: 'user1@example.com',
-          result: 'create',
-          result_i18n: '招待しました。'
-        },
-        {
-          email: 'user2@example.com',
-          result: 'exist',
-          result_i18n: '既に参加しています。'
-        },
-        {
-          email: 'user3@example.com',
-          result: 'notfound',
-          result_i18n: 'アカウントが存在しません。登録後に招待してください。'
-        }
-      ]
-    })
-    const wrapper = mountFunction(result)
-    viewTest(wrapper, result)
+    const wrapper = mountFunction(createResult)
+    viewTest(wrapper, createResult)
   })
 })

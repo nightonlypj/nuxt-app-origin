@@ -9,6 +9,8 @@ import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Page from '~/pages/spaces/update/[code].vue'
+import { activeUser, destroyUser } from '~/test/data/user'
+import { detail, detailPower, detailDestroy } from '~/test/data/spaces'
 
 describe('[code].vue', () => {
   let mock: any
@@ -23,38 +25,11 @@ describe('[code].vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/spaces/update/${detail.code}`
+  const spacePath = `/-/${detail.code}`
 
-  const defaultSpace = Object.freeze({
-    code: 'code0001',
-    upload_image: true,
-    image_url: {
-      medium: 'https://example.com/images/space/medium_noimage.jpg'
-    },
-    name: 'スペース1',
-    description: 'スペース1の説明',
-    private: true,
-    image: [{}],
-    created_user: {
-      code: 'code000000000000000000001'
-    },
-    created_at: '2000-01-01T12:34:56+09:00'
-  })
-  const spaceAdmin = Object.freeze({
-    ...defaultSpace,
-    current_member: {
-      power: 'admin'
-    }
-  })
-  const spaceUpdated = Object.freeze({
-    ...spaceAdmin,
-    last_updated_user: {
-      code: 'code000000000000000000002'
-    },
-    last_updated_at: '2000-01-02T12:34:56+09:00'
-  })
-
-  const fullPath = '/spaces/update/code0001'
-  const mountFunction = (loggedIn = true, user: object | null = {}) => {
+  const mountFunction = (loggedIn = true, user: object | null = activeUser) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
@@ -71,7 +46,7 @@ describe('[code].vue', () => {
     vi.stubGlobal('useRoute', vi.fn(() => ({
       fullPath,
       params: {
-        code: defaultSpace.code
+        code: detail.code
       }
     })))
 
@@ -102,8 +77,10 @@ describe('[code].vue', () => {
 
     // 作成、更新
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
-    expect(usersAvatars.at(0).vm.$props.user).toBe(space.created_user)
-    expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', space.created_at))
+    expect(usersAvatars.at(0).vm.$props.user).toEqual(space.created_user)
+    if (space.created_at != null) {
+      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', space.created_at))
+    }
     if (space.last_updated_user != null || space.last_updated_at != null) {
       expect(usersAvatars.at(1).vm.$props.user).toBe(space.last_updated_user)
       expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', space.last_updated_at, 'N/A'))
@@ -145,7 +122,6 @@ describe('[code].vue', () => {
   }
 
   // テストケース
-  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]ログインページにリダイレクトされる', async () => {
     const wrapper = mountFunction(false, null)
     helper.loadingTest(wrapper, AppLoading)
@@ -155,52 +131,68 @@ describe('[code].vue', () => {
     helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
-  describe('ログイン中（管理者）', () => {
-    it('[更新なし]表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: spaceAdmin }])
-      const wrapper = mountFunction(true)
-      await flushPromises()
-
-      viewTest(wrapper, spaceAdmin)
+  it('[ログイン中][管理者、削除予定なし]表示される', async () => {
+    const space = Object.freeze({
+      ...detailPower.value('admin'),
+      created_user: {
+        code: 'code000000000000000000001'
+      },
+      created_at: '2000-01-01T12:34:56+09:00',
+      last_updated_user: {
+        code: 'code000000000000000000002'
+      },
+      last_updated_at: '2000-01-02T12:34:56+09:00'
     })
-    it('[更新あり]表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: spaceUpdated }])
-      const wrapper = mountFunction(true)
-      await flushPromises()
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space }])
+    const wrapper = mountFunction(true)
+    await flushPromises()
 
-      viewTest(wrapper, spaceUpdated)
-    })
+    viewTest(wrapper, space)
   })
-  it('[ログイン中（管理者以外）]スペーストップにリダイレクトされる', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: defaultSpace }])
+  it('[ログイン中][管理者、削除予定なし、作成・更新者・日時なし]表示される', async () => {
+    const space = Object.freeze({
+      ...detailPower.value('admin'),
+      created_user: null,
+      created_at: null,
+      last_updated_user: null,
+      last_updated_at: null
+    })
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space }])
+    const wrapper = mountFunction(true)
+    await flushPromises()
+
+    viewTest(wrapper, space)
+  })
+  it('[ログイン中][管理者以外、削除予定なし]スペーストップにリダイレクトされる', async () => {
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('writer') }])
     mountFunction(true)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${defaultSpace.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
   it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: spaceAdmin }])
-    mountFunction(true, { destroy_schedule_at: '2000-01-08T12:34:56+09:00' })
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailPower.value('admin') }])
+    mountFunction(true, destroyUser)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${spaceAdmin.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
-  it('[ログイン中][スペース削除予定]スペーストップにリダイレクトされる', async () => {
-    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: { ...spaceAdmin, destroy_schedule_at: '2000-01-08T12:34:56+09:00' } }])
-    const wrapper = mountFunction(true, { destroy_schedule_at: null })
+  it('[ログイン中][管理者、削除予定あり]スペーストップにリダイレクトされる', async () => {
+    mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { space: detailDestroy.value('admin') }])
+    const wrapper = mountFunction(true)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.toastMessageTest(mock.toast, { error: helper.locales.alert.space.destroy_reserved })
-    helper.mockCalledTest(mock.navigateTo, 1, `/-/${spaceAdmin.code}`)
+    helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
 
   describe('スペース詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', spaceAdmin.code))
+      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', detail.code))
     }
 
     const beforeAction = async () => {
@@ -296,7 +288,6 @@ describe('[code].vue', () => {
   })
 
   describe('スペース設定変更', () => {
-    const data = Object.freeze({ ...messages, space: {} })
     const values = Object.freeze({ name: '更新スペース1', description: '更新スペース1の説明', private: false, image_delete: true, image: {} })
     const apiCalledTest = () => {
       const params: any = {
@@ -309,14 +300,14 @@ describe('[code].vue', () => {
       // TODO: image_delete=false, image=null
 
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      const url = helper.commonConfig.spaces.updateUrl.replace(':code', spaceAdmin.code)
+      const url = helper.commonConfig.spaces.updateUrl.replace(':code', detail.code)
       expect(mock.useApiRequest).nthCalledWith(2, helper.envConfig.apiBaseURL + url, 'POST', params, 'form')
     }
 
     let wrapper: any, button: any
     const beforeAction = async (updateResponse: any) => {
       mock.useApiRequest = vi.fn()
-        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { space: { ...spaceAdmin } }])
+        .mockImplementationOnce(() => [{ ok: true, status: 200 }, { space: detailPower.value('admin') }])
         .mockImplementationOnce(() => updateResponse)
       wrapper = mountFunction()
       await flushPromises()
@@ -342,12 +333,12 @@ describe('[code].vue', () => {
     }
 
     it('[成功]スペーストップにリダイレクトされる', async () => {
-      await beforeAction([{ ok: true, status: 200 }, data])
+      await beforeAction([{ ok: true, status: 200 }, { ...messages, space: activeUser }])
 
       helper.mockCalledTest(mock.useAuthUser, 1)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, `/-/${spaceAdmin.code}`)
+      helper.mockCalledTest(mock.navigateTo, 1, spacePath)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: true, status: 200 }, null])
@@ -439,7 +430,7 @@ describe('[code].vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      await beforeAction([{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      await beforeAction([{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)

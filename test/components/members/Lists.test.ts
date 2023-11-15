@@ -3,14 +3,15 @@ import helper from '~/test/helper'
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/members/Lists.vue'
+import { activeUser } from '~/test/data/user'
+import { listCount3 } from '~/test/data/members'
 
 describe('Lists.vue', () => {
-  const user = Object.freeze({ code: 'code000000000000000000001' })
   const mountFunction = (members: any, admin = false, hiddenItems: any = [], activeUserCodes: any = []) => {
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
       $auth: {
         loggedIn: true,
-        user
+        user: activeUser
       }
     })))
 
@@ -98,7 +99,7 @@ describe('Lists.vue', () => {
       }
       // 権限
       if (show.optional) {
-        expect(wrapper.find(`#member_update_link_${member.user.code}`).exists()).toBe(show.admin && member.user.code !== user.code)
+        expect(wrapper.find(`#member_update_link_${member.user.code}`).exists()).toBe(show.admin && member.user.code !== activeUser.code)
         expect(wrapper.text()).toMatch(member.power_i18n)
       } else {
         expect(wrapper.find(`#member_update_link_${member.user.code}`).exists()).toBe(false)
@@ -154,77 +155,31 @@ describe('Lists.vue', () => {
     helper.blankTest(wrapper)
   })
   describe('3件', () => {
-    const members = Object.freeze([
-      {
-        user: {
-          code: 'code000000000000000000003',
-          name: 'user3の氏名',
-          email: 'user3@example.com'
-        },
-        power: 'reader',
-        power_i18n: '閲覧者',
-        invitationed_user: {
-          deleted: true
-        },
-        last_updated_user: {
-          deleted: true
-        },
-        invitationed_at: '2000-03-01T12:34:56+09:00',
-        last_updated_at: '2000-03-02T12:34:56+09:00'
-      },
-      {
-        user: {
-          code: 'code000000000000000000002',
-          name: 'user2の氏名',
-          email: 'user2@example.com'
-        },
-        power: 'writer',
-        power_i18n: '投稿者',
-        invitationed_user: {
-          name: 'user1の氏名'
-        },
-        last_updated_user: {
-          name: 'user2の氏名'
-        },
-        invitationed_at: '2000-02-01T12:34:56+09:00',
-        last_updated_at: '2000-02-02T12:34:56+09:00'
-      },
-      {
-        user: {
-          code: 'code000000000000000000001',
-          name: 'user1の氏名',
-          email: 'user1@example.com'
-        },
-        power: 'admin',
-        power_i18n: '管理者'
-      }
-    ])
-
     describe('非表示項目が空', () => {
       it('[管理者]全て表示される', () => {
-        const wrapper = mountFunction(members, true, [], [members[0].user.code])
-        viewTest(wrapper, members, { optional: true, admin: true })
+        const wrapper = mountFunction(listCount3, true, [], [listCount3[0].user.code])
+        viewTest(wrapper, listCount3, { optional: true, admin: true })
       })
       it('[管理者以外]管理者のみの項目以外が表示される', () => {
-        const wrapper = mountFunction(members, false, [])
-        viewTest(wrapper, members, { optional: true, admin: false })
+        const wrapper = mountFunction(listCount3, false, [])
+        viewTest(wrapper, listCount3, { optional: true, admin: false })
       })
     })
     describe('非表示項目が全項目', () => {
       const hiddenItems = helper.locales.items.member.map(item => item.key)
       it('[管理者]必須項目のみ表示される', () => {
-        const wrapper = mountFunction(members, true, hiddenItems)
-        viewTest(wrapper, members, { optional: false, admin: true })
+        const wrapper = mountFunction(listCount3, true, hiddenItems)
+        viewTest(wrapper, listCount3, { optional: false, admin: true })
       })
       it('[管理者以外]必須項目のみ表示される', () => {
-        const wrapper = mountFunction(members, false, hiddenItems)
-        viewTest(wrapper, members, { optional: false, admin: false })
+        const wrapper = mountFunction(listCount3, false, hiddenItems)
+        viewTest(wrapper, listCount3, { optional: false, admin: false })
       })
     })
 
     describe('ソート', () => {
       it('選択値が設定される', () => {
-        const wrapper: any = mountFunction(members)
+        const wrapper: any = mountFunction(listCount3)
         const key = wrapper.vm.$props.sort
         const desc = wrapper.vm.$props.desc
         wrapper.vm.syncSortBy = [{ key, order: desc ? 'desc' : 'asc' }]
@@ -238,14 +193,14 @@ describe('Lists.vue', () => {
 
     describe('チェックボックス', () => {
       it('[管理者]表示される。選択項目が設定される', () => {
-        const wrapper: any = mountFunction(members, true)
+        const wrapper: any = mountFunction(listCount3, true)
         expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).not.toBeUndefined()
 
-        wrapper.vm.syncSelectedMembers = [members[0]]
-        expect(wrapper.emitted()['update:selectedMembers']).toEqual([[[members[0]]]])
+        wrapper.vm.syncSelectedMembers = [listCount3[0]]
+        expect(wrapper.emitted()['update:selectedMembers']).toEqual([[[listCount3[0]]]])
       })
       it('[管理者以外]表示されない', () => {
-        const wrapper: any = mountFunction(members, false)
+        const wrapper: any = mountFunction(listCount3, false)
         expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).toBeUndefined()
       })
     })
