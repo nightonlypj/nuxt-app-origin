@@ -63,6 +63,7 @@ describe('sign_in.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]表示される', async () => {
     const wrapper: any = mountFunction(false)
     viewTest(wrapper, null)
@@ -89,60 +90,59 @@ describe('sign_in.vue', () => {
   })
 
   describe('メールアドレス確認成功', () => {
-    const query = Object.freeze({ account_confirmation_success: 'true', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const query = Object.freeze({ account_confirmation_success: 'true', ...messages })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
       viewTest(wrapper, { alert: query.alert, notice: query.notice + helper.locales.auth.unauthenticated })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { error: query.alert, info: query.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
 
   describe('メールアドレス確認失敗', () => {
-    const query = Object.freeze({ account_confirmation_success: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const query = Object.freeze({ account_confirmation_success: 'false', ...messages })
     it('[未ログイン]メールアドレス確認ページにリダイレクトされる', () => {
       mountFunction(false, query)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/confirmation/resend', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/confirmation/resend', query: messages })
     })
     it('[ログイン中]メールアドレス確認ページにリダイレクトされる', () => {
       mountFunction(true, query)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/confirmation/resend', query: { alert: query.alert, notice: query.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/confirmation/resend', query: messages })
     })
   })
 
   describe('アカウントロック解除成功', () => {
-    const query = Object.freeze({ unlock: 'true', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const query = Object.freeze({ unlock: 'true', ...messages })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
       viewTest(wrapper, { alert: query.alert, notice: query.notice + helper.locales.auth.unauthenticated })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { error: query.alert, info: query.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
 
   describe('アカウントロック解除失敗', () => {
-    const query = Object.freeze({ unlock: 'false', alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+    const query = Object.freeze({ unlock: 'false', ...messages })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
       viewTest(wrapper, query)
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { error: query.alert, info: query.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
 
   describe('ログイン', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com', password: 'abc12345' })
     const apiCalledTest = (count: number) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -169,6 +169,7 @@ describe('sign_in.vue', () => {
       await flushPromises()
     }
 
+    const data = Object.freeze({ ...messages, user: {} })
     it('[成功][ボタンクリック]ログイン状態になり、元のページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       mock.useAuthRedirect = { redirectUrl: ref('/users/update'), updateRedirectUrl: vi.fn() } // NOTE: URLがある場合
@@ -176,7 +177,7 @@ describe('sign_in.vue', () => {
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.setData, 1, data)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/users/update') // NOTE: 保持されているURLに遷移
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, null)
     })
@@ -187,12 +188,12 @@ describe('sign_in.vue', () => {
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.setData, 1, data)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: data.notice })
       helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectHomeURL) // NOTE: トップに遷移
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, null)
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn()
       await beforeAction({ keydown: true, isComposing: true })
 
       apiCalledTest(0)

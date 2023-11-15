@@ -18,9 +18,6 @@ describe('[id].vue', () => {
   const mountFunction = (params: any) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('showError', mock.showError)
-    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
-      $toast: mock.toast
-    })))
     vi.stubGlobal('useRoute', vi.fn(() => ({
       params
     })))
@@ -59,6 +56,18 @@ describe('[id].vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  it('[パラメータ不正（文字）]エラーページが表示される', () => {
+    const wrapper = mountFunction({ id: 'x' })
+    helper.loadingTest(wrapper, AppLoading)
+    helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
+  })
+  it('[パラメータ不正（0始まり）]エラーページが表示される', () => {
+    const wrapper = mountFunction({ id: '01' })
+    helper.loadingTest(wrapper, AppLoading)
+    helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
+  })
+
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = (params: any) => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -67,32 +76,14 @@ describe('[id].vue', () => {
     }
 
     let wrapper: any
-    const beforeAction = async (params = { id: '1' }, apiCalled = true) => {
+    const beforeAction = async (params = { id: '1' }) => {
       wrapper = mountFunction(params)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      if (apiCalled) {
-        apiCalledTest(params)
-      } else {
-        expect(mock.useApiRequest).toBeCalledTimes(0)
-      }
+      apiCalledTest(params)
     }
 
-    it('[パラメータ不正（文字）]エラーページが表示される', async () => {
-      mock.useApiRequest = vi.fn()
-      await beforeAction({ id: 'x' }, false)
-
-      helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
-    })
-    it('[パラメータ不正（0始まり）]エラーページが表示される', async () => {
-      mock.useApiRequest = vi.fn()
-      await beforeAction({ id: '01' }, false)
-
-      helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
-    })
     it('[ラベル・本文あり]表示される', async () => {
       const data = Object.freeze({
         infomation: {
@@ -127,7 +118,6 @@ describe('[id].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
@@ -135,29 +125,30 @@ describe('[id].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[存在しない]エラーページが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
+    })
+    it('[存在しない（メッセージなし）]エラーページが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })

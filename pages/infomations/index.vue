@@ -66,7 +66,7 @@ async function getInfomationsList () {
 
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.infomations.listUrl, 'GET', { page: page.value })
 
-  let alert = ''
+  let alert: string | null = null
   if (response?.ok) {
     if (data?.infomation?.current_page === page.value) {
       infomation.value = data.infomation
@@ -81,7 +81,7 @@ async function getInfomationsList () {
       alert = data.alert || $t('system.default')
     }
   }
-  if (alert !== '') {
+  if (alert != null) {
     if (infomation.value == null) {
       redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
       return false
@@ -95,6 +95,6 @@ async function getInfomationsList () {
   navigateTo(page.value === 1 ? {} : { query: { page: page.value } }) // NOTE: URLパラメータを変更する為
 
   processing.value = false
-  return alert === ''
+  return alert == null
 }
 </script>

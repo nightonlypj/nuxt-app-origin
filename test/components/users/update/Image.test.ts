@@ -69,6 +69,8 @@ describe('Image.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const data = Object.freeze({ ...messages, user: {} })
   it('[デフォルト画像]表示される', async () => {
     const wrapper: any = mountFunction(false)
     viewTest(wrapper, false)
@@ -122,7 +124,6 @@ describe('Image.vue', () => {
   })
 
   describe('画像変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const file = new File([], 'test.jpg', { type: 'image/jpeg' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -133,7 +134,7 @@ describe('Image.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      wrapper = mountFunction(true, { alert: data.alert, notice: data.notice })
+      wrapper = mountFunction(true, messages)
 
       // 入力
       // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
@@ -156,7 +157,7 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.mockCalledTest(mock.setData, 1, data)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(wrapper.vm.image).toBeNull()
     })
@@ -178,6 +179,15 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -187,6 +197,14 @@ describe('Image.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, null])
       await beforeAction()
 
@@ -207,7 +225,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, data)
+      helper.emitMessageTest(wrapper, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -221,7 +239,6 @@ describe('Image.vue', () => {
   })
 
   describe('画像削除', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl, 'POST')
@@ -229,7 +246,7 @@ describe('Image.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async (changeDefault = false) => {
-      wrapper = mountFunction(true, { alert: data.alert, notice: data.notice })
+      wrapper = mountFunction(true, messages)
       button = wrapper.find('#user_delete_image_btn')
       button.trigger('click')
       await flushPromises()
@@ -246,7 +263,7 @@ describe('Image.vue', () => {
       await beforeAction(true)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(wrapper.vm.image).toBeNull()
     })
@@ -268,6 +285,15 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -277,20 +303,19 @@ describe('Image.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, null])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
-      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
-    })
-    it('[削除予約済み（メッセージあり）]エラーメッセージが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, data])
-      await beforeAction()
-
-      helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {

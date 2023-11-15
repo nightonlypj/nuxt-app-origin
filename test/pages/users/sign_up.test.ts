@@ -55,6 +55,7 @@ describe('sign_up.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   it('[未ログイン]表示される', async () => {
     const wrapper = mountFunction(false)
     viewTest(wrapper)
@@ -83,7 +84,6 @@ describe('sign_up.vue', () => {
   })
 
   describe('アカウント登録', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -104,11 +104,12 @@ describe('sign_up.vue', () => {
     }
 
     it('[成功]ログインページにリダイレクトされる', async () => {
+      const data = Object.freeze({ ...messages, user: {} })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
@@ -133,10 +134,10 @@ describe('sign_up.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
       await beforeAction()
 
-      helper.messageTest(wrapper, AppMessage, data)
+      helper.messageTest(wrapper, AppMessage, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {

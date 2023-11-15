@@ -98,6 +98,7 @@ describe('index.vue', () => {
   }
 
   // テストケース
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   describe('お知らせ一覧取得', () => {
     it('[0件]表示される', async () => {
       const data = Object.freeze({
@@ -302,7 +303,7 @@ describe('index.vue', () => {
     })
     describe('その他エラー', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, messages])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -310,13 +311,12 @@ describe('index.vue', () => {
         apiCalledTest(1)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.navigateTo, 0)
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: messages })
       })
-      it('[ページネーション（メッセージあり）]元の表示に戻る', async () => {
-        const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+      it('[ページネーション]元の表示に戻る', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200 }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: false, status: 404 }, data])
+          .mockImplementationOnce(() => [{ ok: false, status: 404 }, messages])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
@@ -331,7 +331,42 @@ describe('index.vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+        helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+        helper.mockCalledTest(mock.navigateTo, 2, {})
+        viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
+      })
+    })
+    describe('その他エラー（メッセージなし）', () => {
+      it('[初期表示]エラーページが表示される', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        apiCalledTest(1)
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.navigateTo, 0)
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      })
+      it('[ページネーション]元の表示に戻る', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200 }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 404 }, {}])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        apiCalledTest(1)
+        viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
+        helper.mockCalledTest(mock.navigateTo, 1, {})
+
+        // ページネーション（2頁目）
+        wrapper.vm.page = 2
+        wrapper.find('#infomation_pagination1').trigger('click')
+        await flushPromises()
+
+        apiCalledTest(2)
+        helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
         helper.mockCalledTest(mock.navigateTo, 2, {})
         viewTest(wrapper, dataPage1, '3件中 1-2件を表示')
       })

@@ -31,6 +31,7 @@ describe('auth.ts', () => {
       })))
     })
 
+    const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[成功]trueが返却される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: true, status: 200 }, {}]))
       expect(await updateAuthUser(config.global.mocks.$t)).toBe(true)
@@ -49,6 +50,15 @@ describe('auth.ts', () => {
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]falseが返却され、未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 401 }, messages]))
+      expect(await updateAuthUser(config.global.mocks.$t)).toBe(false)
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]falseが返却され、未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 401 }, null]))
       expect(await updateAuthUser(config.global.mocks.$t)).toBe(false)
 

@@ -7,7 +7,7 @@ describe('auth.ts', () => {
   describe('loggedIn', () => {
     const responseTest = (status: string, result: boolean) => {
       vi.stubGlobal('useAuthState', vi.fn(() => ({ status: ref(status) })))
-      expect(Plugin(_nuxtApp).provide.auth.loggedIn).toEqual(result)
+      expect(((Plugin(_nuxtApp) as any).provide.auth as any).loggedIn).toEqual(result)
     }
 
     it('[未ログイン]falseが返却される', () => {
@@ -21,7 +21,7 @@ describe('auth.ts', () => {
   describe('data', () => {
     const responseTest = (data: object | undefined, result: object | undefined) => {
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: ref(data) })))
-      expect(Plugin(_nuxtApp).provide.auth.data).toEqual(result)
+      expect((Plugin(_nuxtApp) as any).provide.auth.data).toEqual(result)
     }
 
     it('[未ログイン]undefinedが返却される', () => {
@@ -35,7 +35,7 @@ describe('auth.ts', () => {
   describe('user', () => {
     const responseTest = (data: object | undefined, result: object | undefined) => {
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: ref(data) })))
-      expect(Plugin(_nuxtApp).provide.auth.user).toEqual(result)
+      expect((Plugin(_nuxtApp) as any).provide.auth.user).toEqual(result)
     }
 
     it('[未ログイン]undefinedが返却される', () => {
@@ -51,7 +51,7 @@ describe('auth.ts', () => {
       const authData = ref(null)
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      Plugin(_nuxtApp).provide.auth.setData({ user, other: 1 })
+      expect((Plugin(_nuxtApp) as any).provide.auth.setData({ user, other: 1 })).toBeUndefined()
       expect(authData.value).toEqual({ user, other: 1 })
     })
   })
@@ -61,7 +61,7 @@ describe('auth.ts', () => {
       const authData = ref({ other: 1 })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      Plugin(_nuxtApp).provide.auth.setUser(user)
+      expect((Plugin(_nuxtApp) as any).provide.auth.setUser(user)).toBeUndefined()
       expect(authData.value).toEqual({ user, other: 1 })
     })
   })
@@ -71,7 +71,7 @@ describe('auth.ts', () => {
       const authData = ref({ user: { ...user, infomation_unread_count: 1 } })
       vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-      Plugin(_nuxtApp).provide.auth.resetUserInfomationUnreadCount()
+      expect((Plugin(_nuxtApp) as any).provide.auth.resetUserInfomationUnreadCount()).toBeUndefined()
       expect(authData.value).toEqual({ user: { ...user, infomation_unread_count: 0 } })
     })
   })
