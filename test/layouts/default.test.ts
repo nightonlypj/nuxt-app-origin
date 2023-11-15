@@ -4,6 +4,7 @@ import helper from '~/test/helper'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('default.vue', () => {
   let mock: any
@@ -54,7 +55,7 @@ describe('default.vue', () => {
 
     expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
-      expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
+      expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
       expect(wrapper.text()).toMatch('9+') // お知らせの未読数
       expect(wrapper.text()).toMatch('123') // 未ダウンロード数
 
@@ -64,7 +65,6 @@ describe('default.vue', () => {
         expect(wrapper.html()).toMatch(space.name)
       }
     } else {
-      expect(wrapper.text()).not.toMatch('user1の氏名')
       expect(wrapper.text()).not.toMatch('9+')
       expect(wrapper.text()).not.toMatch('123')
     }
@@ -79,25 +79,8 @@ describe('default.vue', () => {
   })
   it('[ログイン中]表示される', async () => {
     const user = Object.freeze({
-      name: 'user1の氏名',
-      image_url: {
-        small: 'https://example.com/images/user/small_noimage.jpg'
-      },
-      infomation_unread_count: 10,
-      undownloaded_count: 123,
-      spaces: [
-        {
-          code: 'code0001',
-          image_url: {
-            mini: 'https://example.com/images/space/mini_noimage.jpg'
-          },
-          name: 'スペース1'
-        },
-        {
-          code: 'code0002',
-          name: 'スペース2'
-        }
-      ]
+      ...activeUser,
+      infomation_unread_count: 10 // -> 9+
     })
     const wrapper = mountFunction(true, user)
 

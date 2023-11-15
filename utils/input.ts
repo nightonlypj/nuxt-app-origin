@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/named
 import { pickBy } from 'lodash'
 
-// 入力が完了しているかを返却 NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
+// 入力が完了しているかを返却 // NOTE: IME確定のEnterやShift+Enter等で送信されないようにする（keyupのisComposingはfalseになるので、keydownで判定）
 const completInputKey = computed(() => ($event: any) => {
   return !$event.isComposing && !$event.altKey && !$event.ctrlKey && !$event.metaKey && !$event.shiftKey
 })

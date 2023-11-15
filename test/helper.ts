@@ -39,8 +39,8 @@ const messageTest = (wrapper: any, AppMessage: any, data: any) => {
   expect(wrapper.findComponent(AppMessage).vm.$props.messages).toEqual({ alert: data?.alert || '', notice: data?.notice || '' })
 }
 
-const emitMessageTest = (wrapper: any, data: any) => {
-  expect(wrapper.emitted().messages).toEqual([[{ alert: data.alert, notice: data.notice }]])
+const emitMessageTest = (wrapper: any, messages: any) => {
+  expect(wrapper.emitted().messages).toEqual([[messages]])
 }
 
 const mockToast = {

@@ -8,7 +8,7 @@ describe('error.vue', () => {
       props: {
         error: {
           statusCode,
-          ...data
+          data
         }
       }
     })
@@ -17,14 +17,16 @@ describe('error.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any = null) => {
+  const viewTest = (wrapper: any, messages: any = null) => {
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
-    expect(wrapper.vm.alert).toBe(data.alert)
-    expect(wrapper.vm.notice).toBe(data.notice)
+    expect(wrapper.vm.alert).toBe(messages.alert)
+    expect(wrapper.vm.notice).toBe(messages.notice)
   }
 
   // テストケース
+  const alert = 'alertメッセージ'
+  const notice = 'noticeメッセージ'
   describe('alert/noticeなし', () => {
     it('[404]表示される', () => {
       const wrapper = mountFunction(404)
@@ -36,35 +38,34 @@ describe('error.vue', () => {
     })
   })
   describe('alertなし/noticeあり', () => {
-    const data = { notice: 'noticeメッセージ' }
     it('[404]表示される', () => {
-      const wrapper = mountFunction(404, { data })
-      viewTest(wrapper, { alert: helper.locales.system.notfound, notice: data.notice })
+      const wrapper = mountFunction(404, { notice })
+      viewTest(wrapper, { alert: helper.locales.system.notfound, notice })
     })
     it('[500]表示される', () => {
-      const wrapper = mountFunction(500, { data })
-      viewTest(wrapper, { alert: helper.locales.system.default, notice: data.notice })
+      const wrapper = mountFunction(500, { notice })
+      viewTest(wrapper, { alert: helper.locales.system.default, notice })
     })
   })
   describe('alertあり/noticeなし', () => {
-    const data = { alert: 'alertメッセージ' }
+    const data = Object.freeze({ alert })
     it('[404]表示される', () => {
-      const wrapper = mountFunction(404, { data })
+      const wrapper = mountFunction(404, data)
       viewTest(wrapper, data)
     })
     it('[500]表示される', () => {
-      const wrapper = mountFunction(500, { data })
+      const wrapper = mountFunction(500, data)
       viewTest(wrapper, data)
     })
   })
   describe('alert/noticeあり', () => {
-    const data = { alert: 'alertメッセージ', notice: 'noticeメッセージ' }
+    const data = Object.freeze({ alert, notice })
     it('[404]表示される', () => {
-      const wrapper = mountFunction(404, { data })
+      const wrapper = mountFunction(404, data)
       viewTest(wrapper, data)
     })
     it('[500]表示される', () => {
-      const wrapper = mountFunction(500, { data })
+      const wrapper = mountFunction(500, data)
       viewTest(wrapper, data)
     })
   })

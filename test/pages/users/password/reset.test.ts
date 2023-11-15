@@ -16,6 +16,7 @@ describe('reset.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -59,22 +60,20 @@ describe('reset.vue', () => {
 
   // テストケース
   describe('パラメータなし', () => {
-    const query = Object.freeze({})
     it('[未ログイン]表示される', () => {
-      const wrapper = mountFunction(false, query)
+      const wrapper = mountFunction(false, {})
       viewTest(wrapper, null)
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
-      mountFunction(true, query)
+      mountFunction(true, {})
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
   describe('パラメータあり', () => {
-    const query = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]表示される', async () => {
-      const wrapper = mountFunction(false, query)
-      viewTest(wrapper, query)
+      const wrapper = mountFunction(false, messages)
+      viewTest(wrapper, messages)
       await flushPromises()
 
       // 送信ボタン
@@ -90,14 +89,13 @@ describe('reset.vue', () => {
       expect(button.element.disabled).toBe(false) // 有効
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
-      mountFunction(true, query)
+      mountFunction(true, messages)
       helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
 
   describe('パスワード再設定', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com' })
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -125,23 +123,23 @@ describe('reset.vue', () => {
     }
 
     it('[成功][ボタンクリック]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction()
 
       apiCalledTest(1, params)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[成功][Enter送信]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction({ keydown: true, isComposing: false })
 
       apiCalledTest(1, params)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn()
       await beforeAction({ keydown: true, isComposing: true })
 
       apiCalledTest(0)
@@ -174,11 +172,11 @@ describe('reset.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.messageTest(wrapper, AppMessage, data)
+      helper.messageTest(wrapper, AppMessage, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {

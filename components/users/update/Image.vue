@@ -131,7 +131,7 @@ function responseUserImage (response: any, data: any, setErrors: any, values: an
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
       if (data?.notice != null) { $toast.info(data.notice) }

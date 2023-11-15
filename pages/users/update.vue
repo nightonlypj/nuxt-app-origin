@@ -70,7 +70,7 @@ async function getUserDetail () {
   } else {
     if (response?.status === 401) {
       useAuthSignOut(true)
-      redirectAuth({ notice: $t('auth.unauthenticated') })
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
     } else if (data == null) {
       redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
     } else {

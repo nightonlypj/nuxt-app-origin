@@ -32,17 +32,9 @@ describe('input.ts', () => {
   // キーが存在するエラーのみを返却 // NOTE: 未使用の値があるとvalidがtrueに戻らない為
   describe('existKeyErrors', () => {
     it('キーが存在するエラーのみが返却される', () => {
-      const result = Object.freeze({
-        email: ['errorメッセージ']
-      })
-      const errors = Object.freeze({
-        ...result,
-        full_messages: ['メールアドレス errorメッセージ']
-      })
-      const values = Object.freeze({
-        name: 'user1の氏名',
-        email: 'user1@example.com'
-      })
+      const result = Object.freeze({ email: ['errorメッセージ'] })
+      const errors = Object.freeze({ ...result, full_messages: ['メールアドレス errorメッセージ'] })
+      const values = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com' })
       expect(existKeyErrors.value(errors, values)).toEqual(result)
     })
   })

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Component from '~/components/users/DestroyInfo.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
 
 describe('DestroyInfo.vue', () => {
   const mountFunction = (loggedIn: boolean, path = '/', user: object | null = null) => {
@@ -32,13 +33,12 @@ describe('DestroyInfo.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[ログイン中]表示されない', () => {
-    const wrapper = mountFunction(true, '/', {})
+    const wrapper = mountFunction(true, '/', activeUser)
     helper.blankTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
-    const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-    const wrapper = mountFunction(true, '/', user)
-    viewTest(wrapper, user)
+    const wrapper = mountFunction(true, '/', destroyUser)
+    viewTest(wrapper, destroyUser)
   })
 
   describe('アカウント削除取り消しページ', () => {
@@ -48,12 +48,11 @@ describe('DestroyInfo.vue', () => {
       helper.blankTest(wrapper)
     })
     it('[ログイン中]表示されない', () => {
-      const wrapper = mountFunction(true, path, {})
+      const wrapper = mountFunction(true, path, activeUser)
       helper.blankTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {
-      const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-      const wrapper = mountFunction(true, path, user)
+      const wrapper = mountFunction(true, path, destroyUser)
       helper.blankTest(wrapper)
     })
   })

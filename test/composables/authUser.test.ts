@@ -1,4 +1,5 @@
 import { useAuthUser } from '~/composables/authUser'
+import { activeUser } from '~/test/data/user'
 
 // ユーザー情報更新
 describe('authUser.ts', () => {
@@ -24,14 +25,14 @@ describe('authUser.ts', () => {
   describe('response', () => {
     it('[OK]ユーザー情報が更新される', async () => {
       const result = Object.freeze({ ok: true })
-      const resData = JSON.stringify({ name: 'user1の氏名' })
+      const resData = JSON.stringify(activeUser)
       await beforeAction(result, resData)
 
       expect(authData.value).toBe(resData)
     })
     it('[NG]ユーザー情報が更新されない', async () => {
       const result = Object.freeze({ ok: false })
-      const resData = JSON.stringify({ alert: 'alertメッセージ' })
+      const resData = JSON.stringify({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
       await beforeAction(result, resData)
 
       expect(authData.value).toBeNull()

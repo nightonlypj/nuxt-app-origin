@@ -4,6 +4,6 @@ describe('toast.ts', () => {
   const nuxtApp: any = { vueApp: { use: vi.fn() } }
 
   it('toastが存在する', () => {
-    expect(Plugin(nuxtApp).provide.toast).not.toBeNull()
+    expect((Plugin(nuxtApp) as any).provide.toast).not.toBeNull()
   })
 })
