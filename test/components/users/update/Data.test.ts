@@ -96,8 +96,18 @@ describe('Data.vue', () => {
   })
 
   describe('ユーザー情報変更', () => {
-    const user = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', unconfirmed_email: 'new@example.com' })
-    const params = Object.freeze({ name: 'updateの氏名', email: 'update@example.com', password: 'update12345', password_confirmation: 'update12345', current_password: 'abc12345' })
+    const user = Object.freeze({
+      name: 'user1の氏名',
+      email: 'user1@example.com',
+      unconfirmed_email: 'new@example.com'
+    })
+    const params = Object.freeze({
+      name: 'updateの氏名',
+      email: 'update@example.com',
+      password: 'update12345',
+      password_confirmation: 'update12345',
+      current_password: 'abc12345'
+    })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUpdateUrl, 'POST', {

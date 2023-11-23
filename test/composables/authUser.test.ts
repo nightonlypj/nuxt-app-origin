@@ -10,8 +10,9 @@ describe('authUser.ts', () => {
     }
     authData = ref(null)
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
-  const beforeAction = async (result: any, resData: string) => {
+  const beforeAction = async (result: any, resData: any) => {
     mock.useApiRequest = vi.fn(() => [result, resData])
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
@@ -24,16 +25,12 @@ describe('authUser.ts', () => {
 
   describe('response', () => {
     it('[OK]ユーザー情報が更新される', async () => {
-      const result = Object.freeze({ ok: true })
-      const resData = JSON.stringify(activeUser)
-      await beforeAction(result, resData)
+      await beforeAction({ ok: true }, activeUser)
 
-      expect(authData.value).toBe(resData)
+      expect(authData.value).toBe(activeUser)
     })
     it('[NG]ユーザー情報が更新されない', async () => {
-      const result = Object.freeze({ ok: false })
-      const resData = JSON.stringify({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      await beforeAction(result, resData)
+      await beforeAction({ ok: false }, messages)
 
       expect(authData.value).toBeNull()
     })

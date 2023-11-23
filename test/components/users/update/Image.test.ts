@@ -18,8 +18,8 @@ describe('Image.vue', () => {
     }
   })
   const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-  const data = Object.freeze({ ...messages, user: activeUser })
   const fullPath = '/users/update'
+  const data = Object.freeze({ ...messages, user: activeUser })
 
   const mountFunction = (uploadImage: boolean, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
