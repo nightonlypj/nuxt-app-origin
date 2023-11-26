@@ -15,12 +15,12 @@
       <v-spacer />
       <template v-if="!$auth.loggedIn">
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" text rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" rounded>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
         </component>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" text rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" rounded>
           <v-icon>mdi-account-plus</v-icon>
           <div class="hidden-sm-and-down">アカウント登録</div>
         </component>
@@ -59,7 +59,7 @@
           </v-list>
         </v-menu>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" text rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
             :model-value="$auth.user.infomation_unread_count > 0"

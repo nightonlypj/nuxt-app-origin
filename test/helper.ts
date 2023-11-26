@@ -34,9 +34,11 @@ const mockCalledTest = (mock: any, count: number, ...args: any[]) => {
   }
 }
 
-const messageTest = (wrapper: any, AppMessage: any, data: any) => {
-  expect(wrapper.findComponent(AppMessage).exists()).toBe(true)
-  expect(wrapper.findComponent(AppMessage).vm.$props.messages).toEqual({ alert: data?.alert || '', notice: data?.notice || '' })
+const messageTest = (wrapper: any, AppMessage: any, data: any, noticeType = 'info') => {
+  const appMessage = wrapper.findComponent(AppMessage)
+  expect(appMessage.exists()).toBe(true)
+  expect(appMessage.vm.$props.messages).toEqual({ alert: data?.alert || '', notice: data?.notice || '' })
+  expect(appMessage.vm.$props.noticeType).toBe(noticeType)
 }
 
 const emitMessageTest = (wrapper: any, messages: any) => {

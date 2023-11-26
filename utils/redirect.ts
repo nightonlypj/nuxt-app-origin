@@ -35,7 +35,7 @@ function redirectConfirmationReset (query: any) {
 function redirectError (statusCode: any, query: any) {
   showError({ statusCode, data: { alert: query.alert, notice: query.notice } })
   /* c8 ignore next */ // eslint-disable-next-line no-throw-literal
-  if (process.env.NODE_ENV !== 'test') { throw 'showError' }
+  if (!$config.public.env.test) { throw 'showError' }
 }
 
 export {

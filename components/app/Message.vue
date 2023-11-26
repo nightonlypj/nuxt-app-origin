@@ -13,7 +13,7 @@
   <v-alert
     v-if="messages.notice != null && messages.notice !== ''"
     id="message_notice"
-    type="info"
+    :type="noticeType"
     closable
     class="mb-4"
     @click:close="close('notice')"
@@ -27,6 +27,10 @@ const $props = defineProps({
   messages: {
     type: Object,
     required: true
+  },
+  noticeType: {
+    type: String as PropType<'info' | 'success'>,
+    default: 'info'
   }
 })
 const $emit = defineEmits(['update:messages'])
@@ -36,5 +40,4 @@ function close (key: string) {
   messages[key] = ''
   $emit('update:messages', messages)
 }
-
 </script>

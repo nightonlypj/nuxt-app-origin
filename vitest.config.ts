@@ -12,9 +12,9 @@ export default defineConfig({
         inline: ['vuetify']
       }
     },
-    testTimeout: 30000, // NOTE: 5秒（デフォルト）だとタイムアウトする場合がある為
-    hookTimeout: 30000,
-    teardownTimeout: 30000,
+    testTimeout: 10000, // NOTE: 5秒（デフォルト）だとタイムアウトする場合がある為
+    // hookTimeout: 10000,
+    // teardownTimeout: 10000,
     setupFiles: ['./test/setup.ts']
   },
   plugins: [
