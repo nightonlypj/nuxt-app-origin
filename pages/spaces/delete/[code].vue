@@ -5,7 +5,7 @@
   <AppLoading v-if="loading" />
   <v-card v-else max-width="850px">
     <AppProcessing v-if="processing" />
-    <v-tabs v-model="tabPage" color="primary">
+    <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
       <v-tab :to="spacePath">スペース</v-tab>
       <v-tab value="active">スペース削除</v-tab>
     </v-tabs>

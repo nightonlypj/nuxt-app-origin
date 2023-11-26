@@ -19,8 +19,8 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const viewTest = (wrapper: any, downloads: any, row = { active: 0, inactive: 0 }) => {
+
+  const viewTest = (wrapper: any, downloads: any, show = { active: 0, inactive: 0 }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('依頼日時')
     expect(wrapper.text()).toMatch('完了日時')
@@ -29,10 +29,8 @@ describe('Lists.vue', () => {
     expect(wrapper.text()).toMatch('対象・形式等')
 
     // (状態)
-    /* TODO: 背景色が変わらない
-    expect(wrapper.findAll('.row_active').length).toBe(row.active)
-    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
-    */
+    expect(wrapper.findAll('.row_active').length).toBe(show.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(show.inactive)
 
     for (const download of downloads) {
       // 依頼日時

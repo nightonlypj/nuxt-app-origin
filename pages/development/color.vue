@@ -32,10 +32,11 @@
 </template>
 
 <script setup lang="ts">
+const $config = useRuntimeConfig()
 const loading = ref(true)
 
 /* c8 ignore start */
-if (process.env.NODE_ENV === 'production') {
+if ($config.public.env.production) {
   showError({ statusCode: 404 })
   /* c8 ignore stop */
 } else {

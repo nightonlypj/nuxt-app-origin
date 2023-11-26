@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:messages="messages" />
+    <AppMessage v-model:messages="messages" :notice-type="noticeType" />
     <v-card>
       <v-card-title>ダウンロード結果</v-card-title>
     </v-card>
@@ -84,6 +84,7 @@ const messages = ref({
   alert: '',
   notice: ''
 })
+const noticeType = ref<any>('info')
 const params = ref<any>(null)
 const uid = ref<string | null>(null)
 const error = ref(false)
@@ -201,6 +202,7 @@ function successDownloadsList (data: any) {
   }
 
   if (params.value.target_id != null && page.value === 1 && data.target != null && data.target.last_downloaded_at == null) {
+    noticeType.value = data.target.status === 'success' ? 'success' : 'info'
     messages.value = {
       alert: data.target.alert || '',
       notice: data.target.notice || ''
@@ -271,6 +273,7 @@ function successDownloadComplete (targetId: number, count: number, index: number
   }
 
   downloads.value.splice(index, 1, data.downloads[0])
+  noticeType.value = 'success'
   messages.value = {
     alert: data.target.alert || '',
     notice: data.target.notice || ''

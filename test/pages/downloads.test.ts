@@ -418,7 +418,7 @@ describe('downloads.vue', () => {
         const target = Object.freeze({ status: 'success', notice: 'successメッセージ' })
         await beforeAction(target)
 
-        helper.messageTest(wrapper, AppMessage, target)
+        helper.messageTest(wrapper, AppMessage, target, 'success')
         helper.toastMessageTest(mock.toast, { success: target.notice })
         expect(wrapper.vm.testDelay).toBeNull() // setTimeoutされない
       })
@@ -464,7 +464,7 @@ describe('downloads.vue', () => {
         await flushPromises()
 
         apiCalledTest(2, { page: 1, target_id: targetId })
-        helper.messageTest(wrapper, AppMessage, target2)
+        helper.messageTest(wrapper, AppMessage, target2, 'success')
         helper.toastMessageTest(mock.toast, {})
         expect(wrapper.vm.testDelay).toEqual([3000, targetId, 1]) // setTimeoutされない（前回と同じ）
       })
@@ -575,7 +575,7 @@ describe('downloads.vue', () => {
         expect(wrapper.vm.testDelay).toEqual([6000, targetId, 2]) // setTimeoutされない
         expect(wrapper.vm.downloads).toEqual([{ id: targetId, status: target3.status }, dataPage1.downloads[1]])
         helper.mockCalledTest(mock.updateUserUndownloadedCount, 1, undownloadedCount)
-        helper.messageTest(wrapper, AppMessage, target3)
+        helper.messageTest(wrapper, AppMessage, target3, 'success')
       }
 
       it('[対象が処理待ち→処理待ち→成功]成功まで繰り返し実行され、表示が変更される', async () => {

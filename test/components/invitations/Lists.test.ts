@@ -39,7 +39,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = async (wrapper: any, invitations: any, show: any = { optional: null }) => {
+  const viewTest = async (wrapper: any, invitations: any, show: any = { optional: null, active: 0, inactive: 0 }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('招待URL')
     expect(wrapper.text()).toMatch('ステータス')
@@ -64,10 +64,8 @@ describe('Lists.vue', () => {
     }
 
     // (状態)
-    /* TODO: 背景色が変わらない
-    expect(wrapper.findAll('.row_active').length).toBe(row.active)
-    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
-    */
+    expect(wrapper.findAll('.row_active').length).toBe(show.active)
+    expect(wrapper.findAll('.row_inactive').length).toBe(show.inactive)
 
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     let index = 0
@@ -173,12 +171,12 @@ describe('Lists.vue', () => {
   describe('4件', () => {
     it('[非表示項目が空]全て表示される', () => {
       const wrapper = mountFunction(listCount4, [])
-      viewTest(wrapper, listCount4, { optional: true })
+      viewTest(wrapper, listCount4, { optional: true, active: 1, inactive: 3 })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
       const hiddenItems = helper.locales.items.invitation.map(item => item.key)
       const wrapper = mountFunction(listCount4, hiddenItems)
-      viewTest(wrapper, listCount4, { optional: false })
+      viewTest(wrapper, listCount4, { optional: false, active: 1, inactive: 3 })
     })
   })
 })

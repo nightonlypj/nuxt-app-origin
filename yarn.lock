@@ -1514,17 +1514,25 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.202.tgz#f09dbd2fb082d507178b2f2a5c7e74bd72ff98f8"
   integrity sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==
 
-"@types/markdown-it-footnote@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@types/markdown-it-footnote/-/markdown-it-footnote-3.0.1.tgz#22ae17f8d511a0e5f63a763acf872728d656086d"
-  integrity sha512-D7q4SDvFiKjAX/RPI8RZbRInCGPoYdWvC4yAhVO/I5wwAreyKRSXVykHQfwxYMOi/2IxJ9WJWwf2cFeOnZ+skw==
+"@types/markdown-it-footnote@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/markdown-it-footnote/-/markdown-it-footnote-3.0.3.tgz#d90775b4c3375ed959c7f0d695b5d692fcc40fab"
+  integrity sha512-sMLBj0VcWo/4vi1J7jx3DNdup2w+14RwDMdQtcFJPabeDwt945ghc8sFBgsUfnEjcBOuKaELY22JwGb7KGmsVw==
   dependencies:
     "@types/markdown-it" "*"
 
-"@types/markdown-it@*", "@types/markdown-it@^13.0.2":
+"@types/markdown-it@*":
   version "13.0.2"
   resolved "https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-13.0.2.tgz#1557e77789fc86e93fd4b8f0f8f8535ec97a8518"
   integrity sha512-Tla7hH9oeXHOlJyBFdoqV61xWE9FZf/y2g+gFVwQ2vE1/eBzjUno5JCd3Hdb5oATve5OF6xNjZ/4VIZhVVx+hA==
+  dependencies:
+    "@types/linkify-it" "*"
+    "@types/mdurl" "*"
+
+"@types/markdown-it@^13.0.7":
+  version "13.0.7"
+  resolved "https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-13.0.7.tgz#4a495115f470075bd4434a0438ac477a49c2e152"
+  integrity sha512-U/CBi2YUUcTHBt5tjO2r5QV/x0Po6nsYwQU4Y04fBS6vfoImaiZ6f8bi3CjTCxBPQSO1LMyUqkByzi8AidyxfA==
   dependencies:
     "@types/linkify-it" "*"
     "@types/mdurl" "*"

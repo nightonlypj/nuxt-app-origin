@@ -5,30 +5,27 @@
     :items="spaces"
     :items-per-page="-1"
     :items-length="spaces.length"
-    density="comfortable"
+    density="compact"
+    :row-props="rowProps"
   >
-    <!--
-    :content-class="itemClass"  TODO: 背景色が変わらない
-    mobile-breakpoint="600"  TODO: モバイルデザインにならない
-    -->
-    <template #headers /><!-- NOTE: hide-default-headerが効かない為 -->
+    <template #headers /><!-- NOTE: ヘッダを非表示にする為 -->
     <!-- 名称 -->
-    <template #[`item.name`]="{ item }">
+    <template #[`item.name`]="{ item }: any">
       <div class="ml-1">
-        <v-avatar v-if="item.raw.image_url != null" :id="`space_image_${item.raw.code}`" size="32px" class="mr-1">
-          <v-img :src="item.raw.image_url.small" />
+        <v-avatar v-if="item.image_url != null" :id="`space_image_${item.code}`" size="32px" class="mr-1">
+          <v-img :src="item.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="`/-/${item.raw.code}`">{{ textTruncate(item.raw.name, 64) }}</NuxtLink>
-        <SpacesIcon :space="item.raw" />
+        <NuxtLink :to="`/-/${item.code}`">{{ textTruncate(item.name, 64) }}</NuxtLink>
+        <SpacesIcon :space="item" />
       </div>
     </template>
     <!-- 説明 -->
-    <template #[`item.description`]="{ item }">
-      {{ textTruncate(item.raw.description, 128) }}
+    <template #[`item.description`]="{ item }: any">
+      {{ textTruncate(item.description, 128) }}
     </template>
     <!-- (アクション) -->
-    <template #[`item.action`]="{ item }">
-      <NuxtLink v-if="item.raw.current_member != null" :to="`/members/${item.raw.code}`">
+    <template #[`item.action`]="{ item }: any">
+      <NuxtLink v-if="item.current_member != null" :to="`/members/${item.code}`">
         <v-btn color="primary" size="small">
           <v-icon>mdi-account-multiple</v-icon>
           <v-tooltip activator="parent" location="bottom">メンバー一覧</v-tooltip>
@@ -56,36 +53,33 @@ const { tm: $tm } = useI18n()
 
 const headers: any = computed(() => {
   const result = []
-  for (const item of ($tm('items.space') as any)) {
+  for (const [, item] of Object.entries($tm('items.space') as any) as any) {
     if (item.required || !$props.hiddenItems.includes(item.key)) {
-      result.push({ title: item.title, key: item.key, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
+      result.push({ title: item.title, key: item.key, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
     }
   }
-  result.push({ key: 'action', cellClass: 'pl-1 pr-2 py-2' })
+  result.push({ key: 'action', cellProps: { class: 'pl-1 pr-2 py-2' } })
   return result
 })
-/*
-const itemClass = computed(() => (item: any) => {
-  if (item.raw.destroy_requested_at != null && item.raw.destroy_requested_at !== '') { return 'row_inactive' }
-  return null
+const rowProps = computed(() => ({ item }: any) => {
+  return (item.destroy_schedule_at != null && item.destroy_schedule_at !== '') ? { class: 'row_inactive' } : null
 })
-*/
 </script>
 
 <style scoped>
 .v-data-table >>> .v-data-table-footer {
-  display: none; /* NOTE: hide-default-footerが効かない為 */
+  display: none; /* NOTE: フッタを非表示にする為 */
 }
-.v-data-table.theme--dark >>> tr.row_inactive {
+.v-data-table.v-theme--dark >>> tr.row_inactive {
   background-color: #424242; /* grey darken-3 */
 }
-.v-data-table.theme--light >>> tr.row_inactive {
+.v-data-table.v-theme--light >>> tr.row_inactive {
   background-color: #F5F5F5; /* grey lighten-4 */
 }
-.v-data-table.theme--dark >>> tr:hover.row_inactive {
+.v-data-table.v-theme--dark >>> tr:hover.row_inactive {
   background-color: #616161 !important; /* grey darken-2 */
 }
-.v-data-table.theme--light >>> tr:hover.row_inactive {
+.v-data-table.v-theme--light >>> tr:hover.row_inactive {
   background-color: #E0E0E0 !important; /* grey lighten-2 */
 }
 </style>

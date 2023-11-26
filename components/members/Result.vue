@@ -17,17 +17,14 @@
     :items="result.emails"
     :items-per-page="-1"
     :items-length="result.emails?.length || 0"
-    density="comfortable"
+    density="compact"
     fixed-header
     :height="tableHeight($vuetify.display.height)"
   >
-    <!--
-    mobile-breakpoint="600"  TODO: モバイルデザインにならない
-    -->
     <!-- 結果 -->
-    <template #[`item.result`]="{ item }">
-      <v-icon :color="($config.public.member.createColor as any)[item.raw.result]" size="small">{{ ($config.public.member.createIcon as any)[item.raw.result] }}</v-icon>
-      {{ item.raw.result_i18n }}
+    <template #[`item.result`]="{ item }: any">
+      <v-icon :color="($config.public.member.createColor as any)[item.result]" size="small">{{ ($config.public.member.createIcon as any)[item.result] }}</v-icon>
+      {{ item.result_i18n }}
     </template>
   </v-data-table-server>
 </template>
@@ -44,13 +41,13 @@ defineProps({
 const $config = useRuntimeConfig()
 
 const headers = [
-  { title: 'メールアドレス', key: 'email', sortable: false, class: 'text-no-wrap' }, // TODO: classが効かない
-  { title: '結果', key: 'result', sortable: false, class: 'text-no-wrap' }
+  { title: 'メールアドレス', key: 'email', sortable: false, headerProps: { class: 'text-no-wrap' } },
+  { title: '結果', key: 'result', sortable: false, headerProps: { class: 'text-no-wrap' } }
 ]
 </script>
 
 <style scoped>
 .v-data-table >>> .v-data-table-footer {
-  display: none; /* NOTE: hide-default-footerが効かない為 */
+  display: none; /* NOTE: フッタを非表示にする為 */
 }
 </style>

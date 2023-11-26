@@ -1,13 +1,9 @@
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
-import * as labsComponents from 'vuetify/labs/components'
 import * as directives from 'vuetify/directives'
 
 export const vuetify = createVuetify({
-  components: {
-    ...components,
-    ...labsComponents
-  },
+  components,
   directives,
   theme: {
     defaultTheme: 'dark',

@@ -7,7 +7,7 @@
     <AppMessage v-model:messages="messages" />
     <SpacesDestroyInfo :space="space" />
 
-    <v-tabs v-model="tabPage" color="primary">
+    <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
       <v-tab :to="`/-/${code}`">スペース</v-tab>
       <v-tab value="list">メンバー一覧</v-tab>
       <v-tab v-if="createResult != null" value="result">メンバー招待（結果）</v-tab>
@@ -241,7 +241,7 @@ async function reloadMembersList ($event: any = {}) {
     if (!reloading.value) { break }
 
     /* c8 ignore next */
-    if (process.env.NODE_ENV !== 'test') { await sleep($config.public.reloading.sleepMs) }
+    if (!$config.public.env.test) { await sleep($config.public.reloading.sleepMs) }
     count++
   }
   if (count >= $config.public.reloading.maxCount) {

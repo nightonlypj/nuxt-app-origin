@@ -144,7 +144,7 @@ async function reloadSpacesList () {
     if (!reloading.value) { break }
 
     /* c8 ignore next */
-    if (process.env.NODE_ENV !== 'test') { await sleep($config.public.reloading.sleepMs) }
+    if (!$config.public.env.test) { await sleep($config.public.reloading.sleepMs) }
     count++
   }
   if (count >= $config.public.reloading.maxCount) {

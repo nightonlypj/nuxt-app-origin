@@ -37,7 +37,7 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, members: any, show: any = { optional: null, admin: null }) => {
+  const viewTest = (wrapper: any, members: any, show: any = { optional: null, admin: null, active: 0 }) => {
     // ヘッダ
     expect(wrapper.text()).toMatch('メンバー')
     if (show.optional && show.admin) {
@@ -79,10 +79,7 @@ describe('Lists.vue', () => {
     }
 
     // (状態)
-    /* TODO: 背景色が変わらない
-    expect(wrapper.findAll('.row_active').length).toBe(row.active)
-    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
-    */
+    expect(wrapper.findAll('.row_active').length).toBe(show.active)
 
     const usersAvatars = wrapper.findAllComponents(UsersAvatar)
     let index = 0
@@ -158,22 +155,22 @@ describe('Lists.vue', () => {
     describe('非表示項目が空', () => {
       it('[管理者]全て表示される', () => {
         const wrapper = mountFunction(listCount3, true, [], [listCount3[0].user.code])
-        viewTest(wrapper, listCount3, { optional: true, admin: true })
+        viewTest(wrapper, listCount3, { optional: true, admin: true, active: 1 })
       })
       it('[管理者以外]管理者のみの項目以外が表示される', () => {
         const wrapper = mountFunction(listCount3, false, [])
-        viewTest(wrapper, listCount3, { optional: true, admin: false })
+        viewTest(wrapper, listCount3, { optional: true, admin: false, active: 0 })
       })
     })
     describe('非表示項目が全項目', () => {
       const hiddenItems = helper.locales.items.member.map(item => item.key)
       it('[管理者]必須項目のみ表示される', () => {
         const wrapper = mountFunction(listCount3, true, hiddenItems)
-        viewTest(wrapper, listCount3, { optional: false, admin: true })
+        viewTest(wrapper, listCount3, { optional: false, admin: true, active: 0 })
       })
       it('[管理者以外]必須項目のみ表示される', () => {
         const wrapper = mountFunction(listCount3, false, hiddenItems)
-        viewTest(wrapper, listCount3, { optional: false, admin: false })
+        viewTest(wrapper, listCount3, { optional: false, admin: false, active: 0 })
       })
     })
 

@@ -235,7 +235,9 @@ const query = ref<any>(null)
 const outputItems = ref<any>([])
 const enableTarget = ref<any>([])
 
-const items = computed(() => ($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin))
+const items = computed(() => {
+  return Object.entries($tm(`items.${$props.model}`) as any).map(item => item[1]).filter((item: any) => !item.adminOnly || $props.admin)
+})
 
 function initialize () {
   waiting.value = false

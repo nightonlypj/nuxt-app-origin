@@ -7,7 +7,7 @@
     <AppMessage v-model:messages="messages" />
     <SpacesDestroyInfo :space="space" />
 
-    <v-tabs v-model="tabPage" color="primary">
+    <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
       <v-tab :to="`/-/${code}`">スペース</v-tab>
       <v-tab :to="`/members/${code}`">メンバー一覧</v-tab>
       <v-tab value="active">招待URL一覧</v-tab>

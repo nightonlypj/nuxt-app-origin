@@ -5,25 +5,22 @@
     :items="invitations"
     :items-per-page="-1"
     :items-length="invitations.length"
-    density="comfortable"
+    density="compact"
+    :row-props="rowProps"
     fixed-header
     :height="tableHeight($vuetify.display.height)"
+    @dblclick:row="dblclickRow"
   >
-    <!--
-    :item-class="itemClass"  TODO: 背景色が変わらない
-    mobile-breakpoint="600"  TODO: モバイルデザインにならない
-    @dblclick:row="showUpdate"  TODO: 動かない
-    -->
     <!-- 招待URL -->
-    <template #[`item.code`]="{ item }">
-      <div v-if="item.raw.status === 'active'" class="text-center">
+    <template #[`item.code`]="{ item }: any">
+      <div v-if="item.status === 'active'" class="text-center">
         <v-btn
-          :id="`invitation_url_copy_btn_${item.raw.code}`"
+          :id="`invitation_url_copy_btn_${item.code}`"
           color="accent"
           icon
           variant="outlined"
           size="x-small"
-          @click="copyInvitationURL(item.raw.code)"
+          @click="copyInvitationURL(item.code)"
         >
           <v-icon>mdi-content-copy</v-icon>
           <v-tooltip activator="parent" location="bottom">クリップボードにコピー</v-tooltip>
@@ -31,89 +28,89 @@
       </div>
     </template>
     <!-- ステータス -->
-    <template #[`item.status`]="{ item }">
-      <template v-if="item.raw.status === 'email_joined'">
-        <v-icon :id="`invitation_icon_email_joined_${item.raw.code}`" color="info" size="small">mdi-information</v-icon>
-        {{ item.raw.status_i18n }}
+    <template #[`item.status`]="{ item }: any">
+      <template v-if="item.status === 'email_joined'">
+        <v-icon :id="`invitation_icon_email_joined_${item.code}`" color="info" size="small">mdi-information</v-icon>
+        {{ item.status_i18n }}
       </template>
       <template v-else>
         <v-icon
-          :id="`invitation_icon_${item.raw.status === 'active' ? 'active': 'inactive'}_${item.raw.code}`"
-          :color="item.raw.status === 'active' ? 'success' : 'error'"
+          :id="`invitation_icon_${item.status === 'active' ? 'active': 'inactive'}_${item.code}`"
+          :color="item.status === 'active' ? 'success' : 'error'"
           size="small"
           class="mr-1"
-          @click="$emit('showUpdate', item.raw)"
+          @click="$emit('showUpdate', item)"
         >
-          {{ item.raw.status === 'active' ? 'mdi-check-circle' : 'mdi-alert' }}
+          {{ item.status === 'active' ? 'mdi-check-circle' : 'mdi-alert' }}
         </v-icon>
         <a
-          :id="`invitation_update_link_${item.raw.code}`"
+          :id="`invitation_update_link_${item.code}`"
           class="text-no-wrap"
           style="color: -webkit-link; cursor: pointer; text-decoration: underline"
-          @click="$emit('showUpdate', item.raw)"
+          @click="$emit('showUpdate', item)"
         >
-          {{ item.raw.status_i18n }}
+          {{ item.status_i18n }}
         </a>
       </template>
     </template>
     <!-- メールアドレス -->
-    <template #[`item.email`]="{ item }">
+    <template #[`item.email`]="{ item }: any">
       <div class="pl-1">
-        <template v-if="item.raw.email != null">
-          {{ item.raw.email }}
+        <template v-if="item.email != null">
+          {{ item.email }}
         </template>
         <template v-else>
-          <div v-for="domain in item.raw.domains" :key="domain">
+          <div v-for="domain in item.domains" :key="domain">
             *@{{ domain }}
           </div>
         </template>
       </div>
     </template>
     <!-- 権限 -->
-    <template #[`item.power`]="{ item }">
+    <template #[`item.power`]="{ item }: any">
       <div class="text-no-wrap">
-        <v-icon size="small">{{ memberPowerIcon(item.raw.power) }}</v-icon>
-        {{ item.raw.power_i18n }}
+        <v-icon size="small">{{ memberPowerIcon(item.power) }}</v-icon>
+        {{ item.power_i18n }}
       </div>
     </template>
     <!-- 期限 -->
-    <template #[`item.ended_at`]="{ item }">
+    <template #[`item.ended_at`]="{ item }: any">
       <div class="text-center">
-        {{ dateTimeFormat('ja', item.raw.ended_at) }}
+        {{ dateTimeFormat('ja', item.ended_at) }}
       </div>
     </template>
     <!-- 作成者 -->
-    <template #[`item.created_user.name`]="{ item }">
-      <template v-if="item.raw.created_user != null">
-        <div v-if="item.raw.created_user.deleted" class="text-center">
+    <template #[`item.created_user.name`]="{ item }: any">
+      <template v-if="item.created_user != null">
+        <div v-if="item.created_user.deleted" class="text-center">
           N/A
         </div>
-        <UsersAvatar v-else :user="item.raw.created_user" />
+        <UsersAvatar v-else :user="item.created_user" />
       </template>
     </template>
     <!-- 作成日時 -->
-    <template #[`column.created_at`]="{ column }">
+    <template #[`header.created_at`]="{ column }">
       <span>{{ column.title }}</span>
       <v-icon>$sortDesc</v-icon>
     </template>
-    <template #[`item.created_at`]="{ item }">
+    <template #[`item.created_at`]="{ item }: any">
       <div class="text-center">
-        {{ dateTimeFormat('ja', item.raw.created_at) }}
+        {{ dateTimeFormat('ja', item.created_at) }}
       </div>
     </template>
     <!-- 更新者 -->
-    <template #[`item.last_updated_user.name`]="{ item }">
-      <template v-if="item.raw.last_updated_user != null">
-        <div v-if="item.raw.last_updated_user.deleted" class="text-center">
+    <template #[`item.last_updated_user.name`]="{ item }: any">
+      <template v-if="item.last_updated_user != null">
+        <div v-if="item.last_updated_user.deleted" class="text-center">
           N/A
         </div>
-        <UsersAvatar v-else :user="item.raw.last_updated_user" />
+        <UsersAvatar v-else :user="item.last_updated_user" />
       </template>
     </template>
     <!-- 更新日時 -->
-    <template #[`item.last_updated_at`]="{ item }">
+    <template #[`item.last_updated_at`]="{ item }: any">
       <div class="text-center">
-        {{ dateTimeFormat('ja', item.raw.last_updated_at) }}
+        {{ dateTimeFormat('ja', item.last_updated_at) }}
       </div>
     </template>
   </v-data-table-server>
@@ -141,25 +138,25 @@ const { $toast } = useNuxtApp()
 
 const headers = computed(() => {
   const result = []
-  for (const item of ($tm('items.invitation') as any)) {
+  for (const [, item] of Object.entries($tm('items.invitation') as any) as any) {
     if (item.required || !$props.hiddenItems.includes(item.key)) {
-      result.push({ title: item.title, key: item.key, sortable: false, class: 'text-no-wrap', cellClass: 'px-1 py-2' }) // TODO: class/cellClassが効かない
+      result.push({ title: item.title, key: item.key, sortable: false, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
     }
   }
-  if (result.length > 0) { result[result.length - 1].cellClass = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
+  if (result.length > 0) { result[result.length - 1].cellProps.class = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
   return result
 })
-/*
-const itemClass = computed(() => (item: any) => item.raw.status === 'active' ? 'row_active' : 'row_inactive')
-
-function showUpdate (event: any, { item }) {
-  /* c8 ignore next *//* // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('showUpdate', event.target.innerHTML) }
-  if (item.raw.status === 'email_joined') { return }
-
-  $emit('showUpdate', item.raw)
+const rowProps = computed(() => ({ item }: any) => {
+  return { class: item.status === 'active' ? 'row_active' : 'row_inactive' }
 })
-*/
+
+function dblclickRow (event: any, { item }: any) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('dblclickRow', event.target.innerHTML) }
+  if (item.status === 'email_joined') { return }
+
+  $emit('showUpdate', item)
+}
 
 async function copyInvitationURL (code: string) {
   try {
@@ -179,31 +176,31 @@ async function copyInvitationURL (code: string) {
 
 <style scoped>
 .v-data-table >>> .v-data-table-footer {
-  display: none; /* NOTE: hide-default-footerが効かない為 */
+  display: none; /* NOTE: フッタを非表示にする為 */
 }
-.v-data-table.theme--dark >>> tr.row_active {
+.v-data-table.v-theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }
-.v-data-table.theme--light >>> tr.row_active {
+.v-data-table.v-theme--light >>> tr.row_active {
   background-color: #E8EAF6; /* indigo lighten-5 */
 }
-.v-data-table.theme--dark >>> tr:hover.row_active {
+.v-data-table.v-theme--dark >>> tr:hover.row_active {
   background-color: #283593 !important; /* indigo darken-3 */
 }
-.v-data-table.theme--light >>> tr:hover.row_active {
+.v-data-table.v-theme--light >>> tr:hover.row_active {
   background-color: #C5CAE9 !important; /* indigo lighten-4 */
 }
 
-.v-data-table.theme--dark >>> tr.row_inactive {
+.v-data-table.v-theme--dark >>> tr.row_inactive {
   background-color: #424242; /* grey darken-3 */
 }
-.v-data-table.theme--light >>> tr.row_inactive {
+.v-data-table.v-theme--light >>> tr.row_inactive {
   background-color: #F5F5F5; /* grey lighten-4 */
 }
-.v-data-table.theme--dark >>> tr:hover.row_inactive {
+.v-data-table.v-theme--dark >>> tr:hover.row_inactive {
   background-color: #616161 !important; /* grey darken-2 */
 }
-.v-data-table.theme--light >>> tr:hover.row_inactive {
+.v-data-table.v-theme--light >>> tr:hover.row_inactive {
   background-color: #E0E0E0 !important; /* grey lighten-2 */
 }
 </style>

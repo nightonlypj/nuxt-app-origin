@@ -22,12 +22,9 @@ describe('Lists.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, spaces: any, show: any = { optional: null }) => {
+  const viewTest = (wrapper: any, spaces: any, show: any = { inactive: 0, optional: null }) => {
     // (状態)
-    /* TODO: 背景色が変わらない
-    expect(wrapper.findAll('.row_active').length).toBe(row.active)
-    expect(wrapper.findAll('.row_inactive').length).toBe(row.inactive)
-    */
+    expect(wrapper.findAll('.row_inactive').length).toBe(show.inactive)
 
     const links = helper.getLinks(wrapper)
     const spacesIcons = wrapper.findAllComponents(SpacesIcon)
@@ -61,12 +58,12 @@ describe('Lists.vue', () => {
   describe('2件', () => {
     it('[非表示項目が空]全て表示される', () => {
       const wrapper = mountFunction(listCount2, [])
-      viewTest(wrapper, listCount2, { optional: true })
+      viewTest(wrapper, listCount2, { inactive: 1, optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
       const hiddenItems = helper.locales.items.space.map(item => item.key)
       const wrapper = mountFunction(listCount2, hiddenItems)
-      viewTest(wrapper, listCount2, { optional: false })
+      viewTest(wrapper, listCount2, { inactive: 1, optional: false })
     })
   })
 })

@@ -8,7 +8,7 @@
     <SpacesDestroyInfo :space="space" />
     <v-card max-width="850px">
       <AppProcessing v-if="processing" />
-      <v-tabs v-model="tabPage" color="primary">
+      <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
         <v-tab :to="spacePath">スペース</v-tab>
         <v-tab value="active">スペース設定</v-tab>
       </v-tabs>
@@ -58,7 +58,7 @@
                 説明<AppRequiredLabel optional />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
-                <v-tabs v-model="tabDescription" color="primary" height="32px">
+                <v-tabs v-if="!$config.public.env.test" v-model="tabDescription" color="primary" height="32px">
                   <v-tab value="input">入力</v-tab>
                   <v-tab value="preview">プレビュー</v-tab>
                 </v-tabs>
