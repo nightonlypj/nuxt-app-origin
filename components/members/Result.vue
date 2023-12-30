@@ -15,9 +15,10 @@
   <v-data-table-server
     :headers="headers"
     :items="result.emails"
-    :items-per-page="-1"
     :items-length="result.emails?.length || 0"
+    :items-per-page="-1"
     density="compact"
+    hover
     fixed-header
     :height="tableHeight($vuetify.display.height)"
   >
@@ -27,6 +28,7 @@
       {{ item.result_i18n }}
     </template>
   </v-data-table-server>
+  <v-divider class="my-2" />
 </template>
 
 <script setup lang="ts">

@@ -23,7 +23,7 @@
       <v-card-text class="pt-0">
         <v-row>
           <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap">
+            <div class="align-self-center text-no-wrap ml-2">
               {{ localeString('ja', invitation.total_count, 'N/A') }}件
             </div>
           </v-col>
@@ -59,6 +59,7 @@
             @reload="reloadInvitationsList"
             @show-update="invitationsUpdate.showDialog($event)"
           />
+          <v-divider class="my-2" />
         </template>
 
         <InfiniteLoading
@@ -145,6 +146,7 @@ async function getNextInvitationsList ($state: any) {
   /* c8 ignore start */
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getNextInvitationsList', page.value + 1, processing.value, error.value) }
+
   if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
   if (processing.value) { return }
   /* c8 ignore stop */

@@ -3,9 +3,10 @@
     v-if="spaces != null && spaces.length > 0"
     :headers="headers"
     :items="spaces"
-    :items-per-page="-1"
     :items-length="spaces.length"
+    :items-per-page="-1"
     density="compact"
+    hover
     :row-props="rowProps"
   >
     <template #headers /><!-- NOTE: ヘッダを非表示にする為 -->
@@ -53,7 +54,7 @@ const { tm: $tm } = useI18n()
 
 const headers: any = computed(() => {
   const result = []
-  for (const [, item] of Object.entries($tm('items.space') as any) as any) {
+  for (const item of Object.values($tm('items.space') as any) as any) {
     if (item.required || !$props.hiddenItems.includes(item.key)) {
       result.push({ title: item.title, key: item.key, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
     }

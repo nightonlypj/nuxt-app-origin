@@ -8,7 +8,7 @@
     <v-card-title>お知らせ</v-card-title>
     <v-card-text>
       <v-row v-if="infomation != null">
-        <v-col class="align-self-center text-no-wrap">
+        <v-col class="align-self-center text-no-wrap ml-2">
           {{ localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ localeString('ja', pageFirstNumber(infomation), 'N/A') }}-{{ localeString('ja', pageLastNumber(infomation), 'N/A') }}件を表示</template>
         </v-col>
         <v-col v-if="enablePagination" class="pa-0">

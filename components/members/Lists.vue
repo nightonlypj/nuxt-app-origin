@@ -5,9 +5,10 @@
     v-model:sort-by="syncSortBy"
     :headers="headers"
     :items="members"
-    :items-per-page="-1"
     :items-length="members.length"
+    :items-per-page="-1"
     density="compact"
+    hover
     :row-props="rowProps"
     fixed-header
     :height="tableHeight($vuetify.display.height)"
@@ -158,7 +159,7 @@ const headers: any = computed(() => {
   if ($props.admin) {
     result.push({ key: 'data-table-select', headerProps: { class: 'px-0' }, cellProps: { class: 'px-0 py-2' } })
   }
-  for (const [, item] of Object.entries($tm('items.member') as any) as any) {
+  for (const item of Object.values($tm('items.member') as any) as any) {
     if ((item.required || !$props.hiddenItems.includes(item.key)) && (!item.adminOnly || $props.admin)) {
       result.push({ title: item.title, key: item.key, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
     }

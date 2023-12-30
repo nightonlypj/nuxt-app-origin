@@ -12,7 +12,7 @@
       <v-card-text class="pt-0">
         <AppProcessing v-if="reloading" />
         <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap">
+          <v-col class="d-flex align-self-center text-no-wrap ml-2">
             {{ localeString('ja', download.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
@@ -120,6 +120,7 @@ async function getNextDownloadsList ($state: any) {
   /* c8 ignore start */
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getNextDownloadsList', page.value + 1, processing.value, error.value) }
+
   if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
   if (processing.value) { return }
   /* c8 ignore stop */

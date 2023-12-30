@@ -3,9 +3,10 @@
     v-if="downloads != null && downloads.length > 0"
     :headers="headers"
     :items="downloads"
-    :items-per-page="-1"
     :items-length="downloads.length"
+    :items-per-page="-1"
     density="compact"
+    hover
     :row-props="rowProps"
     fixed-header
     :height="tableHeight($vuetify.display.height)"
@@ -87,7 +88,7 @@ const $route = useRoute()
 
 const headers = computed(() => {
   const result = []
-  for (const [, item] of Object.entries($tm('items.download') as any) as any) {
+  for (const item of Object.values($tm('items.download') as any) as any) {
     result.push({ title: item.title, key: item.key, sortable: false, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
   }
   if (result.length > 0) { result[result.length - 1].cellProps.class = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為

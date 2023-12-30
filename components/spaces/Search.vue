@@ -14,7 +14,7 @@
             placeholder="名称や説明を入力"
             autocomplete="on"
             style="max-width: 400px"
-            density="compact"
+            density="comfortable"
             hide-details
             maxlength="255"
             clearable

@@ -236,7 +236,7 @@ const outputItems = ref<any>([])
 const enableTarget = ref<any>([])
 
 const items = computed(() => {
-  return Object.entries($tm(`items.${$props.model}`) as any).map(item => item[1]).filter((item: any) => !item.adminOnly || $props.admin)
+  return Object.values($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin) as any
 })
 
 function initialize () {

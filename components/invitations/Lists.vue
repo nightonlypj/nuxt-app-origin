@@ -3,9 +3,10 @@
     v-if="invitations != null && invitations.length > 0"
     :headers="headers"
     :items="invitations"
-    :items-per-page="-1"
     :items-length="invitations.length"
+    :items-per-page="-1"
     density="compact"
+    hover
     :row-props="rowProps"
     fixed-header
     :height="tableHeight($vuetify.display.height)"
@@ -138,7 +139,7 @@ const { $toast } = useNuxtApp()
 
 const headers = computed(() => {
   const result = []
-  for (const [, item] of Object.entries($tm('items.invitation') as any) as any) {
+  for (const item of Object.values($tm('items.invitation') as any) as any) {
     if (item.required || !$props.hiddenItems.includes(item.key)) {
       result.push({ title: item.title, key: item.key, sortable: false, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
     }

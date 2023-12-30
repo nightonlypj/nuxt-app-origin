@@ -20,7 +20,7 @@
       <AppProcessing v-if="reloading" />
       <v-card-text>
         <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap">
+          <v-col class="d-flex align-self-center text-no-wrap ml-2">
             {{ localeString('ja', space.total_count, 'N/A') }}件
           </v-col>
           <v-col class="d-flex justify-end">
@@ -45,6 +45,7 @@
             :spaces="spaces"
             :hidden-items="hiddenItems"
           />
+          <v-divider class="my-2" />
         </template>
 
         <InfiniteLoading
@@ -84,26 +85,29 @@ const { t: $t } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
-let publicQuery = {}
-if ($config.public.enablePublicSpace) {
-  publicQuery = {
-    public: $route.query?.public !== '0',
-    private: $route.query?.private !== '0',
-    join: $route.query?.join !== '0',
-    nojoin: $route.query?.nojoin !== '0'
+function getQuery (targetQuery: any = {}) {
+  let publicQuery = {}
+  if ($config.public.enablePublicSpace) {
+    publicQuery = {
+      public: targetQuery?.public !== '0',
+      private: targetQuery?.private !== '0',
+      join: targetQuery?.join !== '0',
+      nojoin: targetQuery?.nojoin !== '0'
+    }
+  }
+  return {
+    text: targetQuery?.text || null,
+    ...publicQuery,
+    active: targetQuery?.active !== '0',
+    destroy: targetQuery?.destroy === '1',
+    option: targetQuery?.option === '1'
   }
 }
 
 const loading = ref(true)
 const processing = ref(false)
 const reloading = ref(false)
-const query = ref<any>({
-  text: $route.query?.text || null,
-  ...publicQuery,
-  active: $route.query?.active !== '0',
-  destroy: $route.query?.destroy === '1',
-  option: $route.query?.option === '1'
-})
+const query = ref<any>(getQuery($route.query))
 const params = ref<any>(null)
 const uid = ref<string | null>(null)
 const error = ref(false)
@@ -121,6 +125,17 @@ async function created () {
 
   loading.value = false
 }
+
+// 左メニュークリックで、条件を初期化して検索
+watch(() => $route.query, () => {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('watch: $route.query', $route.query) }
+  if (Object.keys($route.query).length > 0) { return }
+
+  query.value = getQuery()
+  params.value = null
+  getSpacesList()
+})
 
 // スペース一覧検索
 async function searchSpacesList () {
@@ -186,6 +201,7 @@ async function getNextSpacesList ($state: any) {
   /* c8 ignore start */
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getNextSpacesList', page.value + 1, processing.value, error.value) }
+
   if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
   if (processing.value) { return }
   /* c8 ignore stop */

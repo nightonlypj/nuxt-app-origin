@@ -97,7 +97,7 @@
                     />
                   </Field>
                   <div class="ml-2 mt-2">
-                    {{ timeZoneOffset() }}<span v-if="timeZoneShortName() != null">({{ timeZoneShortName() }})</span>
+                    {{ timeZoneOffset() }}<template v-if="timeZoneShortName() != null">({{ timeZoneShortName() }})</template>
                   </div>
                 </v-col>
               </v-row>

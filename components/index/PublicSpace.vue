@@ -28,7 +28,8 @@
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in spaces"
             :id="`public_space_link_${space.code}`"
-            :key="space.code" :to="`/-/${space.code}`"
+            :key="space.code"
+            :to="`/-/${space.code}`"
             class="px-2"
             style="min-height: 42px"
           >

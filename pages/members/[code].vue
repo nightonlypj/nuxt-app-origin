@@ -49,7 +49,7 @@
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap">
+            <div class="align-self-center text-no-wrap ml-2">
               {{ localeString('ja', member.total_count, 'N/A') }}名
             </div>
             <div v-if="selectedMembers.length > 0" class="d-flex">
@@ -111,6 +111,7 @@
             @reload="reloadMembersList"
             @show-update="membersUpdate.showDialog($event)"
           />
+          <v-divider class="my-2" />
         </template>
 
         <InfiniteLoading
@@ -164,10 +165,21 @@ const { t: $t, tm: $tm } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
-const power: any = {}
-const queryPower = $route.query?.power
-for (const [index, [key]] of Object.entries($tm('enums.member.power') as any).entries()) {
-  power[key] = queryPower == null || queryPower[index] === '1'
+function getQuery (targetQuery: any = {}) {
+  const power: any = {}
+  const queryPower = targetQuery?.power
+  for (const [index, [key]] of Object.entries($tm('enums.member.power') as any).entries()) {
+    power[key] = queryPower == null || queryPower[index] === '1'
+  }
+  return {
+    text: targetQuery?.text || null,
+    power,
+    active: targetQuery?.active !== '0',
+    destroy: targetQuery?.destroy !== '0',
+    sort: targetQuery?.sort || 'invitationed_at',
+    desc: targetQuery?.desc !== '0',
+    option: targetQuery?.option === '1'
+  }
 }
 
 const loading = ref(true)
@@ -178,15 +190,7 @@ const messages = ref({
   notice: ''
 })
 const tabPage = ref('list')
-const query = ref({
-  text: $route.query?.text || null,
-  power,
-  active: $route.query?.active !== '0',
-  destroy: $route.query?.destroy !== '0',
-  sort: $route.query?.sort || 'invitationed_at',
-  desc: $route.query?.desc !== '0',
-  option: $route.query?.option === '1'
-})
+const query = ref(getQuery($route.query))
 const params = ref<any>(null)
 const uid = ref<string | null>(null)
 const error = ref(false)
@@ -279,6 +283,7 @@ async function getNextMembersList ($state: any) {
   /* c8 ignore start */
   // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getNextMembersList', page.value + 1, processing.value, error.value) }
+
   if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
   if (processing.value) { return }
   /* c8 ignore stop */
