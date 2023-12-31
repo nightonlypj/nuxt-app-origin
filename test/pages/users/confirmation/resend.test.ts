@@ -16,36 +16,33 @@ describe('resend.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
-  const path = '/users/confirmation/resend'
   const mountFunction = (loggedIn: boolean, query = {}, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            path,
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -59,8 +56,8 @@ describe('resend.vue', () => {
     }
 
     helper.messageTest(wrapper, AppMessage, data)
-    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, path) // NOTE: URLパラメータを消す為
-    expect(wrapper.vm.$data.query).toEqual({ email: '' })
+    helper.mockCalledTest(mock.navigateTo, data == null ? 0 : 1, {}) // NOTE: URLパラメータを消す為
+    expect(wrapper.vm.query).toEqual({ email: '' })
   }
 
   // テストケース
@@ -75,10 +72,9 @@ describe('resend.vue', () => {
     })
   })
   describe('パラメータあり', () => {
-    const query = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     it('[未ログイン]表示される', async () => {
-      const wrapper = mountFunction(false, query)
-      viewTest(wrapper, false, query)
+      const wrapper = mountFunction(false, messages)
+      viewTest(wrapper, false, messages)
       await flushPromises()
 
       // 送信ボタン
@@ -94,13 +90,12 @@ describe('resend.vue', () => {
       expect(button.element.disabled).toBe(false) // 有効
     })
     it('[ログイン中]表示される', () => {
-      const wrapper = mountFunction(true, query)
-      viewTest(wrapper, true, query)
+      const wrapper = mountFunction(true, messages)
+      viewTest(wrapper, true, messages)
     })
   })
 
   describe('メールアドレス確認', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ email: 'user1@example.com' })
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
@@ -129,23 +124,23 @@ describe('resend.vue', () => {
     }
 
     it('[成功][未ログイン][ボタンクリック]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction(false)
 
       apiCalledTest(1, params)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: data })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[成功][未ログイン][Enter送信]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction(false, { keydown: true, isComposing: false })
 
       apiCalledTest(1, params)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: data })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[成功][未ログイン][IME確定のEnter]APIリクエストされない', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn()
       await beforeAction(false, { keydown: true, isComposing: true })
 
       apiCalledTest(0)
@@ -153,11 +148,11 @@ describe('resend.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[成功][ログイン中]トップページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, messages])
       await beforeAction(true)
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
     it('[データなし]エラーメッセージが表示される', async () => {
@@ -186,11 +181,11 @@ describe('resend.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.messageTest(wrapper, AppMessage, data)
+      helper.messageTest(wrapper, AppMessage, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {

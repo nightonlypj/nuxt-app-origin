@@ -6,6 +6,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/sign_up.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('sign_up.vue', () => {
   let mock: any
@@ -17,37 +18,34 @@ describe('sign_up.vue', () => {
       toast: helper.mockToast
     }
   })
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
 
-  const fullPath = '/users/sign_up'
   const mountFunction = (loggedIn: boolean, values = {}, query = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
-    const wrapper = mount(Page, {
+    const wrapper: any = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true,
           AppMessage: true,
           ActionLink: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            fullPath,
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
@@ -60,7 +58,7 @@ describe('sign_up.vue', () => {
     expect(wrapper.findComponent(ActionLink).vm.$props.action).toBe('sign_up')
 
     helper.messageTest(wrapper, AppMessage, null)
-    expect(wrapper.vm.$data.query).toEqual({ name: '', email: '', password: '', password_confirmation: '', ...query })
+    expect(wrapper.vm.query).toEqual({ name: '', email: '', email_domain: '', email_local: '', password: '', password_confirmation: '', ...query })
   }
 
   // テストケース
@@ -79,7 +77,7 @@ describe('sign_up.vue', () => {
     wrapper.find('#sign_up_email_text').setValue('user1@example.com')
     wrapper.find('#sign_up_password_text').setValue('abc12345')
     wrapper.find('#sign_up_password_confirmation_text').setValue('abc12345')
-    wrapper.vm.$data.showPassword = true
+    wrapper.vm.showPassword = true
     await flushPromises()
 
     // 登録ボタン
@@ -148,14 +146,14 @@ describe('sign_up.vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
     it('[メールアドレス・ドメインなし]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { invitation: { email: null, domains: null } }])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -163,34 +161,32 @@ describe('sign_up.vue', () => {
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[存在しない]エラーページが表示される', async () => {
-      const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: messages.alert, notice: messages.notice } })
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 
   describe('アカウント登録', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
@@ -211,11 +207,11 @@ describe('sign_up.vue', () => {
     }
 
     it('[成功]ログインページにリダイレクトされる', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { ...messages, user: activeUser }])
       await beforeAction()
 
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: { alert: data.alert, notice: data.notice } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/sign_in', query: messages })
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
@@ -240,10 +236,10 @@ describe('sign_up.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { email: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { email: ['errorメッセージ'] } }])
       await beforeAction()
 
-      helper.messageTest(wrapper, AppMessage, data)
+      helper.messageTest(wrapper, AppMessage, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {

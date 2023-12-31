@@ -5,7 +5,7 @@ import { ja } from '~/locales/ja'
 
 // NuxtLinkのURL一覧を配列で返却
 const getLinks = (wrapper: any) => {
-  return wrapper.findAllComponents(RouterLinkStub).map((link: any) => link.props().to)
+  return wrapper.findAllComponents(RouterLinkStub).map((item: any) => item.props().to)
 }
 
 // テスト内容
@@ -34,15 +34,15 @@ const mockCalledTest = (mock: any, count: number, ...args: any[]) => {
   }
 }
 
-const messageTest = (wrapper: any, AppMessage: any, data: any) => {
-  expect(wrapper.findComponent(AppMessage).exists()).toBe(true)
-  expect(wrapper.findComponent(AppMessage).vm.$props.alert).toBe(data?.alert || null)
-  expect(wrapper.findComponent(AppMessage).vm.$props.notice).toBe(data?.notice || null)
+const messageTest = (wrapper: any, AppMessage: any, data: any, noticeType = 'info') => {
+  const appMessage = wrapper.findComponent(AppMessage)
+  expect(appMessage.exists()).toBe(true)
+  expect(appMessage.vm.$props.messages).toEqual({ alert: data?.alert || '', notice: data?.notice || '' })
+  expect(appMessage.vm.$props.noticeType).toBe(noticeType)
 }
 
-const emitMessageTest = (wrapper: any, data: any) => {
-  expect(wrapper.emitted().alert).toEqual([[data.alert]])
-  expect(wrapper.emitted().notice).toEqual([[data.notice]])
+const emitMessageTest = (wrapper: any, messages: any) => {
+  expect(wrapper.emitted().messages).toEqual([[messages]])
 }
 
 const mockToast = {
@@ -52,11 +52,11 @@ const mockToast = {
   success: vi.fn()
 }
 
-const toastMessageTest = (toastMock: any, message: any) => {
-  mockCalledTest(toastMock.error, message.error == null ? 0 : 1, message.error)
-  mockCalledTest(toastMock.info, message.info == null ? 0 : 1, message.info)
-  mockCalledTest(toastMock.warning, message.warning == null ? 0 : 1, message.warning)
-  mockCalledTest(toastMock.success, message.success == null ? 0 : 1, message.success)
+const toastMessageTest = (toastMock: any, messages: any) => {
+  mockCalledTest(toastMock.error, messages.error == null ? 0 : 1, messages.error)
+  mockCalledTest(toastMock.info, messages.info == null ? 0 : 1, messages.info)
+  mockCalledTest(toastMock.warning, messages.warning == null ? 0 : 1, messages.warning)
+  mockCalledTest(toastMock.success, messages.success == null ? 0 : 1, messages.success)
 }
 
 const disabledTest = (wrapper: any, AppProcessing: any, button: any, disabled: boolean) => {

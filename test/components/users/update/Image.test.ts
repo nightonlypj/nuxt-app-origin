@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Image.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('Image.vue', () => {
   let mock: any
@@ -16,48 +17,46 @@ describe('Image.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/users/update'
+  const data = Object.freeze({ ...messages, user: activeUser })
+
   const mountFunction = (uploadImage: boolean, values = {}) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true,
+        user: {
+          ...activeUser,
+          upload_image: uploadImage
+        },
+        setData: mock.setData
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
-    const wrapper = mount(Component, {
+    const wrapper: any = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true,
-            user: {
-              image_url: {
-                xlarge: 'https://example.com/images/user/xlarge_noimage.jpg'
-              },
-              upload_image: uploadImage
-            },
-            setData: mock.setData
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
-      },
-      data () {
-        return values
       }
     })
     expect(wrapper.vm).toBeTruthy()
+    for (const [key, value] of Object.entries(values)) { wrapper.vm[key] = value }
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any, uploadImage: boolean) => {
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.vm.$data.image).toBeNull()
+    expect(wrapper.vm.image).toBeNull()
 
     // アップロードボタン
     const updateButton: any = wrapper.find('#user_update_image_btn')
@@ -68,11 +67,6 @@ describe('Image.vue', () => {
     const deleteButton: any = wrapper.find('#user_delete_image_btn')
     expect(deleteButton.exists()).toBe(true)
     expect(deleteButton.element.disabled).toBe(!uploadImage) // [アップロード画像]有効
-  }
-
-  const updateViewTest = (wrapper: any) => {
-    expect(wrapper.vm.$data.image).toBeNull()
-    // NOTE: 画像変更のテストは省略（Mockでは実行されない為）
   }
 
   // テストケース
@@ -129,18 +123,26 @@ describe('Image.vue', () => {
   })
 
   describe('画像変更', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
-    const image = Object.freeze([{}])
+    const file = new File([], 'test.jpg', { type: 'image/jpeg' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, 'POST', {
-        image: image[0]
+        image: file
       }, 'form')
     }
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      wrapper = mountFunction(true, { image })
+      wrapper = mountFunction(true, messages)
+
+      // 入力
+      // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
+      // wrapper.find('#user_update_image_file').setValue([file])
+      expect(wrapper.find('#user_update_image_file').exists()).toBe(true)
+      wrapper.vm.image = [file]
+      await flushPromises()
+
+      // アップロードボタン
       button = wrapper.find('#user_update_image_btn')
       button.trigger('click')
       await flushPromises()
@@ -154,9 +156,9 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.mockCalledTest(mock.setData, 1, data)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
-      updateViewTest(wrapper)
+      expect(wrapper.vm.image).toBeNull()
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
@@ -176,6 +178,15 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -185,6 +196,14 @@ describe('Image.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, null])
       await beforeAction()
 
@@ -201,11 +220,11 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...data, errors: { image: ['errorメッセージ'] } }])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { image: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, data)
+      helper.emitMessageTest(wrapper, messages)
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -213,13 +232,12 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: null })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: '' })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })
 
   describe('画像削除', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl, 'POST')
@@ -227,7 +245,7 @@ describe('Image.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async (changeDefault = false) => {
-      wrapper = mountFunction(true)
+      wrapper = mountFunction(true, messages)
       button = wrapper.find('#user_delete_image_btn')
       button.trigger('click')
       await flushPromises()
@@ -244,9 +262,9 @@ describe('Image.vue', () => {
       await beforeAction(true)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
-      updateViewTest(wrapper)
+      expect(wrapper.vm.image).toBeNull()
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
@@ -266,6 +284,15 @@ describe('Image.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -275,6 +302,14 @@ describe('Image.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[削除予約済み（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 406 }, null])
       await beforeAction()
 
@@ -295,7 +330,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: null })
+      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: '' })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

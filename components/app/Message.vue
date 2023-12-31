@@ -1,19 +1,43 @@
 <template>
-  <v-alert v-if="alert != null" type="error" icon="mdi-alert" closable class="mb-4" @update:model-value="$emit('update:alert', null)">{{ alert }}</v-alert>
-  <v-alert v-if="notice != null" type="info" closable class="mb-4" @update:model-value="$emit('update:notice', null)">{{ notice }}</v-alert>
+  <v-alert
+    v-if="messages.alert != null && messages.alert !== ''"
+    id="message_alert"
+    type="error"
+    icon="mdi-alert"
+    closable
+    class="mb-4"
+    @click:close="close('alert')"
+  >
+    {{ messages.alert }}
+  </v-alert>
+  <v-alert
+    v-if="messages.notice != null && messages.notice !== ''"
+    id="message_notice"
+    :type="noticeType"
+    closable
+    class="mb-4"
+    @click:close="close('notice')"
+  >
+    {{ messages.notice }}
+  </v-alert>
 </template>
 
-<script>
-export default defineNuxtComponent({
-  props: {
-    alert: {
-      type: String,
-      default: null
-    },
-    notice: {
-      type: String,
-      default: null
-    }
+<script setup lang="ts">
+const $props = defineProps({
+  messages: {
+    type: Object,
+    required: true
+  },
+  noticeType: {
+    type: String as PropType<'info' | 'success'>,
+    default: 'info'
   }
 })
+const $emit = defineEmits(['update:messages'])
+
+function close (key: string) {
+  const messages = $props.messages
+  messages[key] = ''
+  $emit('update:messages', messages)
+}
 </script>

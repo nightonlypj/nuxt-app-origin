@@ -26,7 +26,7 @@
                   招待
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', member.invitationed_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', member.invitationed_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.invitationed_user" />
                 </v-col>
               </v-row>
@@ -35,7 +35,7 @@
                   更新
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', member.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', member.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.last_updated_user" />
                 </v-col>
               </v-row>
@@ -64,7 +64,7 @@
                         v-for="(value, key) in $tm('enums.member.power')"
                         :id="`member_update_power_${key}`"
                         :key="key"
-                        :label="value"
+                        :label="String(value)"
                         :value="key"
                         class="mr-2"
                       />
@@ -99,8 +99,7 @@
   </v-dialog>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
@@ -108,96 +107,114 @@ import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/utils/application.js'
+import { dateTimeFormat } from '~/utils/display'
+import { redirectAuth, redirectError } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required_select', required)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppRequiredLabel,
-    UsersAvatar
-  },
-  mixins: [Application],
-
-  props: {
-    space: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['update'],
-
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      dialog: false,
-      member: null
-    }
-  },
-
-  methods: {
-    // ダイアログ表示
-    async showDialog (member) {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('showDialog', member) }
-
-      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
-
-      if (!await this.getMembersDetail(member)) { return }
-
-      this.waiting = true
-      this.dialog = true
-    },
-
-    // メンバー詳細取得
-    async getMembersDetail (member) {
-      const url = this.$config.public.members.detailUrl.replace(':space_code', this.space.code).replace(':user_code', member.user.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.member == null)) {
-          this.member = data.member
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true, forbidden: true, notfound: true })
-      }
-
-      return false
-    },
-
-    // メンバー情報変更
-    async postMembersUpdate (setErrors, values) {
-      this.processing = true
-
-      const url = this.$config.public.members.updateUrl.replace(':space_code', this.space.code).replace(':user_code', this.member.user.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'POST', {
-        member: { power: this.member.power }
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.appSetToastedMessage(data, false, true)
-          this.$emit('update', data.member)
-          this.dialog = false
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
-        this.appSetToastedMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
-    }
+const $props = defineProps({
+  space: {
+    type: Object,
+    required: true
   }
 })
+defineExpose({ showDialog })
+const $emit = defineEmits(['update'])
+const $config = useRuntimeConfig()
+const { t: $t, tm: $tm } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+const processing = ref(false)
+const waiting = ref(false)
+const dialog = ref(false)
+const member = ref<any>(null)
+
+// ダイアログ表示
+async function showDialog (item: any) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('showDialog', item) }
+
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
+
+  if (!await getMembersDetail(item)) { return }
+
+  waiting.value = true
+  dialog.value = true
+}
+
+// メンバー詳細取得
+async function getMembersDetail (item: any) {
+  const url = $config.public.members.detailUrl.replace(':space_code', $props.space.code).replace(':user_code', item.user.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+
+  if (response?.ok) {
+    if (data?.member != null) {
+      member.value = data.member
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
+    } else if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
+    }
+  }
+
+  return false
+}
+
+// メンバー情報変更
+async function postMembersUpdate (setErrors: any, values: any) {
+  processing.value = true
+
+  const url = $config.public.members.updateUrl.replace(':space_code', $props.space.code).replace(':user_code', member.value.user.code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+    member: { power: member.value.power }
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      $emit('update', data.member)
+      dialog.value = false
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>

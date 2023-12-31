@@ -4,7 +4,14 @@
     type="warning"
     class="mb-4"
   >
-    このアカウントは{{ $dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。
+    このアカウントは{{ dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。
     <NuxtLink to="/users/undo_delete">取り消しはこちら</NuxtLink>
   </v-alert>
 </template>
+
+<script setup lang="ts">
+import { dateFormat } from '~/utils/display'
+
+const { $auth } = useNuxtApp()
+const $route = useRoute()
+</script>

@@ -43,7 +43,7 @@
                   説明<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
-                  <v-tabs v-model="tabDescription" color="primary" height="32px">
+                  <v-tabs v-if="!$config.public.env.test" v-model="tabDescription" color="primary" height="32px">
                     <v-tab value="input">入力</v-tab>
                     <v-tab value="preview">プレビュー</v-tab>
                   </v-tabs>
@@ -64,7 +64,9 @@
                     </Field>
                   </span>
                   <div v-show="tabDescription === 'preview'" class="md-preview mb-2">
-                    <AppMarkdown :source="space.description" class="mx-3 my-2" />
+                    <div class="mx-3 my-2">
+                      <AppMarkdown :source="space.description" />
+                    </div>
                   </div>
                 </v-col>
               </v-row>
@@ -110,7 +112,7 @@
                       v-model="space.image"
                       accept="image/jpeg,image/gif,image/png"
                       label="画像ファイル"
-                      :prepend-icon="null"
+                      prepend-icon=""
                       show-size
                       class="mt-2"
                       density="compact"
@@ -149,8 +151,7 @@
   </v-dialog>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 // eslint-disable-next-line camelcase
@@ -159,7 +160,8 @@ import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import AppMarkdown from '~/components/app/Markdown.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth, redirectPath } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required', required)
 defineRule('one_of_select', one_of)
@@ -169,81 +171,77 @@ defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppRequiredLabel,
-    AppMarkdown
-  },
-  mixins: [Application],
-
-  props: {
-    btnColor: {
-      type: String,
-      default: 'primary'
-    }
-  },
-
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      dialog: false,
-      tabDescription: 'input',
-      space: this.initialSpace()
-    }
-  },
-
-  methods: {
-    // 初期値
-    initialSpace () {
-      return this.$config.public.enablePublicSpace ? { private: this.$config.public.defaultPrivateSpace } : {}
-    },
-
-    // ダイアログ表示
-    showDialog () {
-      if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-      if (this.$auth.user.destroy_schedule_at != null) { return this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') }) }
-
-      this.dialog = true
-    },
-
-    // スペース作成
-    async postSpacesCreate (setErrors, values) {
-      this.processing = true
-
-      const params = {
-        'space[name]': this.space.name,
-        'space[description]': this.space.description || ''
-      }
-      if (this.$config.public.enablePublicSpace) { params['space[private]'] = Number(this.space.private) }
-      if (this.space.image != null && this.space.image.length > 0) { params['space[image]'] = this.space.image[0] }
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.createUrl, 'POST', params, 'form')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.appSetToastedMessage(data, false, true)
-          await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
-          if (data.space?.code != null) {
-            navigateTo(`/-/${data.space.code}`)
-          } else {
-            this.dialog = false
-            this.space = this.initialSpace()
-          }
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, reserved: true })) {
-        this.appSetToastedMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
-    }
+defineProps({
+  btnColor: {
+    type: String,
+    default: 'primary'
   }
 })
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+const processing = ref(false)
+const waiting = ref(false)
+const dialog = ref(false)
+const tabDescription = ref('input')
+const space = ref<any>(initSpace())
+function initSpace () { return $config.public.enablePublicSpace ? { private: $config.public.defaultPrivateSpace } : {} }
+
+// ダイアログ表示
+function showDialog () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
+
+  dialog.value = true
+}
+
+// スペース作成
+async function postSpacesCreate (setErrors: any, values: any) {
+  processing.value = true
+
+  const params: any = {
+    'space[name]': space.value.name,
+    'space[description]': space.value.description || ''
+  }
+  if ($config.public.enablePublicSpace) { params['space[private]'] = Number(space.value.private) }
+  if (space.value.image != null && space.value.image.length > 0) { params['space[image]'] = space.value.image[0] }
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.spaces.createUrl, 'POST', params, 'form')
+
+  if (response?.ok) {
+    if (data != null) {
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
+      if (data.space?.code != null) {
+        navigateTo(`/-/${data.space.code}`)
+      } else {
+        dialog.value = false
+        space.value = initSpace()
+      }
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>

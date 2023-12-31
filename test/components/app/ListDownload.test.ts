@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/app/ListDownload.vue'
+import { detail as space } from '~/test/data/spaces'
 
 describe('ListDownload.vue', () => {
   let mock: any
@@ -15,30 +16,30 @@ describe('ListDownload.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
+  const fullPath = `/members/${space.code}`
   const model = 'member'
   const items = helper.locales.items[model]
-  const space = Object.freeze({ code: 'code0001' })
-  const fullPath = '/members/code0001'
+
   const mountFunction = (admin = false, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn: true
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Component, {
       global: {
         stubs: {
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn: true
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       },
       props: {
@@ -57,7 +58,7 @@ describe('ListDownload.vue', () => {
   // テスト内容
   const defaultChecked = { target: 'all', format: 'csv', charCode: 'sjis', newlineCode: 'crlf' }
   const defaultDisabled = { select: true, search: true, all: false, submit: false }
-  const viewTest = async (wrapper: any, admin: boolean, checked = defaultChecked, disabled: any = defaultDisabled, hiddenItems = []) => {
+  const viewTest = async (wrapper: any, admin: boolean, checked = defaultChecked, disabled: any = defaultDisabled, hiddenItems: any = []) => {
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
 
     // 表示ボタン
@@ -141,21 +142,15 @@ describe('ListDownload.vue', () => {
     await viewTest(wrapper, false)
   })
   it('[選択項目・検索パラメータあり]選択項目が選択され、検索も選択できる', async () => {
-    const selectItems = Object.freeze(['code000000000000000000001'])
-    const searchParams = Object.freeze({ text: 'aaa' })
-    const wrapper = mountFunction(false, [], selectItems, searchParams)
+    const wrapper = mountFunction(false, [], ['code000000000000000000001'], { text: 'aaa' })
     await viewTest(wrapper, false, { ...defaultChecked, target: 'select' }, { ...defaultDisabled, select: false, search: false })
   })
   it('[選択項目あり]選択項目が選択され、検索は選択できない', async () => {
-    const selectItems = Object.freeze(['code000000000000000000001'])
-    const searchParams = Object.freeze({})
-    const wrapper = mountFunction(false, [], selectItems, searchParams)
+    const wrapper = mountFunction(false, [], ['code000000000000000000001'], {})
     await viewTest(wrapper, false, { ...defaultChecked, target: 'select' }, { ...defaultDisabled, select: false })
   })
   it('[検索パラメータあり]検索が選択され、選択項目は選択できない', async () => {
-    const selectItems = Object.freeze([])
-    const searchParams = Object.freeze({ text: 'aaa' })
-    const wrapper = mountFunction(false, [], selectItems, searchParams)
+    const wrapper = mountFunction(false, [], [], { text: 'aaa' })
     await viewTest(wrapper, false, { ...defaultChecked, target: 'search' }, { ...defaultDisabled, search: false })
   })
   it('[存在する形式・文字コード・改行コードがlocalStorageにある]localStorageの値が選択される', async () => {
@@ -173,7 +168,7 @@ describe('ListDownload.vue', () => {
     await viewTest(wrapper, false)
   })
   it('[全解除→全選択ボタン]全て解除され、ダウンロードボタンが押せない。全て選択され、ダウンロードボタンが押せる', async () => {
-    const wrapper = mountFunction(true)
+    const wrapper: any = mountFunction(true)
     wrapper.find('#list_download_btn').trigger('click')
     await flushPromises()
 
@@ -189,7 +184,7 @@ describe('ListDownload.vue', () => {
     await flushPromises()
 
     // 全て解除
-    expect(wrapper.vm.$data.outputItems).toEqual([])
+    expect(wrapper.vm.outputItems).toEqual([])
 
     // ダウンロードボタン
     const button: any = wrapper.find('#list_download_submit_btn')
@@ -203,30 +198,29 @@ describe('ListDownload.vue', () => {
 
     // 全て選択
     const allItems = items.map(item => item.key)
-    expect(wrapper.vm.$data.outputItems).toEqual(allItems)
+    expect(wrapper.vm.outputItems).toEqual(allItems)
 
     // ダウンロードボタン
     expect(button.element.disabled).toBe(false) // 有効
   })
 
   describe('ダウンロード依頼', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', download: { id: 1 } })
     const allItems = items.map(item => item.key)
     const selectItems = Object.freeze(['code000000000000000000001'])
     const searchParams = Object.freeze({ text: 'aaa' })
-
-    const query = {
+    const query = Object.freeze({
       target: 'select',
       format: 'csv',
       char_code: 'sjis',
       newline_code: 'crlf'
-    }
+    })
+
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.createUrl, 'POST', {
         download: {
           model,
-          space_code: space.code || null,
+          space_code: space.code,
           ...query,
           output_items: allItems,
           select_items: selectItems,
@@ -256,6 +250,7 @@ describe('ListDownload.vue', () => {
     }
 
     it('[成功]ダウンロードページにリダイレクトされる', async () => {
+      const data = Object.freeze({ ...messages, download: { id: '1' } })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
@@ -287,6 +282,15 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -296,6 +300,15 @@ describe('ListDownload.vue', () => {
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[権限エラー（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 403 }, null])
       await beforeAction()
 
@@ -305,6 +318,15 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[存在しない]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+      expect(dialog.isVisible()).toBe(true) // 表示
+    })
+    it('[存在しない（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
       await beforeAction()
 
@@ -323,11 +345,11 @@ describe('ListDownload.vue', () => {
       expect(dialog.isVisible()).toBe(true) // 表示
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, Object.assign({ errors: { output_items: ['errorメッセージ'] } }, data)])
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 422 }, { ...messages, errors: { output_items: ['errorメッセージ'] } }])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: data.alert, info: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
       expect(dialog.isVisible()).toBe(true) // 表示
     })

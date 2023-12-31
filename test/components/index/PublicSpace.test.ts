@@ -3,6 +3,7 @@ import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import Component from '~/components/index/PublicSpace.vue'
+import { listMiniCount2 } from '~/test/data/spaces'
 
 describe('PublicSpace.vue', () => {
   let mock: any
@@ -27,12 +28,12 @@ describe('PublicSpace.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, data: any) => {
+  const viewTest = (wrapper: any, spaces: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
-    expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
+    expect(wrapper.vm.spaces).toEqual(spaces)
 
     const links = helper.getLinks(wrapper)
-    for (const space of data.spaces) {
+    for (const space of spaces) {
       expect(links.includes(`/-/${space.code}`)).toBe(true)
       expect(wrapper.find(`#public_space_link_${space.code}`).exists()).toBe(true)
       expect(wrapper.find(`#public_space_image_${space.code}`).exists()).toBe(space.image_url != null)
@@ -40,9 +41,9 @@ describe('PublicSpace.vue', () => {
     }
   }
 
-  const viewErrorTest = (wrapper: any, errorMessage: string, localesMessage: string) => {
-    expect(wrapper.vm.$data.errorMessage).toBe(errorMessage)
-    expect(wrapper.text()).toMatch(localesMessage)
+  const viewErrorTest = (wrapper: any, alert: string) => {
+    expect(wrapper.vm.alert).toBe(alert)
+    expect(wrapper.text()).toMatch(alert)
   }
 
   // テストケース
@@ -69,50 +70,35 @@ describe('PublicSpace.vue', () => {
       helper.blankTest(wrapper, AppLoading)
     })
     it('[2件]表示される', async () => {
-      const data = Object.freeze({
-        spaces: [
-          {
-            code: 'code0001',
-            image_url: {
-              mini: 'https://example.com/images/space/mini_noimage.jpg'
-            },
-            name: 'スペース1'
-          },
-          {
-            code: 'code0002',
-            name: 'スペース2'
-          }
-        ]
-      })
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, { spaces: listMiniCount2 }])
       await beforeAction()
 
-      viewTest(wrapper, data)
+      viewTest(wrapper, listMiniCount2)
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.error', helper.locales.system.error_short)
+      viewErrorTest(wrapper, helper.locales.system.error_short)
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.failure', helper.locales.network.failure_short)
+      viewErrorTest(wrapper, helper.locales.network.failure_short)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'network.error', helper.locales.network.error_short)
+      viewErrorTest(wrapper, helper.locales.network.error_short)
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      viewErrorTest(wrapper, 'system.default', helper.locales.system.default_short)
+      viewErrorTest(wrapper, helper.locales.system.default_short)
     })
   })
 })

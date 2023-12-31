@@ -62,61 +62,60 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth, redirectPath, redirectSignIn } from '~/utils/redirect'
+import { updateAuthUser } from '~/utils/auth'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    AppProcessing
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      loading: true,
-      processing: true,
-      destroyScheduleDays: this.$auth.user?.destroy_schedule_days
+const loading = ref(true)
+const processing = ref(false)
+const destroyScheduleDays = $auth.user?.destroy_schedule_days
+
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+
+  if (!await updateAuthUser($t)) { return }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
+
+  loading.value = false
+}
+
+// アカウント削除
+async function postUserDelete (isActive: any) {
+  processing.value = true
+  isActive.value = false
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userDeleteUrl, 'POST', {
+    undo_delete_url: $config.public.frontBaseURL + $config.public.userSendUndoDeleteUrl
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      await useAuthSignOut()
+      return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
-  },
-
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-
-    // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
-    const [response, data] = await useAuthUser()
-    if (!response?.ok) {
-      return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      $toast.error(data.alert || $t('system.default'))
     }
-    if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
-
-    this.processing = false
-    this.loading = false
-  },
-
-  methods: {
-    // アカウント削除
-    async postUserDelete (isActive) {
-      this.processing = true
-      isActive.value = false
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDeleteUrl, 'POST', {
-        undo_delete_url: this.$config.public.frontBaseURL + this.$config.public.userSendUndoDeleteUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          await useAuthSignOut()
-          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { toasted: true, require: true }, { auth: true, reserved: true })
-      }
-
-      this.processing = false
-    }
+    if (data?.notice != null) { $toast.info(data.notice) }
   }
-})
+
+  processing.value = false
+}
 </script>

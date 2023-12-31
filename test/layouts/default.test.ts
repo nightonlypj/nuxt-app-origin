@@ -4,20 +4,31 @@ import helper from '~/test/helper'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
+import { activeUser } from '~/test/data/user'
+import { listMiniCount2 } from '~/test/data/spaces'
 
 describe('default.vue', () => {
+  let mock: any
+  beforeEach(() => {
+    mock = {
+      useHead: vi.fn()
+    }
+  })
+
   const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+    vi.stubGlobal('useHead', mock.useHead)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      }
+    })))
+
     const wrapper = mount(Layout, {
       global: {
         stubs: {
           UsersDestroyInfo: true,
           AppBackToTop: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          }
         }
       }
     })
@@ -30,6 +41,11 @@ describe('default.vue', () => {
     expect(wrapper.findComponent(UsersDestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.findComponent(AppBackToTop).exists()).toBe(true) // 上に戻る
 
+    // タイトル
+    helper.mockCalledTest(mock.useHead, 1, { titleTemplate: wrapper.vm.titleTemplate })
+    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${helper.envConfig.envName}`)
+    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${helper.envConfig.envName}`)
+
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
     expect(links.includes('/users/sign_in')).toBe(!loggedIn) // [未ログイン]ログイン
@@ -40,9 +56,9 @@ describe('default.vue', () => {
 
     expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
-      expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
+      expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
       expect(wrapper.text()).toMatch('9+') // お知らせの未読数
-      expect(wrapper.text()).toMatch('123') // 未ダウンロード数
+      expect(wrapper.text()).toMatch(String(user.undownloaded_count)) // 未ダウンロード数
 
       for (const space of user.spaces) { // 参加スペース
         expect(wrapper.find(`#navigation_space_link_${space.code}`).exists()).toBe(true)
@@ -50,9 +66,7 @@ describe('default.vue', () => {
         expect(wrapper.html()).toMatch(space.name)
       }
     } else {
-      expect(wrapper.text()).not.toMatch('user1の氏名')
       expect(wrapper.text()).not.toMatch('9+')
-      expect(wrapper.text()).not.toMatch('123')
     }
     expect(wrapper.find('#header_menu_user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
     expect(wrapper.find('#navigation_user_image').exists()).toBe(loggedIn)
@@ -65,25 +79,10 @@ describe('default.vue', () => {
   })
   it('[ログイン中]表示される', async () => {
     const user = Object.freeze({
-      name: 'user1の氏名',
-      image_url: {
-        small: 'https://example.com/images/user/small_noimage.jpg'
-      },
-      infomation_unread_count: 10,
+      ...activeUser,
+      infomation_unread_count: 10, // -> 9+
       undownloaded_count: 123,
-      spaces: [
-        {
-          code: 'code0001',
-          image_url: {
-            mini: 'https://example.com/images/space/mini_noimage.jpg'
-          },
-          name: 'スペース1'
-        },
-        {
-          code: 'code0002',
-          name: 'スペース2'
-        }
-      ]
+      spaces: listMiniCount2
     })
     const wrapper = mountFunction(true, user)
 

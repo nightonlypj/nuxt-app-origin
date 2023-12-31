@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>{{ title }}</Title>
+    <Title>{{ space?.name }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -33,7 +33,7 @@
               <v-tooltip activator="parent" location="bottom">メンバー一覧</v-tooltip>
             </v-btn>
             <v-btn
-              v-if="appCurrentMemberAdmin(space)"
+              v-if="currentMemberAdmin(space)"
               id="space_update_btn"
               :to="`/spaces/update/${space.code}`"
               color="secondary"
@@ -52,58 +52,56 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
-import Application from '~/utils/application.js'
+import { currentMemberAdmin } from '~/utils/members'
+import { redirectError, redirectAuth } from '~/utils/redirect'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    AppMarkdown,
-    SpacesDestroyInfo,
-    SpacesIcon
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      space: null
+const loading = ref(true)
+const space = ref<any>(null)
+const code = String($route.params.code)
+
+created()
+async function created () {
+  if (!await getSpacesDetail()) { return }
+
+  loading.value = false
+}
+
+// スペース情報取得
+async function getSpacesDetail () {
+  const url = $config.public.spaces.detailUrl.replace(':code', code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+
+  if (response?.ok) {
+    if (data?.space != null) {
+      space.value = data.space
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
-  },
-
-  computed: {
-    title () {
-      return this.space?.name
-    }
-  },
-
-  async created () {
-    if (!await this.getSpacesDetail()) { return }
-
-    this.loading = false
-  },
-
-  methods: {
-    // スペース情報取得
-    async getSpacesDetail () {
-      const url = this.$config.public.spaces.detailUrl.replace(':code', this.$route.params.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.space == null)) {
-          this.space = data.space
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true, forbidden: true, notfound: true })
-      }
-
-      return false
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
+    } else if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
     }
   }
-})
+
+  return false
+}
 </script>

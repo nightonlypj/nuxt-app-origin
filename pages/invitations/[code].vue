@@ -1,15 +1,15 @@
 <template>
   <Head>
-    <Title>{{ title }}</Title>
+    <Title>招待URL: {{ textTruncate(space?.name, 64) }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <SpacesDestroyInfo :space="space" />
 
-    <v-tabs v-model="tabPage" color="primary">
-      <v-tab :to="`/-/${$route.params.code}`">スペース</v-tab>
-      <v-tab :to="`/members/${$route.params.code}`">メンバー一覧</v-tab>
+    <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
+      <v-tab :to="`/-/${code}`">スペース</v-tab>
+      <v-tab :to="`/members/${code}`">メンバー一覧</v-tab>
       <v-tab value="active">招待URL一覧</v-tab>
     </v-tabs>
 
@@ -23,8 +23,8 @@
       <v-card-text class="pt-0">
         <v-row>
           <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap">
-              {{ $localeString('ja', invitation.total_count, 'N/A') }}件
+            <div class="align-self-center text-no-wrap ml-2">
+              {{ localeString('ja', invitation.total_count, 'N/A') }}件
             </div>
           </v-col>
           <v-col class="d-flex justify-end">
@@ -41,24 +41,25 @@
           </v-col>
         </v-row>
 
-        <template v-if="!processing && !existInvitations">
+        <template v-if="!processing && (invitations == null || invitations.length === 0)">
           <v-divider class="my-4" />
           <span class="ml-1">対象の招待URLが見つかりません。</span>
           <v-divider class="my-4" />
         </template>
         <InvitationsUpdate
-          ref="update"
+          ref="invitationsUpdate"
           :space="space"
           @update="updateInvitation"
         />
-        <template v-if="existInvitations">
+        <template v-if="invitations != null && invitations.length > 0">
           <v-divider class="my-2" />
           <InvitationsLists
             :invitations="invitations"
             :hidden-items="hiddenItems"
             @reload="reloadInvitationsList"
-            @show-update="$refs.update.showDialog($event)"
+            @show-update="invitationsUpdate.showDialog($event)"
           />
+          <v-divider class="my-2" />
         </template>
 
         <InfiniteLoading
@@ -79,7 +80,7 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import InfiniteLoading from 'v3-infinite-loading'
 import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
@@ -91,152 +92,148 @@ import SpacesTitle from '~/components/spaces/Title.vue'
 import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
 import InvitationsLists from '~/components/invitations/Lists.vue'
-import Application from '~/utils/application.js'
+import { textTruncate, localeString } from '~/utils/display'
+import { redirectAuth, redirectError } from '~/utils/redirect'
+import { checkHeadersUid } from '~/utils/auth'
 
-export default defineNuxtComponent({
-  components: {
-    InfiniteLoading,
-    AppErrorRetry,
-    AppLoading,
-    AppProcessing,
-    AppMessage,
-    AppListSetting,
-    SpacesDestroyInfo,
-    SpacesTitle,
-    InvitationsCreate,
-    InvitationsUpdate,
-    InvitationsLists
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      processing: true,
-      reloading: false,
-      alert: null,
-      notice: null,
-      tabPage: 'active',
-      params: null,
-      uid: null,
-      error: false,
-      testState: null, // Vitest用
-      page: 1,
-      space: null,
-      invitation: null,
-      invitations: null,
-      hiddenItems: localStorage.getItem('invitation.hidden-items')?.split(',') || []
-    }
-  },
+const loading = ref(true)
+const processing = ref(false)
+const reloading = ref(false)
+const messages = ref({
+  alert: '',
+  notice: ''
+})
+const tabPage = ref('active')
+const uid = ref<string | null>(null)
+const error = ref(false)
+const testState = ref<string | null>(null) // Vitest用
+const page = ref(1)
+const space = ref<any>(null)
+const invitation = ref<any>(null)
+const invitations = ref<any>(null)
+const hiddenItems = ref(localStorage.getItem('invitation.hidden-items')?.split(',') || [])
+const code = String($route.params.code)
 
-  computed: {
-    title () {
-      return `招待URL: ${this.$textTruncate(this.space?.name, 64)}`
-    },
+const invitationsUpdate = ref<any>(null)
 
-    existInvitations () {
-      return this.invitations?.length > 0
-    }
-  },
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!await getInvitationsList()) { return }
 
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-    if (!await this.getInvitationsList()) { return }
+  loading.value = false
+}
 
-    this.loading = false
-  },
+// 招待URL一覧再取得
+async function reloadInvitationsList () {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('reloadInvitationsList', reloading.value) }
 
-  methods: {
-    // 招待URL一覧再取得
-    async reloadInvitationsList () {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('reloadInvitationsList', this.reloading) }
+  reloading.value = true
+  page.value = 1
 
-      this.reloading = true
-      this.page = 1
+  await getInvitationsList()
+  reloading.value = false
+}
 
-      await this.getInvitationsList()
-      this.reloading = false
-    },
+// 次頁の招待URL一覧取得
+async function getNextInvitationsList ($state: any) {
+  /* c8 ignore start */
+  // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('getNextInvitationsList', page.value + 1, processing.value, error.value) }
 
-    // 次頁の招待URL一覧取得
-    async getNextInvitationsList ($state) {
-      /* c8 ignore start */
-      // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('getNextInvitationsList', this.page + 1, this.processing, this.error) }
-      if (this.error) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
-      if (this.processing) { return }
-      /* c8 ignore stop */
+  if (error.value) { return $state.error() } // NOTE: errorになってもloaded（spinnerが表示される）に戻る為
+  if (processing.value) { return }
+  /* c8 ignore stop */
 
-      this.page = this.invitation.current_page + 1
-      if (!await this.getInvitationsList()) {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'error'; return }
+  page.value = invitation.value.current_page + 1
+  if (!await getInvitationsList()) {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'error'; return }
 
-        $state.error()
-        /* c8 ignore stop */
-      } else if (this.invitation.current_page < this.invitation.total_pages) {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'loaded'; return }
+    $state.error()
+    /* c8 ignore stop */
+  } else if (invitation.value.current_page < invitation.value.total_pages) {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'loaded'; return }
 
-        $state.loaded()
-        /* c8 ignore stop */
+    $state.loaded()
+    /* c8 ignore stop */
+  } else {
+    /* c8 ignore start */
+    if ($state == null) { testState.value = 'complete'; return }
+
+    $state.complete()
+  }
+  /* c8 ignore stop */
+}
+
+// 招待URL一覧取得
+async function getInvitationsList () {
+  processing.value = true
+
+  const url = $config.public.invitations.listUrl.replace(':space_code', code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'GET', {
+    page: page.value
+  })
+  if (!checkHeadersUid(response, page, uid)) { return false }
+
+  let alert: string | null = null
+  if (response?.ok) {
+    if (data?.space != null && data?.invitation?.current_page === page.value) {
+      space.value = data.space
+      invitation.value = data.invitation
+      if (reloading.value || invitations.value == null) {
+        invitations.value = data.invitations?.slice()
       } else {
-        /* c8 ignore start */
-        if ($state == null) { this.testState = 'complete'; return }
-
-        $state.complete()
+        invitations.value.push(...data.invitations)
       }
-      /* c8 ignore stop */
-    },
-
-    // 招待URL一覧取得
-    async getInvitationsList () {
-      this.processing = true
-
-      const url = this.$config.public.invitations.listUrl.replace(':space_code', this.$route.params.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'GET', {
-        page: this.page
-      })
-
-      const redirect = this.invitation == null
-      if (response?.ok) {
-        if (this.page === 1) {
-          this.uid = response.headers.get('uid')
-        } else if (this.uid !== (response.headers.get('uid'))) {
-          this.error = true
-          location.reload()
-          return false
-        }
-
-        this.error = !this.appCheckResponse(data, { redirect, toasted: !redirect }, data?.space == null || data?.invitation?.current_page !== this.page)
-        if (!this.error) {
-          this.space = data.space
-          this.invitation = data.invitation
-          if (this.reloading || this.invitations == null) {
-            this.invitations = data.invitations?.slice()
-          } else {
-            this.invitations.push(...data.invitations)
-          }
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect, toasted: !redirect, require: true }, { auth: true, forbidden: true, notfound: true })
-        this.error = true
-      }
-
-      this.page = this.invitation?.current_page || 1
-      this.processing = false
-      return !this.error
-    },
-
-    // 招待URL設定更新
-    updateInvitation (invitation) {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('updateInvitation', invitation) }
-
-      const index = this.invitations.findIndex(item => item.code === invitation.code)
-      if (index >= 0) { this.invitations.splice(index, 1, invitation) }
+    } else {
+      alert = $t('system.error')
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      return false
+    } else if (response?.status === 403) {
+      alert = data?.alert || $t('auth.forbidden')
+    } else if (response?.status === 404) {
+      alert = data?.alert || $t('system.notfound')
+    } else if (data == null) {
+      alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
+    } else {
+      alert = data.alert || $t('system.default')
     }
   }
-})
+  if (alert != null) {
+    if (invitation.value == null) {
+      redirectError(response?.ok ? null : response?.status, { alert, notice: data?.notice })
+      return false
+    } else {
+      $toast.error(alert)
+      if (data?.notice != null) { $toast.info(data.notice) }
+    }
+  }
+
+  page.value = invitation.value.current_page
+  error.value = alert != null
+
+  processing.value = false
+  return alert == null
+}
+
+// 招待URL設定更新
+function updateInvitation (invitation: any) {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('updateInvitation', invitation) }
+
+  const index = invitations.value.findIndex((element: any) => element.code === invitation.code)
+  if (index >= 0) { invitations.value.splice(index, 1, invitation) }
+}
 </script>

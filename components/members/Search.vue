@@ -2,7 +2,7 @@
   <v-form autocomplete="on" @submit.prevent>
     <div
       id="member_search_area"
-      @keydown.enter="appSetKeyDownEnter"
+      @keydown.enter="keyDownEnter = completInputKey($event)"
       @keyup.enter="search(true)"
     >
       <v-row>
@@ -14,7 +14,7 @@
             :placeholder="`ユーザー名${admin ? 'やメールアドレス' : ''}を入力`"
             autocomplete="on"
             style="max-width: 400px"
-            density="compact"
+            density="comfortable"
             hide-details
             maxlength="255"
             clearable
@@ -44,13 +44,13 @@
       <v-row v-show="syncQuery.option" id="member_search_option_item">
         <v-col cols="auto" class="d-flex py-0">
           <v-chip size="small" class="mt-1">権限</v-chip>
-          <template v-for="(value, key, index) in powers" :key="key">
+          <template v-for="(value, key, index) in $tm('enums.member.power')" :key="key">
             <v-checkbox
               :id="`member_search_power_${key}_check`"
               v-model="syncQuery.power[key]"
               color="primary"
-              :label="value"
-              :class="index + 1 < Object.keys(powers).length ? 'mr-2' : null"
+              :label="String(value)"
+              :class="index + 1 < Object.keys($tm('enums.member.power')).length ? 'mr-2' : null"
               density="compact"
               hide-details
               :error="powerBlank()"
@@ -87,79 +87,62 @@
   </v-form>
 </template>
 
-<script>
-import Application from '~/utils/application.js'
+<script setup lang="ts">
+import { completInputKey } from '~/utils/input'
 
-export default defineNuxtComponent({
-  mixins: [Application],
-
-  props: {
-    processing: {
-      type: Boolean,
-      default: null
-    },
-    query: {
-      type: Object,
-      required: true
-    },
-    admin: {
-      type: Boolean,
-      default: null
-    }
+const $props = defineProps({
+  processing: {
+    type: Boolean,
+    default: null
   },
-  emits: ['update:query', 'search'],
-
-  data () {
-    return {
-      waiting: true,
-      keyDownEnter: false
-    }
+  query: {
+    type: Object,
+    required: true
   },
-
-  computed: {
-    powers () {
-      return this.$tm('enums.member.power')
-    },
-
-    syncQuery: {
-      get () {
-        return this.query
-      },
-      set (value) {
-        this.$emit('update:query', value)
-      }
-    }
-  },
-
-  methods: {
-    blank () {
-      return this.powerBlank() || this.activeBlank()
-    },
-    powerBlank () {
-      for (const key in this.query.power) {
-        if (this.query.power[key]) { return false }
-      }
-      return true
-    },
-    activeBlank () {
-      return !this.query.active && !this.query.destroy
-    },
-
-    search (keydown) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (this.processing || this.waiting || this.blank() || (keydown && !enter)) { return }
-
-      this.waiting = true
-      this.$emit('search')
-    },
-
-    error () {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('error') }
-
-      this.waiting = false
-    }
+  admin: {
+    type: Boolean,
+    default: null
   }
 })
+const syncQuery = computed({
+  get: () => $props.query,
+  set: (value: object) => $emit('update:query', value)
+})
+defineExpose({ setError })
+const $emit = defineEmits(['update:query', 'search'])
+const $config = useRuntimeConfig()
+const { tm: $tm } = useI18n()
+
+const waiting = ref(true)
+const keyDownEnter = ref(false)
+
+function blank () {
+  return powerBlank() || activeBlank()
+}
+function powerBlank () {
+  for (const key in $props.query.power) {
+    if ($props.query.power[key]) { return false }
+  }
+  return true
+}
+function activeBlank () {
+  return !$props.query.active && !$props.query.destroy
+}
+
+function search (keydown: boolean) {
+  const enter = keyDownEnter.value
+  keyDownEnter.value = false
+  if ($props.processing || waiting.value || blank() || (keydown && !enter)) { return }
+
+  waiting.value = true
+  $emit('search')
+}
+
+// エラー処理
+function setError () {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('setError') }
+
+  waiting.value = false // NOTE: 検索ボタンを押せるようにする
+}
 </script>

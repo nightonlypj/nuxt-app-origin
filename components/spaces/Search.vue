@@ -2,7 +2,7 @@
   <v-form autocomplete="on" @submit.prevent>
     <div
       id="space_search_area"
-      @keydown.enter="appSetKeyDownEnter"
+      @keydown.enter="keyDownEnter = completInputKey($event)"
       @keyup.enter="search(true)"
     >
       <v-row>
@@ -14,7 +14,7 @@
             placeholder="名称や説明を入力"
             autocomplete="on"
             style="max-width: 400px"
-            density="compact"
+            density="comfortable"
             hide-details
             maxlength="255"
             clearable
@@ -120,75 +120,58 @@
   </v-form>
 </template>
 
-<script>
-import Application from '~/utils/application.js'
+<script setup lang="ts">
+import { completInputKey } from '~/utils/input'
 
-export default defineNuxtComponent({
-  mixins: [Application],
-
-  props: {
-    processing: {
-      type: Boolean,
-      default: null
-    },
-    query: {
-      type: Object,
-      required: true
-    }
+const $props = defineProps({
+  processing: {
+    type: Boolean,
+    default: null
   },
-  emits: ['update:query', 'search'],
-
-  data () {
-    return {
-      waiting: true,
-      keyDownEnter: false
-    }
-  },
-
-  computed: {
-    syncQuery: {
-      get () {
-        return this.query
-      },
-      set (value) {
-        this.$emit('update:query', value)
-      }
-    }
-  },
-
-  methods: {
-    blank () {
-      if (this.$config.public.enablePublicSpace) {
-        return this.privateBlank() || this.joinBlank() || this.activeBlank()
-      } else {
-        return this.activeBlank()
-      }
-    },
-    privateBlank () {
-      return !this.query.public && !this.query.private
-    },
-    joinBlank () {
-      return !this.query.join && !this.query.nojoin
-    },
-    activeBlank () {
-      return !this.query.active && !this.query.destroy
-    },
-
-    search (keydown) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (this.processing || this.waiting || this.blank() || (keydown && !enter)) { return }
-
-      this.waiting = true
-      this.$emit('search')
-    },
-
-    error () {
-      /* c8 ignore next */ // eslint-disable-next-line no-console
-      if (this.$config.public.debug) { console.log('error') }
-
-      this.waiting = false
-    }
+  query: {
+    type: Object,
+    required: true
   }
 })
+const syncQuery = computed({
+  get: () => $props.query,
+  set: (value: object) => $emit('update:query', value)
+})
+defineExpose({ setError })
+const $emit = defineEmits(['update:query', 'search'])
+const $config = useRuntimeConfig()
+const { $auth } = useNuxtApp()
+
+const waiting = ref(true)
+const keyDownEnter = ref(false)
+
+function blank () {
+  return (!$config.public.enablePublicSpace || privateBlank() || joinBlank()) || activeBlank()
+}
+function privateBlank () {
+  return !$props.query.public && !$props.query.private
+}
+function joinBlank () {
+  return !$props.query.join && !$props.query.nojoin
+}
+function activeBlank () {
+  return !$props.query.active && !$props.query.destroy
+}
+
+function search (keydown: boolean) {
+  const enter = keyDownEnter.value
+  keyDownEnter.value = false
+  if ($props.processing || waiting.value || blank() || (keydown && !enter)) { return }
+
+  waiting.value = true
+  $emit('search')
+}
+
+// エラー処理
+function setError () {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('setError') }
+
+  waiting.value = false // NOTE: 検索ボタンを押せるようにする
+}
 </script>

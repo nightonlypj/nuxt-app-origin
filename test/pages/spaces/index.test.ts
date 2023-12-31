@@ -8,6 +8,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import Page from '~/pages/spaces/index.vue'
+import { defaultParams, findParams, findQuery, findData, dataCount0, dataCount1, dataPage1, dataPage2, dataPage3, dataPageTo2, dataPageTo3, dataPageMiss1, dataPageMiss2 } from '~/test/data/spaces'
 
 describe('index.vue', () => {
   let mock: any
@@ -20,12 +21,22 @@ describe('index.vue', () => {
       headers: { get: vi.fn((key: string) => key === 'uid' ? '1' : null) }
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   // const model = 'space'
+
   const mountFunction = (loggedIn = false, query: object | null = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      query: { ...query }
+    })))
 
     const wrapper = mount(Page, {
       global: {
@@ -36,119 +47,12 @@ describe('index.vue', () => {
           // AppListSetting: true,
           SpacesSearch: true,
           SpacesLists: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $route: {
-            query: { ...query }
-          },
-          $toast: mock.toast
         }
       }
     })
     expect(wrapper.vm).toBeTruthy()
     return wrapper
   }
-
-  let optionParams = {
-    public: 1,
-    private: 1,
-    join: 1,
-    nojoin: 1
-  }
-  const defaultParams = Object.freeze({
-    text: '',
-    ...optionParams,
-    active: 1,
-    destroy: 0
-  })
-
-  let optionQuery = {}
-  if (helper.commonConfig.enablePublicSpace) {
-    optionParams = {
-      public: 1,
-      private: 0,
-      join: 1,
-      nojoin: 0
-    }
-    optionQuery = {
-      public: String(optionParams.public),
-      private: String(optionParams.private),
-      join: String(optionParams.join),
-      nojoin: String(optionParams.nojoin)
-    }
-  }
-  const findParams = Object.freeze({
-    text: 'aaa',
-    ...optionParams,
-    active: 1,
-    destroy: 0
-  })
-  const findQuery = Object.freeze({
-    text: 'aaa',
-    ...optionQuery,
-    active: String(findParams.active),
-    destroy: String(findParams.destroy),
-    option: '1'
-  })
-
-  const dataCount0 = Object.freeze({
-    space: {
-      total_count: 0,
-      current_page: 1,
-      total_pages: 0,
-      limit_value: 2
-    }
-  })
-  const dataCount1 = Object.freeze({
-    space: {
-      total_count: 1,
-      current_page: 1,
-      total_pages: 1,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0001' }
-    ]
-  })
-
-  const dataPage1 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 1,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0001' },
-      { code: 'code0002' }
-    ]
-  })
-  const dataPage2 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 2,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0003' },
-      { code: 'code0004' }
-    ]
-  })
-  const dataPage3 = Object.freeze({
-    space: {
-      total_count: 5,
-      current_page: 3,
-      total_pages: 3,
-      limit_value: 2
-    },
-    spaces: [
-      { code: 'code0005' }
-    ]
-  })
 
   // テスト内容
   const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
@@ -159,21 +63,21 @@ describe('index.vue', () => {
   const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.vm.$data.error).toBe(error)
-    expect(wrapper.vm.$data.testState).toBe(show.testState)
-    expect(wrapper.vm.$data.page).toBe(data.space.current_page)
-    expect(wrapper.vm.$data.space).toEqual(data.space)
-    expect(wrapper.vm.$data.spaces).toEqual(data.spaces)
+    expect(wrapper.vm.error).toBe(error)
+    expect(wrapper.vm.testState).toBe(show.testState)
+    expect(wrapper.vm.page).toBe(data.space.current_page)
+    expect(wrapper.vm.space).toEqual(data.space)
+    expect(wrapper.vm.spaces).toEqual(data.spaces)
 
     // 設定
     // const listSetting = wrapper.findComponent(AppListSetting)
-    // expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+    // expect(listSetting.vm.hiddenItems).toBe(wrapper.vm.hiddenItems)
     // expect(listSetting.vm.admin).toBe(null)
 
     // 検索
     const spacesSearch = wrapper.findComponent(SpacesSearch)
     expect(spacesSearch.vm.processing).toBe(false)
-    expect(spacesSearch.vm.query).toEqual(wrapper.vm.$data.query)
+    expect(spacesSearch.vm.query).toEqual(wrapper.vm.query)
 
     // 一覧
     const spacesLists = wrapper.findComponent(SpacesLists)
@@ -181,8 +85,8 @@ describe('index.vue', () => {
       expect(wrapper.text()).toMatch('スペースが見つかりません。')
       expect(spacesLists.exists()).toBe(false)
     } else {
-      expect(spacesLists.vm.spaces).toBe(wrapper.vm.$data.spaces)
-      expect(spacesLists.vm.hiddenItems).toBe(wrapper.vm.$data.hiddenItems)
+      expect(spacesLists.vm.spaces).toBe(wrapper.vm.spaces)
+      expect(spacesLists.vm.hiddenItems).toBe(wrapper.vm.hiddenItems)
     }
     expect(wrapper.text()).toMatch(countView) // [1件以上]件数
 
@@ -191,7 +95,7 @@ describe('index.vue', () => {
     return infiniteLoading
   }
 
-  const infiniteErrorTest = async (alert: string | null, notice: string | null) => {
+  const infiniteErrorTest = async (messages = {}) => {
     const wrapper = mountFunction()
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
@@ -204,7 +108,7 @@ describe('index.vue', () => {
     await flushPromises()
 
     apiCalledTest(2)
-    helper.toastMessageTest(mock.toast, { error: alert, info: notice })
+    helper.toastMessageTest(mock.toast, messages)
     viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
   }
 
@@ -248,15 +152,14 @@ describe('index.vue', () => {
         await flushPromises()
 
         apiCalledTest(2)
-        const spaces = dataPage1.spaces.concat(dataPage2.spaces)
-        viewTest(wrapper, { ...dataPage2, spaces }, '5件', { existInfinite: true, testState: 'loaded' })
+        viewTest(wrapper, dataPageTo2, '5件', { existInfinite: true, testState: 'loaded' })
 
         // スクロール（3頁目）
         infiniteLoading.vm.$emit('infinite')
         await flushPromises()
 
         apiCalledTest(3)
-        viewTest(wrapper, { ...dataPage3, spaces: spaces.concat(dataPage3.spaces) }, '5件', { existInfinite: false, testState: 'complete' })
+        viewTest(wrapper, dataPageTo3, '5件', { existInfinite: false, testState: 'complete' })
       }
       const reloadTestAction = async () => {
         const beforeLocation = window.location
@@ -301,30 +204,30 @@ describe('index.vue', () => {
         await flushPromises()
 
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, null])
-        await infiniteErrorTest(helper.locales.system.error, null)
+        await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
     describe('現在ページが異なる', () => {
       it('[初期表示]エラーページが表示される', async () => {
-        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage1, space: { ...dataPage1.space, current_page: 9 } }])
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss1])
         const wrapper = mountFunction()
         helper.loadingTest(wrapper, AppLoading)
         await flushPromises()
 
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
-          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, { ...dataPage2, space: { ...dataPage2.space, current_page: 9 } }])
-        await infiniteErrorTest(helper.locales.system.error, null)
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPageMiss2])
+        await infiniteErrorTest({ error: helper.locales.system.error })
       })
     })
 
@@ -336,13 +239,13 @@ describe('index.vue', () => {
         await flushPromises()
 
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: null }, null])
-        await infiniteErrorTest(helper.locales.network.failure, null)
+        await infiniteErrorTest({ error: helper.locales.network.failure })
       })
     })
     describe('レスポンスエラー', () => {
@@ -353,16 +256,33 @@ describe('index.vue', () => {
         await flushPromises()
 
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 500 }, null])
-        await infiniteErrorTest(helper.locales.network.error, null)
+        await infiniteErrorTest({ error: helper.locales.network.error })
       })
     })
     describe('その他エラー', () => {
+      it('[初期表示]エラーページが表示される', async () => {
+        mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, messages])
+        const wrapper = mountFunction()
+        helper.loadingTest(wrapper, AppLoading)
+        await flushPromises()
+
+        helper.toastMessageTest(mock.toast, {})
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: messages })
+      })
+      it('[無限スクロール]エラーメッセージが表示される', async () => {
+        mock.useApiRequest = vi.fn()
+          .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
+          .mockImplementationOnce(() => [{ ok: false, status: 400 }, messages])
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice })
+      })
+    })
+    describe('その他エラー（メッセージなし）', () => {
       it('[初期表示]エラーページが表示される', async () => {
         mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
         const wrapper = mountFunction()
@@ -370,13 +290,13 @@ describe('index.vue', () => {
         await flushPromises()
 
         helper.toastMessageTest(mock.toast, {})
-        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default, notice: null } })
+        helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
       })
       it('[無限スクロール]エラーメッセージが表示される', async () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 400 }, {}])
-        await infiniteErrorTest(helper.locales.system.default, null)
+        await infiniteErrorTest({ error: helper.locales.system.default })
       })
     })
   })
@@ -410,7 +330,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual([])
+      expect(wrapper.vm.hiddenItems).toEqual([])
     })
     it('空', async () => {
       localStorage.setItem(`${model}.hidden-items`, '')
@@ -419,7 +339,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual([''])
+      expect(wrapper.vm.hiddenItems).toEqual([''])
     })
     it('配列', async () => {
       localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
@@ -428,7 +348,7 @@ describe('index.vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.$data.hiddenItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.hiddenItems).toEqual(['test1', 'test2'])
     })
   })
   */
@@ -444,24 +364,9 @@ describe('index.vue', () => {
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null })
 
       // スペース一覧検索
-      wrapper.vm.$refs.search.error = vi.fn()
-      let optionQuery = {}
-      if (helper.commonConfig.enablePublicSpace) {
-        optionQuery = {
-          public: findParams.public === 1,
-          private: findParams.private === 1,
-          join: findParams.join === 1,
-          nojoin: findParams.nojoin === 1
-        }
-      }
-      wrapper.vm.$data.query = {
-        text: findParams.text,
-        ...optionQuery,
-        active: findParams.active === 1,
-        destroy: findParams.destroy !== 0,
-        option: findQuery.option === '1'
-      }
-      wrapper.vm.$data.reloading = reloading
+      wrapper.vm.$refs.spacesSearch.setError = vi.fn()
+      wrapper.vm.query = findData
+      wrapper.vm.reloading = reloading
       await wrapper.vm.searchSpacesList()
       await flushPromises()
     }
@@ -475,7 +380,7 @@ describe('index.vue', () => {
       apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, '1件')
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(wrapper.vm.$refs.search.error, 0)
+      helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.setError, 0)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
     })
     it('[エラー]エラーメッセージが表示される', async () => {
@@ -487,7 +392,7 @@ describe('index.vue', () => {
       apiCalledTest(2, { ...findParams, page: 1 })
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: null }, true)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
-      helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
+      helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.setError, 1)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
     })
     it('[再取得中]エラーメッセージが表示される', async () => {
@@ -496,7 +401,7 @@ describe('index.vue', () => {
 
       expect(mock.useApiRequest).toBeCalledTimes(1)
       helper.toastMessageTest(mock.toast, { error: helper.locales.system.timeout })
-      helper.mockCalledTest(wrapper.vm.$refs.search.error, 1)
+      helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.setError, 1)
       helper.mockCalledTest(mock.navigateTo, 0)
     })
   })

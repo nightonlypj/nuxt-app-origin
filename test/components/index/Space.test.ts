@@ -2,33 +2,21 @@ import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import Component from '~/components/index/Space.vue'
+import { activeUser } from '~/test/data/user'
+import { listMiniCount2 } from '~/test/data/spaces'
 
 describe('Space.vue', () => {
-  const user = Object.freeze({
-    spaces: [
-      {
-        code: 'code0001',
-        image_url: {
-          mini: 'https://example.com/images/space/mini_noimage.jpg'
-        },
-        name: 'スペース1'
-      },
-      {
-        code: 'code0002',
-        name: 'スペース2'
+  const mountFunction = (user: any) => {
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        user
       }
-    ]
-  })
-  const mountFunction = () => {
+    })))
+
     const wrapper = mount(Component, {
       global: {
         stubs: {
           SpacesCreate: true
-        },
-        mocks: {
-          $auth: {
-            user
-          }
         }
       }
     })
@@ -37,11 +25,11 @@ describe('Space.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any) => {
+  const viewTest = (wrapper: any, spaces: any) => {
     expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
 
     const links = helper.getLinks(wrapper)
-    for (const space of user.spaces) { // 参加スペース
+    for (const space of spaces) { // 参加スペース
       expect(links.includes(`/-/${space.code}`)).toBe(true)
       expect(wrapper.find(`#space_link_${space.code}`).exists()).toBe(true)
       expect(wrapper.find(`#space_image_${space.code}`).exists()).toBe(space.image_url != null)
@@ -50,8 +38,13 @@ describe('Space.vue', () => {
   }
 
   // テストケース
-  it('表示される', () => {
-    const wrapper = mountFunction()
-    viewTest(wrapper)
+  it('[参加スペースあり]一覧が表示される', () => {
+    const wrapper = mountFunction({ spaces: listMiniCount2 })
+    viewTest(wrapper, listMiniCount2)
+  })
+  it('[参加スペースなし]メッセージが表示される', () => {
+    const wrapper = mountFunction({ ...activeUser, spaces: [] })
+    expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
+    expect(wrapper.text()).toMatch('新しいスペースを作成するか、参加したいスペースの管理者に連絡して追加して貰いましょう！')
   })
 })

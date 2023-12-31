@@ -4,7 +4,7 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card max-width="480px">
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
@@ -106,8 +106,7 @@
   </template>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
@@ -116,7 +115,8 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/utils/application.js'
+import { redirectPath, redirectError, redirectSignIn } from '~/utils/redirect'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required', required)
 defineRule('required_select', required)
@@ -127,91 +127,99 @@ defineRule('confirmed_password', confirmed)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppLoading,
-    AppProcessing,
-    AppMessage,
-    ActionLink
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      processing: false,
-      waiting: false,
-      alert: null,
-      notice: null,
-      invitation: null,
-      query: {
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: ''
-      },
-      showPassword: false
-    }
-  },
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(false)
+const messages = ref({
+  alert: '',
+  notice: ''
+})
+const invitation = ref<any>(null)
+const query = ref({
+  name: '',
+  email: '',
+  email_local: '',
+  email_domain: '',
+  password: '',
+  password_confirmation: ''
+})
+const showPassword = ref(false)
 
-  async created () {
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
-    if (this.$route.query?.code != null && !await this.getUserInvitation()) { return }
+created()
+async function created () {
+  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+  if ($route.query?.code != null && !await getUserInvitation()) { return }
 
-    this.loading = false
-  },
+  loading.value = false
+}
 
-  methods: {
-    // 招待情報取得
-    async getUserInvitation () {
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userInvitationUrl, 'GET', {
-        code: this.$route.query.code
-      })
+// 招待情報取得
+async function getUserInvitation () {
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userInvitationUrl, 'GET', {
+    code: $route.query.code
+  })
 
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.invitation == null || (data.invitation.email == null && data.invitation.domains == null))) {
-          this.invitation = data.invitation
-          if (data.invitation.email != null) {
-            this.query.email = data.invitation.email
-          } else {
-            this.query.email_local = ''
-            this.query.email_domain = data.invitation.domains[0]
-          }
-          return true
-        }
+  if (response?.ok) {
+    if (data?.invitation == null || (data.invitation.email == null && data.invitation.domains == null)) {
+      redirectError(null, { alert: $t('system.error') })
+    } else {
+      invitation.value = data.invitation
+      if (data.invitation.email != null) {
+        query.value.email = data.invitation.email
       } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { notfound: true })
+        query.value.email_local = ''
+        query.value.email_domain = data.invitation.domains[0]
       }
-
-      return false
-    },
-
-    // アカウント登録
-    async postSingUp (setErrors, values) {
-      this.processing = true
-
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.singUpUrl, 'POST', {
-        code: this.$route.query?.code,
-        ...this.query,
-        confirm_success_url: this.$config.public.frontBaseURL + this.$config.public.singUpSuccessUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-        this.appSetMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
+      return true
+    }
+  } else {
+    if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
     }
   }
-})
+
+  return false
+}
+
+// アカウント登録
+async function postSingUp (setErrors: any, values: any) {
+  processing.value = true
+
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.singUpUrl, 'POST', {
+    ...query.value,
+    confirm_success_url: $config.public.frontBaseURL + $config.public.singUpSuccessUrl
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
+      }
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+    }
+  }
+
+  processing.value = false
+}
 </script>

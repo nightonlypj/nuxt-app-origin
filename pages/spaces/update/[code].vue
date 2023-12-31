@@ -4,12 +4,12 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage :alert="alert" :notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <SpacesDestroyInfo :space="space" />
     <v-card max-width="850px">
       <AppProcessing v-if="processing" />
-      <v-tabs v-model="tabPage" color="primary">
-        <v-tab :to="`/-/${$route.params.code}`">スペース</v-tab>
+      <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
+        <v-tab :to="spacePath">スペース</v-tab>
         <v-tab value="active">スペース設定</v-tab>
       </v-tabs>
       <Form v-slot="{ meta, setErrors, values }">
@@ -20,7 +20,7 @@
                 作成
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', space.created_at, 'N/A') }}</span>
+                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', space.created_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.created_user" />
               </v-col>
             </v-row>
@@ -29,7 +29,7 @@
                 更新
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3 text-grey">{{ $timeFormat('ja', space.last_updated_at, 'N/A') }}</span>
+                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', space.last_updated_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.last_updated_user" />
               </v-col>
             </v-row>
@@ -58,7 +58,7 @@
                 説明<AppRequiredLabel optional />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
-                <v-tabs v-model="tabDescription" color="primary" height="32px">
+                <v-tabs v-if="!$config.public.env.test" v-model="tabDescription" color="primary" height="32px">
                   <v-tab value="input">入力</v-tab>
                   <v-tab value="preview">プレビュー</v-tab>
                 </v-tabs>
@@ -80,7 +80,9 @@
                   </Field>
                 </span>
                 <div v-show="tabDescription === 'preview'" class="md-preview mb-2">
-                  <AppMarkdown :source="space.description" class="mx-3 my-2" />
+                  <div class="mx-3 my-2">
+                    <AppMarkdown :source="space.description" />
+                  </div>
                 </div>
               </v-col>
             </v-row>
@@ -142,7 +144,7 @@
                     v-model="space.image"
                     accept="image/jpeg,image/gif,image/png"
                     label="画像ファイル"
-                    :prepend-icon="null"
+                    prepend-icon=""
                     show-size
                     class="mt-2"
                     density="compact"
@@ -173,15 +175,14 @@
       <v-divider />
       <v-card-actions v-if="space.destroy_schedule_at == null">
         <ul class="my-2">
-          <li><NuxtLink :to="`/spaces/delete/${$route.params.code}`">スペース削除</NuxtLink></li>
+          <li><NuxtLink :to="`/spaces/delete/${code}`">スペース削除</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>
   </template>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 // eslint-disable-next-line camelcase
@@ -194,7 +195,10 @@ import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import Application from '~/utils/application.js'
+import { dateTimeFormat } from '~/utils/display'
+import { redirectAuth, redirectPath, redirectError } from '~/utils/redirect'
+import { currentMemberAdmin } from '~/utils/members'
+import { existKeyErrors } from '~/utils/input'
 
 defineRule('required', required)
 defineRule('one_of_select', one_of)
@@ -204,106 +208,116 @@ defineRule('size_20MB', size)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppLoading,
-    AppProcessing,
-    AppMessage,
-    AppRequiredLabel,
-    AppMarkdown,
-    SpacesDestroyInfo,
-    UsersAvatar
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      processing: false,
-      waiting: true,
-      alert: null,
-      notice: null,
-      tabPage: 'active',
-      tabDescription: 'input',
-      space: null
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(true)
+const messages = ref({
+  alert: '',
+  notice: ''
+})
+const tabPage = ref('active')
+const tabDescription = ref('input')
+const space = ref<any>(null)
+const code = String($route.params.code)
+const spacePath = `/-/${code}`
+
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('auth.destroy_reserved') }) }
+
+  if (!await getSpacesDetail()) { return }
+  if (!currentMemberAdmin.value(space.value)) { return redirectPath(spacePath, { alert: $t('auth.forbidden') }) }
+  if (space.value.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('alert.space.destroy_reserved') }) }
+
+  loading.value = false
+}
+
+// スペース詳細取得
+async function getSpacesDetail () {
+  const url = $config.public.spaces.detailUrl.replace(':code', code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+
+  if (response?.ok) {
+    if (data?.space != null) {
+      space.value = data.space
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
-  },
-
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-    if (this.$auth.user.destroy_schedule_at != null) {
-      this.appSetToastedMessage({ alert: this.$t('auth.destroy_reserved') })
-      return this.navigateToSpace()
-    }
-
-    if (!await this.getSpacesDetail()) { return }
-    if (!this.appCurrentMemberAdmin(this.space)) {
-      this.appSetToastedMessage({ alert: this.$t('auth.forbidden') })
-      return this.navigateToSpace()
-    }
-    if (this.space.destroy_schedule_at != null) {
-      this.appSetToastedMessage({ alert: this.$t('alert.space.destroy_reserved') })
-      return this.navigateToSpace()
-    }
-
-    this.loading = false
-  },
-
-  methods: {
-    navigateToSpace () {
-      navigateTo(`/-/${this.$route.params.code}`)
-    },
-
-    // スペース詳細取得
-    async getSpacesDetail () {
-      const url = this.$config.public.spaces.detailUrl.replace(':code', this.$route.params.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.space == null)) {
-          this.space = data.space
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true, forbidden: true, notfound: true })
-      }
-
-      return false
-    },
-
-    // スペース設定変更
-    async postSpacesUpdate (setErrors, values) {
-      this.processing = true
-
-      const params = {
-        'space[name]': this.space.name,
-        'space[description]': this.space.description || ''
-      }
-      if (this.$config.public.enablePublicSpace) { params['space[private]'] = Number(this.space.private) }
-      if (this.space.image_delete) { params['space[image_delete]'] = true }
-      if (this.space.image != null && this.space.image.length > 0) { params['space[image]'] = this.space.image[0] }
-
-      const url = this.$config.public.spaces.updateUrl.replace(':code', this.$route.params.code)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url, 'POST', params, 'form')
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true }, data?.space == null)) {
-          this.appSetToastedMessage(data, false, true)
-          await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
-          this.navigateToSpace()
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true }, { auth: true, forbidden: true, reserved: true })) {
-        this.appSetMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
-      }
-
-      this.processing = false
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
+    } else if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
     }
   }
-})
+
+  return false
+}
+
+// スペース設定変更
+async function postSpacesUpdate (setErrors: any, values: any) {
+  processing.value = true
+
+  const params: any = {
+    'space[name]': space.value.name,
+    'space[description]': space.value.description || ''
+  }
+  if ($config.public.enablePublicSpace) { params['space[private]'] = Number(space.value.private) }
+  if (space.value.image_delete) { params['space[image_delete]'] = true }
+  if (space.value.image != null && space.value.image.length > 0) { params['space[image]'] = space.value.image[0] }
+
+  const url = $config.public.spaces.updateUrl.replace(':code', code)
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', params, 'form')
+
+  if (response?.ok) {
+    if (data?.space != null) {
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
+      return navigateTo(spacePath)
+    } else {
+      $toast.error($t('system.error'))
+    }
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (response?.status === 403) {
+      $toast.error(data?.alert || $t('auth.forbidden'))
+    } else if (response?.status === 406) {
+      $toast.error(data?.alert || $t('auth.destroy_reserved'))
+    } else if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
+      }
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
+      processing.value = false
+      return
+    }
+    if (data?.notice != null) { $toast.info(data.notice) }
+  }
+
+  processing.value = false
+}
 </script>

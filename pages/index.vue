@@ -29,6 +29,7 @@
         <v-card-actions>
           <ul>
             <li><NuxtLink to="/development/color">テーマカラー確認</NuxtLink></li>
+            <li><NuxtLink to="/development/markdown">Markdown確認</NuxtLink></li>
           </ul>
         </v-card-actions>
       </v-card>
@@ -36,28 +37,11 @@
   </v-row>
 </template>
 
-<script>
+<script setup lang="ts">
 import IndexSignUp from '~/components/index/SignUp.vue'
 import IndexSpace from '~/components/index/Space.vue'
 import IndexPublicSpace from '~/components/index/PublicSpace.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
-export default defineNuxtComponent({
-  components: {
-    IndexSignUp,
-    IndexSpace,
-    IndexPublicSpace,
-    IndexInfomations
-  },
-
-  /* c8 ignore start */
-  head () {
-    const { t: $t } = useI18n()
-    const $config = useRuntimeConfig()
-    return {
-      titleTemplate: `${$t('app_name')}${$config.public.envName}`
-    }
-  }
-  /* c8 ignore stop */
-})
+const { $auth } = useNuxtApp()
 </script>

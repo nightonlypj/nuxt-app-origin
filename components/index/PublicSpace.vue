@@ -1,5 +1,5 @@
 <template>
-  <template v-if="loading || errorMessage != null || existSpaces">
+  <template v-if="loading || alert !== '' || (spaces != null && spaces.length > 0)">
     <AppLoading v-if="loading" height="20vh" />
     <v-card v-else>
       <v-card-title>
@@ -17,17 +17,19 @@
           </v-col>
         </v-row>
       </v-card-title>
-      <v-card-text v-if="errorMessage != null">
+      <v-card-text v-if="alert !== ''">
         <v-icon color="warning">mdi-alert</v-icon>
-        {{ $t(`${errorMessage}_short`) }}
+        {{ alert }}
       </v-card-text>
       <v-card-text v-else>
         <v-list class="overflow-auto py-0" style="max-height: 200px">
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in spaces"
             :id="`public_space_link_${space.code}`"
-            :key="space.code" :to="`/-/${space.code}`"
+            :key="space.code"
+            :to="`/-/${space.code}`"
             class="px-2"
             style="min-height: 42px"
           >
@@ -44,51 +46,41 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
-import Application from '~/utils/application.js'
+import { checkSearchParams } from '~/utils/search'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
 
-  data () {
-    return {
-      loading: true,
-      errorMessage: null,
-      spaces: null
+const loading = ref(true)
+const alert = ref('')
+const spaces = ref<any>(null)
+
+created()
+async function created () {
+  await getPublicSpaces()
+  loading.value = false
+}
+
+// スペース一覧取得（公開）
+async function getPublicSpaces () {
+  const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.spaces.listUrl, 'GET', params)
+
+  if (response?.ok) {
+    if (data != null) {
+      spaces.value = data.spaces
+      checkSearchParams(params, data.search_params)
+    } else {
+      alert.value = $t('system.error_short')
     }
-  },
-
-  computed: {
-    existSpaces () {
-      return this.spaces?.length > 0
-    }
-  },
-
-  async created () {
-    await this.getPublicSpaces()
-    this.loading = false
-  },
-
-  methods: {
-    // スペース一覧取得（公開）
-    async getPublicSpaces () {
-      const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.spaces.listUrl, 'GET', params)
-
-      if (response?.ok) {
-        this.errorMessage = this.appCheckResponse(data, { returnKey: true })
-        if (this.errorMessage == null) {
-          this.spaces = data.spaces
-          this.appCheckSearchParams(params, data.search_params)
-        }
-      } else {
-        this.errorMessage = this.appCheckErrorResponse(response?.status, data, { returnKey: true, require: true })
-      }
+  } else {
+    if (data == null) {
+      alert.value = $t(`network.${response?.status == null ? 'failure' : 'error'}_short`)
+    } else {
+      alert.value = $t('system.default_short')
     }
   }
-})
+}
 </script>

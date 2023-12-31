@@ -1,4 +1,5 @@
 <template>
+  <!-- /* c8 ignore next 2 */ -->
   <component
     :is="$config.public.env.test ? 'div' : 'v-layout-item'"
     id="back_to_top_item"
@@ -31,7 +32,6 @@ const show = ref(false)
 function updateShow () {
   show.value = window.scrollY > 200
 }
-
 function backToTop () {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -42,7 +42,6 @@ function backToTop () {
   pointer-events: none;
   z-index: 9999 !important; /* v-footer等より大きく、v-snackbar(10000)より小さい値 */
 }
-
 .pointer-events-initial {
   pointer-events: initial;
 }

@@ -11,7 +11,7 @@
           <span class="font-weight-bold">
             {{ infomation.title }}
           </span>
-          ({{ $dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
         </div>
       </v-card-title>
       <v-card-text>
@@ -30,58 +30,58 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
-import Application from '~/utils/application.js'
+import { dateFormat } from '~/utils/display'
+import { redirectError } from '~/utils/redirect'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    InfomationsLabel
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const $route = useRoute()
 
-  data () {
-    return {
-      loading: true,
-      infomation: null
+const loading = ref(true)
+const infomation = ref<any>(null)
+
+const title = computed(() => {
+  let label = ''
+  if (infomation.value?.label_i18n != null && infomation.value.label_i18n !== '') {
+    label = `[${infomation.value.label_i18n}]`
+  }
+  return label + (infomation.value?.title || '')
+})
+
+created()
+async function created () {
+  const id = Number($route.params.id)
+  if (isNaN(id) || String(id) !== String($route.params.id)) { return redirectError(404, {}) }
+  if (!await getInfomationsDetail(id)) { return }
+
+  loading.value = false
+}
+
+// お知らせ詳細取得
+async function getInfomationsDetail (id: number) {
+  const url = $config.public.infomations.detailUrl.replace(':id', String(id))
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+
+  if (response?.ok) {
+    if (data?.infomation != null) {
+      infomation.value = data.infomation
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
-  },
-
-  computed: {
-    title () {
-      let label = ''
-      if (this.infomation?.label_i18n != null && this.infomation.label_i18n !== '') {
-        label = `[${this.infomation.label_i18n}]`
-      }
-      return label + (this.infomation?.title || '')
-    }
-  },
-
-  async created () {
-    if (!await this.getInfomationsDetail()) { return }
-
-    this.loading = false
-  },
-
-  methods: {
-    // お知らせ詳細取得
-    async getInfomationsDetail () {
-      const url = this.$config.public.infomations.detailUrl.replace(':id', this.$route.params.id)
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + url)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.infomation == null)) {
-          this.infomation = data.infomation
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { notfound: true })
-      }
-
-      return false
+  } else {
+    if (response?.status === 404) {
+      redirectError(404, { alert: data?.alert, notice: data?.notice })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
     }
   }
-})
+
+  return false
+}
 </script>

@@ -14,10 +14,11 @@
     </v-card-title>
     <v-card-text>
       <v-list class="overflow-auto py-0" style="max-height: 200px">
-        <v-alert v-if="!existUserSpaces" type="info" density="compact">
+        <v-alert v-if="$auth.user?.spaces == null || $auth.user.spaces.length === 0" type="info" density="compact">
           新しいスペースを作成するか、参加したいスペースの管理者に連絡して追加して貰いましょう！
         </v-alert>
         <template v-else>
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces"
@@ -40,18 +41,8 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
 import SpacesCreate from '~/components/spaces/Create.vue'
 
-export default defineNuxtComponent({
-  components: {
-    SpacesCreate
-  },
-
-  computed: {
-    existUserSpaces () {
-      return this.$auth.user?.spaces?.length > 0
-    }
-  }
-})
+const { $auth } = useNuxtApp()
 </script>

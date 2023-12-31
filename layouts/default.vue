@@ -14,11 +14,13 @@
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" text rounded>
+        <!-- /* c8 ignore next */ -->
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" rounded>
           <v-icon>mdi-login</v-icon>
           <div class="hidden-sm-and-down">ログイン</div>
         </component>
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" text rounded>
+        <!-- /* c8 ignore next */ -->
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" rounded>
           <v-icon>mdi-account-plus</v-icon>
           <div class="hidden-sm-and-down">アカウント登録</div>
         </component>
@@ -40,12 +42,14 @@
             </v-btn>
           </template>
           <v-list>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
             </component>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
@@ -54,7 +58,8 @@
             </component>
           </v-list>
         </v-menu>
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" text rounded>
+        <!-- /* c8 ignore next */ -->
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
             :model-value="$auth.user.infomation_unread_count > 0"
@@ -70,12 +75,14 @@
     <v-navigation-drawer v-model="drawer" width="300">
       <v-list>
         <template v-if="!$auth.loggedIn">
+          <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_in">
             <v-list-item-title>
               <v-icon>mdi-login</v-icon>
               ログイン
             </v-list-item-title>
           </component>
+          <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_up">
             <v-list-item-title>
               <v-icon>mdi-account-plus</v-icon>
@@ -95,12 +102,14 @@
                 </v-list-item-title>
               </v-list-item>
             </template>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
                 ユーザー情報
               </v-list-item-title>
             </component>
+            <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
@@ -110,6 +119,7 @@
           </v-list-group>
         </template>
         <v-divider />
+        <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/infomations">
           <v-list-item-title>
             <template v-if="$auth.loggedIn">
@@ -130,6 +140,7 @@
             </template>
           </v-list-item-title>
         </component>
+        <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn"
@@ -147,6 +158,7 @@
             <span class="ml-8">ダウンロード結果</span>
           </v-list-item-title>
         </component>
+        <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn || $config.public.enablePublicSpace"
@@ -158,6 +170,7 @@
           </v-list-item-title>
         </component>
         <template v-if="$auth.loggedIn">
+          <!-- /* c8 ignore next 2 */ -->
           <component
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces" :id="`navigation_space_link_${space.code}`"
@@ -192,36 +205,24 @@
   </v-app>
 </template>
 
-<script>
+<script setup lang="ts">
+import { useDisplay } from 'vuetify'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
-export default defineNuxtComponent({
-  components: {
-    UsersDestroyInfo,
-    AppBackToTop
-  },
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth } = useNuxtApp()
 
-  data () {
-    return {
-      drawer: null
-    }
-  },
-
-  /* c8 ignore start */
-  head () {
-    const { t: $t } = useI18n()
-    const $config = useRuntimeConfig()
-    return {
-      titleTemplate: `%s - ${$t('app_name')}${$config.public.envName}`
-    }
-  },
-  /* c8 ignore stop */
-
-  created () {
-    this.drawer = !this.$vuetify.display.mobile
-  }
+useHead({
+  titleTemplate
 })
+function titleTemplate (title: string | undefined) {
+  const name = `${$t('app_name')}${$config.public.envName}`
+  return title == null ? name : `${title} - ${name}`
+}
+
+const drawer = ref(!useDisplay().mobile.value)
 </script>
 
 <style scoped>

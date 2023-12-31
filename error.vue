@@ -5,8 +5,8 @@
       <Meta name="robots" content="noindex" />
     </Head>
     <v-card>
-      <v-card-title>{{ alertMessage }}</v-card-title>
-      <v-card-text v-if="noticeMessage != null">{{ noticeMessage }}</v-card-text>
+      <v-card-title>{{ alert }}</v-card-title>
+      <v-card-text v-if="notice != null">{{ notice }}</v-card-text>
       <v-card-actions>
         <NuxtLink to="/">トップページ</NuxtLink>
       </v-card-actions>
@@ -22,9 +22,9 @@ const props = defineProps({
 })
 
 const title = computed(() => (props.error?.statusCode === 404) ? 'Not Found' : 'エラー')
-const alertMessage = computed(() => {
+const alert = computed(() => {
   if (props.error?.data?.alert != null) { return props.error.data.alert }
-  return $t((props.error?.statusCode === 404) ? 'system.notfound' : 'system.default')
+  return $t(`system.${props.error?.statusCode === 404 ? 'notfound' : 'default'}`)
 })
-const noticeMessage = computed(() => props.error?.data?.notice)
+const notice = computed(() => props.error?.data?.notice)
 </script>

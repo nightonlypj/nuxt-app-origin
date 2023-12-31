@@ -103,7 +103,7 @@ describe('ListSetting.vue', () => {
     await viewTest(wrapper, false)
   })
   it('[全解除→全選択ボタン]必須項目のみ選択される。全て選択される', async () => {
-    const wrapper = mountFunction(true)
+    const wrapper: any = mountFunction(true)
     wrapper.find('#list_setting_btn').trigger('click')
     await flushPromises()
 
@@ -120,7 +120,7 @@ describe('ListSetting.vue', () => {
 
     // 必須項目のみ選択
     const requiredItems = items.filter(item => item.required).map(item => item.key)
-    expect(wrapper.vm.$data.showItems).toEqual(requiredItems)
+    expect(wrapper.vm.showItems).toEqual(requiredItems)
 
     // 全選択ボタン
     const setAllBtn = wrapper.find('#list_setting_show_items_set_all_btn')
@@ -130,7 +130,7 @@ describe('ListSetting.vue', () => {
 
     // 全て選択
     const allItems = items.map(item => item.key)
-    expect(wrapper.vm.$data.showItems).toEqual(allItems)
+    expect(wrapper.vm.showItems).toEqual(allItems)
   })
 
   describe('変更', () => {
@@ -144,7 +144,7 @@ describe('ListSetting.vue', () => {
       wrapper.find('#list_setting_btn').trigger('click')
 
       // 表示項目
-      expect(wrapper.vm.$data.showItems).toEqual(showItems)
+      expect(wrapper.vm.showItems).toEqual(showItems)
       await flushPromises()
 
       // 変更ダイアログ

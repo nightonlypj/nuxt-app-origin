@@ -1,5 +1,6 @@
 import helper from '~/test/helper'
 import { useAuthSignOut } from '~/composables/authSignOut'
+import { activeUser } from '~/test/data/user'
 
 // ログアウト
 describe('authSignOut.ts', () => {
@@ -9,7 +10,7 @@ describe('authSignOut.ts', () => {
       removeItem: vi.fn(),
       useApiRequest: vi.fn()
     }
-    authData = ref({ name: 'user1の氏名' })
+    authData = ref(activeUser)
   })
 
   const beforeAction = async (skipRequest: boolean | undefined = undefined, reqToken: any = {}) => {

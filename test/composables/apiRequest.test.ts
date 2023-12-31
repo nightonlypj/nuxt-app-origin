@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/named
 import { isEmpty } from 'lodash'
 import helper from '~/test/helper'
 import { useApiRequest } from '~/composables/apiRequest'
@@ -13,7 +14,7 @@ describe('apiRequest.ts', () => {
   })
 
   const url = 'http://localhost/api'
-  const params = Object.freeze({ page: 1 })
+  const params: any = Object.freeze({ page: 1 })
   const defaultParams = Object.freeze({
     method: 'GET',
     mode: 'cors',

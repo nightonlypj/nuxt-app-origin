@@ -20,18 +20,18 @@ describe('sign_out.vue', () => {
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn
+      },
+      $toast: mock.toast
+    })))
 
     const wrapper = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn
-          },
-          $toast: mock.toast
         }
       }
     })

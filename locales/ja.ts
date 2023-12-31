@@ -109,6 +109,9 @@ export const ja = {
     }
   },
   notice: {
+    member: {
+      destroy: 'メンバー解除処理が完了しました。' // NOTE: 正常に完了したかは不明
+    },
     invitation: {
       copy_success: 'クリップボードにコピーしました。'
     }

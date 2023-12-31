@@ -83,65 +83,51 @@
   </v-dialog>
 </template>
 
-<script>
-import Application from '~/utils/application.js'
-
-export default defineNuxtComponent({
-  mixins: [Application],
-
-  props: {
-    admin: {
-      type: Boolean,
-      default: null
-    },
-    model: {
-      type: String,
-      required: true
-    },
-    hiddenItems: {
-      type: Array,
-      required: true
-    }
+<script setup lang="ts">
+const $props = defineProps({
+  admin: {
+    type: Boolean,
+    default: null
   },
-  emits: ['update:hiddenItems'],
-
-  data () {
-    return {
-      waiting: null,
-      showItems: null
-    }
+  model: {
+    type: String,
+    required: true
   },
-
-  computed: {
-    items () {
-      return this.$tm(`items.${this.model}`).filter(item => !item.adminOnly || this.admin)
-    },
-    requiredShowItems () {
-      return this.items.filter(item => item.required).map(item => item.key)
-    }
-  },
-
-  methods: {
-    initialize () {
-      this.waiting = true
-      this.showItems = this.items.filter(item => item.required || !this.hiddenItems.includes(item.key)).map(item => item.key)
-    },
-
-    setAllShowItems () {
-      this.showItems = this.items.map(item => item.key)
-      this.waiting = false
-    },
-    clearShowItems () {
-      this.showItems = this.requiredShowItems
-      this.waiting = false
-    },
-
-    change (isActive) {
-      const hiddenItems = this.items.filter(item => !this.showItems.includes(item.key)).map(item => item.key)
-      localStorage.setItem(`${this.model}.hidden-items`, hiddenItems.toString())
-      this.$emit('update:hiddenItems', hiddenItems)
-      isActive.value = false
-    }
+  hiddenItems: {
+    type: Array,
+    required: true
   }
 })
+const $emit = defineEmits(['update:hiddenItems'])
+const $config = useRuntimeConfig()
+const { tm: $tm } = useI18n()
+
+const waiting = ref(false)
+const showItems = ref<any>(null)
+
+const items = computed(() => {
+  return Object.values($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin) as any
+})
+const requiredShowItems = computed(() => items.value.filter((item: any) => item.required).map((item: any) => item.key))
+
+function initialize () {
+  waiting.value = true
+  showItems.value = items.value.filter((item: any) => item.required || !$props.hiddenItems.includes(item.key)).map((item: any) => item.key)
+}
+
+function setAllShowItems () {
+  showItems.value = items.value.map((item: any) => item.key)
+  waiting.value = false
+}
+function clearShowItems () {
+  showItems.value = requiredShowItems.value
+  waiting.value = false
+}
+
+function change (isActive: any) {
+  const hiddenItems = items.value.filter((item: any) => !showItems.value.includes(item.key)).map((item: any) => item.key)
+  localStorage.setItem(`${$props.model}.hidden-items`, hiddenItems.toString())
+  $emit('update:hiddenItems', hiddenItems)
+  isActive.value = false
+}
 </script>

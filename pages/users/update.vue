@@ -4,21 +4,20 @@
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
-    <AppMessage v-model:alert="alert" v-model:notice="notice" />
+    <AppMessage v-model:messages="messages" />
     <v-card max-width="850px">
       <v-card-title>ユーザー情報</v-card-title>
       <v-row>
         <v-col cols="auto" md="4">
-          <UpdateImage @alert="alert = $event" @notice="notice = $event" />
+          <UpdateImage @messages="messages = $event" />
         </v-col>
         <v-col cols="12" md="8">
-          <UpdateData :user="user" @alert="alert = $event" @notice="notice = $event" />
+          <UpdateData :user="user" @messages="messages = $event" />
         </v-col>
       </v-row>
       <v-divider />
       <v-card-actions>
         <ul class="my-2">
-          <li v-if="$auth.user.unconfirmed_email != null"><NuxtLink to="/users/confirmation/resend">メールアドレス確認</NuxtLink></li>
           <li><NuxtLink to="/users/delete">アカウント削除</NuxtLink></li>
         </ul>
       </v-card-actions>
@@ -26,62 +25,59 @@
   </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppMessage from '~/components/app/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
-import Application from '~/utils/application.js'
+import { redirectAuth, redirectPath, redirectError } from '~/utils/redirect'
+import { updateAuthUser } from '~/utils/auth'
 
-export default defineNuxtComponent({
-  components: {
-    AppLoading,
-    AppMessage,
-    UpdateImage,
-    UpdateData
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth } = useNuxtApp()
 
-  data () {
-    return {
-      loading: true,
-      alert: null,
-      notice: null,
-      user: null
+const loading = ref(true)
+const messages = ref({
+  alert: '',
+  notice: ''
+})
+const user = ref<any>(null)
+
+created()
+async function created () {
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+
+  if (!await updateAuthUser($t)) { return }
+  if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
+
+  if (!await getUserDetail()) { return }
+
+  loading.value = false
+}
+
+// ユーザー情報詳細取得
+async function getUserDetail () {
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userDetailUrl)
+
+  if (response?.ok) {
+    if (data?.user != null) {
+      user.value = data.user
+      return true
+    } else {
+      redirectError(null, { alert: $t('system.error') })
     }
-  },
-
-  async created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAuth() }
-
-    // ユーザー情報更新 // NOTE: 最新の状態が削除予約済みか確認する為
-    const [response, data] = await useAuthUser()
-    if (!response?.ok) {
-      return this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
-    }
-    if (this.$auth.user.destroy_schedule_at != null) { return this.appRedirectDestroyReserved() }
-
-    if (!await this.getUserDetail()) { return }
-
-    this.loading = false
-  },
-
-  methods: {
-    // ユーザー情報詳細取得
-    async getUserDetail () {
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.userDetailUrl)
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { redirect: true }, data?.user == null)) {
-          this.user = data.user
-          return true
-        }
-      } else {
-        this.appCheckErrorResponse(response?.status, data, { redirect: true, require: true }, { auth: true })
-      }
-
-      return false
+  } else {
+    if (response?.status === 401) {
+      useAuthSignOut(true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+    } else if (data == null) {
+      redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })
+    } else {
+      redirectError(response?.status, { alert: data.alert || $t('system.default'), notice: data.notice })
     }
   }
-})
+
+  return false
+}
 </script>
