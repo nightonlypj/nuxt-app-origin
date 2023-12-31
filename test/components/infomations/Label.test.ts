@@ -1,9 +1,10 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Component from '~/components/infomations/Label.vue'
+import { detail } from '~/test/data/infomations'
 
 describe('Label.vue', () => {
-  const mountFunction = (infomation: object | null) => {
+  const mountFunction = (infomation: any) => {
     const wrapper = mount(Component, {
       props: {
         infomation
@@ -25,27 +26,27 @@ describe('Label.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[なし]表示されない', () => {
-    const infomation = Object.freeze({ label: 'not', label_i18n: '' })
+    const infomation = Object.freeze({ ...detail, label: 'not', label_i18n: '' })
     const wrapper = mountFunction(infomation)
     helper.blankTest(wrapper)
   })
   it('[メンテナンス]表示される', () => {
-    const infomation = Object.freeze({ label: 'maintenance', label_i18n: 'メンテナンス' })
+    const infomation = Object.freeze({ ...detail, label: 'maintenance', label_i18n: 'メンテナンス' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'error', infomation)
   })
   it('[障害]表示される', () => {
-    const infomation = Object.freeze({ label: 'hindrance', label_i18n: '障害' })
+    const infomation = Object.freeze({ ...detail, label: 'hindrance', label_i18n: '障害' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'warning', infomation)
   })
   it('[アップデート]表示される', () => {
-    const infomation = Object.freeze({ label: 'update', label_i18n: 'アップデート' })
+    const infomation = Object.freeze({ ...detail, label: 'update', label_i18n: 'アップデート' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'info', infomation)
   })
   it('[その他]表示される', () => {
-    const infomation = Object.freeze({ label: 'other', label_i18n: 'その他' })
+    const infomation = Object.freeze({ ...detail, label: 'other', label_i18n: 'その他' })
     const wrapper = mountFunction(infomation)
     viewTest(wrapper, 'info', infomation)
   })

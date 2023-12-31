@@ -1,5 +1,5 @@
 // APIリクエスト
-export const useApiRequest = async (url: string, method = 'GET', params: object | null = null, type: string | null = 'json', accept: string | null = 'application/json') => {
+export const useApiRequest = async (url: string, method = 'GET', params: any = null, type: string | null = 'json', accept: string | null = 'application/json') => {
   const $config = useRuntimeConfig()
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useApiRequest', method, url) }
@@ -28,7 +28,6 @@ export const useApiRequest = async (url: string, method = 'GET', params: object 
       body = JSON.stringify(params)
     }
   } else { // 'form'
-    // eslint-disable-next-line no-lonely-if
     if (params != null) {
       body = new FormData()
       for (const [key, value] of Object.entries(params)) {

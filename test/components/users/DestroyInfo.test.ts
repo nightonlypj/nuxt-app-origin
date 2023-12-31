@@ -1,29 +1,28 @@
 import { mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Component from '~/components/users/DestroyInfo.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
 
 describe('DestroyInfo.vue', () => {
   const mountFunction = (loggedIn: boolean, path = '/', user: object | null = null) => {
-    const wrapper = mount(Component, {
-      global: {
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          },
-          $route: {
-            path
-          }
-        }
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
       }
-    })
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      path
+    })))
+
+    const wrapper = mount(Component)
     expect(wrapper.vm).toBeTruthy()
     return wrapper
   }
 
   // テスト内容
   const viewTest = (wrapper: any, user: any) => {
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes('/users/undo_delete')).toBe(true) // アカウント削除取り消し
   }
@@ -34,13 +33,12 @@ describe('DestroyInfo.vue', () => {
     helper.blankTest(wrapper)
   })
   it('[ログイン中]表示されない', () => {
-    const wrapper = mountFunction(true, '/', {})
+    const wrapper = mountFunction(true, '/', activeUser)
     helper.blankTest(wrapper)
   })
   it('[ログイン中（削除予約済み）]表示される', () => {
-    const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-    const wrapper = mountFunction(true, '/', user)
-    viewTest(wrapper, user)
+    const wrapper = mountFunction(true, '/', destroyUser)
+    viewTest(wrapper, destroyUser)
   })
 
   describe('アカウント削除取り消しページ', () => {
@@ -50,12 +48,11 @@ describe('DestroyInfo.vue', () => {
       helper.blankTest(wrapper)
     })
     it('[ログイン中]表示されない', () => {
-      const wrapper = mountFunction(true, path, {})
+      const wrapper = mountFunction(true, path, activeUser)
       helper.blankTest(wrapper)
     })
     it('[ログイン中（削除予約済み）]表示されない', () => {
-      const user = Object.freeze({ destroy_schedule_at: '2000-01-01T12:34:56+09:00' })
-      const wrapper = mountFunction(true, path, user)
+      const wrapper = mountFunction(true, path, destroyUser)
       helper.blankTest(wrapper)
     })
   })

@@ -2,7 +2,8 @@
   <Head>
     <Title>ログアウト</Title>
   </Head>
-  <v-card max-width="480px">
+  <AppLoading v-if="loading" />
+  <v-card v-else max-width="480px">
     <AppProcessing v-if="processing" />
     <v-card-title>ログアウトします。よろしいですか？</v-card-title>
     <v-card-text>
@@ -24,34 +25,30 @@
   </v-card>
 </template>
 
-<script>
+<script setup lang="ts">
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
-import Application from '~/utils/application.js'
+import { redirectPath } from '~/utils/redirect'
 
-export default defineNuxtComponent({
-  components: {
-    AppProcessing
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
 
-  data () {
-    return {
-      processing: false
-    }
-  },
+const loading = ref(true)
+const processing = ref(false)
 
-  created () {
-    if (!this.$auth.loggedIn) { return this.appRedirectAlreadySignedOut() }
-  },
+created()
+function created () {
+  if (!$auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_signed_out') }) }
 
-  methods: {
-    // ログアウト
-    async signOut () {
-      this.processing = true
-      await useAuthSignOut()
-      this.appSetToastedMessage({ notice: this.$t('auth.signed_out') }, false, true)
-      navigateTo(this.$config.public.authRedirectLogOutURL)
-    }
-  }
-})
+  loading.value = false
+}
+
+// ログアウト
+async function signOut () {
+  processing.value = true
+  await useAuthSignOut()
+  $toast.success($t('auth.signed_out'))
+  navigateTo($config.public.authRedirectLogOutURL)
+}
 </script>

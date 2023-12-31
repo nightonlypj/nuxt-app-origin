@@ -5,10 +5,10 @@ export default defineNuxtPlugin((_nuxtApp) => {
       auth: reactive({
         loggedIn: computed(() => authStatus.value === 'authenticated'),
         data: computed(() => authData.value),
-        user: computed(() => authData.value?.user),
-        setData: (data: object) => { authData.value = data },
-        setUser: (user: object) => { authData.value = { ...authData.value, user } },
-        resetUserInfomationUnreadCount: () => { authData.value.user.infomation_unread_count = 0 }
+        user: computed(() => (authData.value as any)?.user),
+        setData: (data: object) => { (authData.value as any) = data },
+        setUser: (user: object) => { (authData.value as any) = { ...authData.value, user } },
+        resetUserInfomationUnreadCount: () => { (authData.value as any).user.infomation_unread_count = 0 }
       })
     }
   }

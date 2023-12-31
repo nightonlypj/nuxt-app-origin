@@ -4,6 +4,7 @@ import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/users/undo_delete.vue'
+import { activeUser, destroyUser } from '~/test/data/user'
 
 describe('undo_delete.vue', () => {
   let mock: any
@@ -19,8 +20,9 @@ describe('undo_delete.vue', () => {
       toast: helper.mockToast
     }
   })
-
+  const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = '/users/undo_delete'
+
   const mountFunction = (loggedIn: boolean, user: object | null = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthUser', mock.useAuthUser)
@@ -28,23 +30,23 @@ describe('undo_delete.vue', () => {
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user,
+        setData: mock.setData
+      },
+      $toast: mock.toast
+    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({
+      fullPath
+    })))
 
     const wrapper = mount(Page, {
       global: {
         stubs: {
           AppLoading: true,
           AppProcessing: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user,
-            setData: mock.setData
-          },
-          $route: {
-            fullPath
-          },
-          $toast: mock.toast
         }
       }
     })
@@ -52,17 +54,14 @@ describe('undo_delete.vue', () => {
     return wrapper
   }
 
-  const userDestroy = Object.freeze({
-    destroy_requested_at: '2000-01-01T12:34:56+09:00',
-    destroy_schedule_at: '2000-01-08T12:34:56+09:00'
-  })
-
   // テスト内容
   const viewTest = (wrapper: any, user: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(wrapper.vm.$timeFormat('ja', user.destroy_requested_at)) // 削除依頼日時
-    expect(wrapper.text()).toMatch(wrapper.vm.$dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    if (user.destroy_requested_at != null) {
+      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', user.destroy_requested_at)) // 削除依頼日時
+    }
   }
 
   // テストケース
@@ -76,9 +75,8 @@ describe('undo_delete.vue', () => {
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中]トップページにリダイレクトされる', async () => {
-    const user = Object.freeze({})
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
-    const wrapper = mountFunction(true, user)
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: activeUser }])
+    const wrapper = mountFunction(true, activeUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
@@ -87,13 +85,13 @@ describe('undo_delete.vue', () => {
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
   it('[ログイン中（削除予約済み）]表示される', async () => {
-    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
-    const wrapper = mountFunction(true, userDestroy)
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: destroyUser }])
+    const wrapper = mountFunction(true, destroyUser)
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
-    viewTest(wrapper, userDestroy)
+    viewTest(wrapper, destroyUser)
 
     // 取り消しボタン
     const button: any = wrapper.find('#user_undo_delete_btn')
@@ -122,11 +120,20 @@ describe('undo_delete.vue', () => {
     // 確認ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 非表示
   })
+  it('[ログイン中（削除予約済み、削除依頼日時なし）]表示される', async () => {
+    const user = Object.freeze({ ...destroyUser, destroy_requested_at: null })
+    mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user }])
+    const wrapper = mountFunction(true, user)
+    helper.loadingTest(wrapper, AppLoading)
+    await flushPromises()
+
+    viewTest(wrapper, user)
+  })
 
   describe('ユーザー情報更新', () => {
     let wrapper: any
     const beforeAction = async () => {
-      wrapper = mountFunction(true, userDestroy)
+      wrapper = mountFunction(true, destroyUser)
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
     }
@@ -137,9 +144,18 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -154,12 +170,19 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error, notice: null } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+    })
+    it('[その他エラー]エラーページが表示される', async () => {
+      mock.useAuthUser = vi.fn(() => [{ ok: false, status: 400 }, {}])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, {})
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })
   })
 
   describe('アカウント削除取り消し', () => {
-    const data = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ', user: { name: 'user1の氏名' } })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl, 'POST')
@@ -167,8 +190,8 @@ describe('undo_delete.vue', () => {
 
     let wrapper: any, button: any
     const beforeAction = async () => {
-      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: userDestroy }])
-      wrapper = mountFunction(true, userDestroy)
+      mock.useAuthUser = vi.fn(() => [{ ok: true, status: 200 }, { user: destroyUser }])
+      wrapper = mountFunction(true, destroyUser)
       await flushPromises()
 
       // 取り消しボタン
@@ -184,12 +207,13 @@ describe('undo_delete.vue', () => {
     }
 
     it('[成功]トップページにリダイレクトされる', async () => {
+      const data = Object.freeze({ ...messages, user: activeUser })
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, data])
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.mockCalledTest(mock.setData, 1, data)
-      helper.toastMessageTest(mock.toast, { error: data.alert, success: data.notice })
+      helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
     it('[データなし]エラーメッセージが表示される', async () => {
@@ -210,6 +234,15 @@ describe('undo_delete.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    })
+    it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
@@ -227,6 +260,14 @@ describe('undo_delete.vue', () => {
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, messages])
+      await beforeAction()
+
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
+      helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
+      helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
+    })
+    it('[その他エラー（メッセージなし）]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 

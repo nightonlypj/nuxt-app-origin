@@ -2,119 +2,125 @@
   <Head>
     <Title>パスワード再設定</Title>
   </Head>
-  <AppMessage v-model:alert="alert" v-model:notice="notice" />
-  <v-card max-width="480px">
-    <AppProcessing v-if="processing" />
-    <Form v-slot="{ meta, setErrors, values }">
-      <v-form autocomplete="off" @submit.prevent>
-        <v-card-title>パスワード再設定</v-card-title>
-        <v-card-text
-          id="password_reset_area"
-          @keydown.enter="appSetKeyDownEnter"
-          @keyup.enter="postPassword(!meta.valid, true, setErrors, values)"
-        >
-          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-            <v-text-field
-              id="password_reset_email_text"
-              v-model="query.email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              autocomplete="off"
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-            />
-          </Field>
-          <v-btn
-            id="password_reset_btn"
-            color="primary"
-            class="mt-2"
-            :disabled="!meta.valid || processing || waiting"
-            @click="postPassword(!meta.valid, false, setErrors, values)"
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage v-model:messages="messages" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta, setErrors, values }">
+        <v-form autocomplete="off" @submit.prevent>
+          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-text
+            id="password_reset_area"
+            @keydown.enter="keyDownEnter = completInputKey($event)"
+            @keyup.enter="postPassword(!meta.valid, true, setErrors, values)"
           >
-            送信
-          </v-btn>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <ActionLink action="password" />
-        </v-card-actions>
-      </v-form>
-    </Form>
-  </v-card>
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                id="password_reset_email_text"
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="off"
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+              />
+            </Field>
+            <v-btn
+              id="password_reset_btn"
+              color="primary"
+              class="mt-2"
+              :disabled="!meta.valid || processing || waiting"
+              @click="postPassword(!meta.valid, false, setErrors, values)"
+            >
+              送信
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="password" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
-<script>
-import { pickBy } from 'lodash'
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/utils/application.js'
+import { completInputKey, existKeyErrors } from '~/utils/input'
+import { redirectPath, redirectSignIn } from '~/utils/redirect'
 
 defineRule('required', required)
 defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppMessage,
-    ActionLink
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      alert: null,
-      notice: null,
-      query: {
-        email: ''
-      },
-      keyDownEnter: false
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(false)
+const messages = ref({
+  alert: String($route.query.alert || ''),
+  notice: String($route.query.notice || '')
+})
+const query = ref({
+  email: ''
+})
+const keyDownEnter = ref(false)
+
+created()
+function created () {
+  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+
+  if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
+  loading.value = false
+}
+
+// パスワード再設定
+async function postPassword (invalid: boolean, keydown: boolean, setErrors: any, values: any) {
+  const enter = keyDownEnter.value
+  keyDownEnter.value = false
+  if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
+
+  processing.value = true
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.passwordUrl, 'POST', {
+    ...query.value,
+    redirect_url: $config.public.frontBaseURL + $config.public.passwordRedirectUrl
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      return redirectSignIn(data)
+    } else {
+      $toast.error($t('system.error'))
     }
-  },
-
-  created () {
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
-
-    this.appSetQueryMessage()
-  },
-
-  methods: {
-    // パスワード再設定
-    async postPassword (invalid, keydown, setErrors, values) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
-
-      this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.passwordUrl, 'POST', {
-        ...this.query,
-        redirect_url: this.$config.public.frontBaseURL + this.$config.public.passwordRedirectUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          return navigateTo({ path: this.$config.public.authRedirectSignInURL, query: { alert: data.alert, notice: data.notice } })
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-        this.appSetMessage(data, true)
-        if (data.errors != null) {
-          setErrors(pickBy(data.errors, (_value, key) => values[key] != null)) // NOTE: 未使用の値があるとvalidがtrueに戻らない為
-          this.waiting = true
-        }
+  } else {
+    if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
       }
-
-      this.processing = false
+      if (data.errors != null) {
+        setErrors(existKeyErrors.value(data.errors, values))
+        waiting.value = true
+      }
     }
   }
-})
+
+  processing.value = false
+}
 </script>

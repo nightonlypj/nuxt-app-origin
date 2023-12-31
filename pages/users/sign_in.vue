@@ -2,153 +2,151 @@
   <Head>
     <Title>ログイン</Title>
   </Head>
-  <AppMessage v-model:alert="alert" v-model:notice="notice" />
-  <v-card max-width="480px">
-    <AppProcessing v-if="processing" />
-    <Form v-slot="{ meta }">
-      <v-form autocomplete="on">
-        <v-card-title>ログイン</v-card-title>
-        <v-card-text
-          id="sign_in_area"
-          @keydown.enter="appSetKeyDownEnter"
-          @keyup.enter="signIn(!meta.valid, true)"
-        >
-          <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
-            <v-text-field
-              id="sign_in_email_text"
-              v-model="query.email"
-              label="メールアドレス"
-              prepend-icon="mdi-email"
-              autocomplete="email"
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-            />
-          </Field>
-          <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
-            <v-text-field
-              id="sign_in_password_text"
-              v-model="query.password"
-              :type="showPassword ? 'text' : 'password'"
-              label="パスワード"
-              prepend-icon="mdi-lock"
-              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              autocomplete="current-password"
-              counter
-              :error-messages="errors"
-              @update:model-value="waiting = false"
-              @click:append="showPassword = !showPassword"
-            />
-          </Field>
-          <v-btn
-            id="sign_in_btn"
-            color="primary"
-            class="mt-4"
-            :disabled="!meta.valid || processing || waiting"
-            @click="signIn(!meta.valid, false)"
+  <AppLoading v-if="loading" />
+  <template v-else>
+    <AppMessage v-model:messages="messages" />
+    <v-card max-width="480px">
+      <AppProcessing v-if="processing" />
+      <Form v-slot="{ meta }">
+        <v-form autocomplete="on">
+          <v-card-title>ログイン</v-card-title>
+          <v-card-text
+            id="sign_in_area"
+            @keydown.enter="keyDownEnter = completInputKey($event)"
+            @keyup.enter="signIn(!meta.valid, true)"
           >
-            ログイン
-          </v-btn>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <ActionLink action="sign_in" />
-        </v-card-actions>
-      </v-form>
-    </Form>
-  </v-card>
+            <Field v-slot="{ errors }" v-model="query.email" name="email" rules="required|email">
+              <v-text-field
+                id="sign_in_email_text"
+                v-model="query.email"
+                label="メールアドレス"
+                prepend-icon="mdi-email"
+                autocomplete="email"
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+              />
+            </Field>
+            <Field v-slot="{ errors }" v-model="query.password" name="password" rules="required">
+              <v-text-field
+                id="sign_in_password_text"
+                v-model="query.password"
+                :type="showPassword ? 'text' : 'password'"
+                label="パスワード"
+                prepend-icon="mdi-lock"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                autocomplete="current-password"
+                counter
+                :error-messages="errors"
+                @update:model-value="waiting = false"
+                @click:append="showPassword = !showPassword"
+              />
+            </Field>
+            <v-btn
+              id="sign_in_btn"
+              color="primary"
+              class="mt-4"
+              :disabled="!meta.valid || processing || waiting"
+              @click="signIn(!meta.valid, false)"
+            >
+              ログイン
+            </v-btn>
+          </v-card-text>
+          <v-divider />
+          <v-card-actions>
+            <ActionLink action="sign_in" />
+          </v-card-actions>
+        </v-form>
+      </Form>
+    </v-card>
+  </template>
 </template>
 
-<script>
+<script setup lang="ts">
 import { Form, Field, defineRule, configure } from 'vee-validate'
 import { localize, setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
 import ja from '~/locales/validate.ja'
+import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
-import Application from '~/utils/application.js'
+import { completInputKey } from '~/utils/input'
+import { redirectPath, redirectConfirmationReset } from '~/utils/redirect'
 
 defineRule('required', required)
 defineRule('email', email)
 configure({ generateMessage: localize({ ja }) })
 setLocale('ja')
 
-export default defineNuxtComponent({
-  components: {
-    Form,
-    Field,
-    AppProcessing,
-    AppMessage,
-    ActionLink
-  },
-  mixins: [Application],
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
 
-  data () {
-    return {
-      processing: false,
-      waiting: false,
-      alert: null,
-      notice: null,
-      query: {
-        email: '',
-        password: ''
-      },
-      showPassword: false,
-      keyDownEnter: false
+const loading = ref(true)
+const processing = ref(false)
+const waiting = ref(false)
+const messages = ref({
+  alert: String($route.query.alert || ''),
+  notice: String($route.query.notice || '')
+})
+const query = ref({
+  email: '',
+  password: ''
+})
+const showPassword = ref(false)
+const keyDownEnter = ref(false)
+
+created()
+function created () {
+  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectPath('/', $route.query) }
+  if ($route.query.account_confirmation_success === 'false') { return redirectConfirmationReset($route.query) }
+  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectPath('/', $route.query) }
+  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+
+  if ($route.query.account_confirmation_success === 'true' || $route.query.unlock === 'true') { messages.value.notice += $t('auth.unauthenticated') }
+  if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
+
+  loading.value = false
+}
+
+// ログイン
+async function signIn (invalid: boolean, keydown: boolean) {
+  const enter = keyDownEnter.value
+  keyDownEnter.value = false
+  if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
+
+  processing.value = true
+  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authSignInURL, 'POST', {
+    ...query.value,
+    unlock_redirect_url: $config.public.frontBaseURL + $config.public.unlockRedirectUrl
+  })
+
+  if (response?.ok) {
+    if (data != null) {
+      $auth.setData(data)
+      if (data.alert != null) { $toast.error(data.alert) }
+      if (data.notice != null) { $toast.success(data.notice) }
+
+      const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
+      navigateTo(redirectUrl.value || $config.public.authRedirectHomeURL)
+      updateRedirectUrl(null)
+      return
+    } else {
+      $toast.error($t('system.error'))
     }
-  },
-
-  created () {
-    switch (this.$route.query.account_confirmation_success) {
-      case 'true':
-        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
-        break
-      case 'false':
-        return navigateTo({ path: '/users/confirmation/resend', query: { alert: this.$route.query.alert, notice: this.$route.query.notice } })
-    }
-    switch (this.$route.query.unlock) {
-      case 'true':
-      case 'false':
-        if (this.$auth.loggedIn) { return this.appRedirectTop(this.$route.query) }
-    }
-    if (this.$auth.loggedIn) { return this.appRedirectAlreadyAuth() }
-
-    if (this.$route.query.account_confirmation_success === 'true' || this.$route.query.unlock === 'true') {
-      this.$route.query.notice = (this.$route.query.notice != null ? this.$route.query.notice : '') + this.$t('auth.unauthenticated')
-    }
-    this.appSetQueryMessage()
-  },
-
-  methods: {
-    // ログイン
-    async signIn (invalid, keydown) {
-      const enter = this.keyDownEnter
-      this.keyDownEnter = false
-      if (invalid || this.processing || this.waiting || (keydown && !enter)) { return }
-
-      this.processing = true
-      const [response, data] = await useApiRequest(this.$config.public.apiBaseURL + this.$config.public.authSignInURL, 'POST', {
-        ...this.query,
-        unlock_redirect_url: this.$config.public.frontBaseURL + this.$config.public.unlockRedirectUrl
-      })
-
-      if (response?.ok) {
-        if (this.appCheckResponse(data, { toasted: true })) {
-          this.$auth.setData(data)
-          this.appSetToastedMessage(data, false, true)
-
-          const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
-          navigateTo(redirectUrl.value || this.$config.public.authRedirectHomeURL)
-          updateRedirectUrl(null)
-          return
-        }
-      } else if (this.appCheckErrorResponse(response?.status, data, { toasted: true })) {
-        this.appSetMessage(data, true)
-        this.waiting = true
+  } else {
+    if (data == null) {
+      $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
+    } else {
+      messages.value = {
+        alert: data.alert || $t('system.default'),
+        notice: data.notice || ''
       }
-
-      this.processing = false
+      waiting.value = true
     }
   }
-})
+
+  processing.value = false
+}
 </script>

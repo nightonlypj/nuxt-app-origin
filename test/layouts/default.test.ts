@@ -4,20 +4,30 @@ import helper from '~/test/helper'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
+import { activeUser } from '~/test/data/user'
 
 describe('default.vue', () => {
+  let mock: any
+  beforeEach(() => {
+    mock = {
+      useHead: vi.fn()
+    }
+  })
+
   const mountFunction = (loggedIn: boolean, user: object | null = null) => {
+    vi.stubGlobal('useHead', mock.useHead)
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $auth: {
+        loggedIn,
+        user
+      }
+    })))
+
     const wrapper = mount(Layout, {
       global: {
         stubs: {
           UsersDestroyInfo: true,
           AppBackToTop: true
-        },
-        mocks: {
-          $auth: {
-            loggedIn,
-            user
-          }
         }
       }
     })
@@ -26,9 +36,14 @@ describe('default.vue', () => {
   }
 
   // テスト内容
-  const viewTest = (wrapper: any, loggedIn: boolean) => {
+  const viewTest = (wrapper: any, loggedIn: boolean, user: any = {}) => {
     expect(wrapper.findComponent(UsersDestroyInfo).exists()).toBe(true) // アカウント削除予約
     expect(wrapper.findComponent(AppBackToTop).exists()).toBe(true) // 上に戻る
+
+    // タイトル
+    helper.mockCalledTest(mock.useHead, 1, { titleTemplate: wrapper.vm.titleTemplate })
+    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${helper.envConfig.envName}`)
+    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${helper.envConfig.envName}`)
 
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
@@ -40,10 +55,9 @@ describe('default.vue', () => {
 
     expect(wrapper.text()).toMatch(helper.envConfig.envName)
     if (loggedIn) {
-      expect(wrapper.text()).toMatch('user1の氏名') // ユーザーの氏名
+      expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
       expect(wrapper.text()).toMatch('9+') // お知らせの未読数
     } else {
-      expect(wrapper.text()).not.toMatch('user1の氏名')
       expect(wrapper.text()).not.toMatch('9+')
     }
     expect(wrapper.find('#header_menu_user_image').exists()).toBe(loggedIn) // [ログイン中]ユーザーの画像
@@ -57,11 +71,8 @@ describe('default.vue', () => {
   })
   it('[ログイン中]表示される', async () => {
     const user = Object.freeze({
-      name: 'user1の氏名',
-      image_url: {
-        small: 'https://example.com/images/user/small_noimage.jpg'
-      },
-      infomation_unread_count: 10
+      ...activeUser,
+      infomation_unread_count: 10 // -> 9+
     })
     const wrapper = mountFunction(true, user)
 
@@ -71,6 +82,6 @@ describe('default.vue', () => {
     button.trigger('click')
     await flushPromises()
 
-    viewTest(wrapper, true)
+    viewTest(wrapper, true, user)
   })
 })
