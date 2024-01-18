@@ -127,6 +127,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
     })
@@ -135,6 +136,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
     })
@@ -176,6 +178,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
     })
@@ -183,6 +186,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, null])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: {} })
     })
@@ -190,6 +194,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
     })
@@ -197,6 +202,7 @@ describe('[code].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
     })

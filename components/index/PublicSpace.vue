@@ -1,7 +1,7 @@
 <template>
   <template v-if="loading || alert !== '' || (spaces != null && spaces.length > 0)">
     <AppLoading v-if="loading" height="20vh" />
-    <v-card v-else>
+    <v-card v-else link>
       <v-card-title>
         <v-row>
           <v-col>

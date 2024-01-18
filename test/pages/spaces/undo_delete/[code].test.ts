@@ -110,7 +110,7 @@ describe('[code].vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   })
   it('[ログイン中][管理者、削除予定あり（削除依頼日時なし）]表示される', async () => {
     const space = Object.freeze({

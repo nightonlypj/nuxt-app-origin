@@ -100,7 +100,7 @@ describe('Create.vue', () => {
     await flushPromises()
 
     // 作成ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   // テストケース
@@ -196,7 +196,7 @@ describe('Create.vue', () => {
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 0)
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
       expect(wrapper.vm.space).toEqual(helper.commonConfig.enablePublicSpace ? { private: true } : {}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {

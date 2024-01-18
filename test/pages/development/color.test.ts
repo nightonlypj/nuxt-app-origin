@@ -11,7 +11,9 @@ describe('color.vue', () => {
   })
 
   const mountFunction = () => {
-    vi.stubGlobal('useNuxtApp', vi.fn(() => ({ $toast: mock.toast })))
+    vi.stubGlobal('useNuxtApp', vi.fn(() => ({
+      $toast: mock.toast
+    })))
 
     const wrapper = mount(Page)
     expect(wrapper.vm).toBeTruthy()

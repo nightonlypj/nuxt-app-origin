@@ -10,9 +10,9 @@ describe('ListSetting.vue', () => {
       setItem: vi.fn()
     }
   })
-
   const model = 'member'
-  const items = helper.locales.items[model]
+  const items = helper.locales.items.member
+
   const mountFunction = (admin: boolean, hiddenItems = []) => {
     vi.stubGlobal('localStorage', { setItem: mock.setItem })
 
@@ -66,7 +66,7 @@ describe('ListSetting.vue', () => {
     await flushPromises()
 
     // 変更ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   const updateViewTest = async (wrapper: any, dialog: any, hiddenItems: any, displayItems: any) => {
@@ -78,7 +78,6 @@ describe('ListSetting.vue', () => {
 
       expect(showItem.element.checked).toBe(displayItems.includes(item.key))
     }
-    await flushPromises()
 
     // 変更ボタン
     const button = wrapper.find('#list_setting_submit_btn')
@@ -87,7 +86,7 @@ describe('ListSetting.vue', () => {
     await flushPromises()
 
     // 変更ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
 
     helper.mockCalledTest(mock.setItem, 1, `${model}.hidden-items`, hiddenItems.toString())
     expect(wrapper.emitted()['update:hiddenItems']).toEqual([[hiddenItems]])
@@ -142,10 +141,10 @@ describe('ListSetting.vue', () => {
     const beforeAction = async (hiddenItems: any, showItems: any) => {
       wrapper = mountFunction(true, hiddenItems)
       wrapper.find('#list_setting_btn').trigger('click')
+      await flushPromises()
 
       // 表示項目
       expect(wrapper.vm.showItems).toEqual(showItems)
-      await flushPromises()
 
       // 変更ダイアログ
       dialog = wrapper.find('#list_setting_dialog')

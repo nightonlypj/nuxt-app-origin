@@ -19,7 +19,7 @@ describe('ListDownload.vue', () => {
   const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = `/members/${space.code}`
   const model = 'member'
-  const items = helper.locales.items[model]
+  const items = helper.locales.items.member
 
   const mountFunction = (admin = false, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -129,7 +129,7 @@ describe('ListDownload.vue', () => {
     await flushPromises()
 
     // ダウンロードダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   // テストケース
@@ -259,7 +259,7 @@ describe('ListDownload.vue', () => {
       expect(localStorage.getItem('download.format')).toBe(query.format)
       expect(localStorage.getItem('download.char_code')).toBe(query.char_code)
       expect(localStorage.getItem('download.newline_code')).toBe(query.newline_code)
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
       helper.mockCalledTest(mock.navigateTo, 1, { path: '/downloads', query: { target_id: data.download.id } })
     })
     it('[データなし]エラーメッセージが表示される', async () => {

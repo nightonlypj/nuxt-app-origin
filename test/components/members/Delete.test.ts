@@ -84,7 +84,7 @@ describe('Delete.vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   // テストケース
@@ -156,7 +156,7 @@ describe('Delete.vue', () => {
       helper.emitMessageTest(wrapper, messages)
       expect(wrapper.emitted().clear).toEqual([[]])
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
     })
     it('[成功（メッセージなし）]選択メンバーがクリアされ、一覧が再取得される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, {}])
@@ -167,7 +167,7 @@ describe('Delete.vue', () => {
       helper.emitMessageTest(wrapper, { alert: '', notice: helper.locales.notice.member.destroy })
       expect(wrapper.emitted().clear).toEqual([[]])
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
@@ -246,6 +246,7 @@ describe('Delete.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
@@ -254,6 +255,7 @@ describe('Delete.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
+      helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示

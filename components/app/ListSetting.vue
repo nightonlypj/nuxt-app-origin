@@ -108,7 +108,9 @@ const showItems = ref<any>(null)
 const items = computed(() => {
   return Object.values($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin) as any
 })
-const requiredShowItems = computed(() => items.value.filter((item: any) => item.required).map((item: any) => item.key))
+const requiredShowItems = computed(() => {
+  return items.value.filter((item: any) => item.required).map((item: any) => item.key)
+})
 
 function initialize () {
   waiting.value = true

@@ -116,7 +116,7 @@ describe('Update.vue', () => {
     await flushPromises()
 
     // 変更ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   // テストケース
@@ -321,7 +321,7 @@ describe('Update.vue', () => {
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       expect(wrapper.emitted().update).toEqual([[data.member]]) // メンバー情報更新
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
     })
     it('[データなし]エラーメッセージが表示される', async () => {
       await beforeAction([{ ok: true, status: 200 }, null])

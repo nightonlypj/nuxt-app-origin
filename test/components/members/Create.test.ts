@@ -91,7 +91,7 @@ describe('Create.vue', () => {
     await flushPromises()
 
     // 招待ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
   // テストケース
@@ -170,7 +170,7 @@ describe('Create.vue', () => {
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       expect(wrapper.emitted().result).toEqual([[data]]) // メンバー招待結果表示
       expect(wrapper.emitted().reload).toEqual([[]]) // メンバー一覧再取得
-      expect(dialog.isDisabled()).toBe(false) // 非表示
+      expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
       expect(wrapper.vm.member).toEqual({}) // 初期化
     })
     it('[データなし]エラーメッセージが表示される', async () => {

@@ -80,7 +80,7 @@ describe('[code].vue', () => {
     expect(mock.useApiRequest).nthCalledWith(count, helper.envConfig.apiBaseURL + url, 'GET', params)
   }
 
-  const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error: boolean = false) => {
+  const viewTest = (wrapper: any, data: any, countView: string, show: any = { existInfinite: false, testState: null }, error = false) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
     helper.messageTest(wrapper, AppMessage, messages)
@@ -128,7 +128,7 @@ describe('[code].vue', () => {
     return infiniteLoading
   }
 
-  const infiniteErrorTest = async (messages = {}, checkViewTest = true) => {
+  const infiniteErrorTest = async (messages = {}, signOut = false) => {
     const wrapper = mountFunction()
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
@@ -141,8 +141,12 @@ describe('[code].vue', () => {
     await flushPromises()
 
     apiCalledTest(2)
+    helper.mockCalledTest(mock.useAuthSignOut, signOut ? 1 : 0, true)
     helper.toastMessageTest(mock.toast, messages)
-    if (checkViewTest) {
+    if (signOut) {
+      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+    } else {
       viewTest(wrapper, dataPage1, '5件', { existInfinite: true, testState: 'error' }, true)
     }
   }
@@ -243,6 +247,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
@@ -261,6 +266,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
@@ -279,6 +285,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
       })
@@ -298,6 +305,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
       })
@@ -325,10 +333,7 @@ describe('[code].vue', () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 401 }, messages])
-        await infiniteErrorTest({ error: messages.alert, info: messages.notice }, false)
-        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
-        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+        await infiniteErrorTest({ error: messages.alert, info: messages.notice }, true)
       })
     })
     describe('認証エラー（メッセージなし）', () => {
@@ -348,10 +353,7 @@ describe('[code].vue', () => {
         mock.useApiRequest = vi.fn()
           .mockImplementationOnce(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
           .mockImplementationOnce(() => [{ ok: false, status: 401 }, null])
-        await infiniteErrorTest({ info: helper.locales.auth.unauthenticated }, false)
-        helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-        helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
-        helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
+        await infiniteErrorTest({ info: helper.locales.auth.unauthenticated }, true)
       })
     })
     describe('権限エラー', () => {
@@ -400,6 +402,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: messages })
       })
@@ -418,6 +421,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 404, data: { alert: helper.locales.system.notfound } })
       })
@@ -436,6 +440,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
       })
@@ -454,6 +459,7 @@ describe('[code].vue', () => {
         await flushPromises()
 
         apiCalledTest(1)
+        helper.mockCalledTest(mock.useAuthSignOut, 0)
         helper.toastMessageTest(mock.toast, {})
         helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
       })
