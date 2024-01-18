@@ -5,8 +5,7 @@
       <NuxtLink to="/" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify.display.width > (48 + 40 - 16 + 64 * 2)"
-          :style="{ 'max-width': ($vuetify.display.width - (48 + 40 - 16 + 64 * 2)) + 'px' }"
+          :style="`width: ${($vuetify.display.width - (58 + 40 + ($vuetify.display.smAndDown ? 64 : 400) + 64 - 26))}px`"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
@@ -143,8 +142,8 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main class="mx-2 pb-10">
-      <v-container fluid>
+    <v-main>
+      <v-container fluid class="pa-3">
         <UsersDestroyInfo />
         <slot />
       </v-container>
@@ -169,6 +168,8 @@ const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
 const { $auth } = useNuxtApp()
 
+const drawer = ref(!useDisplay().mobile.value)
+
 useHead({
   titleTemplate
 })
@@ -176,8 +177,6 @@ function titleTemplate (title: string | undefined) {
   const name = `${$t('app_name')}${$config.public.envName}`
   return title == null ? name : `${title} - ${name}`
 }
-
-const drawer = ref(!useDisplay().mobile.value)
 </script>
 
 <style scoped>

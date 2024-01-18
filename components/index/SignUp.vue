@@ -1,5 +1,5 @@
 <template>
-  <v-card>
+  <v-card link>
     <v-card-title>アカウント登録</v-card-title>
     <v-card-text>
       <NuxtLink to="/users/sign_up">
@@ -11,9 +11,7 @@
     </v-card-text>
     <v-divider />
     <v-card-actions>
-      <ul class="my-2">
-        <li><NuxtLink to="/users/sign_in">ログイン</NuxtLink></li>
-      </ul>
+      <NuxtLink to="/users/sign_in" class="ml-2">ログイン</NuxtLink>
     </v-card-actions>
   </v-card>
 </template>

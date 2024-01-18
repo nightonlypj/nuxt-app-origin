@@ -24,11 +24,11 @@ describe('search.ts', () => {
     })
 
     it('[一致]エラーメッセージが表示されない', () => {
-      checkSearchParams({ text: '' }, { text: '' }, true)
+      checkSearchParams({ text1: '', text2: '' }, { text2: '', text1: '' }, true)
       helper.toastMessageTest(mock.toast, {})
     })
     it('[不一致]エラーメッセージが表示される', () => {
-      checkSearchParams({ text: '' }, {}, true)
+      checkSearchParams({ text1: '', text2: '' }, { text1: '' }, true)
       helper.toastMessageTest(mock.toast, { warning: 'パラメータが一致していません。ログを確認してください。' })
     })
   })

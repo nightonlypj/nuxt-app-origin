@@ -1,6 +1,6 @@
 <template>
   <AppLoading v-if="loading" height="20vh" />
-  <v-card v-else-if="alert !== '' || (infomations != null && infomations.length > 0)">
+  <v-card v-else-if="alert !== '' || (infomations != null && infomations.length > 0)" link>
     <v-card-title>大切なお知らせ</v-card-title>
     <v-card-text v-if="alert !== ''">
       <v-icon color="warning">mdi-alert</v-icon>

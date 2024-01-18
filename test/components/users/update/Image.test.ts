@@ -119,7 +119,7 @@ describe('Image.vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   })
 
   describe('画像変更', () => {

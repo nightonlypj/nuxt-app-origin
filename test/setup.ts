@@ -42,6 +42,3 @@ vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t, tm: config.gl
 
 // NOTE: Failed to resolve component: NuxtLink
 config.global.stubs.NuxtLink = RouterLinkStub
-
-// NOTE: [Vuetify] Could not find injected layout
-config.global.stubs.VLayoutItem = true // injection "Symbol(vuetify:layout)" not found. / Component is missing template or render function.

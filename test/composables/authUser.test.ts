@@ -1,3 +1,4 @@
+import helper from '~/test/helper'
 import { useAuthUser } from '~/composables/authUser'
 import { activeUser } from '~/test/data/user'
 
@@ -18,6 +19,7 @@ describe('authUser.ts', () => {
     vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
     const [response, data] = await useAuthUser()
+    helper.mockCalledTest(mock.useApiRequest, 1, helper.envConfig.apiBaseURL + helper.commonConfig.authUserURL)
     expect(response.ok).toBe(result.ok)
     expect(response.status).toBe(result.status)
     expect(data).toBe(resData)

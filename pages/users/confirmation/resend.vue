@@ -82,12 +82,8 @@ const query = ref({
 })
 const keyDownEnter = ref(false)
 
-created()
-function created () {
-  if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
-
-  loading.value = false
-}
+if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
+loading.value = false
 
 // メールアドレス確認
 async function postConfirmation (invalid: boolean, keydown: boolean, setErrors: any, values: any) {

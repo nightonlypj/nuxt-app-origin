@@ -23,6 +23,7 @@ describe('authUser.client.ts', () => {
 
     await Plugin(_nuxtApp)
     helper.mockCalledTest(mock.useAuthUser, 0)
+    helper.mockCalledTest(mock.useAuthSignOut, 0)
   })
   describe('ログイン中', () => {
     const reqToken = Object.freeze({ 'token-type': 'Bearer', 'access-token': 'token1' })

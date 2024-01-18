@@ -3,7 +3,7 @@ import helper from '~/test/helper'
 import Layout from '~/error.vue'
 
 describe('error.vue', () => {
-  const mountFunction = (statusCode: number | null, data = {}) => {
+  const mountFunction = (statusCode: number, data = {}) => {
     const wrapper = mount(Layout, {
       props: {
         error: {

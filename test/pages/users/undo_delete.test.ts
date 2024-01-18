@@ -118,7 +118,7 @@ describe('undo_delete.vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   })
   it('[ログイン中（削除予約済み、削除依頼日時なし）]表示される', async () => {
     const user = Object.freeze({ ...destroyUser, destroy_requested_at: null })

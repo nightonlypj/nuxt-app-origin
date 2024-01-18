@@ -22,7 +22,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // NOTE: Failed to resolve component
-          isCustomElement: tag => ['NuxtLayout', 'NuxtPage', 'Head', 'Title', 'Meta'].includes(tag)
+          isCustomElement: tag => ['NuxtLayout', 'NuxtPage', 'Head', 'Title', 'Meta', 'Link'].includes(tag)
         }
       }
     }),
@@ -35,7 +35,8 @@ export default defineConfig({
         {
           '#app': [
             'defineNuxtComponent',
-            'defineNuxtPlugin'
+            'defineNuxtPlugin',
+            'definePageMeta'
           ]
         }
       ],

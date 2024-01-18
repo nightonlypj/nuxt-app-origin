@@ -104,7 +104,7 @@ describe('delete.vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   })
   it('[ログイン中（アカウント削除の猶予期間なし）]表示される', async () => {
     const user = Object.freeze({ ...activeUser, destroy_schedule_days: null })

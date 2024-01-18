@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     },
     define: {
       'process.env.DEBUG': false
+      // __VUE_OPTIONS_API__: true
     }
   }
 })
