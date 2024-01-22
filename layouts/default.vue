@@ -2,26 +2,26 @@
   <v-app>
     <v-app-bar>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <NuxtLink to="/" class="toolbar-title d-flex">
+      <NuxtLink :to="localePath('/')" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
           :style="`width: ${($vuetify.display.width - (58 + 40 + ($vuetify.display.smAndDown ? 64 : 400) + 64 - 26))}px`"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
-          {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv || 'production'}`)}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_in')" rounded>
           <v-icon>mdi-login</v-icon>
-          <div class="hidden-sm-and-down">ログイン</div>
+          <div class="hidden-sm-and-down">{{ $t('ログイン') }}</div>
         </component>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_up')" rounded>
           <v-icon>mdi-account-plus</v-icon>
-          <div class="hidden-sm-and-down">アカウント登録</div>
+          <div class="hidden-sm-and-down">{{ $t('アカウント登録') }}</div>
         </component>
       </template>
       <template v-else>
@@ -42,23 +42,23 @@
           </template>
           <v-list>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update" rounded="xl">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/update')" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
-                ユーザー情報
+                {{ $t('ユーザー情報') }}
               </v-list-item-title>
             </component>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out" rounded="xl">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_out')" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
-                ログアウト
+                {{ $t('ログアウト') }}
               </v-list-item-title>
             </component>
           </v-list>
         </v-menu>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/infomations')" rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
             :model-value="$auth.user.infomation_unread_count > 0"
@@ -75,17 +75,17 @@
       <v-list>
         <template v-if="!$auth.loggedIn">
           <!-- /* c8 ignore next */ -->
-          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_in">
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_in')">
             <v-list-item-title>
               <v-icon>mdi-login</v-icon>
-              ログイン
+              {{ $t('ログイン') }}
             </v-list-item-title>
           </component>
           <!-- /* c8 ignore next */ -->
-          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_up">
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_up')">
             <v-list-item-title>
               <v-icon>mdi-account-plus</v-icon>
-              アカウント登録
+              {{ $t('アカウント登録') }}
             </v-list-item-title>
           </component>
         </template>
@@ -102,24 +102,24 @@
               </v-list-item>
             </template>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/update')">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
-                ユーザー情報
+                {{ $t('ユーザー情報') }}
               </v-list-item-title>
             </component>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_out')">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
-                ログアウト
+                {{ $t('ログアウト') }}
               </v-list-item-title>
             </component>
           </v-list-group>
         </template>
         <v-divider />
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/infomations">
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/infomations')">
           <v-list-item-title>
             <template v-if="$auth.loggedIn">
               <v-badge
@@ -131,11 +131,11 @@
               >
                 <v-icon>mdi-bell</v-icon>
               </v-badge>
-              <span class="ml-8">お知らせ</span>
+              <span class="ml-8">{{ $t('お知らせ') }}</span>
             </template>
             <template v-else>
               <v-icon>mdi-bell</v-icon>
-              お知らせ
+              {{ $t('お知らせ') }}
             </template>
           </v-list-item-title>
         </component>
@@ -164,6 +164,7 @@ import { useDisplay } from 'vuetify'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
 const { t: $t } = useI18n()
 const { $auth } = useNuxtApp()
@@ -174,7 +175,7 @@ useHead({
   titleTemplate
 })
 function titleTemplate (title: string | undefined) {
-  const name = `${$t('app_name')}${$config.public.envName}`
+  const name = `${$t('app_name')}${$t(`env_name.${$config.public.serverEnv || 'production'}`)}`
   return title == null ? name : `${title} - ${name}`
 }
 </script>

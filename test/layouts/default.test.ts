@@ -42,8 +42,9 @@ describe('default.vue', () => {
 
     // タイトル
     helper.mockCalledTest(mock.useHead, 1, { titleTemplate: wrapper.vm.titleTemplate })
-    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${helper.envConfig.envName}`)
-    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${helper.envConfig.envName}`)
+    const envName = (helper.locales.env_name as any)[helper.envConfig.serverEnv || 'production']
+    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${envName}`)
+    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${envName}`)
 
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
@@ -53,7 +54,7 @@ describe('default.vue', () => {
     expect(links.includes('/users/update')).toBe(loggedIn) // [ログイン中]ユーザー情報変更
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
-    expect(wrapper.text()).toMatch(helper.envConfig.envName)
+    expect(wrapper.text()).toMatch(envName)
     if (loggedIn) {
       expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名
       expect(wrapper.text()).toMatch('9+') // お知らせの未読数

@@ -4,11 +4,11 @@
       <v-col cols="12" md="12" class="pa-2">
         <v-card link>
           <v-card-title>
-            Nuxt.js(Vue.js/Vuetify)のベースアプリケーションです。（サービス概要に差し替え）
+            {{ $t('サービス概要') }}
           </v-card-title>
           <v-card-subtitle class="mb-4">
-            サービスを迅速に立ち上げられるように、よく使う機能を予め開発しています。（サービス説明に差し替え）<br>
-            リポジトリ: <a href="https://dev.azure.com/nightonly/_git/nuxt-app-origin" target="_blank" rel="noopener noreferrer">https://dev.azure.com/nightonly/_git/nuxt-app-origin</a>
+            {{ $t('サービス説明') }}<br>
+            {{ $t('リポジトリ') }}: <a :href="repositoryURL" target="_blank" rel="noopener noreferrer">{{ repositoryURL }}</a>
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -22,9 +22,9 @@
     <v-row v-if="!$config.public.env.production">
       <v-col cols="12" md="6" class="pa-2">
         <v-card link>
-          <v-card-title>development</v-card-title>
+          <v-card-title>{{ $t('development') }}</v-card-title>
           <v-card-text>
-            <NuxtLink to="/development/color">テーマカラー確認</NuxtLink>
+            <NuxtLink :to="localePath('/development/color')">{{ $t('テーマカラー確認') }}</NuxtLink>
           </v-card-text>
         </v-card>
       </v-col>
@@ -36,5 +36,10 @@
 import IndexSignUp from '~/components/index/SignUp.vue'
 import IndexInfomations from '~/components/index/Infomations.vue'
 
+const localePath = useLocalePath()
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
 const { $auth } = useNuxtApp()
+
+const repositoryURL = 'https://dev.azure.com/nightonly/_git/nuxt-app-origin'
 </script>

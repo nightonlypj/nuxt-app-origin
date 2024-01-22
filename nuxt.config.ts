@@ -16,6 +16,12 @@ export default defineNuxtConfig({
     '@sidebase/nuxt-auth'
   ],
   i18n: {
+    strategy: 'prefix_and_default', // https://i18n.nuxtjs.org/guide/routing-strategies
+    defaultLocale: 'ja',
+    locales: [
+      { code: 'en', iso: 'en_US' },
+      { code: 'ja', iso: 'ja_JP' }
+    ],
     vueI18n: './i18n.config.ts'
   },
   auth: {
