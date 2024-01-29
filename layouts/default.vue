@@ -8,7 +8,7 @@
           :style="`width: ${($vuetify.display.width - (58 + 40 + ($vuetify.display.smAndDown ? 64 : 400) + 64 - 26))}px`"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
-          {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv || 'production'}`)}` }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
@@ -175,7 +175,7 @@ useHead({
   titleTemplate
 })
 function titleTemplate (title: string | undefined) {
-  const name = `${$t('app_name')}${$t(`env_name.${$config.public.serverEnv || 'production'}`)}`
+  const name = `${$t('app_name')}${$t(`env_name.${$config.public.serverEnv}`)}`
   return title == null ? name : `${title} - ${name}`
 }
 </script>

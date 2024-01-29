@@ -10,14 +10,14 @@
         <InfomationsLabel :infomation="infomation" />
         <span class="ml-1 font-weight-bold">
           <template v-if="infomation.body_present">
-            <NuxtLink :to="`/infomations/${infomation.id}`">{{ infomation.title }}</NuxtLink>
+            <NuxtLink :to="localePath(`/infomations/${infomation.id}`)">{{ infomation.title }}</NuxtLink>
           </template>
           <template v-else>
             {{ infomation.title }}
           </template>
         </span>
         <span class="ml-1">
-          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat(locale, infomation.started_at, 'N/A') }})
         </span>
       </div>
       <!-- eslint-disable-next-line vue/no-v-html -->
@@ -37,10 +37,12 @@ defineProps({
     default: null
   }
 })
+const localePath = useLocalePath()
+const { locale } = useI18n()
 
 function redirectInfomation (infomation: any) {
   if (!infomation.body_present) { return }
 
-  navigateTo(`/infomations/${infomation.id}`)
+  navigateTo(localePath(`/infomations/${infomation.id}`))
 }
 </script>

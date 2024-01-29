@@ -1,7 +1,11 @@
 import { RouterLinkStub } from '@vue/test-utils'
 import { envConfig } from '../config/test'
 import { commonConfig } from '../config/common'
-import { ja } from '~/locales/ja'
+import defineI18nConfig from '~/i18n.config'
+
+const locale = 'ja'
+const i18nConfig: any = defineI18nConfig()
+const locales = i18nConfig.messages[locale]
 
 // NuxtLinkのURL一覧を配列で返却
 const getLinks = (wrapper: any) => {
@@ -67,7 +71,9 @@ const disabledTest = (wrapper: any, AppProcessing: any, button: any, disabled: b
 export default {
   envConfig,
   commonConfig,
-  locales: ja,
+  i18nConfig,
+  locale,
+  locales,
   getLinks,
   loadingTest,
   blankTest,

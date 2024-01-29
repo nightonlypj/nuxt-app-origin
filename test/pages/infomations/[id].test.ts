@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { dateFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
@@ -45,7 +46,7 @@ describe('[id].vue', () => {
     expect(wrapper.findComponent(InfomationsLabel).vm.$props.infomation).toEqual(infomation)
 
     expect(wrapper.text()).toMatch(infomation.title) // タイトル
-    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
+    expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, infomation.started_at)) // 開始日
     if (infomation.body != null) {
       expect(wrapper.text()).toMatch(infomation.body) // 本文
       expect(wrapper.text()).not.toMatch(infomation.summary) // 概要

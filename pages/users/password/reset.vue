@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>パスワード再設定</Title>
+    <Title>{{ $t('パスワード再設定') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,7 +9,7 @@
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="off" @submit.prevent>
-          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-title>{{ $t('パスワード再設定') }}</v-card-title>
           <v-card-text
             id="password_reset_area"
             @keydown.enter="keyDownEnter = completInputKey($event)"
@@ -19,7 +19,7 @@
               <v-text-field
                 id="password_reset_email_text"
                 v-model="query.email"
-                label="メールアドレス"
+                :label="$t('メールアドレス')"
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
@@ -33,7 +33,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postPassword(!meta.valid, false, setErrors, values)"
             >
-              送信
+              {{ $t('送信') }}
             </v-btn>
           </v-card-text>
           <v-divider />
@@ -47,10 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -58,15 +57,15 @@ import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey, existKeyErrors } from '~/utils/input'
 import { redirectPath, redirectSignIn } from '~/utils/redirect'
 
-defineRule('required', required)
-defineRule('email', email)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
+
+setLocale(locale.value)
+defineRule('required', required)
+defineRule('email', email)
 
 const loading = ref(true)
 const processing = ref(false)
@@ -82,7 +81,7 @@ const keyDownEnter = ref(false)
 
 created()
 function created () {
-  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+  if ($auth.loggedIn) { return redirectPath(localePath('/'), { notice: $t('auth.already_authenticated') }) }
 
   if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
   loading.value = false
@@ -97,12 +96,12 @@ async function postPassword (invalid: boolean, keydown: boolean, setErrors: any,
   processing.value = true
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.passwordUrl, 'POST', {
     ...query.value,
-    redirect_url: $config.public.frontBaseURL + $config.public.passwordRedirectUrl
+    redirect_url: $config.public.frontBaseURL + localePath($config.public.passwordRedirectUrl)
   })
 
   if (response?.ok) {
     if (data != null) {
-      return redirectSignIn(data)
+      return redirectSignIn(data, localePath)
     } else {
       $toast.error($t('system.error'))
     }

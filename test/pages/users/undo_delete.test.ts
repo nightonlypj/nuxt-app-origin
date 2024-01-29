@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { dateFormat, dateTimeFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -58,9 +59,9 @@ describe('undo_delete.vue', () => {
   const viewTest = (wrapper: any, user: any) => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
-    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, user.destroy_schedule_at)) // 削除予定日
     if (user.destroy_requested_at != null) {
-      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', user.destroy_requested_at)) // 削除依頼日時
+      expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, user.destroy_requested_at)) // 削除依頼日時
     }
   }
 

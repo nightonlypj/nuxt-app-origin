@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>アカウント登録</Title>
+    <Title>{{ $t('アカウント登録') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,13 +9,13 @@
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="on">
-          <v-card-title>アカウント登録</v-card-title>
+          <v-card-title>{{ $t('アカウント登録') }}</v-card-title>
           <v-card-text>
             <Field v-slot="{ errors }" v-model="query.name" name="name" rules="required|max:32">
               <v-text-field
                 id="sign_up_name_text"
                 v-model="query.name"
-                label="氏名"
+                :label="$t('氏名')"
                 prepend-icon="mdi-account"
                 autocomplete="name"
                 counter="32"
@@ -27,7 +27,7 @@
               <v-text-field
                 id="sign_up_email_text"
                 v-model="query.email"
-                label="メールアドレス"
+                :label="$t('メールアドレス')"
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
@@ -39,7 +39,7 @@
                 id="sign_up_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
-                label="パスワード [8文字以上]"
+                :label="$t('パスワード')"
                 prepend-icon="mdi-lock"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
@@ -54,7 +54,7 @@
                 id="sign_up_password_confirmation_text"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
-                label="パスワード(確認)"
+                :label="$t('パスワード(確認)')"
                 prepend-icon="mdi-lock"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
@@ -71,7 +71,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postSingUp(setErrors, values)"
             >
-              登録
+              {{ $t('登録') }}
             </v-btn>
           </v-card-text>
           <v-divider />
@@ -85,10 +85,9 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -96,17 +95,17 @@ import ActionLink from '~/components/users/ActionLink.vue'
 import { redirectPath, redirectSignIn } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
 
+const localePath = useLocalePath()
+const $config = useRuntimeConfig()
+const { t: $t, locale } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+
+setLocale(locale.value)
 defineRule('required', required)
 defineRule('email', email)
 defineRule('min', min)
 defineRule('max', max)
 defineRule('confirmed_password', confirmed)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
-const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
-const { $auth, $toast } = useNuxtApp()
 
 const loading = ref(true)
 const processing = ref(false)
@@ -125,7 +124,7 @@ const showPassword = ref(false)
 
 created()
 function created () {
-  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+  if ($auth.loggedIn) { return redirectPath(localePath('/'), { notice: $t('auth.already_authenticated') }) }
 
   loading.value = false
 }
@@ -136,12 +135,12 @@ async function postSingUp (setErrors: any, values: any) {
 
   const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.singUpUrl, 'POST', {
     ...query.value,
-    confirm_success_url: $config.public.frontBaseURL + $config.public.singUpSuccessUrl
+    confirm_success_url: $config.public.frontBaseURL + localePath($config.public.singUpSuccessUrl)
   })
 
   if (response?.ok) {
     if (data != null) {
-      return redirectSignIn(data)
+      return redirectSignIn(data, localePath)
     } else {
       $toast.error($t('system.error'))
     }

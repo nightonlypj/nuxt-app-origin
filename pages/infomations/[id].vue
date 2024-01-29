@@ -11,7 +11,7 @@
           <span class="font-weight-bold">
             {{ infomation.title }}
           </span>
-          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat(locale, infomation.started_at, 'N/A') }})
         </div>
       </v-card-title>
       <v-card-text>
@@ -24,7 +24,7 @@
     </template>
     <v-card-actions>
       <ul class="my-2">
-        <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
+        <li><NuxtLink :to="localePath('/infomations')">{{ $t('一覧') }}</NuxtLink></li>
       </ul>
     </v-card-actions>
   </v-card>
@@ -36,8 +36,9 @@ import InfomationsLabel from '~/components/infomations/Label.vue'
 import { dateFormat } from '~/utils/display'
 import { redirectError } from '~/utils/redirect'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const $route = useRoute()
 
 const loading = ref(true)
