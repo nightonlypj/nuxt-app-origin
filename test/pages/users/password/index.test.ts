@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
@@ -6,6 +6,9 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/password/index.vue'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('index.vue', () => {
   let mock: any
@@ -82,7 +85,7 @@ describe('index.vue', () => {
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true)
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+    helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
 
@@ -95,7 +98,7 @@ describe('index.vue', () => {
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+      helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
@@ -105,11 +108,11 @@ describe('index.vue', () => {
     it('[未ログイン]パスワード再設定にリダイレクトされる', () => {
       mountFunction(false, query)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: helper.locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: $t('auth.reset_password_token_blank') } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+      helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
@@ -118,11 +121,11 @@ describe('index.vue', () => {
     it('[未ログイン]パスワード再設定にリダイレクトされる', () => {
       mountFunction(false, query)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: helper.locales.auth.reset_password_token_blank } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: $t('auth.reset_password_token_blank') } })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+      helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, '/')
     })
   })
@@ -132,7 +135,7 @@ describe('index.vue', () => {
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.passwordUpdateUrl, 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.passwordUpdateUrl, 'POST', {
           ...params
         })
       }
@@ -185,7 +188,7 @@ describe('index.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -194,7 +197,7 @@ describe('index.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -202,7 +205,7 @@ describe('index.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
@@ -218,7 +221,7 @@ describe('index.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
+      helper.messageTest(wrapper, AppMessage, { alert: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
     it('[その他エラー]パスワード再設定（メールアドレス入力）ページにリダイレクトされる', async () => {
@@ -227,7 +230,7 @@ describe('index.vue', () => {
 
       apiCalledTest(1, params)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.navigateTo, 1, { path: '/users/password/reset', query: { alert: $t('system.default') } })
     })
   })
 })

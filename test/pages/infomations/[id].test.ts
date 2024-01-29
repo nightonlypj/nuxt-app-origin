@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { dateFormat } from '~/utils/display'
 import helper from '~/test/helper'
@@ -6,6 +6,9 @@ import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Page from '~/pages/infomations/[id].vue'
 import { detail } from '~/test/data/infomations'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('[id].vue', () => {
   let mock: any
@@ -73,8 +76,8 @@ describe('[id].vue', () => {
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = (params: any) => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      const url = helper.commonConfig.infomations.detailUrl.replace(':id', params.id)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + url)
+      const url = $config.public.infomations.detailUrl.replace(':id', params.id)
+      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + url)
     }
 
     let wrapper: any
@@ -104,14 +107,14 @@ describe('[id].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('system.error') } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('network.failure') } })
     })
     it('[存在しない]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
@@ -129,13 +132,13 @@ describe('[id].vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: $t('network.error') } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: $t('system.default') } })
     })
   })
 })

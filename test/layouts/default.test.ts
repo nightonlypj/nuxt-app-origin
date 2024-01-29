@@ -1,10 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 import Layout from '~/layouts/default.vue'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('default.vue', () => {
   let mock: any
@@ -42,9 +45,10 @@ describe('default.vue', () => {
 
     // タイトル
     helper.mockCalledTest(mock.useHead, 1, { titleTemplate: wrapper.vm.titleTemplate })
-    const envName = (helper.locales.env_name as any)[helper.envConfig.serverEnv || 'production']
-    expect(wrapper.vm.titleTemplate()).toBe(`${helper.locales.app_name}${envName}`)
-    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${helper.locales.app_name}${envName}`)
+    const envName = $t(`env_name.${$config.public.serverEnv}`)
+    const name = `${$t('app_name')}${envName}`
+    expect(wrapper.vm.titleTemplate()).toBe(name)
+    expect(wrapper.vm.titleTemplate('タイトル')).toBe(`タイトル - ${name}`)
 
     const links = helper.getLinks(wrapper)
     expect(links.includes('/')).toBe(true) // トップページ
@@ -54,6 +58,8 @@ describe('default.vue', () => {
     expect(links.includes('/users/update')).toBe(loggedIn) // [ログイン中]ユーザー情報変更
     expect(links.includes('/users/sign_out')).toBe(loggedIn) // [ログイン中]ログアウト
 
+    expect(wrapper.text()).toMatch($t('app_name'))
+    expect(wrapper.text()).toMatch($t('sub_title'))
     expect(wrapper.text()).toMatch(envName)
     if (loggedIn) {
       expect(wrapper.text()).toMatch(user.name) // ユーザーの氏名

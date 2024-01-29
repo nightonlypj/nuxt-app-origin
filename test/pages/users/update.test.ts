@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
@@ -7,6 +7,9 @@ import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
 import Page from '~/pages/users/update.vue'
 import { activeUser, destroyUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('update.vue', () => {
   let mock: any
@@ -59,7 +62,7 @@ describe('update.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(mock.useApiRequest).toBeCalledTimes(1)
-    expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userDetailUrl)
+    expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userDetailUrl)
   }
 
   const viewTest = (wrapper: any, user: object) => {
@@ -79,8 +82,8 @@ describe('update.vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-    helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+    helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+    helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中]表示される', async () => {
@@ -101,7 +104,7 @@ describe('update.vue', () => {
     await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
-    helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
+    helper.toastMessageTest(mock.toast, { error: $t('auth.destroy_reserved') })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
 
@@ -119,7 +122,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('network.failure') } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, messages])
@@ -127,7 +130,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -135,8 +138,8 @@ describe('update.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
@@ -145,7 +148,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: $t('network.error') } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -153,7 +156,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: $t('system.default') } })
     })
   })
 
@@ -174,7 +177,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('system.error') } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -183,7 +186,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('network.failure') } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
@@ -191,7 +194,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -199,8 +202,8 @@ describe('update.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
@@ -209,7 +212,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: $t('network.error') } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -217,7 +220,7 @@ describe('update.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: $t('system.default') } })
     })
   })
 })

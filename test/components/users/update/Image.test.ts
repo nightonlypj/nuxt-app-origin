@@ -1,9 +1,12 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Image.vue'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('Image.vue', () => {
   let mock: any
@@ -126,7 +129,7 @@ describe('Image.vue', () => {
     const file = new File([], 'test.jpg', { type: 'image/jpeg' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageUpdateUrl, 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userImageUpdateUrl, 'POST', {
         image: file
       }, 'form')
     }
@@ -165,7 +168,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -174,7 +177,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -183,7 +186,7 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -191,8 +194,8 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
@@ -208,7 +211,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
+      helper.toastMessageTest(mock.toast, { error: $t('auth.destroy_reserved') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -216,7 +219,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
@@ -232,7 +235,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: '' })
+      helper.emitMessageTest(wrapper, { alert: $t('system.default'), notice: '' })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })
@@ -240,7 +243,7 @@ describe('Image.vue', () => {
   describe('画像削除', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userImageDeleteUrl, 'POST')
+      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userImageDeleteUrl, 'POST')
     }
 
     let wrapper: any, button: any
@@ -271,7 +274,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -280,7 +283,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -289,7 +292,7 @@ describe('Image.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -297,8 +300,8 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
@@ -314,7 +317,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
+      helper.toastMessageTest(mock.toast, { error: $t('auth.destroy_reserved') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -322,7 +325,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -330,7 +333,7 @@ describe('Image.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.emitMessageTest(wrapper, { alert: helper.locales.system.default, notice: '' })
+      helper.emitMessageTest(wrapper, { alert: $t('system.default'), notice: '' })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

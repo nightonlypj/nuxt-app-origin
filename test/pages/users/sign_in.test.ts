@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
@@ -7,6 +7,9 @@ import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/sign_in.vue'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('sign_in.vue', () => {
   let mock: any
@@ -86,7 +89,7 @@ describe('sign_in.vue', () => {
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true)
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+    helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
 
@@ -94,7 +97,7 @@ describe('sign_in.vue', () => {
     const query = Object.freeze({ account_confirmation_success: 'true', ...messages })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
-      viewTest(wrapper, { alert: query.alert, notice: query.notice + helper.locales.auth.unauthenticated })
+      viewTest(wrapper, { alert: query.alert, notice: query.notice + $t('auth.unauthenticated') })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
@@ -121,7 +124,7 @@ describe('sign_in.vue', () => {
     const query = Object.freeze({ unlock: 'true', ...messages })
     it('[未ログイン]表示される', () => {
       const wrapper = mountFunction(false, query)
-      viewTest(wrapper, { alert: query.alert, notice: query.notice + helper.locales.auth.unauthenticated })
+      viewTest(wrapper, { alert: query.alert, notice: query.notice + $t('auth.unauthenticated') })
     })
     it('[ログイン中]トップページにリダイレクトされる', () => {
       mountFunction(true, query)
@@ -148,9 +151,9 @@ describe('sign_in.vue', () => {
     const apiCalledTest = (count: number) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.authSignInURL, 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.authSignInURL, 'POST', {
           ...params,
-          unlock_redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+          unlock_redirect_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
         })
       }
     }
@@ -190,7 +193,7 @@ describe('sign_in.vue', () => {
       apiCalledTest(1)
       helper.mockCalledTest(mock.setData, 1, data)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: data.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectHomeURL) // NOTE: トップに遷移
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectHomeURL) // NOTE: トップに遷移
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, null)
     })
     it('[成功][IME確定のEnter]APIリクエストされない', async () => {
@@ -206,7 +209,7 @@ describe('sign_in.vue', () => {
       await beforeAction()
 
       apiCalledTest(1)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -215,7 +218,7 @@ describe('sign_in.vue', () => {
       await beforeAction()
 
       apiCalledTest(1)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -223,7 +226,7 @@ describe('sign_in.vue', () => {
       await beforeAction()
 
       apiCalledTest(1)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -231,7 +234,7 @@ describe('sign_in.vue', () => {
       await beforeAction()
 
       apiCalledTest(1)
-      helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
+      helper.messageTest(wrapper, AppMessage, { alert: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, true) // 無効
     })
   })

@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { dateFormat, dateTimeFormat } from '~/utils/display'
 import helper from '~/test/helper'
@@ -6,6 +6,9 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/users/undo_delete.vue'
 import { activeUser, destroyUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('undo_delete.vue', () => {
   let mock: any
@@ -71,8 +74,8 @@ describe('undo_delete.vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-    helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+    helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+    helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中]トップページにリダイレクトされる', async () => {
@@ -82,7 +85,7 @@ describe('undo_delete.vue', () => {
     await flushPromises()
 
     helper.mockCalledTest(mock.useAuthSignOut, 0)
-    helper.toastMessageTest(mock.toast, { error: helper.locales.auth.not_destroy_reserved })
+    helper.toastMessageTest(mock.toast, { error: $t('auth.not_destroy_reserved') })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
   it('[ログイン中（削除予約済み）]表示される', async () => {
@@ -145,7 +148,7 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('network.failure') } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, messages])
@@ -153,7 +156,7 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -161,8 +164,8 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[レスポンスエラー]エラーページが表示される', async () => {
@@ -171,7 +174,7 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: $t('network.error') } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -179,14 +182,14 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: $t('system.default') } })
     })
   })
 
   describe('アカウント削除取り消し', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.userUndoDeleteUrl, 'POST')
+      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
     }
 
     let wrapper: any, button: any
@@ -222,7 +225,7 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -231,7 +234,7 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -240,7 +243,7 @@ describe('undo_delete.vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
@@ -248,8 +251,8 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -257,7 +260,7 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -273,7 +276,7 @@ describe('undo_delete.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
+      helper.toastMessageTest(mock.toast, { error: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

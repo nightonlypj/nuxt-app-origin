@@ -1,6 +1,9 @@
+import { config } from '@vue/test-utils'
 import helper from '~/test/helper'
 import { useAuthSignOut } from '~/composables/authSignOut'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
 
 // ログアウト
 describe('authSignOut.ts', () => {
@@ -44,13 +47,13 @@ describe('authSignOut.ts', () => {
     it('[なし]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction()
 
-      helper.mockCalledTest(mock.useApiRequest, 1, helper.envConfig.apiBaseURL + helper.commonConfig.authSignOutURL, 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, $config.public.apiBaseURL + $config.public.authSignOutURL, 'POST')
       expect(authData.value).toBeNull()
     })
     it('[false]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction(false)
 
-      helper.mockCalledTest(mock.useApiRequest, 1, helper.envConfig.apiBaseURL + helper.commonConfig.authSignOutURL, 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, $config.public.apiBaseURL + $config.public.authSignOutURL, 'POST')
       expect(authData.value).toBeNull()
     })
     it('[true]APIリクエストされない。ユーザー情報がnullになる', async () => {

@@ -1,7 +1,10 @@
 import { createI18n } from 'vue-i18n'
 import { config, RouterLinkStub } from '@vue/test-utils'
+import { commonConfig } from '../config/common'
+import { envConfig } from '../config/test'
 import { vuetify } from '~/plugins/vuetify'
 import veeValidate from '~/plugins/veeValidate'
+import defineI18nConfig from '~/i18n.config'
 import helper from '~/test/helper'
 
 // NOTE: 他のテストの影響を受けないようにする
@@ -17,9 +20,10 @@ config.global.plugins = [vuetify]
 veeValidate(null as any)
 
 // Mock Config/i18n
-const i18n: any = createI18n({ ...helper.i18nConfig, locale: helper.locale })
+const i18nConfig: any = defineI18nConfig()
+const i18n: any = createI18n({ ...i18nConfig, locale: helper.locale })
 config.global.mocks = {
-  $config: { public: Object.assign(helper.envConfig, helper.commonConfig, { env: { production: false, test: true } }) },
+  $config: { public: Object.assign(commonConfig, envConfig, { env: { production: false, test: true } }) },
   $t: (...args: any[]) => i18n.global.t(...args),
   $tm: (key: string) => i18n.global.tm(key)
 }
