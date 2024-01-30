@@ -6,7 +6,7 @@ import { sortBy, isEqual } from 'lodash'
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 検索パラメータチェック
-const checkSearchParams = (reqParams: object, resParams: object, test = false) => {
+const checkSearchParams = (reqParams: object, resParams: object, $t: any, test = false) => {
   const $config = useRuntimeConfig()
   /* c8 ignore next */
   if (!$config.public.debug && !test) { return }
@@ -18,7 +18,7 @@ const checkSearchParams = (reqParams: object, resParams: object, test = false) =
   if ($config.public.debug) { console.log(`response params: ${result ? 'OK' : 'NG'}`, reqParams, resParams) }
 
   const { $toast } = useNuxtApp()
-  if (!result) { $toast.warning('パラメータが一致していません。ログを確認してください。') }
+  if (!result) { $toast.warning($t('パラメータ不一致')) }
 }
 
 export {

@@ -1,5 +1,8 @@
+import { config } from '@vue/test-utils'
 import { sleep, checkSearchParams } from '~/utils/search'
 import helper from '~/test/helper'
+
+const $t = config.global.mocks.$t
 
 describe('search.ts', () => {
   // 一定時間停止
@@ -24,12 +27,12 @@ describe('search.ts', () => {
     })
 
     it('[一致]エラーメッセージが表示されない', () => {
-      checkSearchParams({ text1: '', text2: '' }, { text2: '', text1: '' }, true)
+      checkSearchParams({ text1: '', text2: '' }, { text2: '', text1: '' }, $t, true)
       helper.toastMessageTest(mock.toast, {})
     })
     it('[不一致]エラーメッセージが表示される', () => {
-      checkSearchParams({ text1: '', text2: '' }, { text1: '' }, true)
-      helper.toastMessageTest(mock.toast, { warning: 'パラメータが一致していません。ログを確認してください。' })
+      checkSearchParams({ text1: '', text2: '' }, { text1: '' }, $t, true)
+      helper.toastMessageTest(mock.toast, { warning: $t('パラメータ不一致') })
     })
   })
 })

@@ -18,13 +18,14 @@ describe('default.vue', () => {
   })
 
   const mountFunction = (loggedIn: boolean, user: object | null = null) => {
-    vi.stubGlobal('useHead', mock.useHead)
+    vi.stubGlobal('useSwitchLocalePath', vi.fn())
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
       $auth: {
         loggedIn,
         user
       }
     })))
+    vi.stubGlobal('useHead', mock.useHead)
 
     const wrapper = mount(Layout, {
       global: {

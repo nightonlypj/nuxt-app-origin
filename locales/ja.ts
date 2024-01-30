@@ -32,6 +32,7 @@ export const ja = {
     not_destroy_reserved: '既に取り消し済みか、アカウント削除されていません。',
     forbidden: 'アクセス権限がありません。'
   },
+  パラメータ不一致: 'パラメータが一致していません。ログを確認してください。',
   '{total}件': '{total}件',
   '{total}件中 {start}-{end}件を表示': '{total}件中 {start}-{end}件を表示',
   '{name}はありません。': '{name}はありません。',

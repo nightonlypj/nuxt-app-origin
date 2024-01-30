@@ -1,4 +1,5 @@
 import { RouterLinkStub } from '@vue/test-utils'
+import { defaultLocale } from '~/i18n.config'
 
 // NuxtLinkのURL一覧を配列で返却
 const getLinks = (wrapper: any) => {
@@ -62,7 +63,7 @@ const disabledTest = (wrapper: any, AppProcessing: any, button: any, disabled: b
 }
 
 export default {
-  locale: 'ja', // or 'en'
+  locale: defaultLocale,
   getLinks,
   loadingTest,
   blankTest,

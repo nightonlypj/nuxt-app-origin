@@ -8,7 +8,7 @@
       <v-card-title>
         <div>
           <InfomationsLabel :infomation="infomation" />
-          <span class="font-weight-bold">
+          <span class="ml-1 font-weight-bold">
             {{ infomation.title }}
           </span>
           ({{ dateFormat(locale, infomation.started_at, 'N/A') }})

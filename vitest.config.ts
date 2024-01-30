@@ -37,8 +37,7 @@ export default defineConfig({
           '#app': [
             'defineNuxtComponent',
             'defineNuxtPlugin',
-            'definePageMeta',
-            'defineI18nConfig'
+            'definePageMeta'
           ]
         }
       ],

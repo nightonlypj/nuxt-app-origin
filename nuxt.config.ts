@@ -1,5 +1,6 @@
 import vuetify from 'vite-plugin-vuetify'
 import { commonConfig } from './config/common'
+import { defaultLocale, locales } from './i18n.config'
 
 const environment = process.env.NODE_ENV || 'development'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -18,11 +19,8 @@ export default defineNuxtConfig({
   ],
   i18n: {
     strategy: 'prefix_and_default', // https://i18n.nuxtjs.org/guide/routing-strategies
-    defaultLocale: 'ja',
-    locales: [
-      { code: 'en', iso: 'en_US' },
-      { code: 'ja', iso: 'ja_JP' }
-    ],
+    defaultLocale,
+    locales,
     vueI18n: './i18n.config.ts'
   },
   auth: {

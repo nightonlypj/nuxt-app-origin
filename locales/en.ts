@@ -32,6 +32,7 @@ export const en = {
     not_destroy_reserved: 'It has already been canceled or the account has not been deleted.',
     forbidden: 'You do not have access privileges.'
   },
+  パラメータ不一致: 'Parameter mismatch. Please check the log.',
   '{total}件': '{total} items',
   '{total}件中 {start}-{end}件を表示': 'Displaying {start}-{end} of {total} items',
   '{name}はありません。': 'There is no {name}.',

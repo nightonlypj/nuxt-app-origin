@@ -4,7 +4,7 @@ import { commonConfig } from '../config/common'
 import { envConfig } from '../config/test'
 import { vuetify } from '~/plugins/vuetify'
 import veeValidate from '~/plugins/veeValidate'
-import defineI18nConfig from '~/i18n.config'
+import i18nConfig, { locales } from '~/i18n.config'
 import helper from '~/test/helper'
 
 // NOTE: 他のテストの影響を受けないようにする
@@ -20,7 +20,6 @@ config.global.plugins = [vuetify]
 veeValidate(null as any)
 
 // Mock Config/i18n
-const i18nConfig: any = defineI18nConfig()
 const i18n: any = createI18n({ ...i18nConfig, locale: helper.locale })
 config.global.mocks = {
   $config: { public: Object.assign(commonConfig, envConfig, { env: { production: false, test: true } }) },
@@ -28,7 +27,7 @@ config.global.mocks = {
   $tm: (key: string) => i18n.global.tm(key)
 }
 vi.stubGlobal('useRuntimeConfig', vi.fn(() => config.global.mocks.$config))
-vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t, tm: config.global.mocks.$tm, locale: ref(helper.locale) })))
+vi.stubGlobal('useI18n', vi.fn(() => ({ t: config.global.mocks.$t, tm: config.global.mocks.$tm, locale: ref(helper.locale), locales: ref(locales) })))
 vi.stubGlobal('useLocalePath', vi.fn(() => (url: string) => url))
 
 // NOTE: Failed to resolve component: NuxtLink

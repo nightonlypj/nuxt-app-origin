@@ -5,7 +5,7 @@
       <NuxtLink :to="localePath('/')" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          :style="`width: ${($vuetify.display.width - (58 + 40 + ($vuetify.display.smAndDown ? 64 : 400) + 64 - 26))}px`"
+          :style="`width: ${appBarTitleWidth}px`"
           class="ml-1 align-self-center d-inline-block text-truncate"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
@@ -69,6 +69,18 @@
           </v-badge>
         </component>
       </template>
+      <v-select
+        v-if="locales.length >= 2"
+        v-model="switchLocale"
+        :items="locales"
+        item-title="name"
+        item-value="code"
+        density="compact"
+        variant="underlined"
+        hide-details
+        class="ml-1 mr-4 mb-2 switch-locale"
+        @update:model-value="navigateTo(switchLocalePath(switchLocale))"
+      />
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" width="300">
@@ -166,10 +178,13 @@ import AppBackToTop from '~/components/app/BackToTop.vue'
 
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
 const { $auth } = useNuxtApp()
+const display = useDisplay()
 
-const drawer = ref(!useDisplay().mobile.value)
+const drawer = ref(!display.mobile.value)
+const switchLocale = ref(locale.value)
 
 useHead({
   titleTemplate
@@ -178,6 +193,17 @@ function titleTemplate (title: string | undefined) {
   const name = `${$t('app_name')}${$t(`env_name.${$config.public.serverEnv}`)}`
   return title == null ? name : `${title} - ${name}`
 }
+
+const appBarTitleWidth = computed(() => {
+  const drawerIconWidth = 58 + 40
+  const switchLocaleWidth = locales.value.length >= 2 ? (display.xs.value ? 48 : 72) + 10 : 0
+  if ($auth.loggedIn) {
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 : 400) + 64 + switchLocaleWidth - 26)
+  } else {
+    const btnWidth = locale.value === 'ja' ? 111 + 158 : 96 + 219
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 * 2 : btnWidth) + switchLocaleWidth - 26)
+  }
+})
 </script>
 
 <style scoped>
@@ -199,5 +225,9 @@ function titleTemplate (title: string | undefined) {
 }
 .v-card-title {
   white-space: normal; /* NOTE: 文字が省略され、折り返されない為 */
+}
+.switch-locale .v-field {
+  font-size: 12px;
+  width: 72px;
 }
 </style>
