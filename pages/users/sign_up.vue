@@ -92,6 +92,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectSignIn } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
 
@@ -133,7 +134,7 @@ function created () {
 async function postSingUp (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.singUpUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.singUpUrl), 'POST', {
     ...query.value,
     confirm_success_url: $config.public.frontBaseURL + localePath($config.public.singUpSuccessUrl)
   })

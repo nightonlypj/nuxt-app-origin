@@ -1,12 +1,13 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import Page from '~/pages/infomations/index.vue'
 import { activeUser } from '~/test/data/user'
-import { dataCount0, dataCount1, dataPage1, dataPage2, dataPageMiss1, dataPageMiss2 } from '~/test/data/infomations'
+import { dataCount0, dataCount1, dataCount2, dataPage1, dataPage2, dataPageMiss1, dataPageMiss2 } from '~/test/data/infomations'
 
 const $config = config.global.mocks.$config
 const $t = config.global.mocks.$t
@@ -59,7 +60,7 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, $config.public.apiBaseURL + $config.public.infomations.listUrl, 'GET', params)
+    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL.value(helper.locale, $config.public.infomations.listUrl), 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string) => {
@@ -99,7 +100,17 @@ describe('index.vue', () => {
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, {})
-      viewTest(wrapper, dataCount1, $t('{total}件', { total: 1 }))
+      viewTest(wrapper, dataCount1, $t('1件', { total: 1 }))
+    })
+    it('[2件]表示される', async () => {
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataCount2])
+      const wrapper = mountFunction()
+      helper.loadingTest(wrapper, AppLoading)
+      await flushPromises()
+
+      apiCalledTest(1)
+      helper.mockCalledTest(mock.navigateTo, 1, {})
+      viewTest(wrapper, dataCount2, $t('{total}件', { total: 2 }))
     })
     it('[ページネーション]表示される', async () => {
       mock.useApiRequest = vi.fn()

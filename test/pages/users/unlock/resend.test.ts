@@ -1,5 +1,6 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -103,7 +104,7 @@ describe('resend.vue', () => {
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.unlockUrl, 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.unlockUrl), 'POST', {
           ...params,
           redirect_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
         })

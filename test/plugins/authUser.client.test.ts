@@ -27,12 +27,13 @@ describe('authUser.client.ts', () => {
   })
   describe('ログイン中', () => {
     const reqToken = Object.freeze({ 'token-type': 'Bearer', 'access-token': 'token1' })
+    const locale = 'unknown'
     it('[レスポンスOK]ユーザー情報更新が更新される。ログアウトされない', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true }])
       beforeAction(reqToken)
 
       await Plugin(_nuxtApp)
-      helper.mockCalledTest(mock.useAuthUser, 1)
+      helper.mockCalledTest(mock.useAuthUser, 1, locale)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
     })
     it('[レスポンスNG]ユーザー情報更新が更新される。ログアウトされない', async () => {
@@ -40,7 +41,7 @@ describe('authUser.client.ts', () => {
       beforeAction(reqToken)
 
       await Plugin(_nuxtApp)
-      helper.mockCalledTest(mock.useAuthUser, 1)
+      helper.mockCalledTest(mock.useAuthUser, 1, locale)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
     })
     it('[レスポンス401]ユーザー情報が更新されない。ログアウトされる', async () => {
@@ -48,8 +49,8 @@ describe('authUser.client.ts', () => {
       beforeAction(reqToken)
 
       await Plugin(_nuxtApp)
-      helper.mockCalledTest(mock.useAuthUser, 1)
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthUser, 1, locale)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, locale, true)
     })
   })
 })

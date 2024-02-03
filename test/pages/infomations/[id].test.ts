@@ -1,6 +1,7 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { dateFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
@@ -76,8 +77,7 @@ describe('[id].vue', () => {
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = (params: any) => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      const url = $config.public.infomations.detailUrl.replace(':id', params.id)
-      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + url)
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.infomations.detailUrl.replace(':id', params.id)))
     }
 
     let wrapper: any

@@ -70,6 +70,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectConfirmationReset } from '~/utils/redirect'
 
 const localePath = useLocalePath()
@@ -117,7 +118,7 @@ async function signIn (invalid: boolean, keydown: boolean) {
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authSignInURL, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.authSignInURL), 'POST', {
     ...query.value,
     unlock_redirect_url: $config.public.frontBaseURL + localePath($config.public.unlockRedirectUrl)
   })

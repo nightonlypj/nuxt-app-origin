@@ -62,6 +62,7 @@
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import { dateFormat, dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath } from '~/utils/redirect'
 import { updateAuthUser } from '~/utils/auth'
 
@@ -77,7 +78,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
 
-  if (!await updateAuthUser($t, localePath)) { return }
+  if (!await updateAuthUser($t, localePath, locale.value)) { return }
   if ($auth.user.destroy_schedule_at == null) { return redirectPath(localePath('/'), { alert: $t('auth.not_destroy_reserved') }) }
 
   loading.value = false
@@ -88,7 +89,7 @@ async function postUserUndoDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userUndoDeleteUrl), 'POST')
 
   if (response?.ok) {
     if (data != null) {
@@ -99,7 +100,7 @@ async function postUserUndoDelete (isActive: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
+      useAuthSignOut(locale.value, true)
       return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))

@@ -29,7 +29,7 @@
               <span class="ml-4">{{ $t('アカウント削除') }}</span>
             </v-toolbar>
             <v-card-text>
-              <div class="text-h6 pa-4">{{ $t('削除確認メッセージ') }}</div>
+              <div class="text-h6 pa-4">{{ $t('アカウント削除確認メッセージ') }}</div>
             </v-card-text>
             <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
@@ -65,12 +65,13 @@
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath, redirectSignIn } from '~/utils/redirect'
 import { updateAuthUser } from '~/utils/auth'
 
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 
 const loading = ref(true)
@@ -81,7 +82,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
 
-  if (!await updateAuthUser($t, localePath)) { return }
+  if (!await updateAuthUser($t, localePath, locale.value)) { return }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath(localePath('/'), { alert: $t('auth.destroy_reserved') }) }
 
   loading.value = false
@@ -92,20 +93,20 @@ async function postUserDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userDeleteUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userDeleteUrl), 'POST', {
     undo_delete_url: $config.public.frontBaseURL + localePath($config.public.userSendUndoDeleteUrl)
   })
 
   if (response?.ok) {
     if (data != null) {
-      await useAuthSignOut()
+      await useAuthSignOut(locale.value)
       return redirectSignIn(data, localePath)
     } else {
       $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
+      useAuthSignOut(locale.value, true)
       return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))

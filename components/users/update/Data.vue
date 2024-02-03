@@ -94,6 +94,7 @@ import { Form, Field, defineRule } from 'vee-validate'
 import { setLocale } from '@vee-validate/i18n'
 import { required, email, min, max, confirmed } from '@vee-validate/rules'
 import AppProcessing from '~/components/app/Processing.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectAuth } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
 
@@ -131,7 +132,7 @@ const showPassword = ref(false)
 async function postUserUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userUpdateUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userUpdateUrl), 'POST', {
     ...query.value,
     confirm_redirect_url: $config.public.frontBaseURL + localePath($config.public.confirmationSuccessUrl)
   })
@@ -145,7 +146,7 @@ async function postUserUpdate (setErrors: any, values: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
+      useAuthSignOut(locale.value, true)
       redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))

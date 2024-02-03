@@ -38,7 +38,7 @@ describe('auth.ts', () => {
 
     it('[成功]trueが返却される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: true, status: 200 }, {}]))
-      expect(await updateAuthUser($t, localePath)).toBe(true)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(true)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
@@ -47,7 +47,7 @@ describe('auth.ts', () => {
     })
     it('[接続エラー]falseが返却され、エラーページが表示される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: null }, null]))
-      expect(await updateAuthUser($t, localePath)).toBe(false)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(false)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
@@ -55,25 +55,25 @@ describe('auth.ts', () => {
     })
     it('[認証エラー]falseが返却され、未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 401 }, messages]))
-      expect(await updateAuthUser($t, localePath)).toBe(false)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(false)
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]falseが返却され、未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 401 }, null]))
-      expect(await updateAuthUser($t, localePath)).toBe(false)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(false)
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[レスポンスエラー]falseが返却され、エラーページが表示される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 500 }, null]))
-      expect(await updateAuthUser($t, localePath)).toBe(false)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(false)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
@@ -81,7 +81,7 @@ describe('auth.ts', () => {
     })
     it('[その他エラー]falseが返却され、エラーページが表示される', async () => {
       vi.stubGlobal('useAuthUser', vi.fn(() => [{ ok: false, status: 400 }, {}]))
-      expect(await updateAuthUser($t, localePath)).toBe(false)
+      expect(await updateAuthUser($t, localePath, helper.locale)).toBe(false)
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})

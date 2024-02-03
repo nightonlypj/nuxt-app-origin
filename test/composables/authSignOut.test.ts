@@ -1,4 +1,5 @@
 import { config } from '@vue/test-utils'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import { useAuthSignOut } from '~/composables/authSignOut'
 import { activeUser } from '~/test/data/user'
@@ -21,7 +22,7 @@ describe('authSignOut.ts', () => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-    await useAuthSignOut(skipRequest)
+    await useAuthSignOut(helper.locale, skipRequest)
   }
 
   describe('localStorage', () => {
@@ -47,13 +48,13 @@ describe('authSignOut.ts', () => {
     it('[なし]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction()
 
-      helper.mockCalledTest(mock.useApiRequest, 1, $config.public.apiBaseURL + $config.public.authSignOutURL, 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL.value(helper.locale, $config.public.authSignOutURL), 'POST')
       expect(authData.value).toBeNull()
     })
     it('[false]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction(false)
 
-      helper.mockCalledTest(mock.useApiRequest, 1, $config.public.apiBaseURL + $config.public.authSignOutURL, 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL.value(helper.locale, $config.public.authSignOutURL), 'POST')
       expect(authData.value).toBeNull()
     })
     it('[true]APIリクエストされない。ユーザー情報がnullになる', async () => {

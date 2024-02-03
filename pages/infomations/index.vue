@@ -12,6 +12,9 @@
           <template v-if="enablePagination">
             {{ $t('{total}件中 {start}-{end}件を表示', { total: localeString(locale, infomation.total_count, 'N/A'), start: localeString(locale, pageFirstNumber(infomation), 'N/A'), end: localeString(locale, pageLastNumber(infomation), 'N/A') }) }}
           </template>
+          <template v-else-if="infomation.total_count === 1">
+            {{ $t('1件') }}
+          </template>
           <template v-else>
             {{ $t('{total}件', { total: localeString(locale, infomation.total_count, 'N/A') }) }}
           </template>
@@ -42,6 +45,7 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import { localeString, pageFirstNumber, pageLastNumber } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError } from '~/utils/redirect'
 
 const $config = useRuntimeConfig()
@@ -69,7 +73,9 @@ async function created () {
 async function getInfomationsList () {
   processing.value = true
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.infomations.listUrl, 'GET', { page: page.value })
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.listUrl), 'GET', {
+    page: page.value
+  })
 
   let alert: string | null = null
   if (response?.ok) {

@@ -1,6 +1,7 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import { dateFormat, dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -154,7 +155,7 @@ describe('undo_delete.vue', () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, messages])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -163,7 +164,7 @@ describe('undo_delete.vue', () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -189,7 +190,7 @@ describe('undo_delete.vue', () => {
   describe('アカウント削除取り消し', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userUndoDeleteUrl), 'POST')
     }
 
     let wrapper: any, button: any
@@ -241,7 +242,7 @@ describe('undo_delete.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -250,7 +251,7 @@ describe('undo_delete.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)

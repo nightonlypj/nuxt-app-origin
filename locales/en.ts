@@ -33,17 +33,24 @@ export const en = {
     forbidden: 'You do not have access privileges.'
   },
   パラメータ不一致: 'Parameter mismatch. Please check the log.',
+
+  '1件': '1 item',
   '{total}件': '{total} items',
-  '{total}件中 {start}-{end}件を表示': 'Displaying {start}-{end} of {total} items',
+  '{total}件中 {start}-{end}件を表示': '{start}-{end} of {total} in total',
   '{name}はありません。': 'There is no {name}.',
   一覧: 'List',
-  登録: 'Registration',
+
   送信: 'Send',
+  登録: 'Create',
   変更: 'Update',
   削除: 'Delete',
   アップロード: 'Upload',
   取り消し: 'Cancel',
+  'いいえ（キャンセル）': 'No (Cancel)',
+  'はい（削除）': 'Yes (Delete)',
+  'はい（削除取り消し）': 'Yes (Cancel deletion)',
 
+  トップページ: 'Top page',
   サービス概要: 'This is an Nuxt.js(Vue.js/Vuetify) base application. (Replaced with service overview)',
   サービス説明: 'We have developed frequently used functions in advance so that you can quickly launch your service. (Replaced with service description)',
   リポジトリ: 'Repository',
@@ -53,10 +60,10 @@ export const en = {
   クリップボードコピー成功: 'I copied "{text}" to my clipboard.',
   クリップボードコピー失敗: 'Copy failed. Please wait a while and try again.',
 
-  お知らせ: 'Notice',
-  大切なお知らせ: 'Important notice',
+  お知らせ: 'Infomation',
+  大切なお知らせ: 'Important infomation',
 
-  アカウント登録: 'Account registration',
+  アカウント登録: 'Create account',
   無料で始める: 'Get started for free',
   氏名: 'Full name',
   メールアドレス: 'Email address',
@@ -77,9 +84,7 @@ export const en = {
 
   画像ファイル: 'Image file',
   画像削除: 'Delete',
-  削除確認メッセージ: 'Do you really want to delete this?',
-  'いいえ（キャンセル）': 'No (Cancel)',
-  'はい（削除）': 'Yes (Delete)',
+  画像削除確認メッセージ: 'Do you really want to delete this?',
 
   パスワード再設定: 'Resetting a password',
   新しいパスワード: 'New Password',
@@ -92,11 +97,11 @@ export const en = {
   アカウント削除メッセージ: 'Your account will be deleted in {days} days. You can cancel until then.',
   アカウント削除補足: 'You can log in until it is deleted, but some functions will be restricted.',
   アカウント削除情報: 'This account will be deleted after {date}.',
+  アカウント削除確認メッセージ: 'Do you really want to delete this?',
   取り消しはこちら: 'Click here to cancel',
 
   アカウント削除取り消し: 'Cancel account deletion',
   アカウント削除取り消しメッセージ: 'This account will be deleted after {destroy_schedule_at}. You can cancel until then.',
   アカウント削除取り消し補足: '(Accepting account deletion requests at {destroy_requested_at})',
-  取り消し確認メッセージ: 'Are you sure you want to cancel?',
-  'はい（削除取り消し）': 'Yes (Cancel deletion)'
+  取り消し確認メッセージ: 'Are you sure you want to cancel?'
 }

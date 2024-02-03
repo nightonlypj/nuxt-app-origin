@@ -32,7 +32,7 @@ import { redirectPath } from '~/utils/redirect'
 
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 
 const loading = ref(true)
@@ -48,7 +48,7 @@ function created () {
 // ログアウト
 async function signOut () {
   processing.value = true
-  await useAuthSignOut()
+  await useAuthSignOut(locale.value)
   $toast.success($t('auth.signed_out'))
   navigateTo(localePath($config.public.authRedirectLogOutURL))
 }

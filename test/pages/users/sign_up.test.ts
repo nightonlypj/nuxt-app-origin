@@ -1,5 +1,6 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -91,7 +92,7 @@ describe('sign_up.vue', () => {
     const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.singUpUrl, 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.singUpUrl), 'POST', {
         ...params,
         confirm_success_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
       })

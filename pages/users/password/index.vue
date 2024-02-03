@@ -74,6 +74,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey, existKeyErrors } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectPasswordReset } from '~/utils/redirect'
 
 const localePath = useLocalePath()
@@ -117,7 +118,7 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.passwordUpdateUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.passwordUpdateUrl), 'POST', {
     reset_password_token: $route.query.reset_password_token,
     ...query.value
   })

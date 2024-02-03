@@ -30,12 +30,13 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppMessage from '~/components/app/Message.vue'
 import UpdateImage from '~/components/users/update/Image.vue'
 import UpdateData from '~/components/users/update/Data.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath, redirectError } from '~/utils/redirect'
 import { updateAuthUser } from '~/utils/auth'
 
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth } = useNuxtApp()
 
 const loading = ref(true)
@@ -49,7 +50,7 @@ created()
 async function created () {
   if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
 
-  if (!await updateAuthUser($t, localePath)) { return }
+  if (!await updateAuthUser($t, localePath, locale.value)) { return }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath(localePath('/'), { alert: $t('auth.destroy_reserved') }) }
 
   if (!await getUserDetail()) { return }
@@ -59,7 +60,7 @@ async function created () {
 
 // ユーザー情報詳細取得
 async function getUserDetail () {
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userDetailUrl)
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userDetailUrl))
 
   if (response?.ok) {
     if (data?.user != null) {
@@ -70,7 +71,7 @@ async function getUserDetail () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
+      useAuthSignOut(locale.value, true)
       redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (data == null) {
       redirectError(response?.status, { alert: $t(`network.${response?.status == null ? 'failure' : 'error'}`) })

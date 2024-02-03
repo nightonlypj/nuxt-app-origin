@@ -1,5 +1,6 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/users/update/Data.vue'
@@ -113,7 +114,7 @@ describe('Data.vue', () => {
     })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, $config.public.apiBaseURL + $config.public.userUpdateUrl, 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userUpdateUrl), 'POST', {
         ...params,
         confirm_redirect_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
       })
@@ -160,7 +161,7 @@ describe('Data.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
@@ -169,7 +170,7 @@ describe('Data.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)

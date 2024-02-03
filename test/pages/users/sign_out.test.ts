@@ -70,7 +70,7 @@ describe('sign_out.vue', () => {
       wrapper.find('#sign_out_btn').trigger('click')
       await flushPromises()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale)
       helper.toastMessageTest(mock.toast, { success: $t('auth.signed_out') })
       helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectLogOutURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 0)

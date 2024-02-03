@@ -29,6 +29,7 @@
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import { dateFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
@@ -46,7 +47,7 @@ async function created () {
 
 // 大切なお知らせ一覧取得
 async function getInfomationsImportant () {
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.infomations.importantUrl)
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.importantUrl))
 
   if (response?.ok) {
     if (data?.infomations != null) {

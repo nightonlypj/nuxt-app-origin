@@ -19,6 +19,10 @@ export default defineNuxtConfig({
   ],
   i18n: {
     strategy: 'prefix_and_default', // https://i18n.nuxtjs.org/guide/routing-strategies
+    detectBrowserLanguage: { // NOTE: CSRだとブラウザ言語の検出ができない
+      useCookie: true,
+      cookieKey: 'locale' // <- 'i18n_redirected'
+    },
     defaultLocale,
     locales,
     vueI18n: './i18n.config.ts'

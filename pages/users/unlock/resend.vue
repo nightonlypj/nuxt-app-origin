@@ -55,6 +55,7 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey, existKeyErrors } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectSignIn } from '~/utils/redirect'
 
 const localePath = useLocalePath()
@@ -94,7 +95,7 @@ async function postUnlock (invalid: boolean, keydown: boolean, setErrors: any, v
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.unlockUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.unlockUrl), 'POST', {
     ...query.value,
     redirect_url: $config.public.frontBaseURL + localePath($config.public.unlockRedirectUrl)
   })
