@@ -15,7 +15,8 @@ export default defineConfig({
     testTimeout: 10000, // NOTE: 5秒（デフォルト）だとタイムアウトする場合がある為
     // hookTimeout: 10000,
     // teardownTimeout: 10000,
-    setupFiles: ['./test/setup.ts']
+    setupFiles: './test/setup.ts',
+    globalSetup: './test/global-setup.ts'
   },
   plugins: [
     Vue({
@@ -35,7 +36,8 @@ export default defineConfig({
         {
           '#app': [
             'defineNuxtComponent',
-            'defineNuxtPlugin'
+            'defineNuxtPlugin',
+            'definePageMeta'
           ]
         }
       ],

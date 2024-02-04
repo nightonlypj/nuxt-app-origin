@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { dateFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/infomations/Lists.vue'
@@ -41,7 +42,7 @@ describe('Lists.vue', () => {
       if (infomation.summary != null) {
         expect(wrapper.text()).toMatch(infomation.summary) // 概要
       }
-      expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
+      expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, infomation.started_at)) // 開始日
     }
   }
 

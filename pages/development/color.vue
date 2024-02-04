@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>テーマカラー確認</Title>
+    <Title>{{ $t('テーマカラー確認') }}</Title>
   </Head>
   <template v-if="!loading">
     <v-alert type="error" icon="mdi-alert" class="mb-2">error(mdi-alert)</v-alert><!-- NOTE: mdi-alert追加 -->
@@ -15,7 +15,7 @@
           <v-btn color="primary-darken-1" class="mb-2 mr-2" @click="copyText('primary-darken-1')">primary-darken-1</v-btn>
           <v-btn color="secondary" class="mb-2 mr-2" @click="copyText('secondary')">secondary</v-btn>
           <v-btn color="secondary-darken-1" class="mb-2 mr-2" @click="copyText('secondary-darken-1')">secondary-darken-1</v-btn>
-          <v-btn class="mb-2 mr-2">未指定</v-btn>
+          <v-btn class="mb-2 mr-2">undefined</v-btn>
           <v-btn color="accent" class="mb-2" @click="copyText('accent')">accent (Nuxt2〜)</v-btn>
         </div>
         <div>
@@ -23,7 +23,7 @@
           <v-btn color="primary-darken-1" class="mb-2 mr-2" disabled>primary-darken-1</v-btn>
           <v-btn color="secondary" class="mb-2 mr-2" disabled>secondary</v-btn>
           <v-btn color="secondary-darken-1" class="mb-2 mr-2" disabled>secondary-darken-1</v-btn>
-          <v-btn class="mb-2 mr-2" disabled>未指定</v-btn>
+          <v-btn class="mb-2 mr-2" disabled>undefined</v-btn>
           <v-btn color="accent" class="mb-2" disabled>accent (Nuxt2〜)</v-btn>
         </div>
       </v-card-text>
@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
 const { $toast } = useNuxtApp()
 const loading = ref(true)
 
@@ -54,13 +55,13 @@ async function copyText (text: string) {
   try {
     await navigator.clipboard.writeText(text)
 
-    $toast.success(`「${text}」をクリップボードにコピーしました。`)
+    $toast.success($t('クリップボードコピー成功', { text }))
   /* c8 ignore start */
   } catch (error) {
     // eslint-disable-next-line no-console
     if ($config.public.debug) { console.log(error) }
 
-    $toast.error('コピーに失敗しました。しばらく時間をあけてから、やり直してください。')
+    $toast.error($t('クリップボードコピー失敗'))
   }
   /* c8 ignore stop */
 }

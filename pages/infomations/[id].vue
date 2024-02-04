@@ -8,10 +8,10 @@
       <v-card-title>
         <div>
           <InfomationsLabel :infomation="infomation" />
-          <span class="font-weight-bold">
+          <span class="ml-1 font-weight-bold">
             {{ infomation.title }}
           </span>
-          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat(locale, infomation.started_at, 'N/A') }})
         </div>
       </v-card-title>
       <v-card-text>
@@ -24,7 +24,7 @@
     </template>
     <v-card-actions>
       <ul class="my-2">
-        <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
+        <li><NuxtLink :to="localePath('/infomations')">{{ $t('一覧') }}</NuxtLink></li>
       </ul>
     </v-card-actions>
   </v-card>
@@ -34,10 +34,12 @@
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import { dateFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError } from '~/utils/redirect'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const $route = useRoute()
 
 const loading = ref(true)
@@ -62,8 +64,7 @@ async function created () {
 
 // お知らせ詳細取得
 async function getInfomationsDetail (id: number) {
-  const url = $config.public.infomations.detailUrl.replace(':id', String(id))
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.detailUrl.replace(':id', String(id))))
 
   if (response?.ok) {
     if (data?.infomation != null) {

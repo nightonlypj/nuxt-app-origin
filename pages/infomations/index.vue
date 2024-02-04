@@ -1,15 +1,23 @@
 <template>
   <Head>
-    <Title>お知らせ</Title>
+    <Title>{{ $t('お知らせ') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <v-card v-else>
     <AppProcessing v-if="processing" />
-    <v-card-title>お知らせ</v-card-title>
+    <v-card-title>{{ $t('お知らせ') }}</v-card-title>
     <v-card-text>
       <v-row v-if="infomation != null">
         <v-col class="align-self-center text-no-wrap ml-2">
-          {{ localeString('ja', infomation.total_count, 'N/A') }}件<template v-if="enablePagination">中 {{ localeString('ja', pageFirstNumber(infomation), 'N/A') }}-{{ localeString('ja', pageLastNumber(infomation), 'N/A') }}件を表示</template>
+          <template v-if="enablePagination">
+            {{ $t('{total}件中 {start}-{end}件を表示', { total: localeString(locale, infomation.total_count, 'N/A'), start: localeString(locale, pageFirstNumber(infomation), 'N/A'), end: localeString(locale, pageLastNumber(infomation), 'N/A') }) }}
+          </template>
+          <template v-else-if="infomation.total_count === 1">
+            {{ $t('1件') }}
+          </template>
+          <template v-else>
+            {{ $t('{total}件', { total: localeString(locale, infomation.total_count, 'N/A') }) }}
+          </template>
         </v-col>
         <v-col v-if="enablePagination" class="pa-0">
           <div class="d-flex justify-end">
@@ -20,7 +28,7 @@
 
       <v-divider class="my-4" />
       <template v-if="infomations == null || infomations.length === 0">
-        <span class="ml-1">お知らせはありません。</span>
+        <span class="ml-1">{{ $t('{name}はありません。', { name: $t('お知らせ') }) }}</span>
         <v-divider class="my-4" />
       </template>
       <InfomationsLists v-else :infomations="infomations" />
@@ -37,10 +45,11 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import InfomationsLists from '~/components/infomations/Lists.vue'
 import { localeString, pageFirstNumber, pageLastNumber } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError } from '~/utils/redirect'
 
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
@@ -64,7 +73,9 @@ async function created () {
 async function getInfomationsList () {
   processing.value = true
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.infomations.listUrl, 'GET', { page: page.value })
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.listUrl), 'GET', {
+    page: page.value
+  })
 
   let alert: string | null = null
   if (response?.ok) {

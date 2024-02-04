@@ -1,9 +1,6 @@
 export const envConfig = {
   debug: false,
-  envName: '【テスト】',
+  serverEnv: 'production',
   apiBaseURL: 'https://example.com',
-  frontBaseURL: 'https://front.example.com',
-
-  timeZoneOffset: '+09:00',
-  timeZoneShortName: 'JST'
+  frontBaseURL: 'https://front.example.com'
 }

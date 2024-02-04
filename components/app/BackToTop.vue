@@ -1,5 +1,6 @@
 <template>
-  <!-- /* c8 ignore next 2 */ -->
+  <!-- /* c8 ignore next 3 */ -->
+  <!-- NOTE: [Vuetify] Could not find injected layout。@scrollはtestの為 -->
   <component
     :is="$config.public.env.test ? 'div' : 'v-layout-item'"
     id="back_to_top_item"
@@ -10,7 +11,6 @@
     size="24"
     @scroll="updateShow()"
   >
-    <!-- NOTE: @scrollはtestの為。testでv-layout-item-stubになる為、divに変更 -->
     <v-fab-transition class="ma-4">
       <v-btn
         v-show="show"
@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+const $config = useRuntimeConfig()
 const show = ref(false)
 
 function updateShow () {

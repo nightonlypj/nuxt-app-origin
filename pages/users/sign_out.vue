@@ -1,15 +1,15 @@
 <template>
   <Head>
-    <Title>ログアウト</Title>
+    <Title>{{ $t('ログアウト') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <v-card v-else max-width="480px">
     <AppProcessing v-if="processing" />
-    <v-card-title>ログアウトします。よろしいですか？</v-card-title>
+    <v-card-title>{{ $t('ログアウト確認メッセージ') }}</v-card-title>
     <v-card-text>
-      <NuxtLink to="/">
+      <NuxtLink :to="localePath('/')">
         <v-btn color="secondary" class="mb-2 mr-1">
-          いいえ（トップページ）
+          {{ $t('いいえ（トップページ）') }}
         </v-btn>
       </NuxtLink>
       <v-btn
@@ -19,7 +19,7 @@
         :disabled="processing"
         @click="signOut()"
       >
-        はい（ログアウト）
+        {{ $t('はい（ログアウト）') }}
       </v-btn>
     </v-card-text>
   </v-card>
@@ -30,8 +30,9 @@ import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import { redirectPath } from '~/utils/redirect'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 
 const loading = ref(true)
@@ -39,7 +40,7 @@ const processing = ref(false)
 
 created()
 function created () {
-  if (!$auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_signed_out') }) }
+  if (!$auth.loggedIn) { return redirectPath(localePath('/'), { notice: $t('auth.already_signed_out') }) }
 
   loading.value = false
 }
@@ -47,8 +48,8 @@ function created () {
 // ログアウト
 async function signOut () {
   processing.value = true
-  await useAuthSignOut()
+  await useAuthSignOut(locale.value)
   $toast.success($t('auth.signed_out'))
-  navigateTo($config.public.authRedirectLogOutURL)
+  navigateTo(localePath($config.public.authRedirectLogOutURL))
 }
 </script>

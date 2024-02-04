@@ -11,6 +11,7 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
     return
   }
 
-  const [response] = await useAuthUser()
-  if (!response?.ok && response?.status === 401) { useAuthSignOut(true) }
+  const locale = 'unknown'
+  const [response] = await useAuthUser(locale)
+  if (!response?.ok && response?.status === 401) { useAuthSignOut(locale, true) }
 })

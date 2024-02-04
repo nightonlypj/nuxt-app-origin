@@ -1,9 +1,11 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Layout from '~/error.vue'
 
+const $t = config.global.mocks.$t
+
 describe('error.vue', () => {
-  const mountFunction = (statusCode: number | null, data = {}) => {
+  const mountFunction = (statusCode: number, data = {}) => {
     const wrapper = mount(Layout, {
       props: {
         error: {
@@ -30,21 +32,21 @@ describe('error.vue', () => {
   describe('alert/noticeなし', () => {
     it('[404]表示される', () => {
       const wrapper = mountFunction(404)
-      viewTest(wrapper, { alert: helper.locales.system.notfound })
+      viewTest(wrapper, { alert: $t('system.notfound') })
     })
     it('[500]表示される', () => {
       const wrapper = mountFunction(500)
-      viewTest(wrapper, { alert: helper.locales.system.default })
+      viewTest(wrapper, { alert: $t('system.default') })
     })
   })
   describe('alertなし/noticeあり', () => {
     it('[404]表示される', () => {
       const wrapper = mountFunction(404, { notice })
-      viewTest(wrapper, { alert: helper.locales.system.notfound, notice })
+      viewTest(wrapper, { alert: $t('system.notfound'), notice })
     })
     it('[500]表示される', () => {
       const wrapper = mountFunction(500, { notice })
-      viewTest(wrapper, { alert: helper.locales.system.default, notice })
+      viewTest(wrapper, { alert: $t('system.default'), notice })
     })
   })
   describe('alertあり/noticeなし', () => {
