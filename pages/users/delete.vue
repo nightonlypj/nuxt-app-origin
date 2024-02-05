@@ -55,9 +55,7 @@
     </v-card-text>
     <v-divider />
     <v-card-actions>
-      <ul class="my-2">
-        <li><NuxtLink :to="localePath('/users/update')">{{ $t('ユーザー情報') }}</NuxtLink></li>
-      </ul>
+      <NuxtLink :to="localePath('/users/update')">{{ $t('ユーザー情報') }}</NuxtLink>
     </v-card-actions>
   </v-card>
 </template>

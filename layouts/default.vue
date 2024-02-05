@@ -226,6 +226,9 @@ const appBarTitleWidth = computed(() => {
 .v-card-title {
   white-space: normal; /* NOTE: 文字が省略され、折り返されない為 */
 }
+.v-input--density-compact {
+  --v-input-control-height: 32px; /* NOTE: v-switchの高さが40pxだと大きい為 */
+}
 .switch-locale .v-field {
   font-size: 12px;
   width: 72px;

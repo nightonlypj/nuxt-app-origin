@@ -23,9 +23,7 @@
       <v-divider />
     </template>
     <v-card-actions>
-      <ul class="my-2">
-        <li><NuxtLink :to="localePath('/infomations')">{{ $t('一覧') }}</NuxtLink></li>
-      </ul>
+      <NuxtLink :to="localePath('/infomations')">{{ $t('一覧') }}</NuxtLink>
     </v-card-actions>
   </v-card>
 </template>
