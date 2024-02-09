@@ -17,10 +17,6 @@ describe('auth.ts', () => {
         showError: vi.fn(),
         toast: helper.mockToast
       }
-      vi.stubGlobal('showError', mock.showError)
-      vi.stubGlobal('useNuxtApp', vi.fn(() => ({
-        $toast: mock.toast
-      })))
       vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
       vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
       vi.stubGlobal('navigateTo', mock.navigateTo)
@@ -28,9 +24,7 @@ describe('auth.ts', () => {
       vi.stubGlobal('useNuxtApp', vi.fn(() => ({
         $toast: mock.toast
       })))
-      vi.stubGlobal('useRoute', vi.fn(() => ({
-        fullPath
-      })))
+      vi.stubGlobal('useRoute', vi.fn(() => ({ fullPath })))
     })
     const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
     const fullPath = '/path'

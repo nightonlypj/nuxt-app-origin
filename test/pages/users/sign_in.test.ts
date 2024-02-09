@@ -36,9 +36,7 @@ describe('sign_in.vue', () => {
       },
       $toast: mock.toast
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      query: { ...query }
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ query: { ...query } })))
 
     const wrapper: any = mount(Page, {
       global: {

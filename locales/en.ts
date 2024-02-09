@@ -34,11 +34,11 @@ export const en = {
   },
   パラメータ不一致: 'Parameter mismatch. Please check the log.',
 
-  '1件': '1 item',
-  '{total}件': '{total} items',
+  '{total}件（単数）': '{total} item',
+  '{total}件（複数）': '{total} items',
   '{total}件中 {start}-{end}件を表示': '{start}-{end} of {total} in total',
   '{name}はありません。': 'There is no {name}.',
-  一覧: 'List',
+  // '対象の{name}が見つかりません。': 'Target {name} not found.',
 
   送信: 'Send',
   登録: 'Create',
@@ -60,8 +60,9 @@ export const en = {
   クリップボードコピー成功: 'I copied "{text}" to my clipboard.',
   クリップボードコピー失敗: 'Copy failed. Please wait a while and try again.',
 
-  お知らせ: 'Infomation',
   大切なお知らせ: 'Important infomation',
+  お知らせ: 'Infomation',
+  一覧: 'List',
 
   アカウント登録: 'Create account',
   無料で始める: 'Get started for free',
@@ -101,7 +102,7 @@ export const en = {
   取り消しはこちら: 'Click here to cancel',
 
   アカウント削除取り消し: 'Cancel account deletion',
-  アカウント削除取り消しメッセージ: 'This account will be deleted after {destroy_schedule_at}. You can cancel until then.',
-  アカウント削除取り消し補足: '(Accepting account deletion requests at {destroy_requested_at})',
-  取り消し確認メッセージ: 'Are you sure you want to cancel?'
+  アカウント削除取り消しメッセージ: 'This account will be deleted after {date}. You can cancel until then.',
+  アカウント削除取り消し補足: '(Accepting account deletion requests at {date})',
+  アカウント削除取り消し確認メッセージ: 'Are you sure you want to cancel?'
 }

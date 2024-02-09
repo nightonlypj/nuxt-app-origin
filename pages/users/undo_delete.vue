@@ -8,9 +8,9 @@
     <v-card-title>{{ $t('アカウント削除取り消し') }}</v-card-title>
     <v-card-text>
       <p>
-        {{ $t('アカウント削除取り消しメッセージ', { destroy_schedule_at: dateFormat(locale, $auth.user.destroy_schedule_at, 'N/A') }) }}<br>
+        {{ $t('アカウント削除取り消しメッセージ', { date: dateFormat(locale, $auth.user.destroy_schedule_at, 'N/A') }) }}<br>
         <template v-if="$auth.user.destroy_requested_at != null">
-          {{ $t('アカウント削除取り消し補足', { destroy_requested_at: dateTimeFormat(locale, $auth.user.destroy_requested_at) }) }}
+          {{ $t('アカウント削除取り消し補足', { date: dateTimeFormat(locale, $auth.user.destroy_requested_at) }) }}
         </template>
       </p>
       <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
@@ -31,7 +31,7 @@
               <span class="ml-4">{{ $t('アカウント削除取り消し') }}</span>
             </v-toolbar>
             <v-card-text>
-              <div class="text-h6 pa-4">{{ $t('取り消し確認メッセージ') }}</div>
+              <div class="text-h6 pa-4">{{ $t('アカウント削除取り消し確認メッセージ') }}</div>
             </v-card-text>
             <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn

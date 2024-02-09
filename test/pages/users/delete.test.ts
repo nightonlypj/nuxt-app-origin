@@ -40,9 +40,7 @@ describe('delete.vue', () => {
       },
       $toast: mock.toast
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      fullPath
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ fullPath })))
 
     const wrapper = mount(Page, {
       global: {

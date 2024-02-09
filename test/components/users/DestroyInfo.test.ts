@@ -12,9 +12,7 @@ describe('DestroyInfo.vue', () => {
         user
       }
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      path
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ path })))
 
     const wrapper = mount(Component)
     expect(wrapper.vm).toBeTruthy()

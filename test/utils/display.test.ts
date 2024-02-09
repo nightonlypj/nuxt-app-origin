@@ -1,4 +1,4 @@
-import { dateFormat, dateTimeFormat, pageFirstNumber, pageLastNumber, localeString, textTruncate, tableHeight, timeZoneOffset, timeZoneShortName } from '~/utils/display'
+import { dateFormat, dateTimeFormat, pageFirstNumber, pageLastNumber, localeString, textTruncate, timeZoneOffset, timeZoneShortName } from '~/utils/display'
 import helper from '~/test/helper'
 
 describe('display.ts', () => {
@@ -100,25 +100,11 @@ describe('display.ts', () => {
     })
   })
 
-  // テーブルの高さを返却
-  describe('tableHeight', () => {
-    const margin = 64 + 16 + 16 + 40
-    it('[高さが199+マージン]200pxが返却される', () => {
-      expect(tableHeight.value(199 + margin)).toBe('200px')
-    })
-    it('[高さが200+マージン]200pxが返却される', () => {
-      expect(tableHeight.value(200 + margin)).toBe('200px')
-    })
-    it('[高さが201+マージン]201pxが返却される', () => {
-      expect(tableHeight.value(201 + margin)).toBe('201px')
-    })
-  })
-
   // タイムゾーンの差を返却 ex.'+09:00',
   const exceptTimeZoneOffset = '+09:00'
   describe('timeZoneOffset', () => {
     it(`${exceptTimeZoneOffset}が返却される`, () => {
-      expect(timeZoneOffset.value()).toBe(exceptTimeZoneOffset)
+      expect(timeZoneOffset.value).toBe(exceptTimeZoneOffset)
     })
   })
 
@@ -126,7 +112,7 @@ describe('display.ts', () => {
   const exceptTimeZoneShortName = 'JST'
   describe('timeZoneShortName', () => {
     it(`${exceptTimeZoneShortName}が返却される`, () => {
-      expect(timeZoneShortName.value()).toBe(exceptTimeZoneShortName)
+      expect(timeZoneShortName.value).toBe(exceptTimeZoneShortName)
     })
   })
 })

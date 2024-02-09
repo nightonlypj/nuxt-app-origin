@@ -26,8 +26,8 @@ const messages = {
   // numeric: 'May only contain numeric characters', // "The {field} field may only contain numeric characters",
   // one_of: 'Does not a valid value', // "The {field} field is not a valid value",
   // regex: 'Format is invalid', // "The {field} field format is invalid",
-  // required_if: 'Required', // "The {field} field is required",
   required: 'Required', // "The {field} field is required",
+  // required_if: 'Required', // "The {field} field is required",
   // size: 'Size must be less than 0:{size}KB', // "The {field} field size must be less than 0:{size}KB",
   size_20MB: 'Size must be less than 20MB'
   // url: 'Does not a valid URL', // "The {field} field is not a valid URL"
