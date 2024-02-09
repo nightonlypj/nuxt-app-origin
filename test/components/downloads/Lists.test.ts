@@ -1,13 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
+import { dateTimeFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import Component from '~/components/downloads/Lists.vue'
 import { listCount5 } from '~/test/data/downloads'
 
+const $t = config.global.mocks.$t
+
 describe('Lists.vue', () => {
   const mountFunction = (downloads: any, query: object | null = null) => {
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      query: { ...query }
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ query: { ...query } })))
 
     const wrapper = mount(Component, {
       props: {
@@ -22,11 +23,11 @@ describe('Lists.vue', () => {
 
   const viewTest = (wrapper: any, downloads: any, show = { active: 0, inactive: 0 }) => {
     // ヘッダ
-    expect(wrapper.text()).toMatch('依頼日時')
-    expect(wrapper.text()).toMatch('完了日時')
-    expect(wrapper.text()).toMatch('ステータス')
-    expect(wrapper.text()).toMatch('ファイル')
-    expect(wrapper.text()).toMatch('対象・形式等')
+    expect(wrapper.text()).toMatch($t('依頼日時'))
+    expect(wrapper.text()).toMatch($t('完了日時'))
+    expect(wrapper.text()).toMatch($t('ステータス'))
+    expect(wrapper.text()).toMatch($t('ファイル'))
+    expect(wrapper.text()).toMatch($t('対象・形式等'))
 
     // (状態)
     expect(wrapper.findAll('.row_active').length).toBe(show.active)
@@ -34,10 +35,10 @@ describe('Lists.vue', () => {
 
     for (const download of downloads) {
       // 依頼日時
-      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', download.requested_at))
+      expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, download.requested_at))
       // 完了日時
       if (download.completed_at != null) {
-        expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', download.completed_at))
+        expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, download.completed_at))
       }
       // ステータス
       const color = ['success', 'failure'].includes(download.status) ? download.status : 'info'
@@ -47,7 +48,7 @@ describe('Lists.vue', () => {
       expect(wrapper.find(`#download_link_done_${download.id}`).exists()).toBe(download.status === 'success' && download.last_downloaded_at != null)
       // 対象・形式等
       if (download.model === 'member' && download.space != null && download.space.name != null) {
-        expect(wrapper.text()).toMatch(`メンバー: ${download.space.name}`)
+        expect(wrapper.text()).toMatch(`${$t('メンバー')}: ${download.space.name}`)
       } else {
         expect(wrapper.text()).toMatch(download.model_i18n || '')
       }

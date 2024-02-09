@@ -12,7 +12,7 @@
 defineProps({
   action: {
     type: String,
-    default: null
+    required: true
   }
 })
 const localePath = useLocalePath()

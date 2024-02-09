@@ -1,11 +1,12 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import helper from '~/test/helper'
 import Component from '~/components/spaces/Search.vue'
+
+const $config = config.global.mocks.$config
 
 describe('Search.vue', () => {
   let optionQuery = {}
-  if (helper.commonConfig.enablePublicSpace) {
+  if ($config.public.enablePublicSpace) {
     optionQuery = { public: true, private: true, join: true, nojoin: true }
   }
   const defaultQuery = Object.freeze({ text: '', option: false, ...optionQuery, active: true, destroy: false })
@@ -89,8 +90,7 @@ describe('Search.vue', () => {
       expect(wrapper.vm.waiting).toBe(true)
       expect(wrapper.emitted().search).toEqual([[]]) // 検索
 
-      // $refsで受け取り
-      wrapper.vm.setError()
+      wrapper.vm.updateWaiting(false) // $refsで受け取る
       expect(wrapper.vm.waiting).toBe(false)
     })
     it('[Enter送信]検索される', async () => {
@@ -121,7 +121,7 @@ describe('Search.vue', () => {
     }
 
     it('[公開・非公開]検索ボタンが無効になる', async () => {
-      if (!helper.commonConfig.enablePublicSpace) { return }
+      if (!$config.public.enablePublicSpace) { return }
       await beforeAction()
 
       // 公開・非公開
@@ -133,7 +133,7 @@ describe('Search.vue', () => {
       expect(button.element.disabled).toBe(true) // 無効
     })
     it('[参加・未参加]検索ボタンが無効になる', async () => {
-      if (!helper.commonConfig.enablePublicSpace) { return }
+      if (!$config.public.enablePublicSpace) { return }
       await beforeAction()
 
       // 参加・未参加

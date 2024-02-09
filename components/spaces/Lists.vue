@@ -1,7 +1,7 @@
 <template>
   <v-data-table-server
     v-if="spaces != null && spaces.length > 0"
-    :headers="headers"
+    :headers="tableHeaders($t, $config.public.spaces.headers, $props.hiddenItems)"
     :items="spaces"
     :items-length="spaces.length"
     :items-per-page="-1"
@@ -16,7 +16,7 @@
         <v-avatar v-if="item.image_url != null" :id="`space_image_${item.code}`" size="32px" class="mr-1">
           <v-img :src="item.image_url.small" />
         </v-avatar>
-        <NuxtLink :to="`/-/${item.code}`">{{ textTruncate(item.name, 64) }}</NuxtLink>
+        <NuxtLink :to="localePath(`/-/${item.code}`)">{{ textTruncate(item.name, 64) }}</NuxtLink>
         <SpacesIcon :space="item" />
       </div>
     </template>
@@ -26,10 +26,10 @@
     </template>
     <!-- (アクション) -->
     <template #[`item.action`]="{ item }: any">
-      <NuxtLink v-if="item.current_member != null" :to="`/members/${item.code}`">
+      <NuxtLink v-if="item.current_member != null" :to="localePath(`/members/${item.code}`)">
         <v-btn color="primary" size="small">
           <v-icon>mdi-account-multiple</v-icon>
-          <v-tooltip activator="parent" location="bottom">メンバー一覧</v-tooltip>
+          <v-tooltip activator="parent" location="bottom">{{ $t('メンバー一覧') }}</v-tooltip>
         </v-btn>
       </NuxtLink>
     </template>
@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import SpacesIcon from '~/components/spaces/Icon.vue'
-import { textTruncate } from '~/utils/display'
+import { tableHeaders, textTruncate } from '~/utils/display'
 
 const $props = defineProps({
   spaces: {
@@ -50,18 +50,10 @@ const $props = defineProps({
     default: null
   }
 })
-const { tm: $tm } = useI18n()
+const localePath = useLocalePath()
+const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
 
-const headers: any = computed(() => {
-  const result = []
-  for (const item of Object.values($tm('items.space') as any) as any) {
-    if (item.required || !$props.hiddenItems.includes(item.key)) {
-      result.push({ title: item.title, key: item.key, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
-    }
-  }
-  result.push({ key: 'action', cellProps: { class: 'pl-1 pr-2 py-2' } })
-  return result
-})
 const rowProps = computed(() => ({ item }: any) => {
   return (item.destroy_schedule_at != null && item.destroy_schedule_at !== '') ? { class: 'row_inactive' } : null
 })

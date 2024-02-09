@@ -8,7 +8,7 @@
         @click="initialize()"
       >
         <v-icon>mdi-cog</v-icon>
-        <v-tooltip activator="parent" location="bottom">設定変更</v-tooltip>
+        <v-tooltip activator="parent" location="bottom">{{ $t('設定変更') }}</v-tooltip>
       </v-btn>
     </template>
     <template #default="{ isActive }">
@@ -16,12 +16,12 @@
         <v-form autocomplete="off">
           <v-toolbar color="primary" density="compact">
             <v-icon size="small" class="ml-4">mdi-cog</v-icon>
-            <span class="ml-1">設定変更</span>
+            <span class="ml-1">{{ $t('設定変更') }}</span>
           </v-toolbar>
           <v-card-text>
             <v-container class="py-0">
               <h4>
-                表示項目
+                {{ $t('表示項目') }}
                 <v-btn
                   id="list_setting_show_items_set_all_btn"
                   color="secondary"
@@ -30,7 +30,7 @@
                   :disabled="showItems.length >= items.length"
                   @click="setAllShowItems()"
                 >
-                  全選択
+                  {{ $t('全選択') }}
                 </v-btn>
                 <v-btn
                   id="list_setting_show_items_clear_btn"
@@ -40,7 +40,7 @@
                   :disabled="showItems.length <= requiredShowItems.length"
                   @click="clearShowItems()"
                 >
-                  全解除
+                  {{ $t('全解除') }}
                 </v-btn>
               </h4>
               <template v-for="item in items" :key="item.key">
@@ -66,7 +66,7 @@
               :disabled="waiting"
               @click="change(isActive)"
             >
-              変更
+              {{ $t('変更') }}
             </v-btn>
             <v-btn
               id="list_setting_cancel_btn"
@@ -74,7 +74,7 @@
               variant="elevated"
               @click="isActive.value = false"
             >
-              キャンセル
+              {{ $t('キャンセル') }}
             </v-btn>
           </v-card-actions>
         </v-form>
@@ -93,6 +93,10 @@ const $props = defineProps({
     type: String,
     required: true
   },
+  headers: {
+    type: Array,
+    required: true
+  },
   hiddenItems: {
     type: Array,
     required: true
@@ -100,13 +104,12 @@ const $props = defineProps({
 })
 const $emit = defineEmits(['update:hiddenItems'])
 const $config = useRuntimeConfig()
-const { tm: $tm } = useI18n()
 
 const waiting = ref(false)
 const showItems = ref<any>(null)
 
-const items = computed(() => {
-  return Object.values($tm(`items.${$props.model}`) as any).filter((item: any) => !item.adminOnly || $props.admin) as any
+const items: any = computed(() => {
+  return $props.headers.filter((item: any) => item.title != null && (!item.adminOnly || $props.admin))
 })
 const requiredShowItems = computed(() => {
   return items.value.filter((item: any) => item.required).map((item: any) => item.key)

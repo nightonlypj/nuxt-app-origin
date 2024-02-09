@@ -64,6 +64,7 @@ const disabledTest = (wrapper: any, AppProcessing: any, button: any, disabled: b
 
 export default {
   locale: defaultLocale,
+  // locale: 'en',
   getLinks,
   loadingTest,
   blankTest,

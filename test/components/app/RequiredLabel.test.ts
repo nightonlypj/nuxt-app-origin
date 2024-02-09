@@ -1,5 +1,7 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import Component from '~/components/app/RequiredLabel.vue'
+
+const $t = config.global.mocks.$t
 
 describe('RequiredLabel.vue', () => {
   const mountFunction = (props = {}) => {
@@ -12,7 +14,7 @@ describe('RequiredLabel.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, optional: boolean) => {
-    expect(wrapper.text()).toMatch(optional ? '任意' : '必須')
+    expect(wrapper.text()).toMatch($t(optional ? '任意' : '必須'))
   }
 
   // テストケース

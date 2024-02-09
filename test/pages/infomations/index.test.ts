@@ -100,7 +100,7 @@ describe('index.vue', () => {
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, {})
-      viewTest(wrapper, dataCount1, $t('1件', { total: 1 }))
+      viewTest(wrapper, dataCount1, $t('{total}件（単数）', { total: 1 }))
     })
     it('[2件]表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, dataCount2])
@@ -110,7 +110,7 @@ describe('index.vue', () => {
 
       apiCalledTest(1)
       helper.mockCalledTest(mock.navigateTo, 1, {})
-      viewTest(wrapper, dataCount2, $t('{total}件', { total: 2 }))
+      viewTest(wrapper, dataCount2, $t('{total}件（複数）', { total: 2 }))
     })
     it('[ページネーション]表示される', async () => {
       mock.useApiRequest = vi.fn()

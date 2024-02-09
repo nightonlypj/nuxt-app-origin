@@ -1,4 +1,7 @@
-import helper from '~/test/helper'
+import { config } from '@vue/test-utils'
+
+const $config = config.global.mocks.$config
+const $tm = config.global.mocks.$tm
 
 const detail = Object.freeze({
   code: 'code0001',
@@ -16,7 +19,7 @@ const detailPower = computed(() => (power: String) => {
     ...detail,
     current_member: {
       power,
-      power_i18n: (helper.locales.enums.member.power as any)[String(power)]
+      power_i18n: ($tm('enums.member.power') as any)[String(power)]
     }
   }
 })
@@ -79,7 +82,7 @@ const defaultParams = Object.freeze({
 
 let optionQuery = {}
 let optionData = {}
-if (helper.commonConfig.enablePublicSpace) {
+if ($config.public.enablePublicSpace) {
   optionParams = {
     public: 1,
     private: 0,
@@ -136,6 +139,17 @@ const dataCount1 = Object.freeze({
   },
   spaces: [
     { code: 'code0001' }
+  ]
+})
+const dataCount2 = Object.freeze({
+  space: {
+    ...dataCount0.space,
+    total_count: 2,
+    total_pages: 1
+  },
+  spaces: [
+    { code: 'code0001' },
+    { code: 'code0002' }
   ]
 })
 
@@ -207,6 +221,7 @@ export {
   findData,
   dataCount0,
   dataCount1,
+  dataCount2,
   dataPage1,
   dataPage2,
   dataPage3,

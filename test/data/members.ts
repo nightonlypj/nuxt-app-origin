@@ -1,5 +1,7 @@
-import helper from '~/test/helper'
+import { config } from '@vue/test-utils'
 import { detail as space } from '~/test/data/spaces'
+
+const $tm = config.global.mocks.$tm
 
 const detail = Object.freeze({
   user: {
@@ -58,13 +60,11 @@ const listCount3 = Object.freeze([
 const defaultPowers = []
 const findPower: any = {}
 const findPowers = []
-let findPowerQuery = ''
 let index = 0
-for (const key in helper.locales.enums.member.power) {
+for (const key in $tm('enums.member.power')) {
   defaultPowers.push(key)
   findPower[key] = index % 2 === 0
   if (findPower[key]) { findPowers.push(key) }
-  findPowerQuery += String(Number(findPower[key]))
   index++
 }
 
@@ -87,7 +87,6 @@ const findParams = Object.freeze({
 })
 const findQuery = Object.freeze({
   ...findParams,
-  power: findPowerQuery,
   active: String(findParams.active),
   destroy: String(findParams.destroy),
   desc: String(findParams.desc),
@@ -121,6 +120,19 @@ const dataCount1 = Object.freeze({
   },
   members: [
     { user: { code: 'code000000000000000000001' } }
+  ]
+})
+const dataCount2 = Object.freeze({
+  space,
+  member: {
+    total_count: 2,
+    current_page: 1,
+    total_pages: 1,
+    limit_value: 2
+  },
+  members: [
+    { user: { code: 'code000000000000000000001' } },
+    { user: { code: 'code000000000000000000002' } }
   ]
 })
 
@@ -210,6 +222,7 @@ export {
   findData,
   dataCount0,
   dataCount1,
+  dataCount2,
   dataPage1,
   dataPage2,
   dataPage3,

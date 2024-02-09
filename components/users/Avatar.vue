@@ -8,7 +8,7 @@
       <span v-if="user.destroy_schedule_at != null" :id="`user_destroy_schedule_${user.code}`">
         <v-icon class="ml-1">mdi-delete-clock</v-icon>
         <v-tooltip activator="parent" location="bottom">
-          {{ dateFormat('ja', user.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
+          {{ $t('{date}以降に削除される予定です。', { date: dateFormat(locale, user.destroy_schedule_at, 'N/A') }) }}
         </v-tooltip>
       </span>
     </template>
@@ -27,4 +27,5 @@ defineProps({
     default: null
   }
 })
+const { t: $t, locale } = useI18n()
 </script>

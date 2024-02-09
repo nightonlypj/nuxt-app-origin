@@ -6,7 +6,7 @@
     class="ml-1"
     style="top: 1px"
   >
-    {{ optional ? '任意' : '必須' }}
+    {{ $t(optional ? '任意' : '必須') }}
   </v-chip>
 </template>
 
@@ -17,4 +17,5 @@ defineProps({
     default: false
   }
 })
+const { t: $t } = useI18n()
 </script>

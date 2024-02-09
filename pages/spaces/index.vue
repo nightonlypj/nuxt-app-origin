@@ -1,11 +1,11 @@
 <template>
   <Head>
-    <Title>スペース</Title>
+    <Title>{{ $t('スペース') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
     <v-card>
-      <v-card-title>スペース</v-card-title>
+      <v-card-title>{{ $t('スペース') }}</v-card-title>
       <v-card-text>
         <SpacesSearch
           ref="spacesSearch"
@@ -20,8 +20,10 @@
       <AppProcessing v-if="reloading" />
       <v-card-text>
         <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap ml-2">
-            {{ localeString('ja', space.total_count, 'N/A') }}件
+          <v-col class="d-flex py-2">
+            <div v-if="space != null && space.total_count > 0" class="align-self-center text-no-wrap ml-2">
+              {{ $t(`{total}件（${space.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, space.total_count, 'N/A') }) }}
+            </div>
           </v-col>
           <v-col class="d-flex justify-end">
             <div v-if="$auth.loggedIn" class="mr-1">
@@ -34,18 +36,18 @@
           </v-col>
         </v-row>
 
-        <template v-if="!processing && (spaces == null || spaces.length === 0)">
+        <template v-if="spaces == null || spaces.length === 0">
           <v-divider class="my-4" />
-          <span class="ml-1">スペースが見つかりません。</span>
+          <span class="ml-1">{{ $t('対象の{name}が見つかりません。', { name: $t('スペース') }) }}</span>
           <v-divider class="my-4" />
         </template>
-        <template v-if="spaces != null && spaces.length > 0">
-          <v-divider class="my-2" />
+        <template v-else>
+          <v-divider class="mt-2" />
           <SpacesLists
             :spaces="spaces"
             :hidden-items="hiddenItems"
           />
-          <v-divider class="my-2" />
+          <v-divider class="mb-2" />
         </template>
 
         <InfiniteLoading
@@ -76,12 +78,13 @@ import SpacesSearch from '~/components/spaces/Search.vue'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import SpacesLists from '~/components/spaces/Lists.vue'
 import { localeString } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError } from '~/utils/redirect'
 import { sleep, checkSearchParams } from '~/utils/search'
 import { checkHeadersUid } from '~/utils/auth'
 
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
@@ -133,25 +136,22 @@ watch(() => $route.query, () => {
   if (Object.keys($route.query).length > 0) { return }
 
   query.value = getQuery()
-  params.value = null
-  getSpacesList()
+  searchSpacesList(false)
 })
 
 // スペース一覧検索
-async function searchSpacesList () {
+async function searchSpacesList (updateURL = true) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('searchSpacesList') }
+  if ($config.public.debug) { console.log('searchSpacesList', updateURL) }
 
   params.value = null
-  if (!await reloadSpacesList()) {
-    spacesSearch.value.setError()
-  }
+  spacesSearch.value.updateWaiting(await reloadSpacesList(updateURL))
 }
 
 // スペース一覧再取得
-async function reloadSpacesList () {
+async function reloadSpacesList (updateURL = true) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('reloadSpacesList', reloading.value) }
+  if ($config.public.debug) { console.log('reloadSpacesList', updateURL, reloading.value) }
 
   // 再取得中は待機  NOTE: 異なる条件のデータが混じらないようにする為
   let count = 0
@@ -174,24 +174,27 @@ async function reloadSpacesList () {
   page.value = 1
   const result = await getSpacesList()
 
-  let publicQuery = {}
-  if ($config.public.enablePublicSpace) {
-    publicQuery = {
-      public: String(params.value.public),
-      private: String(params.value.private),
-      join: String(params.value.join),
-      nojoin: String(params.value.nojoin)
+  if (updateURL) {
+    let publicQuery = {}
+    if ($config.public.enablePublicSpace) {
+      publicQuery = {
+        public: String(params.value.public),
+        private: String(params.value.private),
+        join: String(params.value.join),
+        nojoin: String(params.value.nojoin)
+      }
     }
+    navigateTo({
+      query: {
+        ...params.value,
+        ...publicQuery,
+        active: String(params.value.active),
+        destroy: String(params.value.destroy),
+        option: String(Number(query.value.option))
+      }
+    })
   }
-  navigateTo({
-    query: {
-      ...params.value,
-      ...publicQuery,
-      active: String(params.value.active),
-      destroy: String(params.value.destroy),
-      option: String(Number(query.value.option))
-    }
-  })
+
   reloading.value = false
   return result
 }
@@ -261,7 +264,7 @@ async function getSpacesList () {
       nojoin: 1
     }
   }
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.spaces.listUrl, 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.listUrl), 'GET', {
     ...params.value,
     ...privateParams,
     page: page.value
@@ -277,7 +280,7 @@ async function getSpacesList () {
       } else {
         spaces.value.push(...data.spaces)
       }
-      checkSearchParams(params.value, data.search_params)
+      checkSearchParams(params.value, data.search_params, $t)
     } else {
       alert = $t('system.error')
     }

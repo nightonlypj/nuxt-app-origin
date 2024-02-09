@@ -38,24 +38,41 @@ const textTruncate = computed(() => (text: string | null, length: number) => {
   return text == null || text.length <= length ? text : `${text.slice(0, length)}...`
 })
 
-// テーブルの高さを返却
-const tableHeight = computed(() => (height: number) => {
-  const margin = 64 + 16 + 16 + 40
-  return Math.max(200, height - margin) + 'px'
-})
-
 // タイムゾーンの差を返却 ex.'+09:00',
-const timeZoneOffset = computed(() => () => {
+const timeZoneOffset = computed(() => {
   const offset = new Date().getTimezoneOffset() * -1
   const offsetAbs = Math.abs(offset)
   return (offset >= 0 ? '+' : '-') + `0${String(Math.trunc(offsetAbs / 60))}`.slice(-2) + ':' + `0${offsetAbs % 60}`.slice(-2)
 })
 
 // タイムゾーンの略称を返却 ex.'JST'
-const timeZoneShortName = computed(() => () => {
+const timeZoneShortName = computed(() => {
   const secZone = new Date().toLocaleString('default', { second: 'numeric', timeZoneName: 'short' }) // 0 JST
   const result = secZone.match(/\s(.*)$/)
   return (result != null) ? result[1] : null
+})
+
+// テーブルのヘッダ情報を返却
+const tableHeaders = computed(() => ($t: any, items: any, hiddenItems: any = [], admin: boolean | null = null) => {
+  const result = []
+  for (const item of items) {
+    if ((item.required || !hiddenItems.includes(item.key)) && (!item.adminOnly || admin)) {
+      let props: any = { headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } }
+      if (item.key === 'data-table-select') { props = { ...props, headerProps: { class: 'px-0' }, cellProps: { class: 'px-0 py-2' } } }
+      if (item.align === 'end') { props = { ...props, cellProps: { class: 'pl-1 pr-6 py-2' }, align: 'end', width: 100 } }
+      if (item.align === 'center') { props = { ...props, align: 'center' } }
+      if (item.headerProps != null) { props = { ...props, headerProps: { ...props.headerProps, ...item.headerProps } } }
+      if (item.cellProps != null) { props = { ...props, cellProps: { ...props.cellProps, ...item.cellProps } } }
+
+      result.push({
+        title: item.title != null ? $t(item.title) : '',
+        key: item.key,
+        sortable: item.sortable != null ? item.sortable : true,
+        ...props
+      })
+    }
+  }
+  return result
 })
 
 export {
@@ -65,7 +82,7 @@ export {
   pageLastNumber,
   localeString,
   textTruncate,
-  tableHeight,
   timeZoneOffset,
-  timeZoneShortName
+  timeZoneShortName,
+  tableHeaders
 }

@@ -1,7 +1,9 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
 import helper from '~/test/helper'
 import Component from '~/components/app/ListSetting.vue'
+
+const $config = config.global.mocks.$config
 
 describe('ListSetting.vue', () => {
   let mock: any
@@ -11,7 +13,11 @@ describe('ListSetting.vue', () => {
     }
   })
   const model = 'member'
-  const items = helper.locales.items.member
+  const headers = $config.public.members.headers
+  const allItems = headers.filter((item: any) => item.title != null).map((item: any) => item)
+  const allItemKeys = allItems.map((item: any) => item.key)
+  const requiredItemKeys = allItems.filter((item: any) => item.required).map((item: any) => item.key)
+  const optionalItemKeys = allItems.filter((item: any) => !item.required).map((item: any) => item.key)
 
   const mountFunction = (admin: boolean, hiddenItems = []) => {
     vi.stubGlobal('localStorage', { setItem: mock.setItem })
@@ -20,6 +26,7 @@ describe('ListSetting.vue', () => {
       props: {
         admin,
         model,
+        headers,
         hiddenItems
       }
     })
@@ -41,11 +48,11 @@ describe('ListSetting.vue', () => {
     expect(dialog.isVisible()).toBe(true) // 表示
 
     // 表示項目
-    for (const item of items) {
+    for (const item of allItems) {
       const showItem = wrapper.find(`#list_setting_show_item_${item.key.replace('.', '_')}`)
       if (!item.adminOnly || admin) {
         expect(showItem.exists()).toBe(true)
-        expect(showItem.element.disabled).toBe(item.required)
+        expect(showItem.element.disabled).toBe(item.required || false)
         expect(showItem.element.checked).toBe(true)
       } else {
         expect(showItem.exists()).toBe(false)
@@ -71,7 +78,7 @@ describe('ListSetting.vue', () => {
 
   const updateViewTest = async (wrapper: any, dialog: any, hiddenItems: any, displayItems: any) => {
     // 入力
-    for (const item of items) {
+    for (const item of allItems) {
       const showItem = wrapper.find(`#list_setting_show_item_${item.key.replace('.', '_')}`)
       showItem.setValue(displayItems.includes(item.key))
       await flushPromises()
@@ -118,8 +125,7 @@ describe('ListSetting.vue', () => {
     await flushPromises()
 
     // 必須項目のみ選択
-    const requiredItems = items.filter(item => item.required).map(item => item.key)
-    expect(wrapper.vm.showItems).toEqual(requiredItems)
+    expect(wrapper.vm.showItems).toEqual(requiredItemKeys)
 
     // 全選択ボタン
     const setAllBtn = wrapper.find('#list_setting_show_items_set_all_btn')
@@ -128,15 +134,10 @@ describe('ListSetting.vue', () => {
     await flushPromises()
 
     // 全て選択
-    const allItems = items.map(item => item.key)
-    expect(wrapper.vm.showItems).toEqual(allItems)
+    expect(wrapper.vm.showItems).toEqual(allItemKeys)
   })
 
   describe('変更', () => {
-    const allItems = items.map(item => item.key)
-    const requiredItems = items.filter(item => item.required).map(item => item.key)
-    const optionalItems = items.filter(item => !item.required).map(item => item.key)
-
     let wrapper: any, dialog: any
     const beforeAction = async (hiddenItems: any, showItems: any) => {
       wrapper = mountFunction(true, hiddenItems)
@@ -152,12 +153,12 @@ describe('ListSetting.vue', () => {
     }
 
     it('[全て選択→全て未選択]非表示項目が任意項目のみに変更される', async () => {
-      await beforeAction([], allItems)
-      await updateViewTest(wrapper, dialog, optionalItems, requiredItems)
+      await beforeAction([], allItemKeys)
+      await updateViewTest(wrapper, dialog, optionalItemKeys, requiredItemKeys)
     })
     it('[全て未選択→全て選択]非表示項目が空に変更される', async () => {
-      await beforeAction(allItems, requiredItems) // NOTE: 必須のみ
-      await updateViewTest(wrapper, dialog, [], allItems)
+      await beforeAction(allItemKeys, requiredItemKeys) // NOTE: 必須のみ
+      await updateViewTest(wrapper, dialog, [], allItemKeys)
     })
   })
 })

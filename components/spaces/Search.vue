@@ -10,8 +10,8 @@
           <v-text-field
             id="space_search_text"
             v-model="syncQuery.text"
-            label="検索"
-            placeholder="名称や説明を入力"
+            :label="$t('検索')"
+            :placeholder="$t('名称や説明を入力')"
             autocomplete="on"
             style="max-width: 400px"
             density="comfortable"
@@ -38,18 +38,18 @@
             @click="syncQuery.option = !syncQuery.option"
           >
             <v-icon size="x-large">{{ syncQuery.option ? 'mdi-menu-up' : 'mdi-menu-down' }}</v-icon>
-            <span class="hidden-sm-and-down">検索オプション</span>
+            <span class="hidden-sm-and-down">{{ $t('検索オプション') }}</span>
           </v-btn>
         </v-col>
       </v-row>
       <v-row v-if="$auth.loggedIn" v-show="syncQuery.option" id="space_search_option_item">
         <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
-          <v-chip size="small" class="mt-1">表示</v-chip>
+          <v-chip size="small" class="mt-1">{{ $t('範囲') }}</v-chip>
           <v-checkbox
             id="space_search_public_check"
             v-model="syncQuery.public"
             color="primary"
-            label="公開"
+            :label="$t('公開')"
             class="mr-2"
             density="compact"
             hide-details
@@ -60,7 +60,7 @@
             id="space_search_private_check"
             v-model="syncQuery.private"
             color="primary"
-            label="非公開"
+            :label="$t('非公開')"
             density="compact"
             hide-details
             :error="privateBlank()"
@@ -68,12 +68,12 @@
           />
         </v-col>
         <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex py-0">
-          <v-chip size="small" class="mt-1">状況</v-chip>
+          <v-chip size="small" class="mt-1">{{ $t('状況') }}</v-chip>
           <v-checkbox
             id="space_search_join_check"
             v-model="syncQuery.join"
             color="primary"
-            label="参加"
+            :label="$t('参加')"
             class="mr-2"
             density="compact"
             hide-details
@@ -84,7 +84,7 @@
             id="space_search_nojoin_check"
             v-model="syncQuery.nojoin"
             color="primary"
-            label="未参加"
+            :label="$t('未参加')"
             density="compact"
             hide-details
             :error="joinBlank()"
@@ -92,12 +92,12 @@
           />
         </v-col>
         <v-col cols="auto" class="d-flex py-0">
-          <v-chip size="small" class="mt-1">状態</v-chip>
+          <v-chip size="small" class="mt-1">{{ $t('状態') }}</v-chip>
           <v-checkbox
             id="space_search_active_check"
             v-model="syncQuery.active"
             color="primary"
-            label="有効"
+            :label="$t('有効')"
             class="mr-2"
             density="compact"
             hide-details
@@ -108,7 +108,7 @@
             id="space_search_destroy_check"
             v-model="syncQuery.destroy"
             color="primary"
-            label="削除予定"
+            :label="$t('削除予定')"
             density="compact"
             hide-details
             :error="activeBlank()"
@@ -126,20 +126,21 @@ import { completInputKey } from '~/utils/input'
 const $props = defineProps({
   processing: {
     type: Boolean,
-    default: null
+    required: true
   },
   query: {
     type: Object,
     required: true
   }
 })
+defineExpose({ updateWaiting })
+const $emit = defineEmits(['update:query', 'search'])
 const syncQuery = computed({
   get: () => $props.query,
   set: (value: object) => $emit('update:query', value)
 })
-defineExpose({ setError })
-const $emit = defineEmits(['update:query', 'search'])
 const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
 const { $auth } = useNuxtApp()
 
 const waiting = ref(true)
@@ -167,11 +168,5 @@ function search (keydown: boolean) {
   $emit('search')
 }
 
-// エラー処理
-function setError () {
-  /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('setError') }
-
-  waiting.value = false // NOTE: 検索ボタンを押せるようにする
-}
+function updateWaiting (value: boolean) { waiting.value = value }
 </script>

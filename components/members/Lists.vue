@@ -3,15 +3,13 @@
     v-if="members != null && members.length > 0"
     v-model="syncSelectedMembers"
     v-model:sort-by="syncSortBy"
-    :headers="headers"
+    :headers="tableHeaders($t, $config.public.members.headers, $props.hiddenItems, $props.admin)"
     :items="members"
     :items-length="members.length"
     :items-per-page="-1"
     density="compact"
     hover
     :row-props="rowProps"
-    fixed-header
-    :height="tableHeight($vuetify.display.height)"
     :show-select="admin"
     :item-value="item => item"
     @dblclick:row="dblclickRow"
@@ -30,26 +28,26 @@
     </template>
     <!-- 権限 -->
     <template #[`item.power`]="{ item }: any">
-      <v-icon
-        size="small"
-        class="mr-1"
-        @click="$emit('showUpdate', item)"
-      >
-        {{ memberPowerIcon(item.power) }}
-      </v-icon>
-      <a
-        v-if="admin && item.user.code !== $auth.user.code"
-        :id="`member_update_link_${item.user.code}`"
-        class="text-no-wrap"
-        style="color: -webkit-link; cursor: pointer; text-decoration: underline"
-        @click="$emit('showUpdate', item)"
-      >
-        {{ item.power_i18n }}
-      </a>
-      <div v-else class="text-no-wrap">
+      <template v-if="admin && item.user.code !== $auth.user.code">
+        <v-icon
+          size="small"
+          class="mr-1"
+          @click="$emit('showUpdate', item)"
+        >
+          {{ memberPowerIcon(item.power) }}
+        </v-icon>
+        <a
+          :id="`member_update_link_${item.user.code}`"
+          style="color: -webkit-link; cursor: pointer; text-decoration: underline"
+          @click="$emit('showUpdate', item)"
+        >
+          {{ item.power_i18n }}
+        </a>
+      </template>
+      <template v-else>
         <v-icon size="small">{{ memberPowerIcon(item.power) }}</v-icon>
         {{ item.power_i18n }}
-      </div>
+      </template>
     </template>
     <!-- 招待者 -->
     <template #[`header.invitationed_user.name`]="{ column, getSortIcon }">
@@ -59,17 +57,13 @@
     </template>
     <template #[`item.invitationed_user.name`]="{ item }: any">
       <template v-if="item.invitationed_user != null">
-        <div v-if="item.invitationed_user.deleted" class="text-center">
-          N/A
-        </div>
+        <div v-if="item.invitationed_user.deleted" class="text-center">N/A</div>
         <UsersAvatar v-else :user="item.invitationed_user" />
       </template>
     </template>
     <!-- 招待日時 -->
     <template #[`item.invitationed_at`]="{ item }: any">
-      <div class="text-center">
-        {{ dateTimeFormat('ja', item.invitationed_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.invitationed_at) }}
     </template>
     <!-- 更新者 -->
     <template #[`header.last_updated_user.name`]="{ column, getSortIcon }">
@@ -79,9 +73,7 @@
     </template>
     <template #[`item.last_updated_user.name`]="{ item }: any">
       <template v-if="item.last_updated_user != null">
-        <div v-if="item.last_updated_user.deleted" class="text-center">
-          N/A
-        </div>
+        <div v-if="item.last_updated_user.deleted" class="text-center">N/A</div>
         <UsersAvatar v-else :user="item.last_updated_user" />
       </template>
     </template>
@@ -92,9 +84,7 @@
       <v-icon class="v-data-table-header__sort-icon">{{ getSortIcon(column) }}</v-icon>
     </template>
     <template #[`item.last_updated_at`]="{ item }: any">
-      <div class="text-center">
-        {{ dateTimeFormat('ja', item.last_updated_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.last_updated_at) }}
     </template>
   </v-data-table-server>
 </template>
@@ -102,7 +92,7 @@
 <script setup lang="ts">
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
-import { tableHeight, dateTimeFormat } from '~/utils/display'
+import { tableHeaders, dateTimeFormat } from '~/utils/display'
 import { memberPowerIcon } from '~/utils/members'
 
 const $props = defineProps({
@@ -132,9 +122,10 @@ const $props = defineProps({
   },
   admin: {
     type: Boolean,
-    default: null
+    required: true
   }
 })
+const $emit = defineEmits(['update:selectedMembers', 'reload', 'showUpdate'])
 const syncSelectedMembers = computed({
   get: () => $props.selectedMembers,
   set: (value: any) => $emit('update:selectedMembers', value)
@@ -149,24 +140,10 @@ const syncSortBy: any = computed({
     }
   }
 })
-const $emit = defineEmits(['update:selectedMembers', 'reload', 'showUpdate'])
 const $config = useRuntimeConfig()
-const { tm: $tm } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth } = useNuxtApp()
 
-const headers: any = computed(() => {
-  const result = []
-  if ($props.admin) {
-    result.push({ key: 'data-table-select', headerProps: { class: 'px-0' }, cellProps: { class: 'px-0 py-2' } })
-  }
-  for (const item of Object.values($tm('items.member') as any) as any) {
-    if ((item.required || !$props.hiddenItems.includes(item.key)) && (!item.adminOnly || $props.admin)) {
-      result.push({ title: item.title, key: item.key, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
-    }
-  }
-  if (result.length > 0) { result[result.length - 1].cellProps.class = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-  return result
-})
 const rowProps = computed(() => ({ item }: any) => {
   return $props.activeUserCodes.includes(item.user?.code) ? { class: 'row_active' } : null
 })
@@ -201,5 +178,18 @@ function dblclickRow (event: any, { item }: any) {
 }
 .v-data-table.v-theme--light >>> tr:hover.row_active {
   background-color: #C5CAE9 !important; /* indigo lighten-4 */
+}
+/*
+.v-data-table >>> .v-data-table__thead.scroll {
+  position: fixed;
+}
+*/
+.v-table >>> th {
+  /* 縦スクロール時に固定する */
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  /* tbody内のセルより手前に表示する */
+  z-index: 100;
 }
 </style>

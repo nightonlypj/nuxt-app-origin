@@ -12,11 +12,8 @@
           <template v-if="enablePagination">
             {{ $t('{total}件中 {start}-{end}件を表示', { total: localeString(locale, infomation.total_count, 'N/A'), start: localeString(locale, pageFirstNumber(infomation), 'N/A'), end: localeString(locale, pageLastNumber(infomation), 'N/A') }) }}
           </template>
-          <template v-else-if="infomation.total_count === 1">
-            {{ $t('1件') }}
-          </template>
           <template v-else>
-            {{ $t('{total}件', { total: localeString(locale, infomation.total_count, 'N/A') }) }}
+            {{ $t(`{total}件（${infomation.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, infomation.total_count, 'N/A') }) }}
           </template>
         </v-col>
         <v-col v-if="enablePagination" class="pa-0">

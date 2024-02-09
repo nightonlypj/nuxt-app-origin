@@ -155,7 +155,7 @@
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn"
-          to="/downloads"
+          :to="localePath('/downloads')"
         >
           <v-list-item-title>
             <v-badge
@@ -166,18 +166,18 @@
             >
               <v-icon>mdi-download</v-icon>
             </v-badge>
-            <span class="ml-8">ダウンロード結果</span>
+            <span class="ml-8">{{ $t('ダウンロード結果') }}</span>
           </v-list-item-title>
         </component>
         <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn || $config.public.enablePublicSpace"
-          to="/spaces"
+          :to="localePath('/spaces')"
         >
           <v-list-item-title>
             <v-icon>mdi-folder-open</v-icon>
-            スペース
+            {{ $t('スペース') }}
           </v-list-item-title>
         </component>
         <template v-if="$auth.loggedIn">
@@ -186,7 +186,7 @@
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces" :id="`navigation_space_link_${space.code}`"
             :key="space.code"
-            :to="`/-/${space.code}`"
+            :to="localePath(`/-/${space.code}`)"
           >
             <v-list-item-title class="text-overline">
               <v-avatar v-if="space.image_url != null" size="24px">
@@ -221,12 +221,12 @@ import { useDisplay } from 'vuetify'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
+const display = useDisplay()
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
 const { t: $t, locale, locales } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 const { $auth } = useNuxtApp()
-const display = useDisplay()
 
 const drawer = ref(!display.mobile.value)
 const switchLocale = ref(locale.value)

@@ -134,6 +134,19 @@ const dataCount1 = Object.freeze({
     { code: 'invitation000000000000001' }
   ]
 })
+const dataCount2 = Object.freeze({
+  space,
+  invitation: {
+    total_count: 2,
+    current_page: 1,
+    total_pages: 1,
+    limit_value: 2
+  },
+  invitations: [
+    { code: 'invitation000000000000001' },
+    { code: 'invitation000000000000002' }
+  ]
+})
 
 const dataPage1 = Object.freeze({
   space,
@@ -207,6 +220,7 @@ export {
   listCount4,
   dataCount0,
   dataCount1,
+  dataCount2,
   dataPage1,
   dataPage2,
   dataPage3,

@@ -160,7 +160,7 @@ async function created () {
 
 // 招待情報取得
 async function getUserInvitation () {
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userInvitationUrl, 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userInvitationUrl), 'GET', {
     code: $route.query.code
   })
 

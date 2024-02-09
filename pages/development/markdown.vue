@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>Markdown確認</Title>
+    <Title>{{ $t('Markdown確認') }}</Title>
   </Head>
   <v-card v-if="!loading">
     <v-card-text>
@@ -13,6 +13,8 @@
 import AppMarkdown from '~/components/app/Markdown.vue'
 
 const $config = useRuntimeConfig()
+const { t: $t } = useI18n()
+
 const loading = ref(true)
 const source = `https://markdown-it.github.io/
 

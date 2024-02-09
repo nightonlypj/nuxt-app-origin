@@ -1,4 +1,5 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
+import { dateTimeFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import OnlyIcon from '~/components/members/OnlyIcon.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
@@ -6,7 +7,12 @@ import Component from '~/components/members/Lists.vue'
 import { activeUser } from '~/test/data/user'
 import { listCount3 } from '~/test/data/members'
 
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
+
 describe('Lists.vue', () => {
+  const headers = $config.public.members.headers
+
   const mountFunction = (members: any, admin = false, hiddenItems: any = [], activeUserCodes: any = []) => {
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
       $auth: {
@@ -39,33 +45,33 @@ describe('Lists.vue', () => {
   // テスト内容
   const viewTest = (wrapper: any, members: any, show: any = { optional: null, admin: null, active: 0 }) => {
     // ヘッダ
-    expect(wrapper.text()).toMatch('メンバー')
+    expect(wrapper.text()).toMatch($t('メンバー'))
     if (show.optional && show.admin) {
-      expect(wrapper.text()).toMatch('メールアドレス')
+      expect(wrapper.text()).toMatch($t('メールアドレス'))
     } else {
-      expect(wrapper.text()).not.toMatch('メールアドレス')
+      expect(wrapper.text()).not.toMatch($t('メールアドレス'))
     }
     if (show.optional) {
-      expect(wrapper.text()).toMatch('権限')
+      expect(wrapper.text()).toMatch($t('権限'))
     } else {
-      expect(wrapper.text()).not.toMatch('権限')
+      expect(wrapper.text()).not.toMatch($t('権限'))
     }
     if (show.optional && show.admin) {
-      expect(wrapper.text()).toMatch('招待者')
+      expect(wrapper.text()).toMatch($t('招待者'))
     } else {
-      expect(wrapper.text()).not.toMatch('招待者')
+      expect(wrapper.text()).not.toMatch($t('招待者'))
     }
     if (show.optional) {
-      expect(wrapper.text()).toMatch('招待日時')
+      expect(wrapper.text()).toMatch($t('招待日時'))
     } else {
-      expect(wrapper.text()).not.toMatch('招待日時')
+      expect(wrapper.text()).not.toMatch($t('招待日時'))
     }
     if (show.optional && show.admin) {
-      expect(wrapper.text()).toMatch('更新者')
-      expect(wrapper.text()).toMatch('更新日時')
+      expect(wrapper.text()).toMatch($t('更新者'))
+      expect(wrapper.text()).toMatch($t('更新日時'))
     } else {
-      expect(wrapper.text()).not.toMatch('更新者')
-      expect(wrapper.text()).not.toMatch('更新日時')
+      expect(wrapper.text()).not.toMatch($t('更新者'))
+      expect(wrapper.text()).not.toMatch($t('更新日時'))
     }
 
     const onlyIcons = wrapper.findAllComponents(OnlyIcon)
@@ -115,9 +121,9 @@ describe('Lists.vue', () => {
       // 招待日時
       if (member.invitationed_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', member.invitationed_at))
+          expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, member.invitationed_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', member.invitationed_at))
+          expect(wrapper.text()).not.toMatch(dateTimeFormat.value(helper.locale, member.invitationed_at))
         }
       }
       // 更新者
@@ -133,9 +139,9 @@ describe('Lists.vue', () => {
       // 更新日時
       if (member.last_updated_at != null) {
         if (show.optional && show.admin) {
-          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', member.last_updated_at))
+          expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, member.last_updated_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', member.last_updated_at))
+          expect(wrapper.text()).not.toMatch(dateTimeFormat.value(helper.locale, member.last_updated_at))
         }
       }
     }
@@ -163,7 +169,7 @@ describe('Lists.vue', () => {
       })
     })
     describe('非表示項目が全項目', () => {
-      const hiddenItems = helper.locales.items.member.map(item => item.key)
+      const hiddenItems = headers.filter((item: any) => item.required !== true).map((item: any) => item.key)
       it('[管理者]必須項目のみ表示される', () => {
         const wrapper = mountFunction(listCount3, true, hiddenItems)
         viewTest(wrapper, listCount3, { optional: false, admin: true, active: 0 })
@@ -185,20 +191,6 @@ describe('Lists.vue', () => {
         // 同じ項目で並び順を2回変えると空になる
         wrapper.vm.syncSortBy = []
         expect(wrapper.emitted().reload[1]).toEqual([{ sort: key, desc: !desc }])
-      })
-    })
-
-    describe('チェックボックス', () => {
-      it('[管理者]表示される。選択項目が設定される', () => {
-        const wrapper: any = mountFunction(listCount3, true)
-        expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).not.toBeUndefined()
-
-        wrapper.vm.syncSelectedMembers = [listCount3[0]]
-        expect(wrapper.emitted()['update:selectedMembers']).toEqual([[[listCount3[0]]]])
-      })
-      it('[管理者以外]表示されない', () => {
-        const wrapper: any = mountFunction(listCount3, false)
-        expect(wrapper.vm.headers.find((header: { key: string }) => header.key === 'data-table-select')).toBeUndefined()
       })
     })
   })

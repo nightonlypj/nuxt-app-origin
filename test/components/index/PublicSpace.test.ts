@@ -1,9 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import Component from '~/components/index/PublicSpace.vue'
 import { listMiniCount2 } from '~/test/data/spaces'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('PublicSpace.vue', () => {
   let mock: any
@@ -51,7 +55,7 @@ describe('PublicSpace.vue', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.listUrl, 'GET', params)
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.spaces.listUrl), 'GET', params)
     }
 
     let wrapper: any
@@ -79,26 +83,26 @@ describe('PublicSpace.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.system.error_short)
+      viewErrorTest(wrapper, $t('system.error_short'))
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.network.failure_short)
+      viewErrorTest(wrapper, $t('network.failure_short'))
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.network.error_short)
+      viewErrorTest(wrapper, $t('network.error_short'))
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.system.default_short)
+      viewErrorTest(wrapper, $t('system.default_short'))
     })
   })
 })

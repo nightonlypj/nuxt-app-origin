@@ -7,7 +7,7 @@
     @click="showDialog()"
   >
     <v-icon>mdi-delete</v-icon>
-    <v-tooltip activator="parent" location="bottom">メンバー解除</v-tooltip>
+    <v-tooltip activator="parent" location="bottom">{{ $t('メンバー解除') }}</v-tooltip>
   </v-btn>
   <v-dialog v-model="dialog" max-width="640px" :attach="$config.public.env.test">
     <v-card id="member_delete_dialog">
@@ -15,10 +15,10 @@
       <template v-if="dialog">
         <v-toolbar color="error" density="compact">
           <v-icon size="small" class="ml-4">mdi-delete</v-icon>
-          <span class="ml-1">メンバー解除</span>
+          <span class="ml-1">{{ $t('メンバー解除') }}</span>
         </v-toolbar>
         <v-card-text>
-          <div class="text-h6 pa-4">選択したメンバーを解除しますか？</div>
+          <div class="text-h6 pa-4">{{ $t('メンバー解除確認メッセージ') }}</div>
         </v-card-text>
         <v-card-actions class="justify-end mb-2 mr-2">
           <v-btn
@@ -27,7 +27,7 @@
             variant="elevated"
             @click="dialog = false"
           >
-            いいえ（キャンセル）
+            {{ $t('いいえ（キャンセル）') }}
           </v-btn>
           <v-btn
             id="member_delete_yes_btn"
@@ -35,7 +35,7 @@
             variant="elevated"
             @click="postMembersDelete()"
           >
-            はい（解除）
+            {{ $t('はい（解除）') }}
           </v-btn>
         </v-card-actions>
       </template>
@@ -45,6 +45,7 @@
 
 <script setup lang="ts">
 import AppProcessing from '~/components/app/Processing.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth } from '~/utils/redirect'
 
 const $props = defineProps({
@@ -58,8 +59,9 @@ const $props = defineProps({
   }
 })
 const $emit = defineEmits(['messages', 'clear', 'reload'])
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 
 const processing = ref(false)
@@ -67,7 +69,7 @@ const dialog = ref(false)
 
 // ダイアログ表示
 function showDialog () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
 
   dialog.value = true
@@ -77,8 +79,7 @@ function showDialog () {
 async function postMembersDelete () {
   processing.value = true
 
-  const url = $config.public.members.deleteUrl.replace(':space_code', $props.space.code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.deleteUrl.replace(':space_code', $props.space.code)), 'POST', {
     codes: $props.selectedMembers.map((item: any) => item.user.code)
   })
 
@@ -92,8 +93,8 @@ async function postMembersDelete () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

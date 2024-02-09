@@ -6,13 +6,13 @@
         <v-form autocomplete="off">
           <v-toolbar color="primary" density="compact">
             <v-icon size="small" class="ml-4">mdi-account-edit</v-icon>
-            <span class="ml-1">メンバー情報変更</span>
+            <span class="ml-1">{{ $t('メンバー情報変更') }}</span>
           </v-toolbar>
           <v-card-text>
             <v-container>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end align-self-center text-no-wrap pr-0 pb-0">
-                  メンバー
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap align-self-center text-no-wrap pr-0 pb-0">
+                  {{ $t('メンバー') }}
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <UsersAvatar :user="member.user" />
@@ -23,19 +23,19 @@
               </v-row>
               <v-row v-if="member.invitationed_at != null || member.invitationed_user != null">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                  招待
+                  {{ $t('招待情報') }}
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', member.invitationed_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat(locale, member.invitationed_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.invitationed_user" />
                 </v-col>
               </v-row>
               <v-row v-if="member.last_updated_at != null || member.last_updated_user != null">
                 <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                  更新
+                  {{ $t('更新情報') }}
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
-                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', member.last_updated_at, 'N/A') }}</span>
+                  <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat(locale, member.last_updated_at, 'N/A') }}</span>
                   <UsersAvatar :user="member.last_updated_user" />
                 </v-col>
               </v-row>
@@ -45,8 +45,8 @@
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-1">
-                  権限<AppRequiredLabel />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-1">
+                  {{ $t('権限') }}<AppRequiredLabel />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="member.power" name="power" rules="required_select">
@@ -82,7 +82,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postMembersUpdate(setErrors, values)"
             >
-              変更
+              {{ $t('変更') }}
             </v-btn>
             <v-btn
               id="member_update_cancel_btn"
@@ -90,7 +90,7 @@
               variant="elevated"
               @click="dialog = false"
             >
-              キャンセル
+              {{ $t('キャンセル') }}
             </v-btn>
           </v-card-actions>
         </v-form>
@@ -100,20 +100,16 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import { dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
-
-defineRule('required_select', required)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
 
 const $props = defineProps({
   space: {
@@ -123,9 +119,13 @@ const $props = defineProps({
 })
 defineExpose({ showDialog })
 const $emit = defineEmits(['update'])
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t, tm: $tm } = useI18n()
+const { t: $t, tm: $tm, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
+
+setLocale(locale.value)
+defineRule('required_select', required)
 
 const processing = ref(false)
 const waiting = ref(false)
@@ -137,7 +137,7 @@ async function showDialog (item: any) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('showDialog', item) }
 
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
 
   if (!await getMembersDetail(item)) { return }
@@ -148,8 +148,7 @@ async function showDialog (item: any) {
 
 // メンバー詳細取得
 async function getMembersDetail (item: any) {
-  const url = $config.public.members.detailUrl.replace(':space_code', $props.space.code).replace(':user_code', item.user.code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.detailUrl.replace(':space_code', $props.space.code).replace(':user_code', item.user.code)))
 
   if (response?.ok) {
     if (data?.member != null) {
@@ -160,8 +159,8 @@ async function getMembersDetail (item: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {
@@ -180,8 +179,7 @@ async function getMembersDetail (item: any) {
 async function postMembersUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const url = $config.public.members.updateUrl.replace(':space_code', $props.space.code).replace(':user_code', member.value.user.code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.updateUrl.replace(':space_code', $props.space.code).replace(':user_code', member.value.user.code)), 'POST', {
     member: { power: member.value.power }
   })
 
@@ -197,8 +195,8 @@ async function postMembersUpdate (setErrors: any, values: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

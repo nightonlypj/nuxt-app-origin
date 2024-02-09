@@ -1,9 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppProcessing from '~/components/app/Processing.vue'
 import Component from '~/components/app/ListDownload.vue'
 import { detail as space } from '~/test/data/spaces'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
+const $tm = config.global.mocks.$tm
 
 describe('ListDownload.vue', () => {
   let mock: any
@@ -19,7 +24,9 @@ describe('ListDownload.vue', () => {
   const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = `/members/${space.code}`
   const model = 'member'
-  const items = helper.locales.items.member
+  const headers = $config.public.members.headers
+  const allItems = headers.filter((item: any) => item.title != null).map((item: any) => item)
+  const allItemKeys = allItems.map((item: any) => item.key)
 
   const mountFunction = (admin = false, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -32,9 +39,7 @@ describe('ListDownload.vue', () => {
       },
       $toast: mock.toast
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      fullPath
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ fullPath })))
 
     const wrapper = mount(Component, {
       global: {
@@ -45,6 +50,7 @@ describe('ListDownload.vue', () => {
       props: {
         admin,
         model,
+        headers,
         space,
         hiddenItems,
         selectItems,
@@ -78,7 +84,7 @@ describe('ListDownload.vue', () => {
     expect(submitButton.element.disabled).toBe(false) // 有効
 
     // 対象
-    for (const key in helper.locales.enums.download.target) {
+    for (const key in $tm('enums.download.target')) {
       const target = wrapper.find(`#list_download_target_${key}`)
       expect(target.exists()).toBe(true)
       expect(target.element.checked).toBe(key === checked.target)
@@ -86,28 +92,28 @@ describe('ListDownload.vue', () => {
     }
 
     // 形式
-    for (const key in helper.locales.enums.download.format) {
+    for (const key in $tm('enums.download.format')) {
       const format = wrapper.find(`#list_download_format_${key}`)
       expect(format.exists()).toBe(true)
       expect(format.element.checked).toBe(key === checked.format)
     }
 
     // 文字コード
-    for (const key in helper.locales.enums.download.char_code) {
+    for (const key in $tm('enums.download.char_code')) {
       const charCode = wrapper.find(`#list_download_char_code_${key}`)
       expect(charCode.exists()).toBe(true)
       expect(charCode.element.checked).toBe(key === checked.charCode)
     }
 
     // 改行コード
-    for (const key in helper.locales.enums.download.newline_code) {
+    for (const key in $tm('enums.download.newline_code')) {
       const newlineCode = wrapper.find(`#list_download_newline_code_${key}`)
       expect(newlineCode.exists()).toBe(true)
       expect(newlineCode.element.checked).toBe(key === checked.newlineCode)
     }
 
     // 出力項目
-    for (const item of items) {
+    for (const item of allItems) {
       const outputItem = wrapper.find(`#list_download_output_item_${item.key.replace('.', '_')}`)
       if (!item.adminOnly || admin) {
         expect(outputItem.exists()).toBe(true)
@@ -197,15 +203,13 @@ describe('ListDownload.vue', () => {
     await flushPromises()
 
     // 全て選択
-    const allItems = items.map(item => item.key)
-    expect(wrapper.vm.outputItems).toEqual(allItems)
+    expect(wrapper.vm.outputItems).toEqual(allItemKeys)
 
     // ダウンロードボタン
     expect(button.element.disabled).toBe(false) // 有効
   })
 
   describe('ダウンロード依頼', () => {
-    const allItems = items.map(item => item.key)
     const selectItems = Object.freeze(['code000000000000000000001'])
     const searchParams = Object.freeze({ text: 'aaa' })
     const query = Object.freeze({
@@ -217,12 +221,12 @@ describe('ListDownload.vue', () => {
 
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.downloads.createUrl, 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.downloads.createUrl), 'POST', {
         download: {
           model,
           space_code: space.code,
           ...query,
-          output_items: allItems,
+          output_items: allItemKeys,
           select_items: selectItems,
           search_params: searchParams
         }
@@ -267,7 +271,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
@@ -277,7 +281,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
@@ -285,18 +289,18 @@ describe('ListDownload.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
@@ -313,7 +317,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
+      helper.toastMessageTest(mock.toast, { error: $t('auth.forbidden') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
@@ -331,7 +335,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.notfound })
+      helper.toastMessageTest(mock.toast, { error: $t('system.notfound') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
@@ -340,7 +344,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
@@ -358,7 +362,7 @@ describe('ListDownload.vue', () => {
       await beforeAction()
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
+      helper.toastMessageTest(mock.toast, { error: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
       expect(dialog.isVisible()).toBe(true) // 表示
     })
