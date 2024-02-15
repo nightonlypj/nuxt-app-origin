@@ -1,4 +1,4 @@
-export default defineNuxtPlugin((_nuxtApp) => {
+export default defineNuxtPlugin(() => {
   const { status: authStatus, data: authData } = useAuthState()
   return {
     provide: {
