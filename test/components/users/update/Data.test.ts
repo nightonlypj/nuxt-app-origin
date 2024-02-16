@@ -36,9 +36,7 @@ describe('Data.vue', () => {
       },
       $toast: mock.toast
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      fullPath
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ fullPath })))
 
     const wrapper: any = mount(Component, {
       global: {

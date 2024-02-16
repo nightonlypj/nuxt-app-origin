@@ -1,6 +1,6 @@
 import vuetify from 'vite-plugin-vuetify'
 import { commonConfig } from './config/common'
-import { defaultLocale, locales } from './i18n.config'
+import { cookieKey, defaultLocale, locales } from './i18n.config'
 
 const environment = process.env.NODE_ENV || 'development'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -18,10 +18,10 @@ export default defineNuxtConfig({
     '@sidebase/nuxt-auth'
   ],
   i18n: {
-    strategy: 'prefix_and_default', // https://i18n.nuxtjs.org/guide/routing-strategies
-    detectBrowserLanguage: { // NOTE: CSRだとブラウザ言語の検出ができない
+    strategy: 'prefix_except_default', // https://i18n.nuxtjs.org/guide/routing-strategies
+    detectBrowserLanguage: { // NOTE: ブラウザ言語の自動検出ができない -> plugins/setLocale.clientで対応
       useCookie: true,
-      cookieKey: 'locale' // <- 'i18n_redirected'
+      cookieKey
     },
     defaultLocale,
     locales,

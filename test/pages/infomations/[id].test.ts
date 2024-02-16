@@ -25,9 +25,7 @@ describe('[id].vue', () => {
   const mountFunction = (params: any) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('showError', mock.showError)
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      params
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ params })))
 
     const wrapper = mount(Page, {
       global: {

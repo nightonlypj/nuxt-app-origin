@@ -1,3 +1,4 @@
+import { config } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Plugin from '~/plugins/authUser.client'
 
@@ -9,7 +10,8 @@ describe('authUser.client.ts', () => {
       useAuthSignOut: vi.fn()
     }
   })
-  const _nuxtApp: any = null
+  const locale = helper.locale
+  const nuxtApp: any = { $config: config.global.mocks.$config, $i18n: { locale: ref(locale) } }
 
   const beforeAction = (reqToken: any = {}) => {
     vi.stubGlobal('localStorage', { getItem: vi.fn((key: string) => reqToken[key]) })
@@ -21,18 +23,17 @@ describe('authUser.client.ts', () => {
     mock.useAuthUser = vi.fn()
     beforeAction()
 
-    await Plugin(_nuxtApp)
+    await Plugin(nuxtApp)
     helper.mockCalledTest(mock.useAuthUser, 0)
     helper.mockCalledTest(mock.useAuthSignOut, 0)
   })
   describe('ログイン中', () => {
     const reqToken = Object.freeze({ 'token-type': 'Bearer', 'access-token': 'token1' })
-    const locale = 'unknown'
     it('[レスポンスOK]ユーザー情報更新が更新される。ログアウトされない', async () => {
       mock.useAuthUser = vi.fn(() => [{ ok: true }])
       beforeAction(reqToken)
 
-      await Plugin(_nuxtApp)
+      await Plugin(nuxtApp)
       helper.mockCalledTest(mock.useAuthUser, 1, locale)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
     })
@@ -40,7 +41,7 @@ describe('authUser.client.ts', () => {
       mock.useAuthUser = vi.fn(() => [{ ok: false }])
       beforeAction(reqToken)
 
-      await Plugin(_nuxtApp)
+      await Plugin(nuxtApp)
       helper.mockCalledTest(mock.useAuthUser, 1, locale)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
     })
@@ -48,7 +49,7 @@ describe('authUser.client.ts', () => {
       mock.useAuthUser = vi.fn(() => [{ status: 401 }])
       beforeAction(reqToken)
 
-      await Plugin(_nuxtApp)
+      await Plugin(nuxtApp)
       helper.mockCalledTest(mock.useAuthUser, 1, locale)
       helper.mockCalledTest(mock.useAuthSignOut, 1, locale, true)
     })
