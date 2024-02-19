@@ -79,6 +79,7 @@
         variant="underlined"
         hide-details
         class="ml-1 mr-4 mb-2 switch-locale"
+        style="max-width: 94px"
         @update:model-value="navigateTo(switchLocalePath(switchLocale))"
       />
     </v-app-bar>
