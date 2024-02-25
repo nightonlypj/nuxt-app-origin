@@ -21,7 +21,7 @@
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
-            <div v-if="space != null && space.total_count > 0" class="align-self-center text-no-wrap ml-2">
+            <div v-if="space != null && space.total_count > 0" class="align-self-center ml-2">
               {{ $t(`{total}件（${space.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, space.total_count, 'N/A') }) }}
             </div>
           </v-col>
@@ -264,7 +264,7 @@ async function getSpacesList () {
       nojoin: 1
     }
   }
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.listUrl), 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.listUrl), 'GET', {
     ...params.value,
     ...privateParams,
     page: page.value

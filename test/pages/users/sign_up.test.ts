@@ -96,7 +96,7 @@ describe('sign_up.vue', () => {
   describe('招待情報取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userInvitationUrl), 'GET', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.userInvitationUrl), 'GET', {
         code: invitation.code
       })
     }

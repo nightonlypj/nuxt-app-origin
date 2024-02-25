@@ -265,7 +265,7 @@ It converts "HTML", but keep intact partial entries like "xxxHTMLyyy" and so on.
 :::`
 
 /* c8 ignore start */
-if ($config.public.env.production) {
+if (!$config.public.developmentMenu) {
   showError({ statusCode: 404 })
   /* c8 ignore stop */
 } else {

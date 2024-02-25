@@ -59,10 +59,11 @@ const tableHeaders = computed(() => ($t: any, items: any, hiddenItems: any = [],
     if ((item.required || !hiddenItems.includes(item.key)) && (!item.adminOnly || admin)) {
       let props: any = { headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } }
       if (item.key === 'data-table-select') { props = { ...props, headerProps: { class: 'px-0' }, cellProps: { class: 'px-0 py-2' } } }
-      if (item.align === 'end') { props = { ...props, cellProps: { class: 'pl-1 pr-6 py-2' }, align: 'end', width: 100 } }
+      if (item.align === 'end') { props = { ...props, cellProps: { class: 'pl-1 pr-6 py-2' }, align: 'end' } }
       if (item.align === 'center') { props = { ...props, align: 'center' } }
       if (item.headerProps != null) { props = { ...props, headerProps: { ...props.headerProps, ...item.headerProps } } }
       if (item.cellProps != null) { props = { ...props, cellProps: { ...props.cellProps, ...item.cellProps } } }
+      if (item.width != null) { props = { ...props, width: item.width } }
 
       result.push({
         title: item.title != null ? $t(item.title) : '',

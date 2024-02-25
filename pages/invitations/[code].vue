@@ -23,7 +23,7 @@
       <v-card-text class="pt-0">
         <v-row>
           <v-col class="d-flex py-2">
-            <div v-if="invitation != null && invitation.total_count > 0" class="align-self-center text-no-wrap ml-2">
+            <div v-if="invitation != null && invitation.total_count > 0" class="align-self-center ml-2">
               {{ $t(`{total}件（${invitation.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, invitation.total_count, 'N/A') }) }}
             </div>
           </v-col>
@@ -181,7 +181,7 @@ async function getNextInvitationsList ($state: any) {
 async function getInvitationsList () {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.invitations.listUrl.replace(':space_code', code)), 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.listUrl.replace(':space_code', code)), 'GET', {
     page: page.value
   })
   if (!checkHeadersUid(response, page, uid)) { return false }

@@ -207,7 +207,7 @@ async function postSpacesCreate (setErrors: any, values: any) {
   if ($config.public.enablePublicSpace) { params['space[private]'] = Number(space.value.private) }
   if (space.value.image != null && space.value.image.length > 0) { params['space[image]'] = space.value.image[0] }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.createUrl), 'POST', params, 'form')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.createUrl), 'POST', params, 'form')
 
   if (response?.ok) {
     if (data != null) {

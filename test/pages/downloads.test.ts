@@ -66,7 +66,7 @@ describe('downloads.vue', () => {
   // テスト内容
   const apiCalledTest = (count: number, params: any = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL.value(helper.locale, $config.public.downloads.listUrl), 'GET', params)
+    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL(helper.locale, $config.public.downloads.listUrl), 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string, messages = {}, show: any = { existInfinite: false, testState: null }, error = false) => {
@@ -644,7 +644,7 @@ describe('downloads.vue', () => {
       await flushPromises()
 
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL.value(helper.locale, $config.public.downloads.fileUrl.replace(':id', item.id)), 'GET', null, null, 'text/csv')
+      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL(helper.locale, $config.public.downloads.fileUrl.replace(':id', item.id)), 'GET', null, null, 'text/csv')
       URL.createObjectURL = beforeCreateObjectURL
     }
 

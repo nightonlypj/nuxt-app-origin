@@ -183,7 +183,7 @@ describe('Update.vue', () => {
   describe('メンバー詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.members.detailUrl.replace(':space_code', space.code).replace(':user_code', detail.user.code)))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.members.detailUrl.replace(':space_code', space.code).replace(':user_code', detail.user.code)))
     }
 
     const beforeAction = async () => {
@@ -285,7 +285,7 @@ describe('Update.vue', () => {
     const values = Object.freeze({ power: 'writer' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL.value(helper.locale, $config.public.members.updateUrl.replace(':space_code', space.code).replace(':user_code', detail.user.code)), 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL(helper.locale, $config.public.members.updateUrl.replace(':space_code', space.code).replace(':user_code', detail.user.code)), 'POST', {
         member: values
       })
     }

@@ -106,7 +106,7 @@ async function created () {
 
 // スペース詳細取得
 async function getSpaceDetail () {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {
@@ -138,7 +138,7 @@ async function postSpacesUndoDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.undoDeleteUrl.replace(':code', code)), 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.undoDeleteUrl.replace(':code', code)), 'POST')
 
   if (response?.ok) {
     if (data != null) {

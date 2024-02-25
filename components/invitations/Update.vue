@@ -239,7 +239,7 @@ async function showDialog (item: any) {
 
 // 招待URL詳細取得
 async function getInvitationsDetail (item: any) {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.invitations.detailUrl.replace(':space_code', $props.space.code).replace(':code', item.code)))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.detailUrl.replace(':space_code', $props.space.code).replace(':code', item.code)))
 
   if (response?.ok) {
     if (data?.invitation != null) {
@@ -280,7 +280,7 @@ async function postInvitationsUpdate (setErrors: any, values: any) {
   let params = {}
   if (invitation.value.delete) { params = { delete: true } }
   if (invitation.value.undo_delete) { params = { undo_delete: true } }
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.invitations.updateUrl.replace(':space_code', $props.space.code).replace(':code', invitation.value.code)), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.updateUrl.replace(':space_code', $props.space.code).replace(':code', invitation.value.code)), 'POST', {
     invitation: {
       ended_date: invitation.value.ended_date,
       ended_time: invitation.value.ended_time,

@@ -89,7 +89,7 @@ describe('[code].vue', () => {
   // テスト内容
   const apiCalledTest = (count: number, params: object = { ...defaultParams, page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL.value(helper.locale, $config.public.members.listUrl.replace(':space_code', space.code)), 'GET', params)
+    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL(helper.locale, $config.public.members.listUrl.replace(':space_code', space.code)), 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string, admin = false, show: any = { existInfinite: false, testState: null }, error = false) => {

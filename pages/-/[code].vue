@@ -81,7 +81,7 @@ async function created () {
 
 // スペース情報取得
 async function getSpacesDetail () {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {

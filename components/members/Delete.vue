@@ -79,7 +79,7 @@ function showDialog () {
 async function postMembersDelete () {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.deleteUrl.replace(':space_code', $props.space.code)), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.deleteUrl.replace(':space_code', $props.space.code)), 'POST', {
     codes: $props.selectedMembers.map((item: any) => item.user.code)
   })
 

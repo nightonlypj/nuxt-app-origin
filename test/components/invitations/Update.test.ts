@@ -197,7 +197,7 @@ describe('Update.vue', () => {
   describe('招待URL詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.invitations.detailUrl.replace(':space_code', space.code).replace(':code', detailActive.code)))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.invitations.detailUrl.replace(':space_code', space.code).replace(':code', detailActive.code)))
     }
 
     const beforeAction = async () => {
@@ -304,7 +304,7 @@ describe('Update.vue', () => {
     })
     const apiCalledTest = (values: object) => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL.value(helper.locale, $config.public.invitations.updateUrl.replace(':space_code', space.code).replace(':code', detailActive.code)), 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL(helper.locale, $config.public.invitations.updateUrl.replace(':space_code', space.code).replace(':code', detailActive.code)), 'POST', {
         invitation: values
       })
     }

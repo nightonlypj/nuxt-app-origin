@@ -240,7 +240,7 @@ async function created () {
 
 // スペース詳細取得
 async function getSpacesDetail () {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {
@@ -279,7 +279,7 @@ async function postSpacesUpdate (setErrors: any, values: any) {
   if (space.value.image_delete) { params['space[image_delete]'] = true }
   if (space.value.image != null && space.value.image.length > 0) { params['space[image]'] = space.value.image[0] }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.updateUrl.replace(':code', code)), 'POST', params, 'form')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.updateUrl.replace(':code', code)), 'POST', params, 'form')
 
   if (response?.ok) {
     if (data?.space != null) {

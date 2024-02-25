@@ -55,7 +55,7 @@ describe('PublicSpace.vue', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.spaces.listUrl), 'GET', params)
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.spaces.listUrl), 'GET', params)
     }
 
     let wrapper: any

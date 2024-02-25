@@ -333,7 +333,7 @@ async function getMembersList () {
     params.value.desc = Number(query.value.desc)
   }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.listUrl.replace(':space_code', code)), 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.listUrl.replace(':space_code', code)), 'GET', {
     ...params.value,
     page: page.value
   })

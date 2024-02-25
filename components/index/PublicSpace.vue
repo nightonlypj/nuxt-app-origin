@@ -17,8 +17,8 @@
           </v-col>
         </v-row>
       </v-card-title>
-      <v-card-text v-if="alert !== ''">
-        <v-icon color="warning">mdi-alert</v-icon>
+      <v-card-text v-if="alert !== ''" class="d-flex align-center">
+        <v-icon color="warning" class="mr-1">mdi-alert</v-icon>
         {{ alert }}
       </v-card-text>
       <v-card-text v-else>
@@ -68,7 +68,7 @@ async function created () {
 // スペース一覧取得（公開）
 async function getPublicSpaces () {
   const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.spaces.listUrl), 'GET', params)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.listUrl), 'GET', params)
 
   if (response?.ok) {
     if (data != null) {

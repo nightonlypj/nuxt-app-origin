@@ -134,7 +134,7 @@ describe('Create.vue', () => {
     const values = Object.freeze({ emails: 'user1@example.com', power: 'admin' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.members.createUrl.replace(':space_code', space.code)), 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.members.createUrl.replace(':space_code', space.code)), 'POST', {
         member: values
       })
     }

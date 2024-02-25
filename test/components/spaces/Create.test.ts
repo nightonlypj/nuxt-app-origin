@@ -149,7 +149,7 @@ describe('Create.vue', () => {
       if ($config.public.enablePublicSpace) { params['space[private]'] = Number(values.private) }
 
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.spaces.createUrl), 'POST', params, 'form')
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.spaces.createUrl), 'POST', params, 'form')
     }
 
     let wrapper: any, dialog: any, button: any

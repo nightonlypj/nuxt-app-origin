@@ -138,7 +138,7 @@ function showDialog () {
 async function postMembersCreate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.createUrl.replace(':space_code', $props.space.code)), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.createUrl.replace(':space_code', $props.space.code)), 'POST', {
     member: member.value
   })
 

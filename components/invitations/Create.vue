@@ -193,7 +193,7 @@ function showDialog () {
 async function postInvitationsCreate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.invitations.createUrl.replace(':space_code', $props.space.code)), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.createUrl.replace(':space_code', $props.space.code)), 'POST', {
     invitation: {
       ...invitation.value,
       ended_zone: timeZoneOffset.value

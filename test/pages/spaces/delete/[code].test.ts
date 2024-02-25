@@ -159,7 +159,7 @@ describe('[code].vue', () => {
   describe('スペース詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.spaces.detailUrl.replace(':code', detail.code)))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.spaces.detailUrl.replace(':code', detail.code)))
     }
 
     const beforeAction = async () => {
@@ -257,7 +257,7 @@ describe('[code].vue', () => {
   describe('スペース削除', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL.value(helper.locale, $config.public.spaces.deleteUrl.replace(':code', detail.code)), 'POST')
+      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL(helper.locale, $config.public.spaces.deleteUrl.replace(':code', detail.code)), 'POST')
     }
 
     let wrapper: any, button: any

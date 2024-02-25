@@ -148,7 +148,7 @@ async function showDialog (item: any) {
 
 // メンバー詳細取得
 async function getMembersDetail (item: any) {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.detailUrl.replace(':space_code', $props.space.code).replace(':user_code', item.user.code)))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.detailUrl.replace(':space_code', $props.space.code).replace(':user_code', item.user.code)))
 
   if (response?.ok) {
     if (data?.member != null) {
@@ -179,7 +179,7 @@ async function getMembersDetail (item: any) {
 async function postMembersUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.members.updateUrl.replace(':space_code', $props.space.code).replace(':user_code', member.value.user.code)), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.updateUrl.replace(':space_code', $props.space.code).replace(':user_code', member.value.user.code)), 'POST', {
     member: { power: member.value.power }
   })
 

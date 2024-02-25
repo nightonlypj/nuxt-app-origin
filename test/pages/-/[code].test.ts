@@ -80,7 +80,7 @@ describe('[code].vue', () => {
   describe('スペース情報取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.spaces.detailUrl.replace(':code', params.code)))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.spaces.detailUrl.replace(':code', params.code)))
     }
 
     let wrapper: any

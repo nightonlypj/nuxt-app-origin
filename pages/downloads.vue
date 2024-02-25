@@ -7,13 +7,11 @@
     <AppMessage v-model:messages="messages" :notice-type="noticeType" />
     <v-card>
       <v-card-title>{{ $t('ダウンロード結果') }}</v-card-title>
-    </v-card>
-    <v-card>
       <v-card-text class="pt-0">
         <AppProcessing v-if="reloading" />
         <v-row>
           <v-col class="d-flex py-2">
-            <div v-if="download != null && download.total_count > 0" class="align-self-center text-no-wrap ml-2">
+            <div v-if="download != null && download.total_count > 0" class="align-self-center ml-2">
               {{ $t(`{total}件（${download.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, download.total_count, 'N/A') }) }}
             </div>
           </v-col>
@@ -158,7 +156,7 @@ async function getDownloadsList () {
   params.value = {}
   if ($route.query?.target_id != null) { params.value.target_id = Number($route.query.target_id) }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.downloads.listUrl), 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.listUrl), 'GET', {
     ...params.value,
     page: page.value
   })
@@ -249,7 +247,7 @@ async function checkDownloadComplete (targetId: number, count: number) {
     id: targetId,
     target_id: targetId
   }
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.downloads.listUrl), 'GET', params.value)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.listUrl), 'GET', params.value)
 
   if (response?.ok) {
     if (data?.downloads?.length === 1 && data.downloads[0].id === targetId && data.target != null) {
@@ -294,7 +292,7 @@ async function getDownloadsFile (item: any) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getDownloadsFile', item) }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.downloads.fileUrl.replace(':id', item.id)), 'GET', null, null, 'text/csv')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.fileUrl.replace(':id', item.id)), 'GET', null, null, 'text/csv')
 
   if (response?.ok) {
     if (data != null) {

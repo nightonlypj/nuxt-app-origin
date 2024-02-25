@@ -278,7 +278,7 @@ function clearOutputItems (setErrors: any) {
 async function postDownloadsCreate (isActive: any, setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.downloads.createUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.createUrl), 'POST', {
     download: {
       model: $props.model,
       space_code: $props.space?.code,

@@ -138,7 +138,7 @@ describe('Create.vue', () => {
     const values = Object.freeze({ domains: 'example.com', power: 'admin', ended_date: '9999-12-31', ended_time: '23:59', memo: 'メモ' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.invitations.createUrl.replace(':space_code', space.code)), 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.invitations.createUrl.replace(':space_code', space.code)), 'POST', {
         invitation: {
           ...values,
           ended_zone: timeZoneOffset.value
