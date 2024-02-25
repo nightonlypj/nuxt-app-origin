@@ -101,7 +101,7 @@ const image = ref<any>(null)
 async function postUserImageUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userImageUpdateUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userImageUpdateUrl), 'POST', {
     image: image.value[0]
   }, 'form')
   responseUserImage(response, data, setErrors, values)
@@ -112,7 +112,7 @@ async function postUserImageDelete (isActive: any, setErrors: any, values: any) 
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userImageDeleteUrl), 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userImageDeleteUrl), 'POST')
   responseUserImage(response, data, setErrors, values)
 }
 

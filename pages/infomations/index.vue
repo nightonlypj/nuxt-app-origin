@@ -8,17 +8,17 @@
     <v-card-title>{{ $t('お知らせ') }}</v-card-title>
     <v-card-text>
       <v-row v-if="infomation != null">
-        <v-col class="align-self-center text-no-wrap ml-2">
-          <template v-if="enablePagination">
+        <v-col class="align-self-center ml-2">
+          <template v-if="infomation.total_pages > 1">
             {{ $t('{total}件中 {start}-{end}件を表示', { total: localeString(locale, infomation.total_count, 'N/A'), start: localeString(locale, pageFirstNumber(infomation), 'N/A'), end: localeString(locale, pageLastNumber(infomation), 'N/A') }) }}
           </template>
           <template v-else>
             {{ $t(`{total}件（${infomation.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, infomation.total_count, 'N/A') }) }}
           </template>
         </v-col>
-        <v-col v-if="enablePagination" class="pa-0">
+        <v-col v-if="infomation.total_pages > 1" class="pa-0">
           <div class="d-flex justify-end">
-            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" density="comfortable" @click="getInfomationsList()" />
           </div>
         </v-col>
       </v-row>
@@ -30,8 +30,8 @@
       </template>
       <InfomationsLists v-else :infomations="infomations" />
 
-      <template v-if="enablePagination">
-        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" @click="getInfomationsList()" />
+      <template v-if="infomation.total_pages > 1">
+        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" show-first-last-page @click="getInfomationsList()" />
       </template>
     </v-card-text>
   </v-card>
@@ -56,11 +56,14 @@ const page = ref(Number($route.query?.page) || 1)
 const infomation = ref<any>(null)
 const infomations = ref<any>(null)
 
-const enablePagination = computed(() => infomation.value?.total_pages > 1)
-
 created()
 async function created () {
   if (!await getInfomationsList()) { return }
+
+  if (infomation.value.total_pages > 0 && page.value > infomation.value.total_pages) {
+    page.value = infomation.value.total_pages
+    if (!await getInfomationsList()) { return }
+  }
 
   if ($auth.loggedIn) { $auth.resetUserInfomationUnreadCount() }
   loading.value = false
@@ -70,7 +73,7 @@ async function created () {
 async function getInfomationsList () {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.listUrl), 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.infomations.listUrl), 'GET', {
     page: page.value
   })
 

@@ -7,8 +7,8 @@
     <template v-if="infomation != null">
       <v-card-title>
         <div>
-          <InfomationsLabel :infomation="infomation" />
-          <span class="ml-1 font-weight-bold">
+          <InfomationsLabel :infomation="infomation" class="mr-1" />
+          <span class="font-weight-bold">
             {{ infomation.title }}
           </span>
           ({{ dateFormat(locale, infomation.started_at, 'N/A') }})
@@ -16,9 +16,7 @@
       </v-card-title>
       <v-card-text>
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="infomation.body" class="mx-2 my-2" v-html="infomation.body" />
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-else-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+        <div class="ma-2" v-html="infomation.body || infomation.summary" />
       </v-card-text>
       <v-divider />
     </template>
@@ -54,7 +52,7 @@ const title = computed(() => {
 created()
 async function created () {
   const id = Number($route.params.id)
-  if (isNaN(id) || String(id) !== String($route.params.id)) { return redirectError(404, {}) }
+  if (isNaN(id) || String(id) !== $route.params.id) { return redirectError(404) }
   if (!await getInfomationsDetail(id)) { return }
 
   loading.value = false
@@ -62,7 +60,7 @@ async function created () {
 
 // お知らせ詳細取得
 async function getInfomationsDetail (id: number) {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.infomations.detailUrl.replace(':id', String(id))))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.infomations.detailUrl.replace(':id', String(id))))
 
   if (response?.ok) {
     if (data?.infomation != null) {

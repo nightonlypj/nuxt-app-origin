@@ -134,7 +134,7 @@ function created () {
 async function postSingUp (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.singUpUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.singUpUrl), 'POST', {
     ...query.value,
     confirm_success_url: $config.public.frontBaseURL + localePath($config.public.singUpSuccessUrl)
   })

@@ -102,7 +102,7 @@ describe('reset.vue', () => {
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.passwordUrl), 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.passwordUrl), 'POST', {
           ...params,
           redirect_url: $config.public.frontBaseURL + $config.public.passwordRedirectUrl
         })

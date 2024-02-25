@@ -58,7 +58,7 @@ describe('index.vue', () => {
   // テスト内容
   const apiCalledTest = (count: number, params: object = { page: count }) => {
     expect(mock.useApiRequest).toBeCalledTimes(count)
-    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL.value(helper.locale, $config.public.infomations.listUrl), 'GET', params)
+    expect(mock.useApiRequest).nthCalledWith(count, apiRequestURL(helper.locale, $config.public.infomations.listUrl), 'GET', params)
   }
 
   const viewTest = (wrapper: any, data: any, countView: string) => {

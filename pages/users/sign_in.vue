@@ -118,7 +118,7 @@ async function signIn (invalid: boolean, keydown: boolean) {
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.authSignInURL), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.authSignInURL), 'POST', {
     ...query.value,
     unlock_redirect_url: $config.public.frontBaseURL + localePath($config.public.unlockRedirectUrl)
   })

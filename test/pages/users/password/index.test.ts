@@ -134,7 +134,7 @@ describe('index.vue', () => {
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.passwordUpdateUrl), 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.passwordUpdateUrl), 'POST', {
           ...params
         })
       }

@@ -132,7 +132,7 @@ const showPassword = ref(false)
 async function postUserUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userUpdateUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userUpdateUrl), 'POST', {
     ...query.value,
     confirm_redirect_url: $config.public.frontBaseURL + localePath($config.public.confirmationSuccessUrl)
   })

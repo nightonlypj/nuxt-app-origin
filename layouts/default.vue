@@ -6,7 +6,7 @@
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
           :style="`width: ${appBarTitleWidth}px`"
-          class="ml-1 align-self-center d-inline-block text-truncate"
+          class="align-self-center d-inline-block text-truncate ml-1"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
         </v-app-bar-title>

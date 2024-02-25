@@ -150,7 +150,7 @@ describe('sign_in.vue', () => {
     const apiCalledTest = (count: number) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.authSignInURL), 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.authSignInURL), 'POST', {
           ...params,
           unlock_redirect_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
         })

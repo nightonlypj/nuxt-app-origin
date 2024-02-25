@@ -19,7 +19,7 @@
         <IndexInfomations />
       </v-col>
     </v-row>
-    <v-row v-if="!$config.public.env.production">
+    <v-row v-if="$config.public.developmentMenu">
       <v-col cols="12" md="6" class="pa-2">
         <v-card link>
           <v-card-title>{{ $t('development') }}</v-card-title>

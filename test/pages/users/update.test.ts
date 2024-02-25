@@ -61,7 +61,7 @@ describe('update.vue', () => {
   // テスト内容
   const apiCalledTest = () => {
     expect(mock.useApiRequest).toBeCalledTimes(1)
-    expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userDetailUrl))
+    expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.userDetailUrl))
   }
 
   const viewTest = (wrapper: any, user: object) => {

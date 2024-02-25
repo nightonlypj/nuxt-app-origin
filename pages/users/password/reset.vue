@@ -95,7 +95,7 @@ async function postPassword (invalid: boolean, keydown: boolean, setErrors: any,
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.passwordUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.passwordUrl), 'POST', {
     ...query.value,
     redirect_url: $config.public.frontBaseURL + localePath($config.public.passwordRedirectUrl)
   })

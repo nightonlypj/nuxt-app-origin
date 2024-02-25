@@ -11,7 +11,13 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
   runtimeConfig: {
-    public: Object.assign(commonConfig, config.envConfig, { env: { production: environment === 'production', test: false } })
+    public: Object.assign(commonConfig, config.envConfig, {
+      env: {
+        production: environment === 'production',
+        development: environment === 'development',
+        test: false
+      }
+    })
   },
   modules: [
     '@nuxtjs/i18n',

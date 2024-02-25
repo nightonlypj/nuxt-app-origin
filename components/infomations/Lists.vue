@@ -6,9 +6,9 @@
       :key="infomation.id"
       @dblclick="redirectInfomation(infomation)"
     >
-      <div>
-        <InfomationsLabel :infomation="infomation" />
-        <span class="ml-1 font-weight-bold">
+      <div class="d-flex align-center">
+        <InfomationsLabel :infomation="infomation" class="mr-1" />
+        <span class="font-weight-bold">
           <template v-if="infomation.body_present">
             <NuxtLink :to="localePath(`/infomations/${infomation.id}`)">{{ infomation.title }}</NuxtLink>
           </template>

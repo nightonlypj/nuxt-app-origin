@@ -48,13 +48,13 @@ describe('authSignOut.ts', () => {
     it('[なし]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction()
 
-      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL.value(helper.locale, $config.public.authSignOutURL), 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL(helper.locale, $config.public.authSignOutURL), 'POST')
       expect(authData.value).toBeNull()
     })
     it('[false]APIリクエストされる。ユーザー情報がnullになる', async () => {
       await beforeAction(false)
 
-      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL.value(helper.locale, $config.public.authSignOutURL), 'POST')
+      helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL(helper.locale, $config.public.authSignOutURL), 'POST')
       expect(authData.value).toBeNull()
     })
     it('[true]APIリクエストされない。ユーザー情報がnullになる', async () => {

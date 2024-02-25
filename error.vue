@@ -22,7 +22,7 @@ const props = defineProps({
   error: Object
 })
 
-const title = computed(() => (props.error?.statusCode === 404) ? 'Not Found' : 'エラー')
+const title = computed(() => $t((props.error?.statusCode === 404) ? 'Not Found' : 'エラー'))
 const alert = computed(() => {
   if (props.error?.data?.alert != null) { return props.error.data.alert }
   return $t(`system.${props.error?.statusCode === 404 ? 'notfound' : 'default'}`)

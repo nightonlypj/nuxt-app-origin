@@ -89,7 +89,7 @@ async function postUserUndoDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userUndoDeleteUrl), 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userUndoDeleteUrl), 'POST')
 
   if (response?.ok) {
     if (data != null) {
