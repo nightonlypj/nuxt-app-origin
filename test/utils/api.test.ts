@@ -7,10 +7,10 @@ describe('api.ts', () => {
   // APIリクエストURL取得
   describe('apiRequestURL', () => {
     const url = '/api'
-    for (const item of [...locales, { code: 'unknown' }]) {
+    for (const item of locales) {
       const result = $config.public.apiBaseURL + ($config.public.apiLocale as any)[item.code] + url
       it(`[${item.code}]${result}が返却される`, () => {
-        expect(apiRequestURL.value(item.code, url)).toBe(result)
+        expect(apiRequestURL(item.code, url)).toBe(result)
       })
     }
   })

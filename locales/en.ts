@@ -88,6 +88,8 @@ export const en = {
       copy_success: 'Copied to clipboard.'
     }
   },
+  'Not Found': 'Not Found',
+  エラー: 'Error',
   パラメータ不一致: 'Parameter mismatch. Please check the log.',
 
   選択: 'Select',

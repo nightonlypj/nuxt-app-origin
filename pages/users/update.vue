@@ -58,7 +58,7 @@ async function created () {
 
 // ユーザー情報詳細取得
 async function getUserDetail () {
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.userDetailUrl))
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userDetailUrl))
 
   if (response?.ok) {
     if (data?.user != null) {

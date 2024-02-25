@@ -128,7 +128,7 @@ describe('Image.vue', () => {
     const file = new File([], 'test.jpg', { type: 'image/jpeg' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userImageUpdateUrl), 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.userImageUpdateUrl), 'POST', {
         image: file
       }, 'form')
     }
@@ -242,7 +242,7 @@ describe('Image.vue', () => {
   describe('画像削除', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.userImageDeleteUrl), 'POST')
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.userImageDeleteUrl), 'POST')
     }
 
     let wrapper: any, button: any

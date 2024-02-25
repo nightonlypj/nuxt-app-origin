@@ -75,7 +75,7 @@ describe('[id].vue', () => {
   describe('お知らせ詳細取得', () => {
     const apiCalledTest = (params: any) => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL.value(helper.locale, $config.public.infomations.detailUrl.replace(':id', params.id)))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.infomations.detailUrl.replace(':id', params.id)))
     }
 
     let wrapper: any

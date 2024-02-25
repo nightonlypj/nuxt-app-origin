@@ -22,7 +22,7 @@ veeValidate(null as any)
 // Mock Config/i18n
 const i18n: any = createI18n({ ...i18nConfig, locale: helper.locale })
 config.global.mocks = {
-  $config: { public: Object.assign(commonConfig, envConfig, { env: { production: false, test: true } }) },
+  $config: { public: Object.assign(commonConfig, envConfig, { env: { production: false, development: false, test: true } }) },
   $t: (...args: any[]) => i18n.global.t(...args),
   $tm: (key: string) => i18n.global.tm(key)
 }

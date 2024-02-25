@@ -28,8 +28,7 @@ export const commonConfig = {
 
   apiLocale: {
     en: '/en',
-    ja: '',
-    unknown: ''
+    ja: ''
   },
   // ログインAPI
   authSignInURL: '/users/auth/sign_in.json',

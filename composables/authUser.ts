@@ -6,7 +6,7 @@ export const useAuthUser = async (locale: string) => {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useAuthUser') }
 
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale, $config.public.authUserURL))
+  const [response, data] = await useApiRequest(apiRequestURL(locale, $config.public.authUserURL))
 
   if (response?.ok) {
     const { data: authData } = useAuthState()

@@ -95,7 +95,7 @@ async function postUnlock (invalid: boolean, keydown: boolean, setErrors: any, v
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest(apiRequestURL.value(locale.value, $config.public.unlockUrl), 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.unlockUrl), 'POST', {
     ...query.value,
     redirect_url: $config.public.frontBaseURL + localePath($config.public.unlockRedirectUrl)
   })

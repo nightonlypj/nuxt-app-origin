@@ -23,7 +23,7 @@ describe('authUser.ts', () => {
     vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
     const [response, data] = await useAuthUser(helper.locale)
-    helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL.value(helper.locale, $config.public.authUserURL))
+    helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL(helper.locale, $config.public.authUserURL))
     expect(response.ok).toBe(result.ok)
     expect(response.status).toBe(result.status)
     expect(data).toBe(resData)

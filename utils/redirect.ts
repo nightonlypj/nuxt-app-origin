@@ -32,7 +32,7 @@ function redirectConfirmationReset (query: any, localePath: any) {
   navigateTo({ path: localePath('/users/confirmation/resend'), query: { alert: query.alert, notice: query.notice } })
 }
 
-function redirectError (statusCode: any, query: any) {
+function redirectError (statusCode: any, query: any = {}) {
   showError({ statusCode, data: { alert: query.alert, notice: query.notice } })
   /* c8 ignore next */ // eslint-disable-next-line no-throw-literal
   if (!$config.public.env.test) { throw 'showError' }

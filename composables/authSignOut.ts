@@ -7,7 +7,7 @@ export const useAuthSignOut = async (locale: string, skipRequest = false) => {
   if ($config.public.debug) { console.log('useAuthSignOut') }
 
   if (!skipRequest) {
-    await useApiRequest(apiRequestURL.value(locale, $config.public.authSignOutURL), 'POST')
+    await useApiRequest(apiRequestURL(locale, $config.public.authSignOutURL), 'POST')
   }
 
   // Devise Token Auth

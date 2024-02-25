@@ -6,7 +6,7 @@
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
           :style="`width: ${appBarTitleWidth}px`"
-          class="ml-1 align-self-center d-inline-block text-truncate"
+          class="align-self-center d-inline-block text-truncate ml-1"
         >
           {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
         </v-app-bar-title>
@@ -79,6 +79,7 @@
         variant="underlined"
         hide-details
         class="ml-1 mr-4 mb-2 switch-locale"
+        style="max-width: 94px"
         @update:model-value="navigateTo(switchLocalePath(switchLocale))"
       />
     </v-app-bar>
