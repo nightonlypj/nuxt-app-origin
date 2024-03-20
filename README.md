@@ -51,7 +51,7 @@ $ brew doctor
 Your system is ready to brew.
 
 $ brew -v
-Homebrew 4.1.20
+Homebrew 4.2.14
 ※バージョンは異なっても良い
 ```
 
@@ -80,25 +80,25 @@ export NVM_DIR="$HOME/.nvm"
 $ source ~/.bash_profile
 
 $ nvm --version
-0.39.5
+0.39.7
 ※バージョンは異なっても良い
 ```
 ```
 $ nvm ls-remote | grep 'Latest LTS'
-       v18.19.0   (Latest LTS: Hydrogen)
-       v20.11.0   (Latest LTS: Iron)
+       v18.19.1   (Latest LTS: Hydrogen)
+       v20.11.1   (Latest LTS: Iron)
 
-$ nvm install v20.11.0
-（$ nvm use v20.11.0）
-（$ nvm alias default v20.11.0）
+$ nvm install v20.11.1
+（$ nvm use v20.11.1）
+（$ nvm alias default v20.11.1）
 
 $ node -v
-v20.11.0
+v20.11.1
 
 $ nvm ls
-->     v20.11.0
+->     v20.11.1
          system
-default -> v20.11.0
+default -> v20.11.1
 ```
 
 ### yarnインストール
@@ -121,7 +121,7 @@ export PATH="/opt/homebrew/opt/icu4c/bin:/opt/homebrew/opt/icu4c/sbin:$PATH"
 $ source ~/.bash_profile
 
 $ yarn -v
-1.22.21
+1.22.22
 ※バージョンは異なっても良い
 ```
 
