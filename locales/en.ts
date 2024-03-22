@@ -61,6 +61,7 @@ export const en = {
   テーマカラー確認: 'Confirm theme color',
   クリップボードコピー成功: 'I copied "{text}" to my clipboard.',
   クリップボードコピー失敗: 'Copy failed. Please wait a while and try again.',
+  Markdown確認: 'Markdown confirmation',
 
   大切なお知らせ: 'Important infomation',
   お知らせ: 'Infomation',

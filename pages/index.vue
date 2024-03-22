@@ -24,7 +24,8 @@
         <v-card link>
           <v-card-title>{{ $t('development') }}</v-card-title>
           <v-card-text>
-            <NuxtLink :to="localePath('/development/color')">{{ $t('テーマカラー確認') }}</NuxtLink>
+            <NuxtLink :to="localePath('/development/color')">{{ $t('テーマカラー確認') }}</NuxtLink><br>
+            <NuxtLink :to="localePath('/development/markdown')">{{ $t('Markdown確認') }}</NuxtLink>
           </v-card-text>
         </v-card>
       </v-col>
