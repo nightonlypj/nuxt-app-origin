@@ -52,6 +52,20 @@ const timeZoneShortName = computed(() => {
   return (result != null) ? result[1] : null
 })
 
+// 非表示項目をlocalStorageまたはheadersから取得して返却 // NOTE: 存在しないkeyは含めいない。追加項目はdefaultHiddenで判断
+const tableHiddenItems = computed(() => (model: string, headers: any = []) => {
+  const localHiddenItems = localStorage.getItem(`${model}.hidden-items`)?.split(',')
+  if (localHiddenItems == null) { return headers.filter((item: any) => item.defaultHidden).map((item: any) => item.key) }
+
+  const localShowItems = localStorage.getItem(`${model}.show-items`)?.split(',')
+  const showItems = (localShowItems != null) ? localShowItems : headers.filter((item: any) => !item.defaultHidden).map((item: any) => item.key)
+
+  const headerKeys = headers.map((item: any) => item.key)
+  const hiddenItems = localHiddenItems.filter((item: any) => headerKeys.includes(item))
+  const newItems = hiddenItems.filter((item: any) => !showItems.includes(item))
+  return hiddenItems.concat(newItems.filter((item: any) => item.defaultHidden))
+})
+
 // テーブルのヘッダ情報を返却
 const tableHeaders = computed(() => ($t: any, items: any, hiddenItems: any = [], admin: boolean | null = null) => {
   const result = []
@@ -85,5 +99,6 @@ export {
   textTruncate,
   timeZoneOffset,
   timeZoneShortName,
+  tableHiddenItems,
   tableHeaders
 }

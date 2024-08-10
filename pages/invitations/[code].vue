@@ -93,7 +93,7 @@ import SpacesTitle from '~/components/spaces/Title.vue'
 import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
 import InvitationsLists from '~/components/invitations/Lists.vue'
-import { textTruncate, localeString } from '~/utils/display'
+import { textTruncate, localeString, tableHiddenItems } from '~/utils/display'
 import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
 import { checkHeadersUid } from '~/utils/auth'
@@ -119,8 +119,7 @@ const page = ref(1)
 const space = ref<any>(null)
 const invitation = ref<any>(null)
 const invitations = ref<any>(null)
-const localHiddenItems = localStorage.getItem('invitation.hidden-items')
-const hiddenItems = ref((localHiddenItems == null ? $config.public.invitations.defaultHiddenItems : localHiddenItems)?.split(',') || [])
+const hiddenItems = ref(tableHiddenItems.value('invitation', $config.public.invitations.headers))
 const code = String($route.params.code)
 
 const invitationsUpdate = ref<any>(null)

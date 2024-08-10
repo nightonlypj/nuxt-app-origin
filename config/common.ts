@@ -105,12 +105,11 @@ export const commonConfig = {
       { title: '権限', key: 'power', sortable: false, cellProps: { class: 'px-1 py-2 text-no-wrap' } },
       { title: '期限', key: 'ended_at', sortable: false, align: 'center' },
       { title: 'メモ', key: 'memo', sortable: false },
-      { title: '作成者', key: 'created_user.name', sortable: false },
-      { title: '作成日時', key: 'created_at', sortable: false, align: 'center' },
-      { title: '更新者', key: 'last_updated_user.name', sortable: false },
-      { title: '更新日時', key: 'last_updated_at', sortable: false, align: 'center' }
+      { title: '作成者', key: 'created_user.name', defaultHidden: true, sortable: false },
+      { title: '作成日時', key: 'created_at', defaultHidden: true, sortable: false, align: 'center' },
+      { title: '更新者', key: 'last_updated_user.name', defaultHidden: true, sortable: false },
+      { title: '更新日時', key: 'last_updated_at', defaultHidden: true, sortable: false, align: 'center' }
     ],
-    defaultHiddenItems: 'created_user.name,created_at,last_updated_user.name,last_updated_at',
     // 招待URL詳細API
     detailUrl: '/invitations/:space_code/detail/:code.json',
     // 招待URL作成API
@@ -128,10 +127,9 @@ export const commonConfig = {
       { title: '権限', key: 'power', cellProps: { class: 'px-1 py-2 text-no-wrap' } },
       { title: '招待者', key: 'invitationed_user.name', adminOnly: true },
       { title: '招待日時', key: 'invitationed_at', align: 'center' },
-      { title: '更新者', key: 'last_updated_user.name', adminOnly: true },
-      { title: '更新日時', key: 'last_updated_at', adminOnly: true, align: 'center' }
+      { title: '更新者', key: 'last_updated_user.name', adminOnly: true, defaultHidden: true },
+      { title: '更新日時', key: 'last_updated_at', adminOnly: true, defaultHidden: true, align: 'center' }
     ],
-    defaultHiddenItems: 'last_updated_user.name,last_updated_at',
     // メンバー詳細API
     detailUrl: '/members/:space_code/detail/:user_code.json',
     // メンバー招待API

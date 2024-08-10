@@ -280,6 +280,7 @@ export const en = {
   表示項目: 'Display items',
   全選択: 'Select all',
   全解除: 'Full release',
+  初期値: 'Initial value',
 
   ダウンロード: 'Download',
   対象: 'Target',

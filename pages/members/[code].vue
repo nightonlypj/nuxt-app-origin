@@ -156,7 +156,7 @@ import MembersUpdate from '~/components/members/Update.vue'
 import MembersDelete from '~/components/members/Delete.vue'
 import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
-import { textTruncate, localeString } from '~/utils/display'
+import { textTruncate, localeString, tableHiddenItems } from '~/utils/display'
 import { currentMemberAdmin } from '~/utils/members'
 import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
@@ -205,8 +205,7 @@ const space = ref<any>(null)
 const member = ref<any>(null)
 const members = ref<any>(null)
 const selectedMembers = ref([])
-const localHiddenItems = localStorage.getItem('member.hidden-items')
-const hiddenItems = ref((localHiddenItems == null ? $config.public.members.defaultHiddenItems : localHiddenItems)?.split(',') || [])
+const hiddenItems = ref(tableHiddenItems.value('member', $config.public.members.headers))
 const createResult = ref<any>(null)
 const activeUserCodes = ref([])
 const code = String($route.params.code)

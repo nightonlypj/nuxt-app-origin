@@ -140,13 +140,23 @@
                       >
                         {{ $t('全解除') }}
                       </v-btn>
+                      <v-btn
+                        id="list_download_output_items_set_default_btn"
+                        color="secondary"
+                        size="small"
+                        class="ml-2"
+                        :disabled="isEqual(sortBy(outputItems), sortBy(defaultOutputItems))"
+                        @click="setDefaultOutputItems()"
+                      >
+                        {{ $t('初期値') }}
+                      </v-btn>
                     </h4>
                     <Field v-slot="{ errors }" v-model="outputItems" name="output_items" rules="required_select">
                       <template v-for="(item, index) in items" :key="item.key">
                         <v-switch
                           :id="`list_download_output_item_${item.key.replace('.', '_')}`"
                           v-model="outputItems"
-                          color="primary"
+                          :color="item.defaultHidden ? 'secondary' : 'primary'"
                           :label="item.title"
                           :value="item.key"
                           density="compact"
@@ -187,6 +197,8 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable-next-line import/named
+import { sortBy, isEqual } from 'lodash'
 import { Form, Field, defineRule } from 'vee-validate'
 import { setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
@@ -239,9 +251,8 @@ const query = ref<any>(null)
 const outputItems = ref<any>([])
 const enableTarget = ref<any>([])
 
-const items: any = computed(() => {
-  return $props.headers.filter((item: any) => item.title != null && (!item.adminOnly || $props.admin))
-})
+const items: any = computed(() => $props.headers.filter((item: any) => item.title != null && (!item.adminOnly || $props.admin)))
+const defaultOutputItems = computed(() => items.value.filter((item: any) => !item.defaultHidden).map((item: any) => item.key))
 
 function initialize () {
   waiting.value = false
@@ -272,6 +283,10 @@ function clearOutputItems (setErrors: any) {
   outputItems.value = []
   waiting.value = false
   setErrors({ output_items: null }) // NOTE: 初回解除時にバリデーションが効かない為
+}
+function setDefaultOutputItems () {
+  outputItems.value = defaultOutputItems.value
+  waiting.value = false
 }
 
 // ダウンロード依頼

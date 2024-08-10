@@ -1,5 +1,12 @@
 # リリースノート
 
+## 1.5.0 (Sprint 7)
+
+### spaceブランチ
+
+- 設定変更・ダウンロードで追加項目をデフォルト表示、初期値に戻せるようにしたい
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/572/
+
 ## 1.4.0 (Sprint 6)
 
 - 多言語に対応したい

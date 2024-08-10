@@ -35,7 +35,7 @@ describe('[code].vue', () => {
   const messages = Object.freeze({ alert: 'alertメッセージ', notice: 'noticeメッセージ' })
   const fullPath = `/invitations/${space.code}`
   const model = 'invitation'
-  const defaultHiddenItems = $config.public.invitations.defaultHiddenItems
+  const defaultHiddenItems = $config.public.invitations.headers.filter((item: any) => item.defaultHidden).map((item: any) => item.key)
 
   const mountFunction = (loggedIn = true, query: object | null = null, values = { messages }) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -529,7 +529,7 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems.split(','))
+      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems)
     })
     it('空', async () => {
       localStorage.setItem(`${model}.hidden-items`, '')
@@ -538,16 +538,16 @@ describe('[code].vue', () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual([''])
+      expect(wrapper.vm.hiddenItems).toEqual([])
     })
     it('配列', async () => {
-      localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
+      localStorage.setItem(`${model}.hidden-items`, defaultHiddenItems.join(',') + ',,dumy')
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems)
     })
   })
 

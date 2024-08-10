@@ -27,6 +27,7 @@ describe('ListDownload.vue', () => {
   const headers = $config.public.members.headers
   const allItems = headers.filter((item: any) => item.title != null).map((item: any) => item)
   const allItemKeys = allItems.map((item: any) => item.key)
+  const defaultShowItemKeys = allItems.filter((item: any) => !item.defaultHidden).map((item: any) => item.key)
 
   const mountFunction = (admin = false, hiddenItems = [], selectItems: any = null, searchParams: any = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -73,7 +74,7 @@ describe('ListDownload.vue', () => {
     button.trigger('click')
     await flushPromises()
 
-    // ダウンロードダイアログ
+    // ダイアログ
     const dialog = wrapper.find('#list_download_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -134,7 +135,7 @@ describe('ListDownload.vue', () => {
     cancelButton.trigger('click')
     await flushPromises()
 
-    // ダウンロードダイアログ
+    // ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
@@ -173,12 +174,12 @@ describe('ListDownload.vue', () => {
     const wrapper = mountFunction(false)
     await viewTest(wrapper, false)
   })
-  it('[全解除→全選択ボタン]全て解除され、ダウンロードボタンが押せない。全て選択され、ダウンロードボタンが押せる', async () => {
+  it('[全解除→全選択→初期値ボタン]全て解除され、ダウンロードボタンが押せない。全て選択され、ダウンロードボタンが押せる。初期値のみ選択され、ダウンロードボタンが押せる', async () => {
     const wrapper: any = mountFunction(true)
     wrapper.find('#list_download_btn').trigger('click')
     await flushPromises()
 
-    // ダウンロードダイアログ
+    // ダイアログ
     const dialog = wrapper.find('#list_download_dialog')
     expect(dialog.isVisible()).toBe(true) // 表示
     await flushPromises()
@@ -204,6 +205,18 @@ describe('ListDownload.vue', () => {
 
     // 全て選択
     expect(wrapper.vm.outputItems).toEqual(allItemKeys)
+
+    // ダウンロードボタン
+    expect(button.element.disabled).toBe(false) // 有効
+
+    // 初期値ボタン
+    const setDefaultBtn = wrapper.find('#list_download_output_items_set_default_btn')
+    expect(setDefaultBtn.exists()).toBe(true)
+    setDefaultBtn.trigger('click')
+    await flushPromises()
+
+    // 初期値のみ選択
+    expect(wrapper.vm.outputItems).toEqual(defaultShowItemKeys)
 
     // ダウンロードボタン
     expect(button.element.disabled).toBe(false) // 有効
@@ -239,7 +252,7 @@ describe('ListDownload.vue', () => {
       wrapper.find('#list_download_btn').trigger('click')
       await flushPromises()
 
-      // ダウンロードダイアログ
+      // ダイアログ
       dialog = wrapper.find('#list_download_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
       await flushPromises()

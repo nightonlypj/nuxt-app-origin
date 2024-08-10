@@ -1,27 +1,19 @@
 import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import helper from '~/test/helper'
 import Component from '~/components/app/ListSetting.vue'
 
 const $config = config.global.mocks.$config
 
 describe('ListSetting.vue', () => {
-  let mock: any
-  beforeEach(() => {
-    mock = {
-      setItem: vi.fn()
-    }
-  })
   const model = 'member'
   const headers = $config.public.members.headers
   const allItems = headers.filter((item: any) => item.title != null).map((item: any) => item)
   const allItemKeys = allItems.map((item: any) => item.key)
   const requiredItemKeys = allItems.filter((item: any) => item.required).map((item: any) => item.key)
   const optionalItemKeys = allItems.filter((item: any) => !item.required).map((item: any) => item.key)
+  const defaultShowItemKeys = allItems.filter((item: any) => !item.defaultHidden).map((item: any) => item.key)
 
   const mountFunction = (admin: boolean, hiddenItems = []) => {
-    vi.stubGlobal('localStorage', { setItem: mock.setItem })
-
     const wrapper = mount(Component, {
       props: {
         admin,
@@ -42,7 +34,7 @@ describe('ListSetting.vue', () => {
     button.trigger('click')
     await flushPromises()
 
-    // 変更ダイアログ
+    // ダイアログ
     const dialog = wrapper.find('#list_setting_dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.isVisible()).toBe(true) // 表示
@@ -72,18 +64,18 @@ describe('ListSetting.vue', () => {
     cancelButton.trigger('click')
     await flushPromises()
 
-    // 変更ダイアログ
+    // ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   }
 
-  const updateViewTest = async (wrapper: any, dialog: any, hiddenItems: any, displayItems: any) => {
+  const updateViewTest = async (wrapper: any, dialog: any, hiddenItems: any, showItems: any) => {
     // 入力
     for (const item of allItems) {
       const showItem = wrapper.find(`#list_setting_show_item_${item.key.replace('.', '_')}`)
-      showItem.setValue(displayItems.includes(item.key))
+      showItem.setValue(showItems.includes(item.key))
       await flushPromises()
 
-      expect(showItem.element.checked).toBe(displayItems.includes(item.key))
+      expect(showItem.element.checked).toBe(showItems.includes(item.key))
     }
 
     // 変更ボタン
@@ -92,10 +84,11 @@ describe('ListSetting.vue', () => {
     button.trigger('click')
     await flushPromises()
 
-    // 変更ダイアログ
+    // ダイアログ
     expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
 
-    helper.mockCalledTest(mock.setItem, 1, `${model}.hidden-items`, hiddenItems.toString())
+    expect(localStorage.getItem(`${model}.show-items`)).toEqual(showItems.toString())
+    expect(localStorage.getItem(`${model}.hidden-items`)).toEqual(hiddenItems.toString())
     expect(wrapper.emitted()['update:hiddenItems']).toEqual([[hiddenItems]])
   }
 
@@ -108,12 +101,12 @@ describe('ListSetting.vue', () => {
     const wrapper = mountFunction(false)
     await viewTest(wrapper, false)
   })
-  it('[全解除→全選択ボタン]必須項目のみ選択される。全て選択される', async () => {
+  it('[全解除→全選択→初期値ボタン]必須項目のみ選択される。全て選択される。初期値のみ選択される', async () => {
     const wrapper: any = mountFunction(true)
     wrapper.find('#list_setting_btn').trigger('click')
     await flushPromises()
 
-    // 変更ダイアログ
+    // ダイアログ
     const dialog = wrapper.find('#list_setting_dialog')
     expect(dialog.isVisible()).toBe(true) // 表示
     await flushPromises()
@@ -135,6 +128,15 @@ describe('ListSetting.vue', () => {
 
     // 全て選択
     expect(wrapper.vm.showItems).toEqual(allItemKeys)
+
+    // 全選択ボタン
+    const setDefaultBtn = wrapper.find('#list_setting_show_items_set_default_btn')
+    expect(setDefaultBtn.exists()).toBe(true)
+    setDefaultBtn.trigger('click')
+    await flushPromises()
+
+    // 初期値のみ選択
+    expect(wrapper.vm.showItems).toEqual(defaultShowItemKeys)
   })
 
   describe('変更', () => {
@@ -147,7 +149,7 @@ describe('ListSetting.vue', () => {
       // 表示項目
       expect(wrapper.vm.showItems).toEqual(showItems)
 
-      // 変更ダイアログ
+      // ダイアログ
       dialog = wrapper.find('#list_setting_dialog')
       expect(dialog.isVisible()).toBe(true) // 表示
     }

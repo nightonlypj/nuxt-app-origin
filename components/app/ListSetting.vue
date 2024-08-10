@@ -42,12 +42,22 @@
                 >
                   {{ $t('全解除') }}
                 </v-btn>
+                <v-btn
+                  id="list_setting_show_items_set_default_btn"
+                  color="secondary"
+                  size="small"
+                  class="ml-2"
+                  :disabled="isEqual(sortBy(showItems), sortBy(defaultShowItems))"
+                  @click="setDefaultShowItems()"
+                >
+                  {{ $t('初期値') }}
+                </v-btn>
               </h4>
               <template v-for="item in items" :key="item.key">
                 <v-switch
                   :id="`list_setting_show_item_${item.key.replace('.', '_')}`"
                   v-model="showItems"
-                  color="primary"
+                  :color="item.defaultHidden ? 'secondary' : 'primary'"
                   :label="item.title"
                   :value="item.key"
                   density="compact"
@@ -84,6 +94,9 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable-next-line import/named
+import { sortBy, isEqual } from 'lodash'
+
 const $props = defineProps({
   admin: {
     type: Boolean,
@@ -108,12 +121,9 @@ const $config = useRuntimeConfig()
 const waiting = ref(false)
 const showItems = ref<any>(null)
 
-const items: any = computed(() => {
-  return $props.headers.filter((item: any) => item.title != null && (!item.adminOnly || $props.admin))
-})
-const requiredShowItems = computed(() => {
-  return items.value.filter((item: any) => item.required).map((item: any) => item.key)
-})
+const items: any = computed(() => $props.headers.filter((item: any) => item.title != null && (!item.adminOnly || $props.admin)))
+const requiredShowItems = computed(() => items.value.filter((item: any) => item.required).map((item: any) => item.key))
+const defaultShowItems = computed(() => items.value.filter((item: any) => !item.defaultHidden).map((item: any) => item.key))
 
 function initialize () {
   waiting.value = true
@@ -128,11 +138,18 @@ function clearShowItems () {
   showItems.value = requiredShowItems.value
   waiting.value = false
 }
+function setDefaultShowItems () {
+  showItems.value = defaultShowItems.value
+  waiting.value = false
+}
 
 function change (isActive: any) {
+  localStorage.setItem(`${$props.model}.show-items`, showItems.value.toString())
+
   const hiddenItems = items.value.filter((item: any) => !showItems.value.includes(item.key)).map((item: any) => item.key)
   localStorage.setItem(`${$props.model}.hidden-items`, hiddenItems.toString())
   $emit('update:hiddenItems', hiddenItems)
+
   isActive.value = false
 }
 </script>
