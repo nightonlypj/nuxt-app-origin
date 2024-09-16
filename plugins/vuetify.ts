@@ -1,4 +1,5 @@
 import { createVuetify } from 'vuetify'
+// eslint-disable-next-line import/namespace
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 

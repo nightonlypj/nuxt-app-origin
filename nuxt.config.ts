@@ -10,6 +10,7 @@ const config = require(`./config/${environment}.ts`)
 export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
+
   runtimeConfig: {
     public: Object.assign(commonConfig, config.envConfig, {
       env: {
@@ -19,10 +20,12 @@ export default defineNuxtConfig({
       }
     })
   },
+
   modules: [
     '@nuxtjs/i18n',
     '@sidebase/nuxt-auth'
   ],
+
   i18n: {
     strategy: 'prefix_except_default', // https://i18n.nuxtjs.org/guide/routing-strategies
     detectBrowserLanguage: { // NOTE: ブラウザ言語の自動検出ができない -> plugins/setLocale.clientで対応
@@ -33,23 +36,28 @@ export default defineNuxtConfig({
     locales,
     vueI18n: './i18n.config.ts'
   },
+
   auth: {
     provider: {
       type: 'local'
     }
   },
+
   css: [
     'vuetify/lib/styles/main.sass',
     '@mdi/font/css/materialdesignicons.css'
   ],
+
   build: {
     transpile: ['vuetify']
   },
+
   hooks: {
     'vite:extendConfig': (config) => {
       config.plugins!.push(vuetify())
     }
   },
+
   vite: {
     ssr: {
       noExternal: ['vuetify']
@@ -58,5 +66,7 @@ export default defineNuxtConfig({
       'process.env.DEBUG': false
       // __VUE_OPTIONS_API__: true
     }
-  }
+  },
+
+  compatibilityDate: '2024-09-15'
 })
