@@ -1,11 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/confirmation/resend.vue'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('resend.vue', () => {
   let mock: any
@@ -27,9 +31,7 @@ describe('resend.vue', () => {
       },
       $toast: mock.toast
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      query: { ...query }
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ query: { ...query } })))
 
     const wrapper: any = mount(Page, {
       global: {
@@ -100,9 +102,9 @@ describe('resend.vue', () => {
     const apiCalledTest = (count: number, params = {}) => {
       expect(mock.useApiRequest).toBeCalledTimes(count)
       if (count > 0) {
-        expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.confirmationUrl, 'POST', {
+        expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.confirmationUrl), 'POST', {
           ...params,
-          redirect_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+          redirect_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
         })
       }
     }
@@ -160,7 +162,7 @@ describe('resend.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -169,7 +171,7 @@ describe('resend.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -177,7 +179,7 @@ describe('resend.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
@@ -193,7 +195,7 @@ describe('resend.vue', () => {
       await beforeAction()
 
       apiCalledTest(1, params)
-      helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
+      helper.messageTest(wrapper, AppMessage, { alert: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

@@ -59,6 +59,17 @@ const dataCount1 = Object.freeze({
     { id: 1 }
   ]
 })
+const dataCount2 = Object.freeze({
+  infomation: {
+    ...dataCount0.infomation,
+    total_count: 2,
+    total_pages: 1
+  },
+  infomations: [
+    { id: 1 },
+    { id: 2 }
+  ]
+})
 
 const dataPage1 = Object.freeze({
   infomation: {
@@ -103,6 +114,7 @@ export {
   listCount4,
   dataCount0,
   dataCount1,
+  dataCount2,
   dataPage1,
   dataPage2,
   dataPageMiss1,

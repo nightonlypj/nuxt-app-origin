@@ -1,4 +1,8 @@
 export const commonConfig = {
+  apiLocale: {
+    en: '/en',
+    ja: ''
+  },
   // ログインAPI
   authSignInURL: '/users/auth/sign_in.json',
   authRedirectSignInURL: '/users/sign_in',

@@ -1,10 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { dateFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import Component from '~/components/index/Infomations.vue'
 import { listCount4 } from '~/test/data/infomations'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('Infomations.vue', () => {
   let mock: any
@@ -41,7 +46,7 @@ describe('Infomations.vue', () => {
       expect(labels[index].vm.$props.infomation).toEqual(infomation)
       expect(links.includes(`/infomations/${infomation.id}`)).toBe(infomation.body_present || infomation.summary != null) // [本文or概要あり]お知らせ詳細
       expect(wrapper.text()).toMatch(infomation.title) // タイトル
-      expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', infomation.started_at)) // 開始日
+      expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, infomation.started_at)) // 開始日
     }
   }
 
@@ -54,7 +59,7 @@ describe('Infomations.vue', () => {
   describe('大切なお知らせ', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.infomations.importantUrl)
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.infomations.importantUrl))
     }
 
     let wrapper: any
@@ -82,26 +87,26 @@ describe('Infomations.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.system.error_short)
+      viewErrorTest(wrapper, $t('system.error_short'))
     })
 
     it('[接続エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.network.failure_short)
+      viewErrorTest(wrapper, $t('network.failure_short'))
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.network.error_short)
+      viewErrorTest(wrapper, $t('network.error_short'))
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      viewErrorTest(wrapper, helper.locales.system.default_short)
+      viewErrorTest(wrapper, $t('system.default_short'))
     })
   })
 })

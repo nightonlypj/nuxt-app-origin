@@ -1,8 +1,8 @@
 // リロードや再表示時にログイン状態に戻す
-export default defineNuxtPlugin(async (_nuxtApp) => {
-  const $config = useRuntimeConfig()
+export default defineNuxtPlugin(async ({ $config, $i18n }) => {
+  const locale = ($i18n as any).locale.value // NOTE: 初回はdefaultLocaleになる
   /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('authUser') }
+  if ($config.public.debug) { console.log('plugins/authUser.client', locale) }
 
   // Devise Token Auth
   if (localStorage.getItem('token-type') !== 'Bearer' || localStorage.getItem('access-token') == null) {
@@ -11,6 +11,6 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
     return
   }
 
-  const [response] = await useAuthUser()
-  if (!response?.ok && response?.status === 401) { useAuthSignOut(true) }
+  const [response] = await useAuthUser(locale)
+  if (!response?.ok && response?.status === 401) { useAuthSignOut(locale, true) }
 })

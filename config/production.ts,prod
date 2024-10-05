@@ -1,6 +1,7 @@
 export const envConfig = {
   debug: false,
-  envName: '',
+  developmentMenu: false,
+  serverEnv: 'production',
   apiBaseURL: 'https://example.com',
   frontBaseURL: 'https://front.example.com'
 }

@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>メールアドレス確認</Title>
+    <Title>{{ $t('メールアドレス確認') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,7 +9,7 @@
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="off" @submit.prevent>
-          <v-card-title>メールアドレス確認</v-card-title>
+          <v-card-title>{{ $t('メールアドレス確認') }}</v-card-title>
           <v-card-text
             id="confirmation_resend_area"
             @keydown.enter="keyDownEnter = completInputKey($event)"
@@ -19,7 +19,7 @@
               <v-text-field
                 id="confirmation_resend_email_text"
                 v-model="query.email"
-                label="メールアドレス"
+                :label="$t('メールアドレス')"
                 prepend-icon="mdi-email"
                 autocomplete="off"
                 :error-messages="errors"
@@ -33,7 +33,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postConfirmation(!meta.valid, false, setErrors, values)"
             >
-              送信
+              {{ $t('送信') }}
             </v-btn>
           </v-card-text>
           <template v-if="!$auth.loggedIn">
@@ -49,26 +49,26 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey, existKeyErrors } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectSignIn } from '~/utils/redirect'
 
-defineRule('required', required)
-defineRule('email', email)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
+
+setLocale(locale.value)
+defineRule('required', required)
+defineRule('email', email)
 
 const loading = ref(true)
 const processing = ref(false)
@@ -82,12 +82,8 @@ const query = ref({
 })
 const keyDownEnter = ref(false)
 
-created()
-function created () {
-  if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
-
-  loading.value = false
-}
+if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
+loading.value = false
 
 // メールアドレス確認
 async function postConfirmation (invalid: boolean, keydown: boolean, setErrors: any, values: any) {
@@ -96,14 +92,14 @@ async function postConfirmation (invalid: boolean, keydown: boolean, setErrors: 
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.confirmationUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.confirmationUrl), 'POST', {
     ...query.value,
-    redirect_url: $config.public.frontBaseURL + $config.public.confirmationSuccessUrl
+    redirect_url: $config.public.frontBaseURL + localePath($config.public.confirmationSuccessUrl)
   })
 
   if (response?.ok) {
     if (data != null) {
-      return $auth.loggedIn ? redirectPath('/', data, true) : redirectSignIn(data)
+      return $auth.loggedIn ? redirectPath(localePath('/'), data, true) : redirectSignIn(data, localePath)
     } else {
       $toast.error($t('system.error'))
     }

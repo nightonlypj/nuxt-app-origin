@@ -1,28 +1,28 @@
-import { dateFormat, dateTimeFormat, pageFirstNumber, pageLastNumber, localeString, textTruncate, tableHeight, timeZoneOffset, timeZoneShortName } from '~/utils/display'
+import { dateFormat, dateTimeFormat, pageFirstNumber, pageLastNumber, localeString, textTruncate, timeZoneOffset, timeZoneShortName } from '~/utils/display'
 import helper from '~/test/helper'
 
 describe('display.ts', () => {
   // 日付/時間を言語のフォーマットで返却
   describe('dateFormat/dateTimeFormat', () => {
     it('[null]nullが返却される', () => {
-      expect(dateFormat.value('ja', null)).toBeNull()
-      expect(dateTimeFormat.value('ja', null)).toBeNull()
+      expect(dateFormat.value(helper.locale, null)).toBeNull()
+      expect(dateTimeFormat.value(helper.locale, null)).toBeNull()
     })
     it('[null/デフォルトあり]デフォルト値が返却される', () => {
-      expect(dateFormat.value('ja', null, 'N/A')).toBe('N/A')
-      expect(dateTimeFormat.value('ja', null, 'N/A')).toBe('N/A')
+      expect(dateFormat.value(helper.locale, null, 'N/A')).toBe('N/A')
+      expect(dateTimeFormat.value(helper.locale, null, 'N/A')).toBe('N/A')
     })
     it('[なし]nullが返却される', () => {
-      expect(dateFormat.value('ja', '')).toBeNull()
-      expect(dateTimeFormat.value('ja', '')).toBeNull()
+      expect(dateFormat.value(helper.locale, '')).toBeNull()
+      expect(dateTimeFormat.value(helper.locale, '')).toBeNull()
     })
     it('[なし/デフォルトあり]デフォルト値が返却される', () => {
-      expect(dateFormat.value('ja', '', 'N/A')).toBe('N/A')
-      expect(dateTimeFormat.value('ja', '', 'N/A')).toBe('N/A')
+      expect(dateFormat.value(helper.locale, '', 'N/A')).toBe('N/A')
+      expect(dateTimeFormat.value(helper.locale, '', 'N/A')).toBe('N/A')
     })
     it('[あり]日付/日時が返却される', () => {
-      expect(dateFormat.value('ja', '2000-01-02T12:34:56+09:00')).toBe('2000/01/02')
-      expect(dateTimeFormat.value('ja', '2000-01-02T12:34:56+09:00')).toBe('2000/01/02 12:34')
+      expect(dateFormat.value(helper.locale, '2000-01-02T12:34:56+09:00')).toBe(helper.locale === 'ja' ? '2000/01/02' : '01/02/2000')
+      expect(dateTimeFormat.value(helper.locale, '2000-01-02T12:34:56+09:00')).toBe(helper.locale === 'ja' ? '2000/01/02 12:34' : '01/02/2000, 12:34 PM')
     })
   })
 
@@ -71,19 +71,19 @@ describe('display.ts', () => {
   // 数値を言語のフォーマットで返却
   describe('localeString', () => {
     it('[null]nullが返却される', () => {
-      expect(localeString.value('ja', null)).toBeNull()
+      expect(localeString.value(helper.locale, null)).toBeNull()
     })
     it('[null/デフォルトあり]デフォルト値が返却される', () => {
-      expect(localeString.value('ja', null, 'N/A')).toBe('N/A')
+      expect(localeString.value(helper.locale, null, 'N/A')).toBe('N/A')
     })
     it('[なし]nullが返却される', () => {
-      expect(localeString.value('ja', '')).toBeNull()
+      expect(localeString.value(helper.locale, '')).toBeNull()
     })
     it('[なし/デフォルトあり]デフォルト値が返却される', () => {
-      expect(localeString.value('ja', '', 'N/A')).toBe('N/A')
+      expect(localeString.value(helper.locale, '', 'N/A')).toBe('N/A')
     })
     it('[数値]値が返却される', () => {
-      expect(localeString.value('ja', '1000')).toBe('1000') // NOTE: testだとカンマ区切りにならない
+      expect(localeString.value(helper.locale, '1000')).toBe('1000') // NOTE: testだとカンマ区切りにならない
     })
   })
 
@@ -100,31 +100,19 @@ describe('display.ts', () => {
     })
   })
 
-  // テーブルの高さを返却
-  describe('tableHeight', () => {
-    const margin = 64 + 16 + 16 + 40
-    it('[高さが199+マージン]200pxが返却される', () => {
-      expect(tableHeight.value(199 + margin)).toBe('200px')
-    })
-    it('[高さが200+マージン]200pxが返却される', () => {
-      expect(tableHeight.value(200 + margin)).toBe('200px')
-    })
-    it('[高さが201+マージン]201pxが返却される', () => {
-      expect(tableHeight.value(201 + margin)).toBe('201px')
-    })
-  })
-
   // タイムゾーンの差を返却 ex.'+09:00',
+  const exceptTimeZoneOffset = '+09:00'
   describe('timeZoneOffset', () => {
-    it(`${helper.envConfig.timeZoneOffset}が返却される`, () => {
-      expect(timeZoneOffset.value()).toBe(helper.envConfig.timeZoneOffset)
+    it(`${exceptTimeZoneOffset}が返却される`, () => {
+      expect(timeZoneOffset.value).toBe(exceptTimeZoneOffset)
     })
   })
 
   // タイムゾーンの略称を返却 ex.'JST'
+  const exceptTimeZoneShortName = 'JST'
   describe('timeZoneShortName', () => {
-    it(`${helper.envConfig.timeZoneShortName}が返却される`, () => {
-      expect(timeZoneShortName.value()).toBe(helper.envConfig.timeZoneShortName)
+    it(`${exceptTimeZoneShortName}が返却される`, () => {
+      expect(timeZoneShortName.value).toBe(exceptTimeZoneShortName)
     })
   })
 })

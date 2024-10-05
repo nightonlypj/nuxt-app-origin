@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>パスワード再設定</Title>
+    <Title>{{ $t('パスワード再設定') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,7 +9,7 @@
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="off">
-          <v-card-title>パスワード再設定</v-card-title>
+          <v-card-title>{{ $t('パスワード再設定') }}</v-card-title>
           <v-card-text
             id="password_update_area"
             @keydown.enter="keyDownEnter = completInputKey($event)"
@@ -20,7 +20,7 @@
                 id="password_update_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
-                label="新しいパスワード [8文字以上]"
+                :label="$t('新しいパスワード')"
                 prepend-icon="mdi-lock"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
@@ -35,7 +35,7 @@
                 id="password_update_password_confirmation_text"
                 v-model="query.password_confirmation"
                 :type="showPassword ? 'text' : 'password'"
-                label="新しいパスワード(確認)"
+                :label="$t('新しいパスワード(確認)')"
                 prepend-icon="mdi-lock"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="new-password"
@@ -52,7 +52,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postPasswordUpdate(!meta.valid, false, setErrors, values)"
             >
-              変更
+              {{ $t('変更') }}
             </v-btn>
           </v-card-text>
           <v-divider />
@@ -66,27 +66,27 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, min, confirmed } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey, existKeyErrors } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectPasswordReset } from '~/utils/redirect'
 
+const localePath = useLocalePath()
+const $config = useRuntimeConfig()
+const { t: $t, locale } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
+
+setLocale(locale.value)
 defineRule('required', required)
 defineRule('min', min)
 defineRule('confirmed_new_password', confirmed)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
-const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
-const { $auth, $toast } = useNuxtApp()
-const $route = useRoute()
 
 const loading = ref(true)
 const processing = ref(false)
@@ -104,9 +104,9 @@ const keyDownEnter = ref(false)
 
 created()
 function created () {
-  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
-  if ($route.query.reset_password === 'false') { return redirectPasswordReset($route.query) }
-  if (!$route.query.reset_password_token) { return redirectPasswordReset({ alert: $t('auth.reset_password_token_blank') }) }
+  if ($auth.loggedIn) { return redirectPath(localePath('/'), { notice: $t('auth.already_authenticated') }) }
+  if ($route.query.reset_password === 'false') { return redirectPasswordReset($route.query, localePath) }
+  if (!$route.query.reset_password_token) { return redirectPasswordReset({ alert: $t('auth.reset_password_token_blank') }, localePath) }
 
   loading.value = false
 }
@@ -118,7 +118,7 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.passwordUpdateUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.passwordUpdateUrl), 'POST', {
     reset_password_token: $route.query.reset_password_token,
     ...query.value
   })
@@ -126,7 +126,7 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
   if (response?.ok) {
     if (data != null) {
       $auth.setData(data)
-      return redirectPath('/', data, true)
+      return redirectPath(localePath('/'), data, true)
     } else {
       $toast.error($t('system.error'))
     }
@@ -134,7 +134,7 @@ async function postPasswordUpdate (invalid: boolean, keydown: boolean, setErrors
     if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else if (data.errors == null) {
-      return redirectPasswordReset({ alert: data.alert || $t('system.default'), notice: data.notice })
+      return redirectPasswordReset({ alert: data.alert || $t('system.default'), notice: data.notice }, localePath)
     } else {
       messages.value = {
         alert: data.alert || $t('system.default'),

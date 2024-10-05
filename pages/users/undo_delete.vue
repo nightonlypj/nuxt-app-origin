@@ -1,16 +1,16 @@
 <template>
   <Head>
-    <Title>アカウント削除取り消し</Title>
+    <Title>{{ $t('アカウント削除取り消し') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <v-card v-else max-width="640px">
     <AppProcessing v-if="processing" />
-    <v-card-title>アカウント削除取り消し</v-card-title>
+    <v-card-title>{{ $t('アカウント削除取り消し') }}</v-card-title>
     <v-card-text>
       <p>
-        このアカウントは{{ dateFormat('ja', $auth.user.destroy_schedule_at, 'N/A') }}以降に削除されます。それまでは取り消し可能です。<br>
+        {{ $t('アカウント削除取り消しメッセージ', { date: dateFormat(locale, $auth.user.destroy_schedule_at, 'N/A') }) }}<br>
         <template v-if="$auth.user.destroy_requested_at != null">
-          （{{ dateTimeFormat('ja', $auth.user.destroy_requested_at) }}にアカウント削除依頼を受け付けています）
+          {{ $t('アカウント削除取り消し補足', { date: dateTimeFormat(locale, $auth.user.destroy_requested_at) }) }}
         </template>
       </p>
       <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
@@ -22,16 +22,16 @@
             class="mt-4"
             :disabled="processing"
           >
-            取り消し
+            {{ $t('取り消し') }}
           </v-btn>
         </template>
         <template #default="{ isActive }">
           <v-card id="user_undo_delete_dialog">
             <v-toolbar color="primary" density="compact">
-              <span class="ml-4">アカウント削除取り消し</span>
+              <span class="ml-4">{{ $t('アカウント削除取り消し') }}</span>
             </v-toolbar>
             <v-card-text>
-              <div class="text-h6 pa-4">本当に取り消しますか？</div>
+              <div class="text-h6 pa-4">{{ $t('アカウント削除取り消し確認メッセージ') }}</div>
             </v-card-text>
             <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
@@ -40,7 +40,7 @@
                 variant="elevated"
                 @click="postUserUndoDelete(isActive)"
               >
-                はい（削除取り消し）
+                {{ $t('はい（削除取り消し）') }}
               </v-btn>
               <v-btn
                 id="user_undo_delete_no_btn"
@@ -48,7 +48,7 @@
                 variant="elevated"
                 @click="isActive.value = false"
               >
-                いいえ（キャンセル）
+                {{ $t('いいえ（キャンセル）') }}
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -62,11 +62,13 @@
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import { dateFormat, dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath } from '~/utils/redirect'
 import { updateAuthUser } from '~/utils/auth'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 
 const loading = ref(true)
@@ -74,10 +76,10 @@ const processing = ref(false)
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
 
-  if (!await updateAuthUser($t)) { return }
-  if ($auth.user.destroy_schedule_at == null) { return redirectPath('/', { alert: $t('auth.not_destroy_reserved') }) }
+  if (!await updateAuthUser($t, localePath, locale.value)) { return }
+  if ($auth.user.destroy_schedule_at == null) { return redirectPath(localePath('/'), { alert: $t('auth.not_destroy_reserved') }) }
 
   loading.value = false
 }
@@ -87,19 +89,19 @@ async function postUserUndoDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userUndoDeleteUrl, 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userUndoDeleteUrl), 'POST')
 
   if (response?.ok) {
     if (data != null) {
       $auth.setData(data)
-      return redirectPath('/', data, true)
+      return redirectPath(localePath('/'), data, true)
     } else {
       $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {

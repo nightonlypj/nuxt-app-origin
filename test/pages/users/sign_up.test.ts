@@ -1,5 +1,6 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
@@ -7,6 +8,9 @@ import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import Page from '~/pages/users/sign_up.vue'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('sign_up.vue', () => {
   let mock: any
@@ -80,7 +84,7 @@ describe('sign_up.vue', () => {
   })
   it('[ログイン中]トップページにリダイレクトされる', () => {
     mountFunction(true)
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.already_authenticated })
+    helper.toastMessageTest(mock.toast, { info: $t('auth.already_authenticated') })
     helper.mockCalledTest(mock.navigateTo, 1, '/')
   })
 
@@ -88,9 +92,9 @@ describe('sign_up.vue', () => {
     const params = Object.freeze({ name: 'user1の氏名', email: 'user1@example.com', password: 'abc12345', password_confirmation: 'abc12345' })
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.singUpUrl, 'POST', {
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.singUpUrl), 'POST', {
         ...params,
-        confirm_success_url: helper.envConfig.frontBaseURL + helper.commonConfig.authRedirectSignInURL
+        confirm_success_url: $config.public.frontBaseURL + $config.public.authRedirectSignInURL
       })
     }
 
@@ -115,7 +119,7 @@ describe('sign_up.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200 }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -123,14 +127,14 @@ describe('sign_up.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: null }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 500 }, null])
       await beforeAction()
 
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[入力エラー]エラーメッセージが表示される', async () => {
@@ -144,7 +148,7 @@ describe('sign_up.vue', () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
       await beforeAction()
 
-      helper.messageTest(wrapper, AppMessage, { alert: helper.locales.system.default })
+      helper.messageTest(wrapper, AppMessage, { alert: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

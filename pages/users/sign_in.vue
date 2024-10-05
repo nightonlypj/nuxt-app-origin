@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>ログイン</Title>
+    <Title>{{ $t('ログイン') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,7 +9,7 @@
       <AppProcessing v-if="processing" />
       <Form v-slot="{ meta }">
         <v-form autocomplete="on">
-          <v-card-title>ログイン</v-card-title>
+          <v-card-title>{{ $t('ログイン') }}</v-card-title>
           <v-card-text
             id="sign_in_area"
             @keydown.enter="keyDownEnter = completInputKey($event)"
@@ -19,7 +19,7 @@
               <v-text-field
                 id="sign_in_email_text"
                 v-model="query.email"
-                label="メールアドレス"
+                :label="$t('メールアドレス')"
                 prepend-icon="mdi-email"
                 autocomplete="email"
                 :error-messages="errors"
@@ -31,7 +31,7 @@
                 id="sign_in_password_text"
                 v-model="query.password"
                 :type="showPassword ? 'text' : 'password'"
-                label="パスワード"
+                :label="$t('パスワード')"
                 prepend-icon="mdi-lock"
                 :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 autocomplete="current-password"
@@ -48,7 +48,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="signIn(!meta.valid, false)"
             >
-              ログイン
+              {{ $t('ログイン') }}
             </v-btn>
           </v-card-text>
           <v-divider />
@@ -62,26 +62,26 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, email } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import ActionLink from '~/components/users/ActionLink.vue'
 import { completInputKey } from '~/utils/input'
+import { apiRequestURL } from '~/utils/api'
 import { redirectPath, redirectConfirmationReset } from '~/utils/redirect'
 
-defineRule('required', required)
-defineRule('email', email)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
+
+setLocale(locale.value)
+defineRule('required', required)
+defineRule('email', email)
 
 const loading = ref(true)
 const processing = ref(false)
@@ -99,10 +99,11 @@ const keyDownEnter = ref(false)
 
 created()
 function created () {
-  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectPath('/', $route.query) }
-  if ($route.query.account_confirmation_success === 'false') { return redirectConfirmationReset($route.query) }
-  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectPath('/', $route.query) }
-  if ($auth.loggedIn) { return redirectPath('/', { notice: $t('auth.already_authenticated') }) }
+  const homeURL = localePath('/')
+  if ($route.query.account_confirmation_success === 'true' && $auth.loggedIn) { return redirectPath(homeURL, $route.query) }
+  if ($route.query.account_confirmation_success === 'false') { return redirectConfirmationReset($route.query, localePath) }
+  if (['true', 'false'].includes(String($route.query.unlock)) && $auth.loggedIn) { return redirectPath(homeURL, $route.query) }
+  if ($auth.loggedIn) { return redirectPath(homeURL, { notice: $t('auth.already_authenticated') }) }
 
   if ($route.query.account_confirmation_success === 'true' || $route.query.unlock === 'true') { messages.value.notice += $t('auth.unauthenticated') }
   if (Object.keys($route.query).length > 0) { navigateTo({}) } // NOTE: URLパラメータを消す為
@@ -117,9 +118,9 @@ async function signIn (invalid: boolean, keydown: boolean) {
   if (invalid || processing.value || waiting.value || (keydown && !enter)) { return }
 
   processing.value = true
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.authSignInURL, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.authSignInURL), 'POST', {
     ...query.value,
-    unlock_redirect_url: $config.public.frontBaseURL + $config.public.unlockRedirectUrl
+    unlock_redirect_url: $config.public.frontBaseURL + localePath($config.public.unlockRedirectUrl)
   })
 
   if (response?.ok) {
@@ -129,7 +130,7 @@ async function signIn (invalid: boolean, keydown: boolean) {
       if (data.notice != null) { $toast.success(data.notice) }
 
       const { redirectUrl, updateRedirectUrl } = useAuthRedirect()
-      navigateTo(redirectUrl.value || $config.public.authRedirectHomeURL)
+      navigateTo(redirectUrl.value || localePath($config.public.authRedirectHomeURL))
       updateRedirectUrl(null)
       return
     } else {

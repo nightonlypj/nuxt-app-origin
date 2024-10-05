@@ -15,14 +15,15 @@ export default defineConfig({
     testTimeout: 10000, // NOTE: 5秒（デフォルト）だとタイムアウトする場合がある為
     // hookTimeout: 10000,
     // teardownTimeout: 10000,
-    setupFiles: ['./test/setup.ts']
+    setupFiles: './test/setup.ts',
+    globalSetup: './test/global-setup.ts'
   },
   plugins: [
     Vue({
       template: {
         compilerOptions: {
           // NOTE: Failed to resolve component
-          isCustomElement: tag => ['NuxtLayout', 'NuxtPage', 'Head', 'Title', 'Meta'].includes(tag)
+          isCustomElement: tag => ['NuxtLayout', 'NuxtPage', 'Head', 'Title', 'Meta', 'Link'].includes(tag)
         }
       }
     }),
@@ -35,7 +36,8 @@ export default defineConfig({
         {
           '#app': [
             'defineNuxtComponent',
-            'defineNuxtPlugin'
+            'defineNuxtPlugin',
+            'definePageMeta'
           ]
         }
       ],
