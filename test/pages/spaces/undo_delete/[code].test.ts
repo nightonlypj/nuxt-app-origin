@@ -1,11 +1,16 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { dateFormat, dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import helper from '~/test/helper'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import Page from '~/pages/spaces/undo_delete/[code].vue'
 import { activeUser, destroyUser } from '~/test/data/user'
 import { detail, detailPower, detailDestroy } from '~/test/data/spaces'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('[code].vue', () => {
   let mock: any
@@ -62,9 +67,9 @@ describe('[code].vue', () => {
     expect(wrapper.findComponent(AppLoading).exists()).toBe(false)
     expect(wrapper.findComponent(AppProcessing).exists()).toBe(false)
     if (space.destroy_requested_at != null) {
-      expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', space.destroy_requested_at)) // 削除依頼日時
+      expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, space.destroy_requested_at)) // 削除依頼日時
     }
-    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', space.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, space.destroy_schedule_at)) // 削除予定日
   }
 
   // テストケース
@@ -73,8 +78,8 @@ describe('[code].vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-    helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+    helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+    helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
     helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
   })
   it('[ログイン中][管理者、削除予定あり]表示される', async () => {
@@ -110,7 +115,7 @@ describe('[code].vue', () => {
     await flushPromises()
 
     // 確認ダイアログ
-    expect(dialog.isDisabled()).toBe(false) // 非表示
+    expect(dialog.isDisabled()).toBe(false) // 無効（非表示）
   })
   it('[ログイン中][管理者、削除予定あり（削除依頼日時なし）]表示される', async () => {
     const space = Object.freeze({
@@ -130,7 +135,7 @@ describe('[code].vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
+    helper.toastMessageTest(mock.toast, { error: $t('auth.forbidden') })
     helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
   it('[ログイン中][管理者、削除予定なし]スペーストップにリダイレクトされる', async () => {
@@ -139,7 +144,7 @@ describe('[code].vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { error: helper.locales.alert.space.not_destroy_reserved })
+    helper.toastMessageTest(mock.toast, { error: $t('alert.space.not_destroy_reserved') })
     helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
   it('[ログイン中（削除予約済み）]スペーストップにリダイレクトされる', async () => {
@@ -147,14 +152,14 @@ describe('[code].vue', () => {
     helper.loadingTest(wrapper, AppLoading)
     await flushPromises()
 
-    helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
+    helper.toastMessageTest(mock.toast, { error: $t('auth.destroy_reserved') })
     helper.mockCalledTest(mock.navigateTo, 1, spacePath)
   })
 
   describe('スペース詳細取得', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
-      expect(mock.useApiRequest).nthCalledWith(1, helper.envConfig.apiBaseURL + helper.commonConfig.spaces.detailUrl.replace(':code', detail.code))
+      expect(mock.useApiRequest).nthCalledWith(1, apiRequestURL(helper.locale, $config.public.spaces.detailUrl.replace(':code', detail.code)))
     }
 
     const beforeAction = async () => {
@@ -170,7 +175,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.system.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('system.error') } })
     })
 
     it('[接続エラー]エラーページが表示される', async () => {
@@ -179,24 +184,24 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: helper.locales.network.failure } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: null, data: { alert: $t('network.failure') } })
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, messages])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 401 }, null])
       await beforeAction()
 
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
@@ -213,7 +218,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: helper.locales.auth.forbidden } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 403, data: { alert: $t('auth.forbidden') } })
     })
     it('[存在しない]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 404 }, messages])
@@ -237,7 +242,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: helper.locales.network.error } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 500, data: { alert: $t('network.error') } })
     })
     it('[その他エラー]エラーページが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: false, status: 400 }, {}])
@@ -245,15 +250,14 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, {})
-      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: helper.locales.system.default } })
+      helper.mockCalledTest(mock.showError, 1, { statusCode: 400, data: { alert: $t('system.default') } })
     })
   })
 
   describe('スペース削除取り消し', () => {
     const apiCalledTest = () => {
       expect(mock.useApiRequest).toBeCalledTimes(2)
-      const url = helper.commonConfig.spaces.undoDeleteUrl.replace(':code', detail.code)
-      expect(mock.useApiRequest).nthCalledWith(2, helper.envConfig.apiBaseURL + url, 'POST')
+      expect(mock.useApiRequest).nthCalledWith(2, apiRequestURL(helper.locale, $config.public.spaces.undoDeleteUrl.replace(':code', detail.code)), 'POST')
     }
 
     let wrapper: any, button: any
@@ -279,7 +283,7 @@ describe('[code].vue', () => {
     it('[成功]スペーストップにリダイレクトされる', async () => {
       await beforeAction([{ ok: true, status: 200 }, { ...messages, space: activeUser }])
 
-      helper.mockCalledTest(mock.useAuthUser, 1)
+      helper.mockCalledTest(mock.useAuthUser, 1, helper.locale)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
       helper.toastMessageTest(mock.toast, { error: messages.alert, success: messages.notice })
       helper.mockCalledTest(mock.navigateTo, 1, spacePath)
@@ -289,7 +293,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.error })
+      helper.toastMessageTest(mock.toast, { error: $t('system.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
 
@@ -298,25 +302,25 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.failure })
+      helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[認証エラー]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       await beforeAction([{ ok: false, status: 401 }, messages])
 
       helper.mockCalledTest(mock.useAuthUser, 0)
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
       helper.toastMessageTest(mock.toast, { error: messages.alert, info: messages.notice })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[認証エラー（メッセージなし）]未ログイン状態になり、ログインページにリダイレクトされる', async () => {
       await beforeAction([{ ok: false, status: 401 }, null])
 
       helper.mockCalledTest(mock.useAuthUser, 0)
-      helper.mockCalledTest(mock.useAuthSignOut, 1, true)
-      helper.toastMessageTest(mock.toast, { info: helper.locales.auth.unauthenticated })
-      helper.mockCalledTest(mock.navigateTo, 1, helper.commonConfig.authRedirectSignInURL)
+      helper.mockCalledTest(mock.useAuthSignOut, 1, helper.locale, true)
+      helper.toastMessageTest(mock.toast, { info: $t('auth.unauthenticated') })
+      helper.mockCalledTest(mock.navigateTo, 1, $config.public.authRedirectSignInURL)
       helper.mockCalledTest(mock.useAuthRedirect.updateRedirectUrl, 1, fullPath)
     })
     it('[権限エラー]エラーメッセージが表示される', async () => {
@@ -332,7 +336,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.forbidden })
+      helper.toastMessageTest(mock.toast, { error: $t('auth.forbidden') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[存在しない]エラーメッセージが表示される', async () => {
@@ -348,7 +352,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.notfound })
+      helper.toastMessageTest(mock.toast, { error: $t('system.notfound') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[削除予約済み]エラーメッセージが表示される', async () => {
@@ -364,7 +368,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.auth.destroy_reserved })
+      helper.toastMessageTest(mock.toast, { error: $t('auth.destroy_reserved') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[レスポンスエラー]エラーメッセージが表示される', async () => {
@@ -372,7 +376,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.network.error })
+      helper.toastMessageTest(mock.toast, { error: $t('network.error') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
     it('[その他エラー]エラーメッセージが表示される', async () => {
@@ -380,7 +384,7 @@ describe('[code].vue', () => {
 
       helper.mockCalledTest(mock.useAuthUser, 0)
       helper.mockCalledTest(mock.useAuthSignOut, 0)
-      helper.toastMessageTest(mock.toast, { error: helper.locales.system.default })
+      helper.toastMessageTest(mock.toast, { error: $t('system.default') })
       helper.disabledTest(wrapper, AppProcessing, button, false) // 有効
     })
   })

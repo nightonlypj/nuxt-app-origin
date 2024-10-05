@@ -10,8 +10,8 @@
           <v-text-field
             id="member_search_text"
             v-model="syncQuery.text"
-            label="検索"
-            :placeholder="`ユーザー名${admin ? 'やメールアドレス' : ''}を入力`"
+            :label="$t('検索')"
+            :placeholder="$t(admin ? 'ユーザー名やメールアドレスを入力' : 'ユーザー名を入力')"
             autocomplete="on"
             style="max-width: 400px"
             density="comfortable"
@@ -37,13 +37,13 @@
             @click="syncQuery.option = !syncQuery.option"
           >
             <v-icon size="x-large">{{ syncQuery.option ? 'mdi-menu-up' : 'mdi-menu-down' }}</v-icon>
-            <span class="hidden-sm-and-down">検索オプション</span>
+            <span class="hidden-sm-and-down">{{ $t('検索オプション') }}</span>
           </v-btn>
         </v-col>
       </v-row>
       <v-row v-show="syncQuery.option" id="member_search_option_item">
         <v-col cols="auto" class="d-flex py-0">
-          <v-chip size="small" class="mt-1">権限</v-chip>
+          <v-chip size="small" class="mt-1">{{ $t('権限') }}</v-chip>
           <template v-for="(value, key, index) in $tm('enums.member.power')" :key="key">
             <v-checkbox
               :id="`member_search_power_${key}_check`"
@@ -59,12 +59,12 @@
           </template>
         </v-col>
         <v-col cols="auto" class="d-flex py-0">
-          <v-chip size="small" class="mt-1">状態</v-chip>
+          <v-chip size="small" class="mt-1">{{ $t('状態') }}</v-chip>
           <v-checkbox
             id="member_search_active_check"
             v-model="syncQuery.active"
             color="primary"
-            label="有効"
+            :label="$t('有効')"
             class="mr-2"
             density="compact"
             hide-details
@@ -75,7 +75,7 @@
             id="member_search_destroy_check"
             v-model="syncQuery.destroy"
             color="primary"
-            label="削除予定"
+            :label="$t('削除予定')"
             density="compact"
             hide-details
             :error="activeBlank()"
@@ -93,7 +93,7 @@ import { completInputKey } from '~/utils/input'
 const $props = defineProps({
   processing: {
     type: Boolean,
-    default: null
+    required: true
   },
   query: {
     type: Object,
@@ -101,17 +101,16 @@ const $props = defineProps({
   },
   admin: {
     type: Boolean,
-    default: null
+    required: true
   }
 })
+defineExpose({ updateWaiting })
+const $emit = defineEmits(['update:query', 'search'])
 const syncQuery = computed({
   get: () => $props.query,
   set: (value: object) => $emit('update:query', value)
 })
-defineExpose({ setError })
-const $emit = defineEmits(['update:query', 'search'])
-const $config = useRuntimeConfig()
-const { tm: $tm } = useI18n()
+const { t: $t, tm: $tm } = useI18n()
 
 const waiting = ref(true)
 const keyDownEnter = ref(false)
@@ -138,11 +137,5 @@ function search (keydown: boolean) {
   $emit('search')
 }
 
-// エラー処理
-function setError () {
-  /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('setError') }
-
-  waiting.value = false // NOTE: 検索ボタンを押せるようにする
-}
+function updateWaiting (value: boolean) { waiting.value = value }
 </script>

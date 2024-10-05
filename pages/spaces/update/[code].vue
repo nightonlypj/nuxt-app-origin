@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>スペース設定</Title>
+    <Title>{{ $t('スペース設定') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -9,40 +9,40 @@
     <v-card max-width="850px">
       <AppProcessing v-if="processing" />
       <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
-        <v-tab :to="spacePath">スペース</v-tab>
-        <v-tab value="active">スペース設定</v-tab>
+        <v-tab :to="spacePath">{{ $t('スペース') }}</v-tab>
+        <v-tab value="active">{{ $t('スペース設定') }}</v-tab>
       </v-tabs>
       <Form v-slot="{ meta, setErrors, values }">
         <v-form autocomplete="on">
           <v-card-text>
             <v-row>
               <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                作成
+                {{ $t('作成情報') }}
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', space.created_at, 'N/A') }}</span>
+                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat(locale, space.created_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.created_user" />
               </v-col>
             </v-row>
             <v-row v-if="space.last_updated_at != null || space.last_updated_user != null">
               <v-col cols="auto" md="2" class="d-flex align-self-center justify-md-end text-no-wrap pr-0 pb-0">
-                更新
+                {{ $t('更新情報') }}
               </v-col>
               <v-col cols="12" md="10" class="d-flex pb-0">
-                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat('ja', space.last_updated_at, 'N/A') }}</span>
+                <span class="align-self-center mr-3 text-grey">{{ dateTimeFormat(locale, space.last_updated_at, 'N/A') }}</span>
                 <UsersAvatar :user="space.last_updated_user" />
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                名称<AppRequiredLabel />
+              <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3">
+                {{ $t('名称') }}<AppRequiredLabel />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
                 <Field v-slot="{ errors }" v-model="space.name" name="name" rules="required|min:3|max:128">
                   <v-text-field
                     id="space_update_name_text"
                     v-model="space.name"
-                    placeholder="スペース名を入力"
+                    :placeholder="$t('スペース名を入力')"
                     density="compact"
                     variant="outlined"
                     hide-details="auto"
@@ -54,21 +54,21 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                説明<AppRequiredLabel optional />
+              <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3" :style="$vuetify.display.mdAndUp.value ? 'height: 52px': ''">
+                {{ $t('説明') }}<AppRequiredLabel optional />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
                 <v-tabs v-if="!$config.public.env.test" v-model="tabDescription" color="primary" height="32px">
-                  <v-tab value="input">入力</v-tab>
-                  <v-tab value="preview">プレビュー</v-tab>
+                  <v-tab value="input">{{ $t('入力') }}</v-tab>
+                  <v-tab value="preview">{{ $t('プレビュー') }}</v-tab>
                 </v-tabs>
                 <span v-show="tabDescription === 'input'">
                   <Field v-slot="{ errors }" v-model="space.description" name="description">
                     <v-textarea
                       id="space_update_description_text"
                       v-model="space.description"
-                      placeholder="スペースの説明を入力"
-                      hint="Markdownに対応しています。"
+                      :placeholder="$t('スペースの説明を入力')"
+                      :hint="$t('Markdownに対応しています。')"
                       :persistent-hint="true"
                       density="compact"
                       variant="outlined"
@@ -87,8 +87,8 @@
               </v-col>
             </v-row>
             <v-row v-if="$config.public.enablePublicSpace">
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-1">
-                表示<AppRequiredLabel />
+              <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-1">
+                {{ $t('範囲') }}<AppRequiredLabel />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
                 <Field v-slot="{ errors }" v-model="space.private" name="private" :rules="{ one_of_select: [false, true] }">
@@ -104,13 +104,13 @@
                   >
                     <v-radio
                       id="space_update_private_false"
-                      label="誰でも表示できる（公開）"
+                      :label="$t('誰でも表示できる（公開）')"
                       :value="false"
                       class="mr-2"
                     />
                     <v-radio
                       id="space_update_private_true"
-                      label="メンバーのみ表示できる（非公開）"
+                      :label="$t('メンバーのみ表示できる（非公開）')"
                       :value="true"
                     />
                   </v-radio-group>
@@ -118,8 +118,8 @@
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 pt-8">
-                画像<AppRequiredLabel optional />
+              <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 pt-8" :style="$vuetify.display.mdAndUp.value ? 'height: 52px': ''">
+                {{ $t('画像') }}<AppRequiredLabel optional />
               </v-col>
               <v-col cols="12" md="10" class="pb-0">
                 <div class="d-flex align-self-center">
@@ -131,7 +131,7 @@
                     id="space_update_image_delete_check"
                     v-model="space.image_delete"
                     color="primary"
-                    label="削除（初期画像に戻す）"
+                    :label="$t('削除（初期画像に戻す）')"
                     class="mt-4 ml-4"
                     density="compact"
                     hide-details
@@ -143,7 +143,7 @@
                     id="space_update_image_file"
                     v-model="space.image"
                     accept="image/jpeg,image/gif,image/png"
-                    label="画像ファイル"
+                    :label="$t('画像ファイル')"
                     prepend-icon=""
                     show-size
                     class="mt-2"
@@ -165,7 +165,7 @@
                   :disabled="!meta.valid || processing || waiting"
                   @click="postSpacesUpdate(setErrors, values)"
                 >
-                  変更
+                  {{ $t('変更') }}
                 </v-btn>
               </v-col>
             </v-row>
@@ -175,7 +175,7 @@
       <v-divider />
       <v-card-actions v-if="space.destroy_schedule_at == null">
         <ul class="my-2">
-          <li><NuxtLink :to="`/spaces/delete/${code}`">スペース削除</NuxtLink></li>
+          <li><NuxtLink :to="localePath(`/spaces/delete/${code}`)">{{ $t('スペース削除') }}</NuxtLink></li>
         </ul>
       </v-card-actions>
     </v-card>
@@ -183,11 +183,10 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 // eslint-disable-next-line camelcase
 import { required, one_of, min, max, size } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
@@ -196,22 +195,23 @@ import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import { dateTimeFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath, redirectError } from '~/utils/redirect'
 import { currentMemberAdmin } from '~/utils/members'
 import { existKeyErrors } from '~/utils/input'
 
+const localePath = useLocalePath()
+const $config = useRuntimeConfig()
+const { t: $t, locale } = useI18n()
+const { $auth, $toast } = useNuxtApp()
+const $route = useRoute()
+
+setLocale(locale.value)
 defineRule('required', required)
 defineRule('one_of_select', one_of)
 defineRule('min', min)
 defineRule('max', max)
 defineRule('size_20MB', size)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
-const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
-const { $auth, $toast } = useNuxtApp()
-const $route = useRoute()
 
 const loading = ref(true)
 const processing = ref(false)
@@ -224,11 +224,11 @@ const tabPage = ref('active')
 const tabDescription = ref('input')
 const space = ref<any>(null)
 const code = String($route.params.code)
-const spacePath = `/-/${code}`
+const spacePath = localePath(`/-/${code}`)
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('auth.destroy_reserved') }) }
 
   if (!await getSpacesDetail()) { return }
@@ -240,8 +240,7 @@ async function created () {
 
 // スペース詳細取得
 async function getSpacesDetail () {
-  const url = $config.public.spaces.detailUrl.replace(':code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {
@@ -252,8 +251,8 @@ async function getSpacesDetail () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {
@@ -280,23 +279,22 @@ async function postSpacesUpdate (setErrors: any, values: any) {
   if (space.value.image_delete) { params['space[image_delete]'] = true }
   if (space.value.image != null && space.value.image.length > 0) { params['space[image]'] = space.value.image[0] }
 
-  const url = $config.public.spaces.updateUrl.replace(':code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', params, 'form')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.updateUrl.replace(':code', code)), 'POST', params, 'form')
 
   if (response?.ok) {
     if (data?.space != null) {
       if (data.alert != null) { $toast.error(data.alert) }
       if (data.notice != null) { $toast.success(data.notice) }
 
-      await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
+      await useAuthUser(locale.value) // NOTE: 左メニューの参加スペース更新の為
       return navigateTo(spacePath)
     } else {
       $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

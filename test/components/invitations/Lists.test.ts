@@ -1,10 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
+import { dateTimeFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import UsersAvatar from '~/components/users/Avatar.vue'
 import Component from '~/components/invitations/Lists.vue'
 import { activeUser } from '~/test/data/user'
 import { listCount4 } from '~/test/data/invitations'
+
+const $config = config.global.mocks.$config
+const $t = config.global.mocks.$t
 
 describe('Lists.vue', () => {
   let mock: any
@@ -13,6 +17,7 @@ describe('Lists.vue', () => {
       toast: helper.mockToast
     }
   })
+  const headers = $config.public.invitations.headers
 
   const mountFunction = (invitations: any, hiddenItems: any = null) => {
     vi.stubGlobal('useNuxtApp', vi.fn(() => ({
@@ -41,26 +46,26 @@ describe('Lists.vue', () => {
   // テスト内容
   const viewTest = async (wrapper: any, invitations: any, show: any = { optional: null, active: 0, inactive: 0 }) => {
     // ヘッダ
-    expect(wrapper.text()).toMatch('招待URL')
-    expect(wrapper.text()).toMatch('ステータス')
+    expect(wrapper.text()).toMatch($t('招待URL'))
+    expect(wrapper.text()).toMatch($t('ステータス'))
     if (show.optional) {
-      expect(wrapper.text()).toMatch('メールアドレス')
-      expect(wrapper.text()).toMatch('権限')
-      expect(wrapper.text()).toMatch('期限')
-      expect(wrapper.text()).toMatch('メモ')
-      expect(wrapper.text()).toMatch('作成者')
-      expect(wrapper.text()).toMatch('作成日時')
-      expect(wrapper.text()).toMatch('更新者')
-      expect(wrapper.text()).toMatch('更新日時')
+      expect(wrapper.text()).toMatch($t('メールアドレス'))
+      expect(wrapper.text()).toMatch($t('権限'))
+      expect(wrapper.text()).toMatch($t('期限'))
+      expect(wrapper.text()).toMatch($t('メモ'))
+      expect(wrapper.text()).toMatch($t('作成者'))
+      expect(wrapper.text()).toMatch($t('作成日時'))
+      expect(wrapper.text()).toMatch($t('更新者'))
+      expect(wrapper.text()).toMatch($t('更新日時'))
     } else {
-      expect(wrapper.text()).not.toMatch('メールアドレス')
-      expect(wrapper.text()).not.toMatch('権限')
-      // expect(wrapper.text()).not.toMatch('期限') // NOTE: 期限切れに含まれる為
-      expect(wrapper.text()).not.toMatch('メモ')
-      expect(wrapper.text()).not.toMatch('作成者')
-      expect(wrapper.text()).not.toMatch('作成日時')
-      expect(wrapper.text()).not.toMatch('更新者')
-      expect(wrapper.text()).not.toMatch('更新日時')
+      expect(wrapper.text()).not.toMatch($t('メールアドレス'))
+      expect(wrapper.text()).not.toMatch($t('権限'))
+      // expect(wrapper.text()).not.toMatch($t('期限')) // NOTE: 期限切れに含まれる為
+      expect(wrapper.text()).not.toMatch($t('メモ'))
+      expect(wrapper.text()).not.toMatch($t('作成者'))
+      expect(wrapper.text()).not.toMatch($t('作成日時'))
+      expect(wrapper.text()).not.toMatch($t('更新者'))
+      expect(wrapper.text()).not.toMatch($t('更新日時'))
     }
 
     // (状態)
@@ -81,7 +86,7 @@ describe('Lists.vue', () => {
         helper.mockCalledTest(mockWriteText, 1, `${location.protocol}//${location.host}/users/sign_up?code=${invitation.code}`)
         await flushPromises()
 
-        // helper.toastMessageTest(mock.toast, { success: helper.locales.notice.invitation.copy_success }) // TODO: 呼ばれているけど、mockがcallされない
+        // helper.toastMessageTest(mock.toast, { success: $t('notice.invitation.copy_success') }) // TODO: 呼ばれているけど、mockがcallされない
         helper.toastMessageTest(mock.toast, {})
       }
       // ステータス
@@ -114,9 +119,9 @@ describe('Lists.vue', () => {
       // 期限
       if (invitation.ended_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.ended_at))
+          expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, invitation.ended_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.ended_at))
+          expect(wrapper.text()).not.toMatch(dateTimeFormat.value(helper.locale, invitation.ended_at))
         }
       }
       // 作成者
@@ -132,9 +137,9 @@ describe('Lists.vue', () => {
       // 作成日時
       if (invitation.created_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.created_at))
+          expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, invitation.created_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.created_at))
+          expect(wrapper.text()).not.toMatch(dateTimeFormat.value(helper.locale, invitation.created_at))
         }
       }
       // 更新者
@@ -150,9 +155,9 @@ describe('Lists.vue', () => {
       // 更新日時
       if (invitation.last_updated_at != null) {
         if (show.optional) {
-          expect(wrapper.text()).toMatch(wrapper.vm.dateTimeFormat('ja', invitation.last_updated_at))
+          expect(wrapper.text()).toMatch(dateTimeFormat.value(helper.locale, invitation.last_updated_at))
         } else {
-          expect(wrapper.text()).not.toMatch(wrapper.vm.dateTimeFormat('ja', invitation.last_updated_at))
+          expect(wrapper.text()).not.toMatch(dateTimeFormat.value(helper.locale, invitation.last_updated_at))
         }
       }
     }
@@ -174,7 +179,7 @@ describe('Lists.vue', () => {
       viewTest(wrapper, listCount4, { optional: true, active: 1, inactive: 3 })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
-      const hiddenItems = helper.locales.items.invitation.map(item => item.key)
+      const hiddenItems = headers.filter((item: any) => item.required !== true).map((item: any) => item.key)
       const wrapper = mountFunction(listCount4, hiddenItems)
       viewTest(wrapper, listCount4, { optional: false, active: 1, inactive: 3 })
     })

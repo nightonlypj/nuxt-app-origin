@@ -5,7 +5,7 @@
     @click="showDialog()"
   >
     <v-icon>mdi-account-plus</v-icon>
-    <span>メンバー招待</span>
+    <span>{{ $t('メンバー招待（ボタン）') }}</span>
   </v-btn>
   <v-dialog v-model="dialog" max-width="720px" :attach="$config.public.env.test">
     <v-card id="member_create_dialog">
@@ -14,21 +14,21 @@
         <v-form autocomplete="off">
           <v-toolbar color="primary" density="compact">
             <v-icon size="small" class="ml-4">mdi-account-plus</v-icon>
-            <span class="ml-1">メンバー招待</span>
+            <span class="ml-1">{{ $t('メンバー招待') }}</span>
           </v-toolbar>
           <v-card-text>
             <v-container>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                  メンバー<AppRequiredLabel />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3" :style="$vuetify.display.mdAndUp ? 'height: 52px': ''">
+                  {{ $t('メンバー') }}<AppRequiredLabel />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="member.emails" name="emails" rules="required">
                     <v-textarea
                       id="member_create_emails_text"
                       v-model="member.emails"
-                      label="メールアドレス"
-                      hint="アカウントが存在する場合のみ招待されます。"
+                      :label="$t('メールアドレス')"
+                      :hint="$t('メンバー招待メッセージ')"
                       :persistent-hint="true"
                       density="compact"
                       variant="outlined"
@@ -40,8 +40,8 @@
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-1">
-                  権限<AppRequiredLabel />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-1">
+                  {{ $t('権限') }}<AppRequiredLabel />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="member.power" name="power" rules="required_select">
@@ -77,7 +77,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postMembersCreate(setErrors, values)"
             >
-              招待
+              {{ $t('招待') }}
             </v-btn>
             <v-btn
               id="member_create_cancel_btn"
@@ -85,7 +85,7 @@
               variant="elevated"
               @click="dialog = false"
             >
-              キャンセル
+              {{ $t('キャンセル') }}
             </v-btn>
           </v-card-actions>
         </v-form>
@@ -95,19 +95,14 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
-
-defineRule('required', required)
-defineRule('required_select', required)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
 
 const $props = defineProps({
   space: {
@@ -116,9 +111,14 @@ const $props = defineProps({
   }
 })
 const $emit = defineEmits(['result', 'reload'])
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t, tm: $tm } = useI18n()
+const { t: $t, tm: $tm, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
+
+setLocale(locale.value)
+defineRule('required', required)
+defineRule('required_select', required)
 
 const processing = ref(false)
 const waiting = ref(false)
@@ -128,7 +128,7 @@ function initMember () { return {} }
 
 // ダイアログ表示
 function showDialog () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return $toast.error($t('auth.destroy_reserved')) }
 
   dialog.value = true
@@ -138,8 +138,7 @@ function showDialog () {
 async function postMembersCreate (setErrors: any, values: any) {
   processing.value = true
 
-  const url = $config.public.members.createUrl.replace(':space_code', $props.space.code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.createUrl.replace(':space_code', $props.space.code)), 'POST', {
     member: member.value
   })
 
@@ -157,8 +156,8 @@ async function postMembersCreate (setErrors: any, values: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

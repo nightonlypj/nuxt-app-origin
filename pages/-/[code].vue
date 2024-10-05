@@ -16,31 +16,33 @@
             <SpacesIcon :space="space" />
           </v-col>
           <v-col cols="12" sm="auto" class="d-flex justify-end pl-0">
-            <v-btn
+            <v-badge
               v-if="space.current_member != null"
-              id="members_btn"
-              :to="`/members/${space.code}`"
-              color="primary"
+              :content="space.member_count"
+              :model-value="space.member_count > 0"
+              max="99"
+              color="accent"
+              offset-x="20"
+              offset-y="2"
             >
-              <v-badge
-                :content="space.member_count"
-                :model-value="space.member_count > 0"
-                max="99"
-                color="accent"
+              <v-btn
+                id="members_btn"
+                :to="localePath(`/members/${space.code}`)"
+                color="primary"
               >
                 <v-icon size="large">mdi-account-multiple</v-icon>
-              </v-badge>
-              <v-tooltip activator="parent" location="bottom">メンバー一覧</v-tooltip>
-            </v-btn>
+                {{ $t('メンバー') }}
+              </v-btn>
+            </v-badge>
             <v-btn
               v-if="currentMemberAdmin(space)"
               id="space_update_btn"
-              :to="`/spaces/update/${space.code}`"
+              :to="localePath(`/spaces/update/${space.code}`)"
               color="secondary"
               class="ml-1"
             >
               <v-icon>mdi-cog</v-icon>
-              <v-tooltip activator="parent" location="bottom">設定変更</v-tooltip>
+              {{ $t('設定') }}
             </v-btn>
           </v-col>
         </v-row>
@@ -58,10 +60,12 @@ import AppMarkdown from '~/components/app/Markdown.vue'
 import SpacesDestroyInfo from '~/components/spaces/DestroyInfo.vue'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import { currentMemberAdmin } from '~/utils/members'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError, redirectAuth } from '~/utils/redirect'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const $route = useRoute()
 
 const loading = ref(true)
@@ -77,8 +81,7 @@ async function created () {
 
 // スペース情報取得
 async function getSpacesDetail () {
-  const url = $config.public.spaces.detailUrl.replace(':code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {
@@ -89,8 +92,8 @@ async function getSpacesDetail () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {

@@ -71,6 +71,19 @@ const dataCount1 = Object.freeze({
   ],
   undownloaded_count: 1
 })
+const dataCount2 = Object.freeze({
+  download: {
+    total_count: 2,
+    current_page: 1,
+    total_pages: 1,
+    limit_value: 2
+  },
+  downloads: [
+    { id: 1 },
+    { id: 2 }
+  ],
+  undownloaded_count: 1
+})
 
 const dataPage1 = Object.freeze({
   download: {
@@ -136,6 +149,7 @@ export {
   listCount5,
   dataCount0,
   dataCount1,
+  dataCount2,
   dataPage1,
   dataPage2,
   dataPage3,

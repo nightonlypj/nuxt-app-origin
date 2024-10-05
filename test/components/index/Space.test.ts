@@ -1,9 +1,11 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import SpacesCreate from '~/components/spaces/Create.vue'
 import Component from '~/components/index/Space.vue'
 import { activeUser } from '~/test/data/user'
 import { listMiniCount2 } from '~/test/data/spaces'
+
+const $t = config.global.mocks.$t
 
 describe('Space.vue', () => {
   const mountFunction = (user: any) => {
@@ -45,6 +47,6 @@ describe('Space.vue', () => {
   it('[参加スペースなし]メッセージが表示される', () => {
     const wrapper = mountFunction({ ...activeUser, spaces: [] })
     expect(wrapper.findComponent(SpacesCreate).exists()).toBe(true) // スペース作成
-    expect(wrapper.text()).toMatch('新しいスペースを作成するか、参加したいスペースの管理者に連絡して追加して貰いましょう！')
+    expect(wrapper.text()).toMatch($t('スペースなしメッセージ'))
   })
 })

@@ -7,25 +7,21 @@
     <template v-if="infomation != null">
       <v-card-title>
         <div>
-          <InfomationsLabel :infomation="infomation" />
+          <InfomationsLabel :infomation="infomation" class="mr-1" />
           <span class="font-weight-bold">
             {{ infomation.title }}
           </span>
-          ({{ dateFormat('ja', infomation.started_at, 'N/A') }})
+          ({{ dateFormat(locale, infomation.started_at, 'N/A') }})
         </div>
       </v-card-title>
       <v-card-text>
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="infomation.body" class="mx-2 my-2" v-html="infomation.body" />
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-else-if="infomation.summary" class="mx-2 my-2" v-html="infomation.summary" />
+        <div class="ma-2" v-html="infomation.body || infomation.summary" />
       </v-card-text>
       <v-divider />
     </template>
     <v-card-actions>
-      <ul class="my-2">
-        <li><NuxtLink to="/infomations">一覧</NuxtLink></li>
-      </ul>
+      <NuxtLink :to="localePath('/infomations')">{{ $t('一覧') }}</NuxtLink>
     </v-card-actions>
   </v-card>
 </template>
@@ -34,10 +30,12 @@
 import AppLoading from '~/components/app/Loading.vue'
 import InfomationsLabel from '~/components/infomations/Label.vue'
 import { dateFormat } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectError } from '~/utils/redirect'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const $route = useRoute()
 
 const loading = ref(true)
@@ -54,7 +52,7 @@ const title = computed(() => {
 created()
 async function created () {
   const id = Number($route.params.id)
-  if (isNaN(id) || String(id) !== String($route.params.id)) { return redirectError(404, {}) }
+  if (isNaN(id) || String(id) !== $route.params.id) { return redirectError(404) }
   if (!await getInfomationsDetail(id)) { return }
 
   loading.value = false
@@ -62,8 +60,7 @@ async function created () {
 
 // お知らせ詳細取得
 async function getInfomationsDetail (id: number) {
-  const url = $config.public.infomations.detailUrl.replace(':id', String(id))
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.infomations.detailUrl.replace(':id', String(id))))
 
   if (response?.ok) {
     if (data?.infomation != null) {

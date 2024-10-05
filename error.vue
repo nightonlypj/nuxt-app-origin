@@ -8,20 +8,21 @@
       <v-card-title>{{ alert }}</v-card-title>
       <v-card-text v-if="notice != null">{{ notice }}</v-card-text>
       <v-card-actions>
-        <NuxtLink to="/">トップページ</NuxtLink>
+        <NuxtLink :to="localePath('/')">{{ $t('トップページ') }}</NuxtLink>
       </v-card-actions>
     </v-card>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
+const localePath = useLocalePath()
 const { t: $t } = useI18n()
 const props = defineProps({
   // eslint-disable-next-line vue/require-default-prop
   error: Object
 })
 
-const title = computed(() => (props.error?.statusCode === 404) ? 'Not Found' : 'エラー')
+const title = computed(() => $t((props.error?.statusCode === 404) ? 'Not Found' : 'エラー'))
 const alert = computed(() => {
   if (props.error?.data?.alert != null) { return props.error.data.alert }
   return $t(`system.${props.error?.statusCode === 404 ? 'notfound' : 'default'}`)

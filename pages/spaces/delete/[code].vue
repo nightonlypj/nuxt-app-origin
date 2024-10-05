@@ -14,8 +14,8 @@
     </v-card-title>
     <v-card-text>
       <p>
-        スペースは{{ space.destroy_schedule_days || 'N/A' }}日後に削除されます。それまでは取り消し可能です。<br>
-        削除されるまではアクセスできますが、一部機能が制限されます。
+        {{ $t('スペース削除メッセージ', { days: space.destroy_schedule_days || 'N/A' }) }}<br>
+        {{ $t('スペース削除補足') }}
       </p>
       <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
         <template #activator="{ props }">
@@ -26,16 +26,16 @@
             class="mt-4"
             :disabled="processing"
           >
-            削除
+            {{ $t('削除') }}
           </v-btn>
         </template>
         <template #default="{ isActive }">
           <v-card id="space_delete_dialog">
             <v-toolbar color="error" density="compact">
-              <span class="ml-4">スペース削除</span>
+              <span class="ml-4">{{ $t('スペース削除') }}</span>
             </v-toolbar>
             <v-card-text>
-              <div class="text-h6 pa-4">本当に削除しますか？</div>
+              <div class="text-h6 pa-4">{{ $t('スペース削除確認メッセージ') }}</div>
             </v-card-text>
             <v-card-actions class="justify-end mb-2 mr-2">
               <v-btn
@@ -44,7 +44,7 @@
                 variant="elevated"
                 @click="isActive.value = false"
               >
-                いいえ（キャンセル）
+                {{ $t('いいえ（キャンセル）') }}
               </v-btn>
               <v-btn
                 id="space_delete_yes_btn"
@@ -52,7 +52,7 @@
                 variant="elevated"
                 @click="postSpacesDelete(isActive)"
               >
-                はい（削除）
+                {{ $t('はい（削除）') }}
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -62,7 +62,7 @@
     <v-divider />
     <v-card-actions>
       <ul class="my-2">
-        <li><NuxtLink :to="`/spaces/update/${code}`">スペース設定変更</NuxtLink></li>
+        <li><NuxtLink :to="localePath(`/spaces/update/${code}`)">{{ $t('スペース設定') }}</NuxtLink></li>
       </ul>
     </v-card-actions>
   </v-card>
@@ -72,11 +72,13 @@
 import AppLoading from '~/components/app/Loading.vue'
 import AppProcessing from '~/components/app/Processing.vue'
 import SpacesTitle from '~/components/spaces/Title.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath, redirectError } from '~/utils/redirect'
 import { currentMemberAdmin } from '~/utils/members'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
@@ -85,11 +87,11 @@ const processing = ref(false)
 const tabPage = ref('active')
 const space = ref<any>(null)
 const code = String($route.params.code)
-const spacePath = `/-/${code}`
+const spacePath = localePath(`/-/${code}`)
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath(spacePath, { alert: $t('auth.destroy_reserved') }) }
 
   if (!await getSpacesDetail()) { return }
@@ -101,8 +103,7 @@ async function created () {
 
 // スペース詳細取得
 async function getSpacesDetail () {
-  const url = $config.public.spaces.detailUrl.replace(':code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.detailUrl.replace(':code', code)))
 
   if (response?.ok) {
     if (data?.space != null) {
@@ -113,8 +114,8 @@ async function getSpacesDetail () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       redirectError(403, { alert: data?.alert || $t('auth.forbidden'), notice: data?.notice })
     } else if (response?.status === 404) {
@@ -134,23 +135,22 @@ async function postSpacesDelete (isActive: any) {
   processing.value = true
   isActive.value = false
 
-  const url = $config.public.spaces.deleteUrl.replace(':code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.deleteUrl.replace(':code', code)), 'POST')
 
   if (response?.ok) {
     if (data != null) {
       if (data.alert != null) { $toast.error(data.alert) }
       if (data.notice != null) { $toast.success(data.notice) }
 
-      await useAuthUser() // NOTE: 左メニューの参加スペース更新の為
+      await useAuthUser(locale.value) // NOTE: 左メニューの参加スペース更新の為
       return navigateTo(spacePath)
     } else {
       $toast.error($t('system.error'))
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 404) {

@@ -1,32 +1,29 @@
 <template>
   <v-data-table-server
     v-if="invitations != null && invitations.length > 0"
-    :headers="headers"
+    :headers="tableHeaders($t, $config.public.invitations.headers, $props.hiddenItems)"
     :items="invitations"
     :items-length="invitations.length"
     :items-per-page="-1"
     density="compact"
     hover
     :row-props="rowProps"
-    fixed-header
-    :height="tableHeight($vuetify.display.height)"
     @dblclick:row="dblclickRow"
   >
     <!-- 招待URL -->
     <template #[`item.code`]="{ item }: any">
-      <div v-if="item.status === 'active'" class="text-center">
-        <v-btn
-          :id="`invitation_url_copy_btn_${item.code}`"
-          color="accent"
-          icon
-          variant="outlined"
-          size="x-small"
-          @click="copyInvitationURL(item.code)"
-        >
-          <v-icon>mdi-content-copy</v-icon>
-          <v-tooltip activator="parent" location="bottom">クリップボードにコピー</v-tooltip>
-        </v-btn>
-      </div>
+      <v-btn
+        v-if="item.status === 'active'"
+        :id="`invitation_url_copy_btn_${item.code}`"
+        color="accent"
+        icon
+        variant="outlined"
+        size="x-small"
+        @click="copyInvitationURL(item.code)"
+      >
+        <v-icon>mdi-content-copy</v-icon>
+        <v-tooltip activator="parent" location="bottom">{{ $t('クリップボードにコピー') }}</v-tooltip>
+      </v-btn>
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }: any">
@@ -46,7 +43,6 @@
         </v-icon>
         <a
           :id="`invitation_update_link_${item.code}`"
-          class="text-no-wrap"
           style="color: -webkit-link; cursor: pointer; text-decoration: underline"
           @click="$emit('showUpdate', item)"
         >
@@ -69,23 +65,17 @@
     </template>
     <!-- 権限 -->
     <template #[`item.power`]="{ item }: any">
-      <div class="text-no-wrap">
-        <v-icon size="small">{{ memberPowerIcon(item.power) }}</v-icon>
-        {{ item.power_i18n }}
-      </div>
+      <v-icon size="small">{{ memberPowerIcon(item.power) }}</v-icon>
+      {{ item.power_i18n }}
     </template>
     <!-- 期限 -->
     <template #[`item.ended_at`]="{ item }: any">
-      <div class="text-center">
-        {{ dateTimeFormat('ja', item.ended_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.ended_at) }}
     </template>
     <!-- 作成者 -->
     <template #[`item.created_user.name`]="{ item }: any">
       <template v-if="item.created_user != null">
-        <div v-if="item.created_user.deleted" class="text-center">
-          N/A
-        </div>
+        <div v-if="item.created_user.deleted" class="text-center">N/A</div>
         <UsersAvatar v-else :user="item.created_user" />
       </template>
     </template>
@@ -95,31 +85,25 @@
       <v-icon>$sortDesc</v-icon>
     </template>
     <template #[`item.created_at`]="{ item }: any">
-      <div class="text-center">
-        {{ dateTimeFormat('ja', item.created_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.created_at) }}
     </template>
     <!-- 更新者 -->
     <template #[`item.last_updated_user.name`]="{ item }: any">
       <template v-if="item.last_updated_user != null">
-        <div v-if="item.last_updated_user.deleted" class="text-center">
-          N/A
-        </div>
+        <div v-if="item.last_updated_user.deleted" class="text-center">N/A</div>
         <UsersAvatar v-else :user="item.last_updated_user" />
       </template>
     </template>
     <!-- 更新日時 -->
     <template #[`item.last_updated_at`]="{ item }: any">
-      <div class="text-center">
-        {{ dateTimeFormat('ja', item.last_updated_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.last_updated_at) }}
     </template>
   </v-data-table-server>
 </template>
 
 <script setup lang="ts">
 import UsersAvatar from '~/components/users/Avatar.vue'
-import { tableHeight, dateTimeFormat } from '~/utils/display'
+import { tableHeaders, dateTimeFormat } from '~/utils/display'
 import { memberPowerIcon } from '~/utils/members'
 
 const $props = defineProps({
@@ -134,19 +118,9 @@ const $props = defineProps({
 })
 const $emit = defineEmits(['showUpdate'])
 const $config = useRuntimeConfig()
-const { t: $t, tm: $tm } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $toast } = useNuxtApp()
 
-const headers = computed(() => {
-  const result = []
-  for (const item of Object.values($tm('items.invitation') as any) as any) {
-    if (item.required || !$props.hiddenItems.includes(item.key)) {
-      result.push({ title: item.title, key: item.key, sortable: false, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
-    }
-  }
-  if (result.length > 0) { result[result.length - 1].cellProps.class = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-  return result
-})
 const rowProps = computed(() => ({ item }: any) => {
   return { class: item.status === 'active' ? 'row_active' : 'row_inactive' }
 })

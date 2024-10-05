@@ -2,7 +2,7 @@
   <v-chip
     v-if="infomation != null && infomation.label !== 'not'"
     :color="labelColor"
-    size="small"
+    size="x-small"
     variant="elevated"
   >
     {{ infomation.label_i18n }}

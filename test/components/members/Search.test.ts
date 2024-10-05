@@ -1,11 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import helper from '~/test/helper'
 import Component from '~/components/members/Search.vue'
+
+const $t = config.global.mocks.$t
+const $tm = config.global.mocks.$tm
 
 describe('Search.vue', () => {
   const power: any = {}
-  for (const key in helper.locales.enums.member.power) {
+  for (const key in $tm('enums.member.power')) {
     power[key] = true
   }
   const query = Object.freeze({ text: '', option: false, power: Object.freeze({ ...power }), active: true, destroy: true })
@@ -25,7 +27,7 @@ describe('Search.vue', () => {
   // テスト内容
   const viewTest = async (wrapper: any, admin: boolean) => {
     const text = wrapper.find('#member_search_text')
-    expect(text.element.attributes[0].value).toBe(admin ? 'ユーザー名やメールアドレスを入力' : 'ユーザー名を入力')
+    expect(text.element.attributes[0].value).toBe($t(admin ? 'ユーザー名やメールアドレスを入力' : 'ユーザー名を入力'))
 
     // 検索ボタン
     const button = wrapper.find('#member_search_btn')
@@ -86,8 +88,7 @@ describe('Search.vue', () => {
       expect(wrapper.vm.waiting).toBe(true)
       expect(wrapper.emitted().search).toEqual([[]]) // 検索
 
-      // $refsで受け取り
-      wrapper.vm.setError()
+      wrapper.vm.updateWaiting(false) // $refsで受け取る
       expect(wrapper.vm.waiting).toBe(false)
     })
     it('[Enter送信]検索される', async () => {
@@ -121,7 +122,7 @@ describe('Search.vue', () => {
       await beforeAction()
 
       // 権限
-      for (const key in helper.locales.enums.member.power) {
+      for (const key in $tm('enums.member.power')) {
         wrapper.find(`#member_search_power_${key}_check`).setValue(false)
       }
       await flushPromises()

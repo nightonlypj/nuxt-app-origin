@@ -1,19 +1,19 @@
 <template>
   <Head>
-    <Title>ダウンロード結果</Title>
+    <Title>{{ $t('ダウンロード結果') }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
     <AppMessage v-model:messages="messages" :notice-type="noticeType" />
     <v-card>
-      <v-card-title>ダウンロード結果</v-card-title>
-    </v-card>
-    <v-card>
+      <v-card-title>{{ $t('ダウンロード結果') }}</v-card-title>
       <v-card-text class="pt-0">
         <AppProcessing v-if="reloading" />
         <v-row>
-          <v-col class="d-flex align-self-center text-no-wrap ml-2">
-            {{ localeString('ja', download.total_count, 'N/A') }}件
+          <v-col class="d-flex py-2">
+            <div v-if="download != null && download.total_count > 0" class="align-self-center ml-2">
+              {{ $t(`{total}件（${download.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, download.total_count, 'N/A') }) }}
+            </div>
           </v-col>
           <v-col class="d-flex justify-end">
             <v-btn
@@ -23,23 +23,23 @@
               @click="reloadDownloadsList()"
             >
               <v-icon>mdi-sync</v-icon>
-              <v-tooltip activator="parent" location="bottom">更新</v-tooltip>
+              <v-tooltip activator="parent" location="bottom">{{ $t('更新') }}</v-tooltip>
             </v-btn>
           </v-col>
         </v-row>
 
         <template v-if="downloads == null || downloads.length === 0">
           <v-divider class="my-4" />
-          <span class="ml-1">ダウンロード結果が見つかりません。</span>
+          <span class="ml-1">{{ $t('対象が見つかりません。') }}</span>
           <v-divider class="my-4" />
         </template>
         <template v-if="downloads != null && downloads.length > 0">
-          <v-divider class="my-2" />
+          <v-divider class="mt-2" />
           <DownloadsLists
             :downloads="downloads"
             @downloads-file="getDownloadsFile"
           />
-          <v-divider class="my-2" />
+          <v-divider class="mb-2" />
         </template>
 
         <InfiniteLoading
@@ -68,12 +68,14 @@ import AppProcessing from '~/components/app/Processing.vue'
 import AppMessage from '~/components/app/Message.vue'
 import DownloadsLists from '~/components/downloads/Lists.vue'
 import { localeString } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
 import { checkHeadersUid } from '~/utils/auth'
 import { checkSearchParams } from '~/utils/search'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
@@ -97,7 +99,7 @@ const testElement = ref<any>(null) // Vitest用
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if (!await getDownloadsList()) { return }
 
   loading.value = false
@@ -154,7 +156,7 @@ async function getDownloadsList () {
   params.value = {}
   if ($route.query?.target_id != null) { params.value.target_id = Number($route.query.target_id) }
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.listUrl, 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.listUrl), 'GET', {
     ...params.value,
     page: page.value
   })
@@ -169,8 +171,8 @@ async function getDownloadsList () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
       return false
     } else if (data == null) {
       alert = $t(`network.${response?.status == null ? 'failure' : 'error'}`)
@@ -225,7 +227,7 @@ function successDownloadsList (data: any) {
   if (data.undownloaded_count != null && data.undownloaded_count !== $auth.user.undownloaded_count) {
     $auth.updateUserUndownloadedCount(data.undownloaded_count)
   }
-  checkSearchParams(params.value, data.search_params)
+  checkSearchParams(params.value, data.search_params, $t)
 }
 
 // 完了チェック
@@ -245,7 +247,7 @@ async function checkDownloadComplete (targetId: number, count: number) {
     id: targetId,
     target_id: targetId
   }
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.downloads.listUrl, 'GET', params.value)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.listUrl), 'GET', params.value)
 
   if (response?.ok) {
     if (data?.downloads?.length === 1 && data.downloads[0].id === targetId && data.target != null) {
@@ -253,8 +255,8 @@ async function checkDownloadComplete (targetId: number, count: number) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (data == null) {
       $toast.error($t(`network.${response?.status == null ? 'failure' : 'error'}`))
     } else {
@@ -282,7 +284,7 @@ function successDownloadComplete (targetId: number, count: number, index: number
   if (data.target.alert != null) { $toast.error(data.target.alert) }
   if (data.target.notice != null) { $toast.success(data.target.notice) }
   $auth.updateUserUndownloadedCount(data.undownloaded_count)
-  checkSearchParams(params.value, data.search_params)
+  checkSearchParams(params.value, data.search_params, $t)
 }
 
 // ダウンロード
@@ -290,8 +292,7 @@ async function getDownloadsFile (item: any) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('getDownloadsFile', item) }
 
-  const url = $config.public.downloads.fileUrl.replace(':id', item.id)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'GET', null, null, 'text/csv')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.downloads.fileUrl.replace(':id', item.id)), 'GET', null, null, 'text/csv')
 
   if (response?.ok) {
     if (data != null) {
@@ -301,8 +302,8 @@ async function getDownloadsFile (item: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 404) {

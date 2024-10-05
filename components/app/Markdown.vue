@@ -11,7 +11,7 @@
 import MarkdownIt from 'markdown-it'
 import sanitizer from 'markdown-it-sanitizer'
 import link from 'markdown-it-link-attributes'
-import emoji from 'markdown-it-emoji'
+import { full as emoji } from 'markdown-it-emoji'
 import sub from 'markdown-it-sub'
 import sup from 'markdown-it-sup'
 import ins from 'markdown-it-ins'
@@ -86,7 +86,7 @@ div >>> h4, div >>> h5, div >>> h6 {
 div >>> blockquote {
   margin: 0 0 20px 0;
   padding: 10px 20px;
-  border-left: 5px solid rgb(var(--v-theme-background-2)); /* <- #eee; */
+  border-left: 5px solid rgb(var(--v-theme-secondary-darken-1)); /* <- #eee; */
 }
 div >>> ul, div >>> ol {
   margin: 0 0 10px 0;
@@ -99,15 +99,15 @@ div >>> code {
   padding: 2px 4px;
   font-size: 90%;
   color: rgb(var(--v-theme-accent)); /* <- #d73a49; <- #c7254e; */
-  background-color: rgb(var(--v-theme-background-1)); /* <- #f9f2f4; */
+  background-color: rgb(var(--v-theme-secondary-darken-3)); /* <- #f9f2f4; */
   border-radius: 4px;
 }
 div >>> pre {
   padding: 9.5px;
   margin: 0 0 10px 0;
   word-break: break-all;
-  background-color: rgb(var(--v-theme-background-1)); /* <- #f5f5f5; */
-  border: 1px solid rgb(var(--v-theme-background-2)); /* <- #ccc; */
+  background-color: rgb(var(--v-theme-secondary-darken-3)); /* <- #f5f5f5; */
+  border: 1px solid rgb(var(--v-theme-secondary)); /* <- #ccc; */
   border-radius: 4px;
 }
 div >>> pre code {
@@ -123,14 +123,18 @@ div >>> table {
 }
 div >>> th {
   padding: 8px;
-  border-bottom: 2px solid rgb(var(--v-theme-background-2)); /* <- #ddd; */
+  background-color: rgb(var(--v-theme-secondary-darken-1)); /* <- なし */
+  border-bottom: 2px solid rgb(var(--v-theme-secondary)); /* <- #ddd; */
 }
 div >>> tr:nth-child(odd) > td {
-  background-color: rgb(var(--v-theme-background-1)); /* <- #f9f9f9; */
+  background-color: rgb(var(--v-theme-secondary-darken-3)); /* <- #f9f9f9; */
+}
+div >>> tr:nth-child(even) > td {
+  background-color: rgb(var(--v-theme-secondary-darken-2)); /* <- なし */
 }
 div >>> td {
   padding: 8px;
-  border-top: 1px solid rgb(var(--v-theme-background-2)); /* <- #ddd; */
+  border-top: 1px solid rgb(var(--v-theme-secondary)); /* <- #ddd; */
 }
 div >>> img {
   max-width: 35%;

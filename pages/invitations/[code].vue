@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>招待URL: {{ textTruncate(space?.name, 64) }}</Title>
+    <Title>{{ $t('招待URL') }}: {{ textTruncate(space?.name, 64) }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -8,9 +8,9 @@
     <SpacesDestroyInfo :space="space" />
 
     <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
-      <v-tab :to="`/-/${code}`">スペース</v-tab>
-      <v-tab :to="`/members/${code}`">メンバー一覧</v-tab>
-      <v-tab value="active">招待URL一覧</v-tab>
+      <v-tab :to="localePath(`/-/${code}`)">{{ $t('スペース') }}</v-tab>
+      <v-tab :to="localePath(`/members/${code}`)">{{ $t('メンバー一覧') }}</v-tab>
+      <v-tab value="active">{{ $t('招待URL一覧') }}</v-tab>
     </v-tabs>
 
     <v-card>
@@ -23,8 +23,8 @@
       <v-card-text class="pt-0">
         <v-row>
           <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap ml-2">
-              {{ localeString('ja', invitation.total_count, 'N/A') }}件
+            <div v-if="invitation != null && invitation.total_count > 0" class="align-self-center ml-2">
+              {{ $t(`{total}件（${invitation.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, invitation.total_count, 'N/A') }) }}
             </div>
           </v-col>
           <v-col class="d-flex justify-end">
@@ -36,30 +36,31 @@
               <AppListSetting
                 v-model:hidden-items="hiddenItems"
                 model="invitation"
+                :headers="$config.public.invitations.headers"
               />
             </div>
           </v-col>
         </v-row>
 
-        <template v-if="!processing && (invitations == null || invitations.length === 0)">
-          <v-divider class="my-4" />
-          <span class="ml-1">対象の招待URLが見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
         <InvitationsUpdate
           ref="invitationsUpdate"
           :space="space"
           @update="updateInvitation"
         />
-        <template v-if="invitations != null && invitations.length > 0">
-          <v-divider class="my-2" />
+        <template v-if="invitations == null || invitations.length === 0">
+          <v-divider class="my-4" />
+          <span class="ml-1">{{ $t('対象の{name}が見つかりません。', { name: $t('招待URL') }) }}</span>
+          <v-divider class="my-4" />
+        </template>
+        <template v-else>
+          <v-divider class="mt-2" />
           <InvitationsLists
             :invitations="invitations"
             :hidden-items="hiddenItems"
             @reload="reloadInvitationsList"
             @show-update="invitationsUpdate.showDialog($event)"
           />
-          <v-divider class="my-2" />
+          <v-divider class="mb-2" />
         </template>
 
         <InfiniteLoading
@@ -92,12 +93,14 @@ import SpacesTitle from '~/components/spaces/Title.vue'
 import InvitationsCreate from '~/components/invitations/Create.vue'
 import InvitationsUpdate from '~/components/invitations/Update.vue'
 import InvitationsLists from '~/components/invitations/Lists.vue'
-import { textTruncate, localeString } from '~/utils/display'
+import { textTruncate, localeString, tableHiddenItems } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
 import { checkHeadersUid } from '~/utils/auth'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
@@ -116,14 +119,14 @@ const page = ref(1)
 const space = ref<any>(null)
 const invitation = ref<any>(null)
 const invitations = ref<any>(null)
-const hiddenItems = ref(localStorage.getItem('invitation.hidden-items')?.split(',') || [])
+const hiddenItems = ref(tableHiddenItems.value('invitation', $config.public.invitations.headers))
 const code = String($route.params.code)
 
 const invitationsUpdate = ref<any>(null)
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if (!await getInvitationsList()) { return }
 
   loading.value = false
@@ -177,8 +180,7 @@ async function getNextInvitationsList ($state: any) {
 async function getInvitationsList () {
   processing.value = true
 
-  const url = $config.public.invitations.listUrl.replace(':space_code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.listUrl.replace(':space_code', code)), 'GET', {
     page: page.value
   })
   if (!checkHeadersUid(response, page, uid)) { return false }
@@ -198,8 +200,8 @@ async function getInvitationsList () {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
       return false
     } else if (response?.status === 403) {
       alert = data?.alert || $t('auth.forbidden')

@@ -1,24 +1,24 @@
 <template>
   <template v-if="loading || alert !== '' || (spaces != null && spaces.length > 0)">
     <AppLoading v-if="loading" height="20vh" />
-    <v-card v-else>
+    <v-card v-else link>
       <v-card-title>
         <v-row>
           <v-col>
-            {{ $config.public.enablePublicSpace ? '新しい' : '' }}公開スペース
+            {{ $t($config.public.enablePublicSpace ? '新しい公開スペース' : '公開スペース') }}
           </v-col>
           <v-col v-if="$config.public.enablePublicSpace" cols="auto" class="d-flex pl-0">
-            <NuxtLink to="/spaces">
+            <NuxtLink :to="localePath('/spaces')">
               <v-btn color="primary" class="mr-2">
                 <v-icon>mdi-magnify</v-icon>
-                <span class="ml-1">探す</span>
+                <span class="ml-1">{{ $t('探す') }}</span>
               </v-btn>
             </NuxtLink>
           </v-col>
         </v-row>
       </v-card-title>
-      <v-card-text v-if="alert !== ''">
-        <v-icon color="warning">mdi-alert</v-icon>
+      <v-card-text v-if="alert !== ''" class="d-flex align-center">
+        <v-icon color="warning" class="mr-1">mdi-alert</v-icon>
         {{ alert }}
       </v-card-text>
       <v-card-text v-else>
@@ -29,7 +29,7 @@
             v-for="space in spaces"
             :id="`public_space_link_${space.code}`"
             :key="space.code"
-            :to="`/-/${space.code}`"
+            :to="localePath(`/-/${space.code}`)"
             class="px-2"
             style="min-height: 42px"
           >
@@ -48,10 +48,12 @@
 
 <script setup lang="ts">
 import AppLoading from '~/components/app/Loading.vue'
+import { apiRequestURL } from '~/utils/api'
 import { checkSearchParams } from '~/utils/search'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 
 const loading = ref(true)
 const alert = ref('')
@@ -66,12 +68,12 @@ async function created () {
 // スペース一覧取得（公開）
 async function getPublicSpaces () {
   const params = { text: '', public: 1, private: 0, join: 1, nojoin: 1, active: 1, destroy: 0 }
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.spaces.listUrl, 'GET', params)
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.spaces.listUrl), 'GET', params)
 
   if (response?.ok) {
     if (data != null) {
       spaces.value = data.spaces
-      checkSearchParams(params, data.search_params)
+      checkSearchParams(params, data.search_params, $t)
     } else {
       alert.value = $t('system.error_short')
     }

@@ -11,7 +11,7 @@
             id="user_update_image_file"
             v-model="image"
             accept="image/jpeg,image/gif,image/png"
-            label="画像ファイル"
+            :label="$t('画像ファイル')"
             prepend-icon="mdi-camera"
             show-size
             class="mt-2"
@@ -27,7 +27,7 @@
           :disabled="!meta.valid || image == null || image.length === 0 || processing || waiting"
           @click="postUserImageUpdate(setErrors, values)"
         >
-          アップロード
+          {{ $t('アップロード') }}
         </v-btn>
         <v-dialog transition="dialog-top-transition" max-width="600px" :attach="$config.public.env.test">
           <template #activator="{ props }">
@@ -38,16 +38,16 @@
               class="mt-2"
               :disabled="!$auth.user.upload_image || processing"
             >
-              画像削除
+              {{ $t('画像削除') }}
             </v-btn>
           </template>
           <template #default="{ isActive }">
             <v-card id="user_delete_image_dialog">
               <v-toolbar color="warning" density="compact">
-                <span class="ml-4">画像削除</span>
+                <span class="ml-4">{{ $t('画像削除') }}</span>
               </v-toolbar>
               <v-card-text>
-                <div class="text-h6 pa-4">本当に削除しますか？</div>
+                <div class="text-h6 pa-4">{{ $t('画像削除確認メッセージ') }}</div>
               </v-card-text>
               <v-card-actions class="justify-end mb-2 mr-2">
                 <v-btn
@@ -56,7 +56,7 @@
                   variant="elevated"
                   @click="isActive.value = false"
                 >
-                  いいえ（キャンセル）
+                  {{ $t('いいえ（キャンセル）') }}
                 </v-btn>
                 <v-btn
                   id="user_delete_image_yes_btn"
@@ -64,7 +64,7 @@
                   variant="elevated"
                   @click="postUserImageDelete(isActive, setErrors, values)"
                 >
-                  はい（削除）
+                  {{ $t('はい（削除）') }}
                 </v-btn>
               </v-card-actions>
             </v-card>
@@ -76,22 +76,22 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { size } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
 
-defineRule('size_20MB', size)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
-
 const $emit = defineEmits(['messages'])
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
+
+setLocale(locale.value)
+defineRule('size_20MB', size)
 
 const processing = ref(false)
 const waiting = ref(false)
@@ -101,7 +101,7 @@ const image = ref<any>(null)
 async function postUserImageUpdate (setErrors: any, values: any) {
   processing.value = true
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageUpdateUrl, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userImageUpdateUrl), 'POST', {
     image: image.value[0]
   }, 'form')
   responseUserImage(response, data, setErrors, values)
@@ -112,7 +112,7 @@ async function postUserImageDelete (isActive: any, setErrors: any, values: any) 
   processing.value = true
   isActive.value = false
 
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + $config.public.userImageDeleteUrl, 'POST')
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userImageDeleteUrl), 'POST')
   responseUserImage(response, data, setErrors, values)
 }
 
@@ -130,8 +130,8 @@ function responseUserImage (response: any, data: any, setErrors: any, values: an
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 406) {
       $toast.error(data?.alert || $t('auth.destroy_reserved'))
       if (data?.notice != null) { $toast.info(data.notice) }

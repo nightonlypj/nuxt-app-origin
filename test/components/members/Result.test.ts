@@ -1,6 +1,8 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import Component from '~/components/members/Result.vue'
 import { createResult } from '~/test/data/members'
+
+const $t = config.global.mocks.$t
 
 describe('Result.vue', () => {
   const mountFunction = (result: object) => {
@@ -15,10 +17,10 @@ describe('Result.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, result: any) => {
-    expect(wrapper.text()).toMatch(`${result.email.count}名中`)
-    expect(wrapper.text()).toMatch(`${result.email.create_count}名`)
-    expect(wrapper.text()).toMatch(`${result.email.exist_count}名`)
-    expect(wrapper.text()).toMatch(`${result.email.notfound_count}名`)
+    expect(wrapper.text()).toMatch($t(`{total}名中（${result.email.count <= 1 ? '単数' : '複数'}）`, { total: result.email.count }))
+    expect(wrapper.text()).toMatch($t(`{total}名（${result.email.create_count <= 1 ? '単数' : '複数'}）`, { total: result.email.create_count }))
+    expect(wrapper.text()).toMatch($t(`{total}名（${result.email.exist_count <= 1 ? '単数' : '複数'}）`, { total: result.email.exist_count }))
+    expect(wrapper.text()).toMatch($t(`{total}名（${result.email.notfound_count <= 1 ? '単数' : '複数'}）`, { total: result.email.notfound_count }))
 
     for (const email of result.emails) {
       expect(wrapper.text()).toMatch(email.email) // メールアドレス

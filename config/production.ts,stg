@@ -1,6 +1,7 @@
 export const envConfig = {
   debug: false,
-  envName: '【STG環境】',
+  developmentMenu: false,
+  serverEnv: 'staging',
   apiBaseURL: 'https://stg.example.com',
   frontBaseURL: 'https://stg-front.example.com'
 }

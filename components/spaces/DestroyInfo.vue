@@ -1,7 +1,7 @@
 <template>
   <v-alert v-if="space.destroy_schedule_at != null" type="warning" class="mb-4">
-    このスペースは{{ dateFormat('ja', space.destroy_schedule_at, 'N/A') }}以降に削除されます。
-    <NuxtLink v-if="currentMemberAdmin(space)" :to="`/spaces/undo_delete/${space.code}`">取り消しはこちら</NuxtLink>
+    {{ $t('スペース削除情報', { date: dateFormat(locale, space.destroy_schedule_at, 'N/A') }) }}
+    <NuxtLink v-if="currentMemberAdmin(space)" :to="localePath(`/spaces/undo_delete/${space.code}`)">{{ $t('取り消しはこちら') }}</NuxtLink>
   </v-alert>
 </template>
 
@@ -15,4 +15,6 @@ defineProps({
     required: true
   }
 })
+const localePath = useLocalePath()
+const { t: $t, locale } = useI18n()
 </script>

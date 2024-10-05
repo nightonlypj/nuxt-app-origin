@@ -1,6 +1,8 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import Component from '~/components/members/OnlyIcon.vue'
+
+const $config = config.global.mocks.$config
 
 describe('OnlyIcon.vue', () => {
   const mountFunction = (power: any) => {
@@ -15,7 +17,7 @@ describe('OnlyIcon.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, power: string) => {
-    expect(wrapper.html()).toMatch((helper.commonConfig.member.powerIcon as any)[power]) // 権限
+    expect(wrapper.html()).toMatch(($config.public.member.powerIcon as any)[power]) // 権限
   }
 
   // テストケース

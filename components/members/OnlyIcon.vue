@@ -1,8 +1,8 @@
 <template>
-  <span v-if="power != null">
+  <span v-if="power != null && power !== ''">
     <v-icon size="x-small">{{ ($config.public.member.powerIcon as any)[power] }}</v-icon>
     <v-tooltip activator="parent" location="bottom">
-      「{{ $t(`enums.member.power.${power}`) }}」のみ表示
+      {{ $t('「{power}」のみ表示', { power: $t(`enums.member.power.${power}`) }) }}
     </v-tooltip>
   </span>
 </template>

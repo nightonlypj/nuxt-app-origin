@@ -2,27 +2,26 @@
   <v-app>
     <v-app-bar>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <NuxtLink to="/" class="toolbar-title d-flex">
+      <NuxtLink :to="localePath('/')" class="toolbar-title d-flex">
         <v-img src="/logo.png" max-width="40px" max-height="40px" />
         <v-app-bar-title
-          v-if="$vuetify.display.width > (48 + 40 - 16 + 64 * 2)"
-          :style="{ 'max-width': ($vuetify.display.width - (48 + 40 - 16 + 64 * 2)) + 'px' }"
-          class="ml-1 align-self-center d-inline-block text-truncate"
+          :style="`width: ${appBarTitleWidth}px`"
+          class="align-self-center d-inline-block text-truncate ml-1"
         >
-          {{ `${$t('app_name')}${$t('sub_title')}${$config.public.envName}` }}
+          {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
         </v-app-bar-title>
       </NuxtLink>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_in" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_in')" rounded>
           <v-icon>mdi-login</v-icon>
-          <div class="hidden-sm-and-down">ログイン</div>
+          <div class="hidden-sm-and-down">{{ $t('ログイン') }}</div>
         </component>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/users/sign_up" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_up')" rounded>
           <v-icon>mdi-account-plus</v-icon>
-          <div class="hidden-sm-and-down">アカウント登録</div>
+          <div class="hidden-sm-and-down">{{ $t('アカウント登録') }}</div>
         </component>
       </template>
       <template v-else>
@@ -43,23 +42,23 @@
           </template>
           <v-list>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update" rounded="xl">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/update')" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
-                ユーザー情報
+                {{ $t('ユーザー情報') }}
               </v-list-item-title>
             </component>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out" rounded="xl">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_out')" rounded="xl">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
-                ログアウト
+                {{ $t('ログアウト') }}
               </v-list-item-title>
             </component>
           </v-list>
         </v-menu>
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" to="/infomations" rounded>
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/infomations')" rounded>
           <v-badge
             :content="$auth.user.infomation_unread_count"
             :model-value="$auth.user.infomation_unread_count > 0"
@@ -70,23 +69,36 @@
           </v-badge>
         </component>
       </template>
+      <v-select
+        v-if="locales.length >= 2"
+        v-model="switchLocale"
+        :items="locales"
+        item-title="name"
+        item-value="code"
+        density="compact"
+        variant="underlined"
+        hide-details
+        class="ml-1 mr-4 mb-2 switch-locale"
+        style="max-width: 94px"
+        @update:model-value="navigateTo(switchLocalePath(switchLocale))"
+      />
     </v-app-bar>
 
     <v-navigation-drawer v-model="drawer" width="300">
       <v-list>
         <template v-if="!$auth.loggedIn">
           <!-- /* c8 ignore next */ -->
-          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_in">
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_in')">
             <v-list-item-title>
               <v-icon>mdi-login</v-icon>
-              ログイン
+              {{ $t('ログイン') }}
             </v-list-item-title>
           </component>
           <!-- /* c8 ignore next */ -->
-          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_up">
+          <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_up')">
             <v-list-item-title>
               <v-icon>mdi-account-plus</v-icon>
-              アカウント登録
+              {{ $t('アカウント登録') }}
             </v-list-item-title>
           </component>
         </template>
@@ -103,24 +115,24 @@
               </v-list-item>
             </template>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/update">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/update')">
               <v-list-item-title>
                 <v-icon>mdi-account-edit</v-icon>
-                ユーザー情報
+                {{ $t('ユーザー情報') }}
               </v-list-item-title>
             </component>
             <!-- /* c8 ignore next */ -->
-            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/users/sign_out">
+            <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_out')">
               <v-list-item-title>
                 <v-icon>mdi-logout</v-icon>
-                ログアウト
+                {{ $t('ログアウト') }}
               </v-list-item-title>
             </component>
           </v-list-group>
         </template>
         <v-divider />
         <!-- /* c8 ignore next */ -->
-        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" to="/infomations">
+        <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/infomations')">
           <v-list-item-title>
             <template v-if="$auth.loggedIn">
               <v-badge
@@ -132,11 +144,11 @@
               >
                 <v-icon>mdi-bell</v-icon>
               </v-badge>
-              <span class="ml-8">お知らせ</span>
+              <span class="ml-8">{{ $t('お知らせ') }}</span>
             </template>
             <template v-else>
               <v-icon>mdi-bell</v-icon>
-              お知らせ
+              {{ $t('お知らせ') }}
             </template>
           </v-list-item-title>
         </component>
@@ -144,7 +156,7 @@
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn"
-          to="/downloads"
+          :to="localePath('/downloads')"
         >
           <v-list-item-title>
             <v-badge
@@ -155,18 +167,18 @@
             >
               <v-icon>mdi-download</v-icon>
             </v-badge>
-            <span class="ml-8">ダウンロード結果</span>
+            <span class="ml-8">{{ $t('ダウンロード結果') }}</span>
           </v-list-item-title>
         </component>
         <!-- /* c8 ignore next 2 */ -->
         <component
           :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
           v-if="$auth.loggedIn || $config.public.enablePublicSpace"
-          to="/spaces"
+          :to="localePath('/spaces')"
         >
           <v-list-item-title>
             <v-icon>mdi-folder-open</v-icon>
-            スペース
+            {{ $t('スペース') }}
           </v-list-item-title>
         </component>
         <template v-if="$auth.loggedIn">
@@ -175,7 +187,7 @@
             :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'"
             v-for="space in $auth.user.spaces" :id="`navigation_space_link_${space.code}`"
             :key="space.code"
-            :to="`/-/${space.code}`"
+            :to="localePath(`/-/${space.code}`)"
           >
             <v-list-item-title class="text-overline">
               <v-avatar v-if="space.image_url != null" size="24px">
@@ -188,8 +200,8 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main class="mx-2 pb-10">
-      <v-container fluid>
+    <v-main>
+      <v-container fluid class="pa-3">
         <UsersDestroyInfo />
         <slot />
       </v-container>
@@ -210,19 +222,34 @@ import { useDisplay } from 'vuetify'
 import UsersDestroyInfo from '~/components/users/DestroyInfo.vue'
 import AppBackToTop from '~/components/app/BackToTop.vue'
 
+const display = useDisplay()
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t } = useI18n()
+const { t: $t, locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
 const { $auth } = useNuxtApp()
+
+const drawer = ref(!display.mobile.value)
+const switchLocale = ref(locale.value)
 
 useHead({
   titleTemplate
 })
 function titleTemplate (title: string | undefined) {
-  const name = `${$t('app_name')}${$config.public.envName}`
+  const name = `${$t('app_name')}${$t(`env_name.${$config.public.serverEnv}`)}`
   return title == null ? name : `${title} - ${name}`
 }
 
-const drawer = ref(!useDisplay().mobile.value)
+const appBarTitleWidth = computed(() => {
+  const drawerIconWidth = 58 + 40
+  const switchLocaleWidth = locales.value.length >= 2 ? (display.xs.value ? 48 : 72) + 10 : 0
+  if ($auth.loggedIn) {
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 : 400) + 64 + switchLocaleWidth - 26)
+  } else {
+    const btnWidth = locale.value === 'ja' ? 111 + 158 : 96 + 219
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 * 2 : btnWidth) + switchLocaleWidth - 26)
+  }
+})
 </script>
 
 <style scoped>
@@ -247,6 +274,10 @@ const drawer = ref(!useDisplay().mobile.value)
 }
 .v-input--density-compact {
   --v-input-control-height: 32px; /* NOTE: v-switchの高さが40pxだと大きい為 */
+}
+.switch-locale .v-field {
+  font-size: 12px;
+  width: 72px;
 }
 
 .md-preview {

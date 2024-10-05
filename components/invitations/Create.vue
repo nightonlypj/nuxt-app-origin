@@ -5,7 +5,7 @@
     @click="showDialog()"
   >
     <v-icon>mdi-clipboard</v-icon>
-    <span class="ml-1">招待URL作成</span>
+    <span class="ml-1">{{ $t('招待URL作成') }}</span>
   </v-btn>
   <v-dialog v-model="dialog" max-width="850px" :attach="$config.public.env.test">
     <v-card id="invitation_create_dialog">
@@ -14,20 +14,20 @@
         <v-form autocomplete="off">
           <v-toolbar color="primary" density="compact">
             <v-icon size="small" class="ml-4">mdi-clipboard</v-icon>
-            <span class="ml-1">招待URL作成</span>
+            <span class="ml-1">{{ $t('招待URL作成') }}</span>
           </v-toolbar>
           <v-card-text>
             <v-container>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                  メール<AppRequiredLabel />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3">
+                  {{ $t('メール') }}<AppRequiredLabel />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.domains" name="domains" rules="required">
                     <v-textarea
                       id="invitation_create_domains_text"
                       v-model="invitation.domains"
-                      label="許可ドメイン"
+                      :label="$t('許可ドメイン')"
                       placeholder="example.com"
                       rows="3"
                       density="compact"
@@ -40,8 +40,8 @@
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-1">
-                  権限<AppRequiredLabel />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-1">
+                  {{ $t('権限') }}<AppRequiredLabel />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.power" name="power" rules="required_select">
@@ -68,8 +68,8 @@
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                  期限<AppRequiredLabel optional />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3">
+                  {{ $t('期限') }}<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="d-flex pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.ended_date" name="ended_date">
@@ -97,13 +97,13 @@
                     />
                   </Field>
                   <div class="ml-2 mt-2">
-                    {{ timeZoneOffset() }}<template v-if="timeZoneShortName() != null">({{ timeZoneShortName() }})</template>
+                    {{ timeZoneOffset }}<template v-if="timeZoneShortName != null">({{ timeZoneShortName }})</template>
                   </div>
                 </v-col>
               </v-row>
               <v-row>
-                <v-col cols="auto" md="2" class="d-flex justify-md-end text-no-wrap pr-0 pb-0 mt-3">
-                  メモ<AppRequiredLabel optional />
+                <v-col cols="auto" md="2" class="d-flex justify-md-end flex-wrap text-no-wrap pr-0 pb-0 mt-3">
+                  {{ $t('メモ') }}<AppRequiredLabel optional />
                 </v-col>
                 <v-col cols="12" md="10" class="pb-0">
                   <Field v-slot="{ errors }" v-model="invitation.memo" name="memo" rules="max:64">
@@ -130,7 +130,7 @@
               :disabled="!meta.valid || processing || waiting"
               @click="postInvitationsCreate(setErrors, values)"
             >
-              作成
+              {{ $t('作成') }}
             </v-btn>
             <v-btn
               id="invitation_create_cancel_btn"
@@ -138,7 +138,7 @@
               variant="elevated"
               @click="dialog = false"
             >
-              キャンセル
+              {{ $t('キャンセル') }}
             </v-btn>
           </v-card-actions>
         </v-form>
@@ -148,21 +148,15 @@
 </template>
 
 <script setup lang="ts">
-import { Form, Field, defineRule, configure } from 'vee-validate'
-import { localize, setLocale } from '@vee-validate/i18n'
+import { Form, Field, defineRule } from 'vee-validate'
+import { setLocale } from '@vee-validate/i18n'
 import { required, max } from '@vee-validate/rules'
-import ja from '~/locales/validate.ja'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'
 import { timeZoneOffset, timeZoneShortName } from '~/utils/display'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectPath } from '~/utils/redirect'
 import { existKeyErrors } from '~/utils/input'
-
-defineRule('required', required)
-defineRule('required_select', required)
-defineRule('max', max)
-configure({ generateMessage: localize({ ja }) })
-setLocale('ja')
 
 const $props = defineProps({
   space: {
@@ -171,9 +165,15 @@ const $props = defineProps({
   }
 })
 const $emit = defineEmits(['reload'])
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t, tm: $tm } = useI18n()
+const { t: $t, tm: $tm, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
+
+setLocale(locale.value)
+defineRule('required', required)
+defineRule('required_select', required)
+defineRule('max', max)
 
 const processing = ref(false)
 const waiting = ref(false)
@@ -183,7 +183,7 @@ function initInvitation () { return { ended_time: '23:59' } }
 
 // ダイアログ表示
 function showDialog () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if ($auth.user.destroy_schedule_at != null) { return redirectPath('/', { alert: $t('auth.destroy_reserved') }) }
 
   dialog.value = true
@@ -193,11 +193,10 @@ function showDialog () {
 async function postInvitationsCreate (setErrors: any, values: any) {
   processing.value = true
 
-  const url = $config.public.invitations.createUrl.replace(':space_code', $props.space.code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'POST', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.invitations.createUrl.replace(':space_code', $props.space.code)), 'POST', {
     invitation: {
       ...invitation.value,
-      ended_zone: timeZoneOffset.value()
+      ended_zone: timeZoneOffset.value
     }
   })
 
@@ -214,8 +213,8 @@ async function postInvitationsCreate (setErrors: any, values: any) {
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      return redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
     } else if (response?.status === 403) {
       $toast.error(data?.alert || $t('auth.forbidden'))
     } else if (response?.status === 406) {

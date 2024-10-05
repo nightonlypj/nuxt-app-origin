@@ -1,6 +1,6 @@
 <template>
   <Head>
-    <Title>メンバー: {{ textTruncate(space?.name, 64) }}</Title>
+    <Title>{{ $t('メンバー') }}: {{ textTruncate(space?.name, 64) }}</Title>
   </Head>
   <AppLoading v-if="loading" />
   <template v-else>
@@ -8,10 +8,10 @@
     <SpacesDestroyInfo :space="space" />
 
     <v-tabs v-if="!$config.public.env.test" v-model="tabPage" color="primary">
-      <v-tab :to="`/-/${code}`">スペース</v-tab>
-      <v-tab value="list">メンバー一覧</v-tab>
-      <v-tab v-if="createResult != null" value="result">メンバー招待（結果）</v-tab>
-      <v-tab v-if="currentMemberAdmin(space)" :to="`/invitations/${code}`">招待URL一覧</v-tab>
+      <v-tab :to="localePath(`/-/${code}`)">{{ $t('スペース') }}</v-tab>
+      <v-tab value="list">{{ $t('メンバー一覧') }}</v-tab>
+      <v-tab v-if="createResult != null" value="result">{{ $t('メンバー招待（結果）') }}</v-tab>
+      <v-tab v-if="currentMemberAdmin(space)" :to="localePath(`/invitations/${code}`)">{{ $t('招待URL一覧') }}</v-tab>
     </v-tabs>
 
     <v-card>
@@ -29,32 +29,32 @@
               @search="searchMembersList"
             />
           </v-col>
-          <v-col v-if="currentMemberAdmin(space)" cols="12" :md="tabPage === 'list' ? 4 : 12" class="d-flex justify-end">
+          <v-col v-if="currentMemberAdmin(space)" cols="12" :md="tabPage === 'list' ? '4' : '12'" class="d-flex justify-end">
             <MembersCreate
               :space="space"
               @result="resultMembers"
               @reload="reloadMembersList"
             />
-            <v-btn color="primary" :to="`/invitations/${code}`" class="ml-1">
+            <v-btn color="primary" :to="localePath(`/invitations/${code}`)" class="ml-1">
               <v-icon>mdi-clipboard-check</v-icon>
-              <span class="ml-1">招待URL</span>
+              <span class="ml-1">{{ $t('招待URL') }}</span>
             </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
     </v-card>
 
-    <v-card v-show="tabPage === 'list'" class="mt-2">
+    <v-card v-show="tabPage === 'list'" class="mt-2" style="overflow: scroll">
       <AppProcessing v-if="reloading" />
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
-            <div class="align-self-center text-no-wrap ml-2">
-              {{ localeString('ja', member.total_count, 'N/A') }}名
+            <div v-if="member != null && member.total_count > 0" class="align-self-center text-no-wrap ml-2">
+              {{ $t(`{total}名（${member.total_count <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, member.total_count, 'N/A') }) }}
             </div>
             <div v-if="selectedMembers.length > 0" class="d-flex">
               <div class="align-self-center text-no-wrap ml-4">
-                選択: {{ localeString('ja', selectedMembers.length) }}名
+                {{ $t('選択') }}: {{ $t(`{total}名（${selectedMembers.length <= 1 ? '単数' : '複数'}）`, { total: localeString(locale, selectedMembers.length, 'N/A') }) }}
               </div>
               <div v-if="currentMemberAdmin(space)" class="align-self-center ml-2">
                 <MembersDelete
@@ -72,6 +72,7 @@
               v-if="currentMemberAdmin(space)"
               :admin="true"
               model="member"
+              :headers="$config.public.members.headers"
               :space="space"
               :hidden-items="hiddenItems"
               :select-items="selectItems"
@@ -82,24 +83,25 @@
                 v-model:hidden-items="hiddenItems"
                 :admin="currentMemberAdmin(space)"
                 model="member"
+                :headers="$config.public.members.headers"
               />
             </div>
           </v-col>
         </v-row>
 
-        <template v-if="!processing && (members == null || members.length === 0)">
-          <v-divider class="my-4" />
-          <span class="ml-1">対象のメンバーが見つかりません。</span>
-          <v-divider class="my-4" />
-        </template>
         <MembersUpdate
           v-if="currentMemberAdmin(space)"
           ref="membersUpdate"
           :space="space"
           @update="updateMember"
         />
-        <template v-if="members != null && members.length > 0">
-          <v-divider class="my-2" />
+        <template v-if="members == null || members.length === 0">
+          <v-divider class="my-4" />
+          <span class="ml-1">{{ $t('対象の{name}が見つかりません。', { name: $t('メンバー') }) }}</span>
+          <v-divider class="my-4" />
+        </template>
+        <template v-else>
+          <v-divider class="mt-2" />
           <MembersLists
             v-model:selected-members="selectedMembers"
             :sort="String(query.sort)"
@@ -111,7 +113,7 @@
             @reload="reloadMembersList"
             @show-update="membersUpdate.showDialog($event)"
           />
-          <v-divider class="my-2" />
+          <v-divider class="mb-2" />
         </template>
 
         <InfiniteLoading
@@ -154,23 +156,26 @@ import MembersUpdate from '~/components/members/Update.vue'
 import MembersDelete from '~/components/members/Delete.vue'
 import MembersLists from '~/components/members/Lists.vue'
 import MembersResult from '~/components/members/Result.vue'
-import { textTruncate, localeString } from '~/utils/display'
+import { textTruncate, localeString, tableHiddenItems } from '~/utils/display'
 import { currentMemberAdmin } from '~/utils/members'
+import { apiRequestURL } from '~/utils/api'
 import { redirectAuth, redirectError } from '~/utils/redirect'
 import { sleep, checkSearchParams } from '~/utils/search'
 import { checkHeadersUid } from '~/utils/auth'
 
+const localePath = useLocalePath()
 const $config = useRuntimeConfig()
-const { t: $t, tm: $tm } = useI18n()
+const { t: $t, tm: $tm, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
 
 function getQuery (targetQuery: any = {}) {
   const power: any = {}
-  const queryPower = targetQuery?.power
-  for (const [index, [key]] of Object.entries($tm('enums.member.power') as any).entries()) {
-    power[key] = queryPower == null || queryPower[index] === '1'
+  const queryPower = targetQuery?.power?.split(',')
+  for (const key of Object.keys($tm('enums.member.power') as any)) {
+    power[key] = queryPower == null || queryPower.includes(key)
   }
+
   return {
     text: targetQuery?.text || null,
     power,
@@ -200,7 +205,7 @@ const space = ref<any>(null)
 const member = ref<any>(null)
 const members = ref<any>(null)
 const selectedMembers = ref([])
-const hiddenItems = ref(localStorage.getItem('member.hidden-items')?.split(',') || [])
+const hiddenItems = ref(tableHiddenItems.value('member', $config.public.members.headers))
 const createResult = ref<any>(null)
 const activeUserCodes = ref([])
 const code = String($route.params.code)
@@ -212,7 +217,7 @@ const selectItems = computed(() => selectedMembers.value.map((item: any) => item
 
 created()
 async function created () {
-  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }) }
+  if (!$auth.loggedIn) { return redirectAuth({ notice: $t('auth.unauthenticated') }, localePath) }
   if (!await getMembersList()) { return }
 
   loading.value = false
@@ -224,9 +229,7 @@ async function searchMembersList () {
   if ($config.public.debug) { console.log('searchMembersList') }
 
   params.value = null
-  if (!await reloadMembersList()) {
-    membersSearch.value.setError()
-  }
+  membersSearch.value.updateWaiting(await reloadMembersList())
 }
 
 // メンバー一覧再取得
@@ -260,20 +263,16 @@ async function reloadMembersList ($event: any = {}) {
   page.value = 1
   const result = await getMembersList()
 
-  let power = ''
-  for (const key in query.value.power) {
-    power += Number(query.value.power[key])
-  }
   navigateTo({
     query: {
       ...params.value,
-      power,
       active: String(params.value.active),
       destroy: String(params.value.destroy),
       desc: String(params.value.desc),
       option: String(Number(query.value.option))
     }
   })
+
   reloading.value = false
   return result
 }
@@ -333,8 +332,7 @@ async function getMembersList () {
     params.value.desc = Number(query.value.desc)
   }
 
-  const url = $config.public.members.listUrl.replace(':space_code', code)
-  const [response, data] = await useApiRequest($config.public.apiBaseURL + url, 'GET', {
+  const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.members.listUrl.replace(':space_code', code)), 'GET', {
     ...params.value,
     page: page.value
   })
@@ -350,14 +348,14 @@ async function getMembersList () {
       } else {
         members.value.push(...data.members)
       }
-      checkSearchParams(params.value, data.search_params)
+      checkSearchParams(params.value, data.search_params, $t)
     } else {
       alert = $t('system.error')
     }
   } else {
     if (response?.status === 401) {
-      useAuthSignOut(true)
-      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') })
+      useAuthSignOut(locale.value, true)
+      redirectAuth({ alert: data?.alert, notice: data?.notice || $t('auth.unauthenticated') }, localePath)
       return false
     } else if (response?.status === 403) {
       alert = data?.alert || $t('auth.forbidden')

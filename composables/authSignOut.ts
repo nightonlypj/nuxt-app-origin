@@ -1,11 +1,13 @@
+import { apiRequestURL } from '~/utils/api'
+
 // ログアウト
-export const useAuthSignOut = async (skipRequest = false) => {
+export const useAuthSignOut = async (locale: string, skipRequest = false) => {
   const $config = useRuntimeConfig()
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('useAuthSignOut') }
 
   if (!skipRequest) {
-    await useApiRequest($config.public.apiBaseURL + $config.public.authSignOutURL, 'POST')
+    await useApiRequest(apiRequestURL(locale, $config.public.authSignOutURL), 'POST')
   }
 
   // Devise Token Auth

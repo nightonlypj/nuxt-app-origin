@@ -1,10 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils'
 import helper from '~/test/helper'
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import Component from '~/components/spaces/Lists.vue'
 import { listCount2 } from '~/test/data/spaces'
 
+const $config = config.global.mocks.$config
+
 describe('Lists.vue', () => {
+  const headers = $config.public.spaces.headers
+
   const mountFunction = (spaces: any, hiddenItems: any = []) => {
     const wrapper = mount(Component, {
       global: {
@@ -61,7 +65,7 @@ describe('Lists.vue', () => {
       viewTest(wrapper, listCount2, { inactive: 1, optional: true })
     })
     it('[非表示項目が全項目]必須項目のみ表示される', () => {
-      const hiddenItems = helper.locales.items.space.map(item => item.key)
+      const hiddenItems = headers.filter((item: any) => item.required !== true).map((item: any) => item.key)
       const wrapper = mountFunction(listCount2, hiddenItems)
       viewTest(wrapper, listCount2, { inactive: 1, optional: false })
     })

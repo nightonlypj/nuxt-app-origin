@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { dateFormat } from '~/utils/display'
 import helper from '~/test/helper'
 import Component from '~/components/users/DestroyInfo.vue'
 import { activeUser, destroyUser } from '~/test/data/user'
@@ -11,9 +12,7 @@ describe('DestroyInfo.vue', () => {
         user
       }
     })))
-    vi.stubGlobal('useRoute', vi.fn(() => ({
-      path
-    })))
+    vi.stubGlobal('useRoute', vi.fn(() => ({ path })))
 
     const wrapper = mount(Component)
     expect(wrapper.vm).toBeTruthy()
@@ -22,7 +21,7 @@ describe('DestroyInfo.vue', () => {
 
   // テスト内容
   const viewTest = (wrapper: any, user: any) => {
-    expect(wrapper.text()).toMatch(wrapper.vm.dateFormat('ja', user.destroy_schedule_at)) // 削除予定日
+    expect(wrapper.text()).toMatch(dateFormat.value(helper.locale, user.destroy_schedule_at)) // 削除予定日
     const links = helper.getLinks(wrapper)
     expect(links.includes('/users/undo_delete')).toBe(true) // アカウント削除取り消し
   }

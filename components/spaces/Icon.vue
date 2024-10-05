@@ -1,18 +1,18 @@
 <template>
   <span v-if="space.private" :id="`space_icon_private_${space.code}`">
     <v-icon size="x-small" class="ml-1">mdi-lock</v-icon>
-    <v-tooltip activator="parent" location="bottom">非公開</v-tooltip>
+    <v-tooltip activator="parent" location="bottom">{{ $t('非公開') }}</v-tooltip>
   </span>
   <span v-if="space.current_member != null" :id="`space_icon_power_${space.code}`">
     <v-icon size="x-small" class="ml-1">{{ memberPowerIcon(space.current_member.power) }}</v-icon>
     <v-tooltip activator="parent" location="bottom">
-      あなたは「{{ space.current_member.power_i18n }}」です。
+      {{ $t('あなたは{power}です。', { power: space.current_member.power_i18n }) }}
     </v-tooltip>
   </span>
   <span v-if="space.destroy_schedule_at != null" :id="`space_icon_destroy_schedule_${space.code}`">
     <v-icon size="x-small" class="ml-1">mdi-delete-clock</v-icon>
     <v-tooltip activator="parent" location="bottom">
-      {{ dateFormat('ja', space.destroy_schedule_at, 'N/A') }}以降に削除される予定です。
+      {{ $t('{date}以降に削除される予定です。', { date: dateFormat(locale, space.destroy_schedule_at, 'N/A') }) }}
     </v-tooltip>
   </span>
 </template>
@@ -27,4 +27,5 @@ defineProps({
     required: true
   }
 })
+const { t: $t, locale } = useI18n()
 </script>

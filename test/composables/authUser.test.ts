@@ -1,5 +1,10 @@
+import { config } from '@vue/test-utils'
+import { apiRequestURL } from '~/utils/api'
+import helper from '~/test/helper'
 import { useAuthUser } from '~/composables/authUser'
 import { activeUser } from '~/test/data/user'
+
+const $config = config.global.mocks.$config
 
 // ユーザー情報更新
 describe('authUser.ts', () => {
@@ -17,7 +22,8 @@ describe('authUser.ts', () => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthState', vi.fn(() => ({ data: authData })))
 
-    const [response, data] = await useAuthUser()
+    const [response, data] = await useAuthUser(helper.locale)
+    helper.mockCalledTest(mock.useApiRequest, 1, apiRequestURL(helper.locale, $config.public.authUserURL))
     expect(response.ok).toBe(result.ok)
     expect(response.status).toBe(result.status)
     expect(data).toBe(resData)

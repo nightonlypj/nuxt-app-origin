@@ -1,15 +1,13 @@
 <template>
   <v-data-table-server
     v-if="downloads != null && downloads.length > 0"
-    :headers="headers"
+    :headers="tableHeaders($t, $config.public.downloads.headers)"
     :items="downloads"
     :items-length="downloads.length"
     :items-per-page="-1"
     density="compact"
     hover
     :row-props="rowProps"
-    fixed-header
-    :height="tableHeight($vuetify.display.height)"
   >
     <!-- 依頼日時 -->
     <template #[`header.requested_at`]="{ column }">
@@ -17,15 +15,11 @@
       <v-icon>$sortDesc</v-icon>
     </template>
     <template #[`item.requested_at`]="{ item }: any">
-      <div class="text-no-wrap">
-        {{ dateTimeFormat('ja', item.requested_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.requested_at) }}
     </template>
     <!-- 完了日時 -->
     <template #[`item.completed_at`]="{ item }: any">
-      <div class="text-no-wrap">
-        {{ dateTimeFormat('ja', item.completed_at) }}
-      </div>
+      {{ dateTimeFormat(locale, item.completed_at) }}
     </template>
     <!-- ステータス -->
     <template #[`item.status`]="{ item }: any">
@@ -40,29 +34,25 @@
     </template>
     <!-- ファイル -->
     <template #[`header.file`]="{ column }">
-      <div class="text-center">
-        {{ column.title }}
-      </div>
+      {{ column.title }}
     </template>
     <template #[`item.file`]="{ item }: any">
-      <div v-if="item.status === 'success'" class="text-center">
-        <v-btn
-          :id="`download_link${item.last_downloaded_at == null ? '' : '_done'}_${item.id}`"
-          :color="item.last_downloaded_at == null ? 'primary' : 'secondary'"
-          size="small"
-          class="text-no-wrap"
-          @click="$emit('downloadsFile', item)"
-        >
-          <v-icon size="small">mdi-download</v-icon>
-          ダウンロード
-        </v-btn>
-      </div>
+      <v-btn
+        v-if="item.status === 'success'"
+        :id="`download_link${item.last_downloaded_at == null ? '' : '_done'}_${item.id}`"
+        :color="item.last_downloaded_at == null ? 'primary' : 'secondary'"
+        size="small"
+        @click="$emit('downloadsFile', item)"
+      >
+        <v-icon size="small">mdi-download</v-icon>
+        {{ $t('ダウンロード') }}
+      </v-btn>
     </template>
     <!-- 対象・形式等 -->
     <template #[`item.target`]="{ item }: any">
       <div class="my-2">
         <template v-if="item.model === 'member' && item.space != null && item.space.name != null">
-          メンバー: {{ textTruncate(item.space.name, 64) }}
+          {{ $t('メンバー') }}: {{ textTruncate(item.space.name, 64) }}
         </template>
         <template v-else>
           {{ item.model_i18n }}
@@ -74,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { tableHeight, dateTimeFormat, textTruncate } from '~/utils/display'
+import { tableHeaders, dateTimeFormat, textTruncate } from '~/utils/display'
 
 defineProps({
   downloads: {
@@ -83,17 +73,10 @@ defineProps({
   }
 })
 const $emit = defineEmits(['downloadsFile'])
-const { tm: $tm } = useI18n()
+const $config = useRuntimeConfig()
+const { t: $t, locale } = useI18n()
 const $route = useRoute()
 
-const headers = computed(() => {
-  const result = []
-  for (const item of Object.values($tm('items.download') as any) as any) {
-    result.push({ title: item.title, key: item.key, sortable: false, headerProps: { class: 'text-no-wrap' }, cellProps: { class: 'px-1 py-2' } })
-  }
-  if (result.length > 0) { result[result.length - 1].cellProps.class = 'pl-1 pr-4 py-2' } // NOTE: スクロールバーに被らないようにする為
-  return result
-})
 const rowProps = computed(() => ({ item }: any) => {
   if ($route.query?.target_id != null) {
     if (item.id === Number($route.query.target_id)) { return { class: item.last_downloaded_at == null ? 'row_active' : 'row_inactive' } }
