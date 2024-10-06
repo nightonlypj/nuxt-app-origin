@@ -17,7 +17,7 @@
       </v-row>
       <v-divider />
       <v-card-actions>
-        <NuxtLink :to="localePath('/users/delete')">{{ $t('アカウント削除') }}</NuxtLink>
+        <NuxtLink :to="localePath('/users/delete')" class="ml-2">{{ $t('アカウント削除') }}</NuxtLink>
       </v-card-actions>
     </v-card>
   </template>
