@@ -205,7 +205,6 @@ const $props = defineProps({
     required: true
   }
 })
-defineExpose({ showDialog })
 const $emit = defineEmits(['update'])
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
@@ -221,6 +220,7 @@ const dialog = ref(false)
 const invitation = ref<any>(null)
 
 const invitationURL = computed(() => `${location.protocol}//${location.host}/users/sign_up?code=${invitation.value.code}`)
+defineExpose({ showDialog })
 
 // ダイアログ表示
 async function showDialog (item: any) {

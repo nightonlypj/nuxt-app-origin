@@ -133,7 +133,6 @@ const $props = defineProps({
     required: true
   }
 })
-defineExpose({ updateWaiting })
 const $emit = defineEmits(['update:query', 'search'])
 const syncQuery = computed({
   get: () => $props.query,
@@ -145,6 +144,7 @@ const { $auth } = useNuxtApp()
 
 const waiting = ref(true)
 const keyDownEnter = ref(false)
+defineExpose({ updateWaiting })
 
 function blank () {
   return (!$config.public.enablePublicSpace || privateBlank() || joinBlank()) || activeBlank()

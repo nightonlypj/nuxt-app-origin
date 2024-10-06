@@ -104,7 +104,6 @@ const $props = defineProps({
     required: true
   }
 })
-defineExpose({ updateWaiting })
 const $emit = defineEmits(['update:query', 'search'])
 const syncQuery = computed({
   get: () => $props.query,
@@ -114,6 +113,7 @@ const { t: $t, tm: $tm } = useI18n()
 
 const waiting = ref(true)
 const keyDownEnter = ref(false)
+defineExpose({ updateWaiting })
 
 function blank () {
   return powerBlank() || activeBlank()

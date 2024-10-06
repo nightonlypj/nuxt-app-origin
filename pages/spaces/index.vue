@@ -5,6 +5,8 @@
   <AppLoading v-if="loading" />
   <template v-else>
     <v-card>
+      <AppProcessing v-if="reloading" />
+
       <v-card-title>{{ $t('スペース') }}</v-card-title>
       <v-card-text>
         <SpacesSearch
@@ -18,6 +20,7 @@
 
     <v-card class="mt-2">
       <AppProcessing v-if="reloading" />
+
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
@@ -69,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable-next-line import/named
+import { sortBy, isEqual } from 'lodash'
 import InfiniteLoading from 'v3-infinite-loading'
 import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
@@ -87,30 +92,34 @@ const $config = useRuntimeConfig()
 const { t: $t, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
+const stateRouteQuery = useState<any>('spacesRouteQuery', () => null)
 
-function getQuery (targetQuery: any = {}) {
+function getQuery () {
+  let routeQuery: any = $route.query || {}
+  if (Object.keys(routeQuery).length === 0 && stateRouteQuery.value != null) { routeQuery = stateRouteQuery.value }
+
   let publicQuery = {}
   if ($config.public.enablePublicSpace) {
     publicQuery = {
-      public: targetQuery?.public !== '0',
-      private: targetQuery?.private !== '0',
-      join: targetQuery?.join !== '0',
-      nojoin: targetQuery?.nojoin !== '0'
+      public: routeQuery.public !== '0',
+      private: routeQuery.private !== '0',
+      join: routeQuery.join !== '0',
+      nojoin: routeQuery.nojoin !== '0'
     }
   }
   return {
-    text: targetQuery?.text || null,
+    text: routeQuery.text || null,
     ...publicQuery,
-    active: targetQuery?.active !== '0',
-    destroy: targetQuery?.destroy === '1',
-    option: targetQuery?.option === '1'
+    active: routeQuery.active !== '0',
+    destroy: routeQuery.destroy === '1',
+    option: routeQuery.option === '1'
   }
 }
 
 const loading = ref(true)
 const processing = ref(false)
 const reloading = ref(false)
-const query = ref<any>(getQuery($route.query))
+const query = ref<any>(getQuery())
 const params = ref<any>(null)
 const uid = ref<string | null>(null)
 const error = ref(false)
@@ -129,13 +138,19 @@ async function created () {
   loading.value = false
 }
 
-// 左メニュークリックで、条件を初期化して検索
+// 遷移・ブラウザバック・フォワードで条件を戻して検索
 watch(() => $route.query, () => {
+  const newQuery = getQuery()
   /* c8 ignore next */ // eslint-disable-next-line no-console
-  if ($config.public.debug) { console.log('watch: $route.query', $route.query) }
-  if (Object.keys($route.query).length > 0) { return }
+  if ($config.public.debug) { console.log('watch: $route.query', query.value, newQuery) }
 
-  query.value = getQuery()
+  if (isEqual(sortBy(query.value), sortBy(newQuery))) {
+    /* c8 ignore next */ // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log('...Skip') }
+    return
+  }
+
+  query.value = newQuery
   searchSpacesList(false)
 })
 
@@ -172,28 +187,7 @@ async function reloadSpacesList (updateURL = true) {
   reloading.value = true
 
   page.value = 1
-  const result = await getSpacesList()
-
-  if (updateURL) {
-    let publicQuery = {}
-    if ($config.public.enablePublicSpace) {
-      publicQuery = {
-        public: String(params.value.public),
-        private: String(params.value.private),
-        join: String(params.value.join),
-        nojoin: String(params.value.nojoin)
-      }
-    }
-    navigateTo({
-      query: {
-        ...params.value,
-        ...publicQuery,
-        active: String(params.value.active),
-        destroy: String(params.value.destroy),
-        option: String(Number(query.value.option))
-      }
-    })
-  }
+  const result = await getSpacesList(updateURL)
 
   reloading.value = false
   return result
@@ -232,7 +226,7 @@ async function getNextSpacesList ($state: any) {
 }
 
 // スペース一覧取得
-async function getSpacesList () {
+async function getSpacesList (updateURL = false) {
   processing.value = true
 
   if (params.value == null) {
@@ -298,6 +292,27 @@ async function getSpacesList () {
     } else {
       $toast.error(alert)
       if (data?.notice != null) { $toast.info(data.notice) }
+    }
+  } else {
+    if (updateURL) {
+      let publicQuery = {}
+      if ($config.public.enablePublicSpace) {
+        publicQuery = {
+          public: String(params.value.public),
+          private: String(params.value.private),
+          join: String(params.value.join),
+          nojoin: String(params.value.nojoin)
+        }
+      }
+      const routeQuery = {
+        ...params.value,
+        ...publicQuery,
+        active: String(params.value.active),
+        destroy: String(params.value.destroy),
+        option: String(Number(query.value.option))
+      }
+      stateRouteQuery.value = routeQuery
+      navigateTo({ query: routeQuery })
     }
   }
 

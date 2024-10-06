@@ -29,7 +29,8 @@ describe('index.vue', () => {
   // const model = 'space'
   // const defaultHiddenItems = $config.public.spaces.defaultHiddenItems
 
-  const mountFunction = (loggedIn = false, query: object | null = null) => {
+  let stateRouteQuery: any
+  const mountFunction = (loggedIn = false, query: object | null = null, stateQuery: object | null = null) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('navigateTo', mock.navigateTo)
     vi.stubGlobal('showError', mock.showError)
@@ -40,6 +41,9 @@ describe('index.vue', () => {
       $toast: mock.toast
     })))
     vi.stubGlobal('useRoute', vi.fn(() => ({ query: { ...query } })))
+
+    stateRouteQuery = ref({ ...stateQuery })
+    vi.stubGlobal('useState', vi.fn((key: string) => key === 'spacesRouteQuery' ? stateRouteQuery : null))
 
     const wrapper = mount(Page, {
       global: {
@@ -313,24 +317,59 @@ describe('index.vue', () => {
     })
   })
 
-  describe('パラメータあり', () => {
-    it('[未ログイン]パラメータがセットされ、表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: { get: vi.fn(() => null) } }, dataCount1])
-      const wrapper = mountFunction(false, findQuery)
+  describe('パラメータ', () => {
+    let wrapper: any
+    const beforeAction = async () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
       apiCalledTest(1, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, $t('{total}件（単数）', { total: 1 }))
+    }
+    let loggedIn: boolean
+    beforeEach(() => {
+      if (loggedIn) {
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
+      } else {
+        mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: { get: vi.fn(() => null) } }, dataCount1])
+      }
     })
-    it('[ログイン中]パラメータがセットされ、表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
-      const wrapper = mountFunction(true, findQuery)
-      helper.loadingTest(wrapper, AppLoading)
-      await flushPromises()
 
-      apiCalledTest(1, { ...findParams, page: 1 })
-      viewTest(wrapper, dataCount1, $t('{total}件（単数）', { total: 1 }))
+    describe('あり、保存クエリあり', () => {
+      it('[未ログイン]パラメータがセットされ、表示される', async () => {
+        loggedIn = false
+        wrapper = mountFunction(loggedIn, findQuery, { ...findQuery, text: 'not' })
+        await beforeAction()
+      })
+      it('[ログイン中]パラメータがセットされ、表示される', async () => {
+        loggedIn = true
+        wrapper = mountFunction(loggedIn, findQuery, { ...findQuery, text: 'not' })
+        await beforeAction()
+      })
+    })
+    describe('あり、保存クエリなし', () => {
+      it('[未ログイン]パラメータがセットされ、表示される', async () => {
+        loggedIn = false
+        wrapper = mountFunction(loggedIn, findQuery, null)
+        await beforeAction()
+      })
+      it('[ログイン中]パラメータがセットされ、表示される', async () => {
+        loggedIn = true
+        wrapper = mountFunction(loggedIn, findQuery, null)
+        await beforeAction()
+      })
+    })
+    describe('なし、保存クエリあり', () => {
+      it('[未ログイン]保存クエリがセットされ、表示される', async () => {
+        loggedIn = false
+        wrapper = mountFunction(loggedIn, null, findQuery)
+        await beforeAction()
+      })
+      it('[ログイン中]保存クエリがセットされ、表示される', async () => {
+        loggedIn = true
+        wrapper = mountFunction(loggedIn, null, findQuery)
+        await beforeAction()
+      })
     })
   })
 
@@ -393,6 +432,7 @@ describe('index.vue', () => {
       viewTest(wrapper, dataCount1, $t('{total}件（単数）', { total: 1 }))
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.updateWaiting, 1, true)
+      expect(stateRouteQuery.value).toEqual(findQuery)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
     })
     it('[エラー]エラーメッセージが表示される', async () => {
@@ -405,7 +445,8 @@ describe('index.vue', () => {
       viewTest(wrapper, dataPage1, $t('{total}件（複数）', { total: 5 }), { existInfinite: true, testState: null }, true)
       helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.updateWaiting, 1, false)
-      helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
+      expect(stateRouteQuery.value).toEqual({})
+      helper.mockCalledTest(mock.navigateTo, 0)
     })
     it('[再取得中]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
@@ -414,6 +455,7 @@ describe('index.vue', () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       helper.toastMessageTest(mock.toast, { error: $t('system.timeout') })
       helper.mockCalledTest(wrapper.vm.$refs.spacesSearch.updateWaiting, 1, false)
+      expect(stateRouteQuery.value).toEqual({})
       helper.mockCalledTest(mock.navigateTo, 0)
     })
   })

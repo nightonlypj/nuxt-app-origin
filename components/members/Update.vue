@@ -117,7 +117,6 @@ const $props = defineProps({
     required: true
   }
 })
-defineExpose({ showDialog })
 const $emit = defineEmits(['update'])
 const localePath = useLocalePath()
 const $config = useRuntimeConfig()
@@ -131,6 +130,7 @@ const processing = ref(false)
 const waiting = ref(false)
 const dialog = ref(false)
 const member = ref<any>(null)
+defineExpose({ showDialog })
 
 // ダイアログ表示
 async function showDialog (item: any) {
