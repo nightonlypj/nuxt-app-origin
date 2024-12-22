@@ -1,7 +1,7 @@
 # Nuxt.js(Vue.js/Vuetify)ベースアプリケーション
 
 運営元が情報提供して1つのサービスを作る（BtoC向け）  
-(Nuxt 3.13.1)
+(Nuxt 3.14.1592)
 
 ## コマンドメモ
 
@@ -51,7 +51,7 @@ $ brew doctor
 Your system is ready to brew.
 
 $ brew -v
-Homebrew 4.3.21
+Homebrew 4.4.10
 ※バージョンは異なっても良い
 ```
 
@@ -85,20 +85,21 @@ $ nvm --version
 ```
 ```
 $ nvm ls-remote | grep 'Latest LTS'
-       v18.20.4   (Latest LTS: Hydrogen)
-       v20.17.0   (Latest LTS: Iron)
+       v18.20.5   (Latest LTS: Hydrogen)
+       v20.18.1   (Latest LTS: Iron)
+       v22.12.0   (Latest LTS: Jod)
 
-$ nvm install v20.17.0
-（$ nvm use v20.17.0）
-（$ nvm alias default v20.17.0）
+$ nvm install v22.12.0
+（$ nvm use v22.12.0）
+（$ nvm alias default v22.12.0）
 
 $ node -v
-v20.17.0
+v22.12.0
 
 $ nvm ls
-->     v20.17.0
+->     v22.12.0
          system
-default -> v20.17.0
+default -> v22.12.0
 ```
 
 ### yarnインストール

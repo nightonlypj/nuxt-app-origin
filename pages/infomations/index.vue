@@ -18,7 +18,7 @@
         </v-col>
         <v-col v-if="infomation.total_pages > 1" class="pa-0">
           <div class="d-flex justify-end">
-            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" density="comfortable" @click="getInfomationsList()" />
+            <v-pagination id="infomation_pagination1" v-model="page" :length="infomation.total_pages" :total-visible="0" @click="getInfomationsList()" />
           </div>
         </v-col>
       </v-row>
@@ -31,7 +31,7 @@
       <InfomationsLists v-else :infomations="infomations" />
 
       <template v-if="infomation.total_pages > 1">
-        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" show-first-last-page @click="getInfomationsList()" />
+        <v-pagination id="infomation_pagination2" v-model="page" :length="infomation.total_pages" density="comfortable" show-first-last-page @click="getInfomationsList()" />
       </template>
     </v-card-text>
   </v-card>
