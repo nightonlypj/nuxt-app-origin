@@ -5,10 +5,12 @@
   <AppLoading v-if="loading" />
   <template v-else>
     <AppMessage v-model:messages="messages" :notice-type="noticeType" />
+
     <v-card>
+      <AppProcessing v-if="reloading" />
+
       <v-card-title>{{ $t('ダウンロード結果') }}</v-card-title>
       <v-card-text class="pt-0">
-        <AppProcessing v-if="reloading" />
         <v-row>
           <v-col class="d-flex py-2">
             <div v-if="download != null && download.total_count > 0" class="align-self-center ml-2">

@@ -63,9 +63,7 @@
     </v-card-text>
     <v-divider />
     <v-card-actions>
-      <ul class="my-2">
-        <li><NuxtLink :to="localePath(`/spaces/update/${code}`)">{{ $t('スペース設定') }}</NuxtLink></li>
-      </ul>
+      <NuxtLink :to="localePath(`/spaces/update/${code}`)" class="ml-2">{{ $t('スペース設定') }}</NuxtLink>
     </v-card-actions>
   </v-card>
 </template>

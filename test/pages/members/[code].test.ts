@@ -41,7 +41,8 @@ describe('[code].vue', () => {
   const model = 'member'
   const defaultHiddenItems = $config.public.members.headers.filter((item: any) => item.defaultHidden).map((item: any) => item.key)
 
-  const mountFunction = (loggedIn = true, query: object | null = null, values = { messages }) => {
+  let stateRouteQuery: any
+  const mountFunction = (loggedIn = true, query: object | null = null, stateQuery: object | null = null, values = { messages }) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
     vi.stubGlobal('useAuthSignOut', mock.useAuthSignOut)
     vi.stubGlobal('useAuthRedirect', vi.fn(() => mock.useAuthRedirect))
@@ -60,6 +61,9 @@ describe('[code].vue', () => {
       },
       query: { ...query }
     })))
+
+    stateRouteQuery = ref({ ...stateQuery })
+    vi.stubGlobal('useState', vi.fn((key: string) => key === `membersRouteQuery${space.code}` ? stateRouteQuery : null))
 
     const wrapper: any = mount(Page, {
       global: {
@@ -611,15 +615,36 @@ describe('[code].vue', () => {
     })
   })
 
-  describe('パラメータあり', () => {
-    it('パラメータがセットされ、表示される', async () => {
-      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
-      const wrapper = mountFunction(true, findQuery)
+  describe('パラメータ', () => {
+    let wrapper: any
+    const beforeAction = async () => {
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
       apiCalledTest(1, { ...findParams, page: 1 })
       viewTest(wrapper, dataCount1, $t('{total}名（単数）', { total: 1 }))
+    }
+    beforeEach(() => {
+      mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataCount1])
+    })
+
+    describe('あり、保存クエリあり', () => {
+      it('パラメータがセットされ、表示される', async () => {
+        wrapper = mountFunction(true, findQuery, { ...findQuery, text: 'not' })
+        await beforeAction()
+      })
+    })
+    describe('あり、保存クエリなし', () => {
+      it('パラメータがセットされ、表示される', async () => {
+        wrapper = mountFunction(true, findQuery, null)
+        await beforeAction()
+      })
+    })
+    describe('なし、保存クエリあり', () => {
+      it('保存クエリがセットされ、表示される', async () => {
+        wrapper = mountFunction(true, null, findQuery)
+        await beforeAction()
+      })
     })
   })
 
@@ -680,6 +705,7 @@ describe('[code].vue', () => {
       viewTest(wrapper, dataCount1, $t('{total}名（単数）', { total: 1 }))
       helper.toastMessageTest(mock.toast, {})
       helper.mockCalledTest(wrapper.vm.$refs.membersSearch.updateWaiting, 1, true)
+      expect(stateRouteQuery.value).toEqual(findQuery)
       helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
     })
     it('[エラー]エラーメッセージが表示される', async () => {
@@ -692,7 +718,8 @@ describe('[code].vue', () => {
       viewTest(wrapper, dataPage1, $t('{total}名（複数）', { total: 5 }), false, { existInfinite: true, testState: null }, true)
       helper.toastMessageTest(mock.toast, { error: $t('network.failure') })
       helper.mockCalledTest(wrapper.vm.$refs.membersSearch.updateWaiting, 1, false)
-      helper.mockCalledTest(mock.navigateTo, 1, { query: findQuery })
+      expect(stateRouteQuery.value).toEqual({})
+      helper.mockCalledTest(mock.navigateTo, 0)
     })
     it('[再取得中]エラーメッセージが表示される', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
@@ -701,6 +728,7 @@ describe('[code].vue', () => {
       expect(mock.useApiRequest).toBeCalledTimes(1)
       helper.toastMessageTest(mock.toast, { error: $t('system.timeout') })
       helper.mockCalledTest(wrapper.vm.$refs.membersSearch.updateWaiting, 1, false)
+      expect(stateRouteQuery.value).toEqual({})
       helper.mockCalledTest(mock.navigateTo, 0)
     })
   })

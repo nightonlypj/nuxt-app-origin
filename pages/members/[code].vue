@@ -15,6 +15,8 @@
     </v-tabs>
 
     <v-card>
+      <AppProcessing v-if="reloading" />
+
       <v-card-title>
         <SpacesTitle :space="space" />
       </v-card-title>
@@ -46,6 +48,7 @@
 
     <v-card v-show="tabPage === 'list'" class="mt-2" style="overflow: scroll">
       <AppProcessing v-if="reloading" />
+
       <v-card-text>
         <v-row>
           <v-col class="d-flex py-2">
@@ -141,6 +144,8 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable-next-line import/named
+import { sortBy, isEqual } from 'lodash'
 import InfiniteLoading from 'v3-infinite-loading'
 import AppErrorRetry from '~/components/app/ErrorRetry.vue'
 import AppLoading from '~/components/app/Loading.vue'
@@ -168,22 +173,27 @@ const $config = useRuntimeConfig()
 const { t: $t, tm: $tm, locale } = useI18n()
 const { $auth, $toast } = useNuxtApp()
 const $route = useRoute()
+const code = String($route.params.code)
+const stateRouteQuery = useState<any>(`membersRouteQuery${code}`, () => null)
 
-function getQuery (targetQuery: any = {}) {
+function getQuery () {
+  let routeQuery: any = $route.query || {}
+  if (Object.keys(routeQuery).length === 0 && stateRouteQuery.value != null) { routeQuery = stateRouteQuery.value }
+
   const power: any = {}
-  const queryPower = targetQuery?.power?.split(',')
+  const queryPower = routeQuery.power?.split(',')
   for (const key of Object.keys($tm('enums.member.power') as any)) {
     power[key] = queryPower == null || queryPower.includes(key)
   }
 
   return {
-    text: targetQuery?.text || null,
+    text: routeQuery.text || null,
     power,
-    active: targetQuery?.active !== '0',
-    destroy: targetQuery?.destroy !== '0',
-    sort: targetQuery?.sort || 'invitationed_at',
-    desc: targetQuery?.desc !== '0',
-    option: targetQuery?.option === '1'
+    active: routeQuery.active !== '0',
+    destroy: routeQuery.destroy !== '0',
+    sort: routeQuery.sort || 'invitationed_at',
+    desc: routeQuery.desc !== '0',
+    option: routeQuery.option === '1'
   }
 }
 
@@ -195,7 +205,7 @@ const messages = ref({
   notice: ''
 })
 const tabPage = ref('list')
-const query = ref(getQuery($route.query))
+const query = ref(getQuery())
 const params = ref<any>(null)
 const uid = ref<string | null>(null)
 const error = ref(false)
@@ -208,7 +218,6 @@ const selectedMembers = ref([])
 const hiddenItems = ref(tableHiddenItems.value('member', $config.public.members.headers))
 const createResult = ref<any>(null)
 const activeUserCodes = ref([])
-const code = String($route.params.code)
 
 const membersSearch = ref<any>(null)
 const membersUpdate = ref<any>(null)
@@ -223,17 +232,33 @@ async function created () {
   loading.value = false
 }
 
+// 遷移・ブラウザバック・フォワードで条件を戻して検索
+watch(() => $route.query, () => {
+  const newQuery = getQuery()
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('watch: $route.query', query.value, newQuery) }
+
+  if (isEqual(sortBy(query.value), sortBy(newQuery))) {
+    /* c8 ignore next */ // eslint-disable-next-line no-console
+    if ($config.public.debug) { console.log('...Skip') }
+    return
+  }
+
+  query.value = newQuery
+  searchMembersList(false)
+})
+
 // メンバー一覧検索
-async function searchMembersList () {
+async function searchMembersList (updateURL = true) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('searchMembersList') }
 
   params.value = null
-  membersSearch.value.updateWaiting(await reloadMembersList())
+  membersSearch.value.updateWaiting(await reloadMembersList({}, updateURL))
 }
 
 // メンバー一覧再取得
-async function reloadMembersList ($event: any = {}) {
+async function reloadMembersList ($event: any = {}, updateURL = true) {
   /* c8 ignore next */ // eslint-disable-next-line no-console
   if ($config.public.debug) { console.log('reloadMembersList', $event, reloading.value) }
 
@@ -261,17 +286,7 @@ async function reloadMembersList ($event: any = {}) {
   reloading.value = true
 
   page.value = 1
-  const result = await getMembersList()
-
-  navigateTo({
-    query: {
-      ...params.value,
-      active: String(params.value.active),
-      destroy: String(params.value.destroy),
-      desc: String(params.value.desc),
-      option: String(Number(query.value.option))
-    }
-  })
+  const result = await getMembersList(updateURL)
 
   reloading.value = false
   return result
@@ -310,7 +325,7 @@ async function getNextMembersList ($state: any) {
 }
 
 // メンバー一覧取得
-async function getMembersList () {
+async function getMembersList (updateURL = false) {
   processing.value = true
 
   if (params.value == null) {
@@ -374,6 +389,18 @@ async function getMembersList () {
     } else {
       $toast.error(alert)
       if (data?.notice != null) { $toast.info(data.notice) }
+    }
+  } else {
+    if (updateURL) {
+      const routeQuery = {
+        ...params.value,
+        active: String(params.value.active),
+        destroy: String(params.value.destroy),
+        desc: String(params.value.desc),
+        option: String(Number(query.value.option))
+      }
+      stateRouteQuery.value = routeQuery
+      navigateTo({ query: routeQuery })
     }
   }
 
