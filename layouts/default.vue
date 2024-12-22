@@ -2,26 +2,30 @@
   <v-app>
     <v-app-bar>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <NuxtLink :to="localePath('/')" class="toolbar-title d-flex">
-        <v-img src="/logo.png" max-width="40px" max-height="40px" />
+      <div class="d-flex">
+        <NuxtLink :to="localePath('/')" width="40px" height="40px">
+          <v-img src="/logo.png" width="40px" height="40px" class="ml-1" />
+        </NuxtLink>
         <v-app-bar-title
           :style="`width: ${appBarTitleWidth}px`"
           class="align-self-center d-inline-block text-truncate ml-1"
         >
-          {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
+          <NuxtLink :to="localePath('/')" class="toolbar-title">
+            {{ `${$t('app_name')}${$t('sub_title')}${$t(`env_name.${$config.public.serverEnv}`)}` }}
+          </NuxtLink>
         </v-app-bar-title>
-      </NuxtLink>
+      </div>
       <v-spacer />
       <template v-if="!$auth.loggedIn">
         <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_in')" rounded>
           <v-icon>mdi-login</v-icon>
-          <div class="hidden-sm-and-down">{{ $t('ログイン') }}</div>
+          <div class="hidden-sm-and-down ml-2">{{ $t('ログイン') }}</div>
         </component>
         <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-btn'" :to="localePath('/users/sign_up')" rounded>
           <v-icon>mdi-account-plus</v-icon>
-          <div class="hidden-sm-and-down">{{ $t('アカウント登録') }}</div>
+          <div class="hidden-sm-and-down ml-2">{{ $t('アカウント登録') }}</div>
         </component>
       </template>
       <template v-else>
@@ -89,16 +93,16 @@
         <template v-if="!$auth.loggedIn">
           <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_in')">
-            <v-list-item-title>
+            <v-list-item-title class="d-flex align-center">
               <v-icon>mdi-login</v-icon>
-              {{ $t('ログイン') }}
+              <span class="ml-3">{{ $t('ログイン') }}</span>
             </v-list-item-title>
           </component>
           <!-- /* c8 ignore next */ -->
           <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_up')">
-            <v-list-item-title>
+            <v-list-item-title class="d-flex align-center">
               <v-icon>mdi-account-plus</v-icon>
-              {{ $t('アカウント登録') }}
+              <span class="ml-3">{{ $t('アカウント登録') }}</span>
             </v-list-item-title>
           </component>
         </template>
@@ -106,7 +110,7 @@
           <v-list-group>
             <template #activator="{ props }">
               <v-list-item v-bind="props">
-                <v-list-item-title class="d-flex">
+                <v-list-item-title class="d-flex align-center">
                   <v-avatar size="32px">
                     <v-img id="navigation_user_image" :src="$auth.user.image_url.small" />
                   </v-avatar>
@@ -116,16 +120,16 @@
             </template>
             <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/update')">
-              <v-list-item-title>
+              <v-list-item-title class="d-flex align-center">
                 <v-icon>mdi-account-edit</v-icon>
-                {{ $t('ユーザー情報') }}
+                <span class="ml-2">{{ $t('ユーザー情報') }}</span>
               </v-list-item-title>
             </component>
             <!-- /* c8 ignore next */ -->
             <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/users/sign_out')">
-              <v-list-item-title>
+              <v-list-item-title class="d-flex align-center">
                 <v-icon>mdi-logout</v-icon>
-                {{ $t('ログアウト') }}
+                <span class="ml-2">{{ $t('ログアウト') }}</span>
               </v-list-item-title>
             </component>
           </v-list-group>
@@ -133,7 +137,7 @@
         <v-divider />
         <!-- /* c8 ignore next */ -->
         <component :is="$config.public.env.test ? 'NuxtLink' : 'v-list-item'" :to="localePath('/infomations')">
-          <v-list-item-title>
+          <v-list-item-title class="d-flex align-center">
             <template v-if="$auth.loggedIn">
               <v-badge
                 :content="$auth.user.infomation_unread_count"
@@ -148,7 +152,7 @@
             </template>
             <template v-else>
               <v-icon>mdi-bell</v-icon>
-              {{ $t('お知らせ') }}
+              <span class="ml-3">{{ $t('お知らせ') }}</span>
             </template>
           </v-list-item-title>
         </component>
@@ -207,9 +211,10 @@
       </v-container>
     </v-main>
 
-    <v-footer absolute app>
+    <v-footer absolute app class="pa-2" style="border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity))">
       <div class="flex-grow-1 text-center text-truncate">
-        <span class="hidden-sm-and-down">Copyright </span>&copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
+        <span class="hidden-sm-and-down">Copyright </span>
+        &copy; <a :href="$t('my_url')" target="_blank" rel="noopener noreferrer">{{ $t('my_name') }}</a> All Rights Reserved.
       </div>
     </v-footer>
 
@@ -229,8 +234,17 @@ const { t: $t, locale, locales } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 const { $auth } = useNuxtApp()
 
-const drawer = ref(!display.mobile.value)
+const storageDrawer = localStorage.getItem('drawer')
+const sizeLgUp = $config.public.env.test ? true : display.lgAndUp.value
+const drawer = ref(storageDrawer != null ? storageDrawer === '1' && sizeLgUp : sizeLgUp)
 const switchLocale = ref(locale.value)
+
+watch(drawer, (value) => {
+  /* c8 ignore next */ // eslint-disable-next-line no-console
+  if ($config.public.debug) { console.log('drawer', value) }
+
+  localStorage.setItem('drawer', value ? '1' : '0')
+})
 
 useHead({
   titleTemplate
@@ -241,13 +255,13 @@ function titleTemplate (title: string | undefined) {
 }
 
 const appBarTitleWidth = computed(() => {
-  const drawerIconWidth = 58 + 40
-  const switchLocaleWidth = locales.value.length >= 2 ? (display.xs.value ? 48 : 72) + 10 : 0
+  const drawerIconWidth = 10 + 48 + 4 + 40 + 4
+  const switchLocaleWidth = locales.value.length >= 2 ? (display.xs.value ? 48 : 76) : 0
   if ($auth.loggedIn) {
-    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 : 400) + 64 + switchLocaleWidth - 26)
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 : 400) + 64 + switchLocaleWidth + 20)
   } else {
-    const btnWidth = locale.value === 'ja' ? 111 + 158 : 96 + 219
-    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 * 2 : btnWidth) + switchLocaleWidth - 26)
+    const btnWidth = locale.value === 'ja' ? 119 + 166 : 104 + 184
+    return display.width.value - (drawerIconWidth + (display.smAndDown.value ? 64 * 2 : btnWidth) + switchLocaleWidth + 20)
   }
 })
 </script>
@@ -276,8 +290,7 @@ const appBarTitleWidth = computed(() => {
   --v-input-control-height: 32px; /* NOTE: v-switchの高さが40pxだと大きい為 */
 }
 .switch-locale .v-field {
-  font-size: 12px;
-  width: 72px;
+  font-size: 13px;
 }
 
 .md-preview {

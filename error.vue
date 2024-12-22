@@ -8,7 +8,7 @@
       <v-card-title>{{ alert }}</v-card-title>
       <v-card-text v-if="notice != null">{{ notice }}</v-card-text>
       <v-card-actions>
-        <NuxtLink :to="localePath('/')">{{ $t('トップページ') }}</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="ml-2">{{ $t('トップページ') }}</NuxtLink>
       </v-card-actions>
     </v-card>
   </NuxtLayout>
