@@ -3,7 +3,7 @@ import { commonConfig } from './config/common'
 import { cookieKey, defaultLocale, locales } from './i18n.config'
 
 const environment = process.env.NODE_ENV || 'development'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const config = require(`./config/${environment}.ts`)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -22,6 +22,7 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@nuxt/eslint',
     '@nuxtjs/i18n',
     '@sidebase/nuxt-auth'
   ],

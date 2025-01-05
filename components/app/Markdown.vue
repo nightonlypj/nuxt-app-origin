@@ -45,7 +45,8 @@ const md: any = new MarkdownIt({ // https://github.com/markdown-it/markdown-it, 
         return hljs.highlight(str, { language: lang }).value
         // return '<pre class="hljs"><code>' + hljs.highlight(str, { language: lang, ignoreIllegals: true }).value + '</code></pre>'
       /* c8 ignore start */
-      } catch (__) {}
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (__) { /* empty */ }
     }
     return ''
     // return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>'

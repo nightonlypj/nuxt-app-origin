@@ -139,9 +139,9 @@ describe('Image.vue', () => {
 
       // 入力
       // NOTE: InvalidStateError: Input elements of type "file" may only programmatically set the value to empty string.
-      // wrapper.find('#user_update_image_file').setValue([file])
+      // wrapper.find('#user_update_image_file').setValue(file)
       expect(wrapper.find('#user_update_image_file').exists()).toBe(true)
-      wrapper.vm.image = [file]
+      wrapper.vm.image = file
       await flushPromises()
 
       // アップロードボタン

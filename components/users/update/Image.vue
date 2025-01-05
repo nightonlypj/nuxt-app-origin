@@ -102,7 +102,7 @@ async function postUserImageUpdate (setErrors: any, values: any) {
   processing.value = true
 
   const [response, data] = await useApiRequest(apiRequestURL(locale.value, $config.public.userImageUpdateUrl), 'POST', {
-    image: image.value[0]
+    image: image.value
   }, 'form')
   responseUserImage(response, data, setErrors, values)
 }

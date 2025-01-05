@@ -13,6 +13,7 @@ afterEach(() => {
 })
 
 // Vuetify
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 global.ResizeObserver = require('resize-observer-polyfill')
 config.global.plugins = [vuetify]
 
