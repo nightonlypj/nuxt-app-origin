@@ -1,7 +1,7 @@
 <template>
   <v-data-table-server
     v-if="spaces != null && spaces.length > 0"
-    :headers="tableHeaders($t, $config.public.spaces.headers, $props.hiddenItems)"
+    :headers="tableHeaders($t, $config.public.spaces.headers, hiddenItems)"
     :items="spaces"
     :items-length="spaces.length"
     :items-per-page="-1"
@@ -40,7 +40,7 @@
 import SpacesIcon from '~/components/spaces/Icon.vue'
 import { tableHeaders, textTruncate } from '~/utils/display'
 
-const $props = defineProps({
+defineProps({
   spaces: {
     type: Array,
     default: null
@@ -63,6 +63,7 @@ const rowProps = computed(() => ({ item }: any) => {
 .v-data-table >>> .v-data-table-footer {
   display: none; /* NOTE: フッタを非表示にする為 */
 }
+
 .v-data-table.v-theme--dark >>> tr.row_inactive {
   background-color: #424242; /* grey darken-3 */
 }

@@ -1,5 +1,14 @@
 # リリースノート
 
+## 1.5.1 (Sprint 8)
+
+### Bug
+
+#### spaceブランチ
+
+- 追加項目がdefaultHiddenの場合に一覧に表示されてしまう
+  - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/573/
+
 ## 1.5.0 (Sprint 7)
 
 ### spaceブランチ
@@ -23,6 +32,8 @@
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/556/
 
 ### Bug
+
+#### spaceブランチ
 
 - メンバー一覧：検索でダウンロードすると結果が0件になる
   - https://dev.azure.com/nightonly/rails-app-origin/_workitems/edit/556/

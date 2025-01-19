@@ -1,7 +1,7 @@
 <template>
   <v-data-table-server
     v-if="invitations != null && invitations.length > 0"
-    :headers="tableHeaders($t, $config.public.invitations.headers, $props.hiddenItems)"
+    :headers="tableHeaders($t, $config.public.invitations.headers, hiddenItems)"
     :items="invitations"
     :items-length="invitations.length"
     :items-per-page="-1"
@@ -106,7 +106,7 @@ import UsersAvatar from '~/components/users/Avatar.vue'
 import { tableHeaders, dateTimeFormat } from '~/utils/display'
 import { memberPowerIcon } from '~/utils/members'
 
-const $props = defineProps({
+defineProps({
   invitations: {
     type: Array,
     default: null
@@ -153,6 +153,7 @@ async function copyInvitationURL (code: string) {
 .v-data-table >>> .v-data-table-footer {
   display: none; /* NOTE: フッタを非表示にする為 */
 }
+
 .v-data-table.v-theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }

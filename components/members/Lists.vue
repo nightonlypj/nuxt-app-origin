@@ -3,7 +3,7 @@
     v-if="members != null && members.length > 0"
     v-model="syncSelectedMembers"
     v-model:sort-by="syncSortBy"
-    :headers="tableHeaders($t, $config.public.members.headers, $props.hiddenItems, $props.admin)"
+    :headers="tableHeaders($t, $config.public.members.headers, hiddenItems, admin)"
     :items="members"
     :items-length="members.length"
     :items-per-page="-1"
@@ -126,10 +126,10 @@ const $props = defineProps({
   }
 })
 const $emit = defineEmits(['update:selectedMembers', 'reload', 'showUpdate'])
-const syncSelectedMembers = computed({
-  get: () => $props.selectedMembers,
-  set: (value: any) => $emit('update:selectedMembers', value)
-})
+const $config = useRuntimeConfig()
+const { t: $t, locale } = useI18n()
+const { $auth } = useNuxtApp()
+
 const syncSortBy: any = computed({
   get: () => [{ key: $props.sort, order: $props.desc ? 'desc' : 'asc' }],
   set: (value: any) => {
@@ -140,10 +140,10 @@ const syncSortBy: any = computed({
     }
   }
 })
-const $config = useRuntimeConfig()
-const { t: $t, locale } = useI18n()
-const { $auth } = useNuxtApp()
-
+const syncSelectedMembers = computed({
+  get: () => $props.selectedMembers,
+  set: (value: any) => $emit('update:selectedMembers', value)
+})
 const rowProps = computed(() => ({ item }: any) => {
   return $props.activeUserCodes.includes(item.user?.code) ? { class: 'row_active' } : null
 })
@@ -167,6 +167,7 @@ function dblclickRow (event: any, { item }: any) {
 .v-data-table >>> .v-data-table-footer {
   display: none; /* NOTE: フッタを非表示にする為 */
 }
+
 .v-data-table.v-theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }
@@ -178,18 +179,5 @@ function dblclickRow (event: any, { item }: any) {
 }
 .v-data-table.v-theme--light >>> tr:hover.row_active {
   background-color: #C5CAE9 !important; /* indigo lighten-4 */
-}
-/*
-.v-data-table >>> .v-data-table__thead.scroll {
-  position: fixed;
-}
-*/
-.v-table >>> th {
-  /* 縦スクロール時に固定する */
-  position: -webkit-sticky;
-  position: sticky;
-  top: 0;
-  /* tbody内のセルより手前に表示する */
-  z-index: 100;
 }
 </style>

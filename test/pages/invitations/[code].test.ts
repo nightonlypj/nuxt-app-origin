@@ -36,6 +36,7 @@ describe('[code].vue', () => {
   const fullPath = `/invitations/${space.code}`
   const model = 'invitation'
   const defaultHiddenItems = $config.public.invitations.headers.filter((item: any) => item.defaultHidden).map((item: any) => item.key)
+  const allItems = $config.public.invitations.headers.map((item: any) => item.key)
 
   const mountFunction = (loggedIn = true, query: object | null = null, values = { messages }) => {
     vi.stubGlobal('useApiRequest', mock.useApiRequest)
@@ -523,7 +524,7 @@ describe('[code].vue', () => {
   })
 
   describe('表示項目', () => {
-    it('null', async () => {
+    it('[localStorageに値がない]非表示項目が初期値', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
@@ -531,7 +532,8 @@ describe('[code].vue', () => {
 
       expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems)
     })
-    it('空', async () => {
+    it('[localStorageがすべて表示]非表示項目が空', async () => {
+      localStorage.setItem(`${model}.show-items`, allItems.join(','))
       localStorage.setItem(`${model}.hidden-items`, '')
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
@@ -540,14 +542,15 @@ describe('[code].vue', () => {
 
       expect(wrapper.vm.hiddenItems).toEqual([])
     })
-    it('配列', async () => {
-      localStorage.setItem(`${model}.hidden-items`, defaultHiddenItems.join(',') + ',,dumy')
+    it('[localStorageがすべて非表示]非表示項目がすべて', async () => {
+      localStorage.setItem(`${model}.show-items`, '')
+      localStorage.setItem(`${model}.hidden-items`, allItems.join(','))
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems)
+      expect(wrapper.vm.hiddenItems).toEqual(allItems)
     })
   })
 
