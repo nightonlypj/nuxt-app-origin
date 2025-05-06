@@ -51,7 +51,7 @@ $ brew doctor
 Your system is ready to brew.
 
 $ brew -v
-Homebrew 4.4.10
+Homebrew 4.5.0
 ※バージョンは異なっても良い
 ```
 
@@ -80,26 +80,26 @@ export NVM_DIR="$HOME/.nvm"
 $ source ~/.bash_profile
 
 $ nvm --version
-0.40.1
+0.40.3
 ※バージョンは異なっても良い
 ```
 ```
 $ nvm ls-remote | grep 'Latest LTS'
-       v18.20.5   (Latest LTS: Hydrogen)
-       v20.18.1   (Latest LTS: Iron)
-       v22.12.0   (Latest LTS: Jod)
+       v18.20.8   (Latest LTS: Hydrogen)
+       v20.19.1   (Latest LTS: Iron)
+       v22.15.0   (Latest LTS: Jod)
 
-$ nvm install v22.12.0
-（$ nvm use v22.12.0）
-（$ nvm alias default v22.12.0）
+$ nvm install v22.15.0
+（$ nvm use v22.15.0）
+（$ nvm alias default v22.15.0）
 
 $ node -v
-v22.12.0
+v22.15.0
 
 $ nvm ls
-->     v22.12.0
+->     v22.15.0
          system
-default -> v22.12.0
+default -> v22.15.0
 ```
 
 ### yarnインストール
