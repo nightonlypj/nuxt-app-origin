@@ -86,20 +86,20 @@ $ nvm --version
 ```
 $ nvm ls-remote | grep 'Latest LTS'
        v18.20.8   (Latest LTS: Hydrogen)
-       v20.19.1   (Latest LTS: Iron)
-       v22.15.0   (Latest LTS: Jod)
+       v20.19.2   (Latest LTS: Iron)
+       v22.16.0   (Latest LTS: Jod)
 
-$ nvm install v22.15.0
-（$ nvm use v22.15.0）
-（$ nvm alias default v22.15.0）
+$ nvm install v22.16.0
+（$ nvm use v22.16.0）
+（$ nvm alias default v22.16.0）
 
 $ node -v
-v22.15.0
+v22.16.0
 
 $ nvm ls
-->     v22.15.0
+->     v22.16.0
          system
-default -> v22.15.0
+default -> v22.16.0
 ```
 
 ### yarnインストール
