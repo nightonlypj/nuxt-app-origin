@@ -1,4 +1,4 @@
-export const ja = {
+export default {
   app_name: 'NuxtAppOrigin',
   sub_title: ': ベースアプリケーション',
   env_name: {

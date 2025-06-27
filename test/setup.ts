@@ -6,6 +6,8 @@ import { vuetify } from '~/plugins/vuetify'
 import veeValidate from '~/plugins/veeValidate'
 import i18nConfig, { locales } from '~/i18n.config'
 import helper from '~/test/helper'
+import en from '~/locales/en'
+import ja from '~/locales/ja'
 
 // NOTE: 他のテストの影響を受けないようにする
 afterEach(() => {
@@ -21,7 +23,14 @@ config.global.plugins = [vuetify]
 veeValidate(null as any)
 
 // Mock Config/i18n
-const i18n: any = createI18n({ ...i18nConfig, locale: helper.locale })
+const i18n: any = createI18n({
+  ...i18nConfig,
+  locale: helper.locale,
+  messages: {
+    en,
+    ja
+  }
+} as any)
 config.global.mocks = {
   $config: { public: Object.assign(commonConfig, envConfig, { env: { production: false, development: false, test: true } }) },
   $t: (...args: any[]) => i18n.global.t(...args),
@@ -33,3 +42,19 @@ vi.stubGlobal('useLocalePath', vi.fn(() => (url: string) => url))
 
 // NOTE: Failed to resolve component: NuxtLink
 config.global.stubs.NuxtLink = RouterLinkStub
+
+// NOTE: happy-dom -> ReferenceError: visualViewport is not defined
+Object.defineProperty(window, 'visualViewport', {
+  writable: true,
+  value: {
+    width: 1024,
+    height: 768,
+    scale: 1,
+    offsetLeft: 0,
+    offsetTop: 0,
+    pageLeft: 0,
+    pageTop: 0,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn()
+  }
+})

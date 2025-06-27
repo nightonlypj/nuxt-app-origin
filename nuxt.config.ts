@@ -1,6 +1,6 @@
 import vuetify from 'vite-plugin-vuetify'
 import { commonConfig } from './config/common'
-import { cookieKey, defaultLocale, locales } from './i18n.config'
+import { cookieKey, defaultLocale, locales, langDir } from './i18n.config'
 
 const environment = process.env.NODE_ENV || 'development'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -35,7 +35,8 @@ export default defineNuxtConfig({
     },
     defaultLocale,
     locales,
-    vueI18n: './i18n.config.ts'
+    langDir,
+    vueI18n: '../i18n.config.ts'
   },
 
   auth: {
