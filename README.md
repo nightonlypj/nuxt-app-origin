@@ -3,33 +3,12 @@
 運営元が情報提供して1つのサービスを作る（BtoC向け）  
 (Nuxt 3.17.5)
 
-## コマンドメモ
-
-```
-yarn install
-yarn dev -o
-
-yarn test （ファイル名）
-yarn test:coverage （ファイル名）
-yarn test:watch （ファイル名）
-open coverage/index.html
-
-yarn lint
-yarn lint:fix
-yarn eslint ファイル名
-yarn eslint:fix ファイル名
-```
-```
-yarn generate
-```
-
 ## 環境構築手順（Macの場合）
 
 ### Homebrewインストール
 
 ```
 $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-Warning: /opt/homebrew/bin is not in your PATH.
 （$ brew update）
 
 ※zshの場合(Catalina以降)
@@ -113,7 +92,9 @@ $ brew install yarn
 ※bashの場合
 $ vi ~/.bash_profile
 ---- ここから ----
+### START ###
 export PATH="/opt/homebrew/opt/icu4c/bin:/opt/homebrew/opt/icu4c/sbin:$PATH"
+### END ###
 ---- ここまで ----
 
 ※zshの場合(Catalina以降)
@@ -130,8 +111,25 @@ $ yarn -v
 
 ```
 $ cd nuxt-app-origin
-$ yarn install
+$ NODE_ENV=development yarn install
 Done
 
 $ yarn dev -o
+```
+
+### その他
+
+```
+yarn test （ファイル名）
+yarn test:coverage （ファイル名）
+yarn test:watch （ファイル名）
+open coverage/index.html
+
+yarn lint
+yarn lint:fix
+yarn eslint ファイル名
+yarn eslint:fix ファイル名
+```
+```
+yarn generate
 ```
