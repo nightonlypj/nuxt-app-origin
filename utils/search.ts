@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/named
 import { sortBy, isEqual } from 'lodash'
 
 // 一定時間停止

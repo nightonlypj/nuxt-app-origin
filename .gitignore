@@ -7,7 +7,10 @@
 dist
 
 # Node dependencies
-node_modules
+/node_modules/
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
 
 # Logs
 logs
@@ -15,15 +18,18 @@ logs
 
 # Misc
 .DS_Store
-.fleet
-.idea
+desktop.ini
+Thumbs.db
+.fleet/
+.idea/
+nbproject/
 
 # Local env files
-.env
-.env.*
+.env*
 !.env.example
 
 # Coverage directory used by tools like istanbul
 /coverage*
 
+# NOTE: 環境で切り替える為
 /public/robots.txt

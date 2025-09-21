@@ -16,7 +16,7 @@
     variant="outlined"
     hide-details="auto"
     :disabled="disabled"
-    :error-messages="errorMessages"
+    :error-messages="errorMessage"
     @update:search="updateItems(null, searchKey)"
     @update:menu="updateItems($event, searchKey)"
   >
@@ -25,7 +25,7 @@
       return-objectでもitem-value（ユニークな値）は必要。無いとno-filterでもitem-textが重複する値が表示されない
     -->
     <!-- 選択項目 -->
-    <template #chip="{ props, item }">
+    <template #chip="{ props, item }: any">
       <v-chip
         v-bind="props"
         :prepend-avatar="item.raw.image_url.mini"
@@ -35,7 +35,7 @@
       />
     </template>
     <!-- サジェスト項目 -->
-    <template #item="{ props, item }">
+    <template #item="{ props, item }: any">
       <v-list-item
         v-bind="props"
         :prepend-avatar="item.raw.image_url.large"
@@ -68,19 +68,19 @@ const $props = defineProps({
     type: Boolean,
     default: true
   },
-  errorMessages: {
-    type: Array,
-    default: null
+  errorMessage: {
+    type: String,
+    default: ''
   }
 })
 const $emit = defineEmits(['update:modelValue'])
-const syncModelValue = computed({
+const syncModelValue: any = computed({
   get: () => $props.modelValue,
   set: (value: object) => $emit('update:modelValue', value)
 })
 
-const pages = ref({}) // NOTE: APIから取得した場合のみセットして、キャッシュ存在チェックに使う
-const items = ref({})
+const pages = ref<any>({}) // NOTE: APIから取得した場合のみセットして、キャッシュ存在チェックに使う
+const items = ref<any>({})
 const search = ref<any>(null)
 const loading = ref<any>({})
 const searchKey = computed(() => search.value || '')
