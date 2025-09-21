@@ -7,7 +7,7 @@
       <DevelopmentSuggest
         v-model="user"
         :disabled="disabled"
-        :error-messages="error === '' ? null : [error]"
+        :error-message="errorMessage"
         @update:model-value="waiting = false"
       >
         <!-- 選択項目 -->
@@ -31,7 +31,7 @@
       <div>waiting: {{ waiting }}</div>
       <div class="d-flex mt-2">
         <v-checkbox v-model="disabled" color="primary" label="無効" density="compact" hide-details />
-        <v-text-field v-model="error" label="エラーメッセージ" density="compact" variant="outlined" hide-details class="ml-4" />
+        <v-text-field v-model="errorMessage" label="エラーメッセージ" density="compact" variant="outlined" hide-details class="ml-4" />
       </div>
     </v-card-text>
   </v-card>
@@ -47,7 +47,7 @@ const waiting = ref(true)
 // const user = ref<any>(null)
 const user = ref<any>({ code: 'code1', name: 'name1', email: 'name1@example.com', image_url: { mini: 'https://api.nightonly.com/images/user/mini_noimage.jpg', large: 'https://api.nightonly.com/images/user/medium_noimage.jpg' } })
 const disabled = ref(false)
-const error = ref('')
+const errorMessage = ref('')
 
 /* c8 ignore start */
 if (!$config.public.developmentMenu) {

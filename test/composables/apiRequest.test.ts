@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/named
 import { isEmpty } from 'lodash'
 import helper from '~/test/helper'
 import { useApiRequest } from '~/composables/apiRequest'

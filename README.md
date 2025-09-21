@@ -1,27 +1,7 @@
 # Nuxt.js(Vue.js/Vuetify)ベースアプリケーション（spaceブランチ）
 
 運営元とユーザー同士が作成したスペース上で情報共有する（BtoC向け）  
-(Nuxt 3.14.1592)
-
-## コマンドメモ
-
-```
-yarn install
-yarn dev -o
-
-yarn test （ファイル名）
-yarn test:coverage （ファイル名）
-yarn test:watch （ファイル名）
-open coverage/index.html
-
-yarn lint
-yarn lint:fix
-yarn eslint ファイル名
-yarn eslint:fix ファイル名
-```
-```
-yarn generate
-```
+(Nuxt 4.1.2)
 
 ## 環境構築手順（Macの場合）
 
@@ -29,7 +9,6 @@ yarn generate
 
 ```
 $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-Warning: /opt/homebrew/bin is not in your PATH.
 （$ brew update）
 
 ※zshの場合(Catalina以降)
@@ -51,7 +30,7 @@ $ brew doctor
 Your system is ready to brew.
 
 $ brew -v
-Homebrew 4.4.10
+Homebrew 4.6.9
 ※バージョンは異なっても良い
 ```
 
@@ -80,26 +59,25 @@ export NVM_DIR="$HOME/.nvm"
 $ source ~/.bash_profile
 
 $ nvm --version
-0.40.1
+0.40.3
 ※バージョンは異なっても良い
 ```
 ```
 $ nvm ls-remote | grep 'Latest LTS'
-       v18.20.5   (Latest LTS: Hydrogen)
-       v20.18.1   (Latest LTS: Iron)
-       v22.12.0   (Latest LTS: Jod)
+       v18.20.8   (Latest LTS: Hydrogen)
+       v20.19.5   (Latest LTS: Iron)
+       v22.19.0   (Latest LTS: Jod)
 
-$ nvm install v22.12.0
-（$ nvm use v22.12.0）
-（$ nvm alias default v22.12.0）
+$ nvm install v22.19.0
+（$ nvm use v22.19.0）
+（$ nvm alias default v22.19.0）
 
 $ node -v
-v22.12.0
+v22.19.0
 
 $ nvm ls
-->     v22.12.0
-         system
-default -> v22.12.0
+->     v22.19.0
+default -> v22.19.0
 ```
 
 ### yarnインストール
@@ -113,7 +91,9 @@ $ brew install yarn
 ※bashの場合
 $ vi ~/.bash_profile
 ---- ここから ----
+### START ###
 export PATH="/opt/homebrew/opt/icu4c/bin:/opt/homebrew/opt/icu4c/sbin:$PATH"
+### END ###
 ---- ここまで ----
 
 ※zshの場合(Catalina以降)
@@ -129,9 +109,26 @@ $ yarn -v
 ### 起動まで
 
 ```
-$ cd nuxt-app-origin
-$ yarn install
-Done
+$ cp -a .env.example .env
+
+$ NODE_ENV=development yarn install
 
 $ yarn dev -o
+```
+
+### その他
+
+```
+yarn test （ファイル名）
+yarn test:coverage （ファイル名）
+yarn test:watch （ファイル名）
+open coverage/index.html
+
+yarn lint
+yarn lint:fix
+yarn eslint ファイル名
+yarn eslint:fix ファイル名
+```
+```
+yarn generate
 ```

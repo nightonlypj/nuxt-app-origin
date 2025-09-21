@@ -93,6 +93,7 @@ const rowProps = computed(() => ({ item }: any) => {
 .v-data-table >>> .v-data-table-footer {
   display: none; /* NOTE: フッタを非表示にする為 */
 }
+
 .v-data-table.v-theme--dark >>> tr.row_active {
   background-color: #1A237E; /* indigo darken-4 */
 }

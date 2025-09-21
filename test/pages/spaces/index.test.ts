@@ -375,31 +375,33 @@ describe('index.vue', () => {
 
   /*
   describe('表示項目', () => {
-    it('null', async () => {
+    it('[localStorageに値がない]非表示項目が初期値', async () => {
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems.split(','))
+      expect(wrapper.vm.hiddenItems).toEqual(defaultHiddenItems)
     })
-    it('空', async () => {
+    it('[localStorageがすべて表示]非表示項目が空', async () => {
+      localStorage.setItem(`${model}.show-items`, allItems.join(','))
       localStorage.setItem(`${model}.hidden-items`, '')
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual([''])
+      expect(wrapper.vm.hiddenItems).toEqual([])
     })
-    it('配列', async () => {
-      localStorage.setItem(`${model}.hidden-items`, 'test1,test2')
+    it('[localStorageがすべて非表示]非表示項目がすべて', async () => {
+      localStorage.setItem(`${model}.show-items`, '')
+      localStorage.setItem(`${model}.hidden-items`, allItems.join(','))
       mock.useApiRequest = vi.fn(() => [{ ok: true, status: 200, headers: mock.headers }, dataPage1])
       const wrapper = mountFunction()
       helper.loadingTest(wrapper, AppLoading)
       await flushPromises()
 
-      expect(wrapper.vm.hiddenItems).toEqual(['test1', 'test2'])
+      expect(wrapper.vm.hiddenItems).toEqual(allItems)
     })
   })
   */

@@ -1,9 +1,9 @@
 import vuetify from 'vite-plugin-vuetify'
 import { commonConfig } from './config/common'
-import { cookieKey, defaultLocale, locales } from './i18n.config'
+import { cookieKey, defaultLocale, locales, langDir } from './i18n.config'
 
 const environment = process.env.NODE_ENV || 'development'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const config = require(`./config/${environment}.ts`)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -22,6 +22,7 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@nuxt/eslint',
     '@nuxtjs/i18n',
     '@sidebase/nuxt-auth'
   ],
@@ -34,7 +35,8 @@ export default defineNuxtConfig({
     },
     defaultLocale,
     locales,
-    vueI18n: './i18n.config.ts'
+    langDir,
+    vueI18n: '../i18n.config.ts'
   },
 
   auth: {
