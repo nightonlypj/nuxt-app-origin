@@ -109,9 +109,9 @@ $ yarn -v
 ### 起動まで
 
 ```
-$ cd nuxt-app-origin
+$ cp -a .env.example .env
+
 $ NODE_ENV=development yarn install
-Done
 
 $ yarn dev -o
 ```
