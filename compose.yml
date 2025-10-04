@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    command: >
+      /bin/sh -c "
+        NODE_ENV=development yarn install &&
+        yarn dev
+      "
+    stdin_open: true
+    tty: true
+    working_dir: /workdir
+    volumes:
+      - .:/workdir:cached
+      - node_modules:/workdir/node_modules
+    ports:
+      - 5000:5000
+
+volumes:
+  node_modules:
