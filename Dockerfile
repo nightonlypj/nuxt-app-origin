@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/node
-FROM node:22.19.0-alpine
+FROM node:24.11.1-alpine3.21
 RUN apk add --no-cache \
     tzdata \
     musl-locales \
