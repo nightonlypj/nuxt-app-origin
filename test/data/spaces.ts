@@ -14,7 +14,7 @@ const detail = Object.freeze({
   description: 'スペース1の説明',
   private: true
 })
-const detailPower = computed(() => (power: String) => {
+const detailPower = computed(() => (power: string) => {
   return {
     ...detail,
     current_member: {
@@ -23,7 +23,7 @@ const detailPower = computed(() => (power: String) => {
     }
   }
 })
-const detailDestroy = computed(() => (power: String) => {
+const detailDestroy = computed(() => (power: string) => {
   return {
     ...detailPower.value(power),
     destroy_requested_at: '2000-01-01T12:34:56+09:00',

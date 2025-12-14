@@ -294,6 +294,6 @@ export default {
   完了日時: '完了日時',
   ステータス: 'ステータス',
   ファイル: 'ファイル',
-  // eslint-disable-next-line quote-props
+   
   '対象・形式等': '対象・形式等'
 }

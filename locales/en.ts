@@ -294,6 +294,6 @@ export default {
   完了日時: 'Completion datetime',
   ステータス: 'Status',
   ファイル: 'File',
-  // eslint-disable-next-line quote-props
+   
   '対象・形式等': 'Target/format etc.'
 }
