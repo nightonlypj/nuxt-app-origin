@@ -12,6 +12,7 @@ import ja from '~/locales/ja'
 // NOTE: 他のテストの影響を受けないようにする
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.clearAllMocks()
 })
 
 // Vuetify
