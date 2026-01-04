@@ -27,7 +27,7 @@ describe('Search.vue', () => {
   // テスト内容
   const viewTest = async (wrapper: any, admin: boolean) => {
     const text = wrapper.find('#member_search_text')
-    expect(text.element.attributes[0].value).toBe($t(admin ? 'ユーザー名やメールアドレスを入力' : 'ユーザー名を入力'))
+    expect(text.attributes('placeholder')).toBe($t(admin ? 'ユーザー名やメールアドレスを入力' : 'ユーザー名を入力'))
 
     // 検索ボタン
     const button = wrapper.find('#member_search_btn')

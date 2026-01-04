@@ -154,7 +154,7 @@
 <script setup lang="ts">
 import { Form, Field, defineRule } from 'vee-validate'
 import { setLocale } from '@vee-validate/i18n'
-// eslint-disable-next-line camelcase
+ 
 import { required, one_of, min, max, size } from '@vee-validate/rules'
 import AppProcessing from '~/components/app/Processing.vue'
 import AppRequiredLabel from '~/components/app/RequiredLabel.vue'

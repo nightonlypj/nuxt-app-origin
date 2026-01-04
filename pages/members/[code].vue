@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-// eslint-disable-next-line import/named
+ 
 import { sortBy, isEqual } from 'lodash'
 import InfiniteLoading from 'v3-infinite-loading'
 import AppErrorRetry from '~/components/app/ErrorRetry.vue'

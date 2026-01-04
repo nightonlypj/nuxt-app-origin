@@ -197,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-// eslint-disable-next-line import/named
+ 
 import { sortBy, isEqual } from 'lodash'
 import { Form, Field, defineRule } from 'vee-validate'
 import { setLocale } from '@vee-validate/i18n'
